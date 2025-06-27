@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BlueChip Signals - FAQ</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary-gold: #b3a17d;
+            --secondary-gold: #E2CFB5;
+            --dark-bg: #080B0F;
+            --darker-bg: #080B0F;
+            --light-text: #FFFFFF;
+            --gray-text: #A0A0A0;
+            --success-green: #2a571f;
+            --danger-red: #FF3B3B;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background-color: var(--dark-bg);
+            color: var(--light-text);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        /* Navigation */
+        nav {
+            background: rgba(5, 8, 16, 0.8);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            position: fixed;
+            width: 100%;
+            top: 0;
+            z-index: 1000;
+            padding: 0.5rem 0;
+        }
+
+        .nav-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .logo img {
+            width: 50px;
+            height: 50px;
+            
+        }
+
+        .logo h1 {
+            color: var(--primary-gold);
+            font-size: 1.5rem;
+            font-weight: 700;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 2rem;
+            list-style: none;
+        }
+
+        .nav-links a {
+            color: var(--light-text);
+            text-decoration: none;
+            transition: color 0.3s;
+        }
+
+        .nav-links a:hover {
+            color: var(--primary-gold);
+        }
+
+        /* FAQ Section */
+        .faq {
+            padding: 8rem 2rem 4rem;
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        .section-title {
+            text-align: center;
+            font-size: 2.5rem;
+            margin-bottom: 3rem;
+            color: var(--primary-gold);
+        }
+
+        .faq-item {
+            background: rgba(26, 31, 46, 0.5);
+            border: 1px solid rgba(201, 176, 55, 0.2);
+            border-radius: 15px;
+            margin-bottom: 1.5rem;
+            overflow: hidden;
+        }
+
+        .faq-question {
+            padding: 1.5rem 2rem;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 1.2rem;
+            font-weight: 600;
+        }
+
+        .faq-question:after {
+            content: '+';
+            font-size: 2rem;
+            color: var(--primary-gold);
+            transition: transform 0.3s;
+        }
+
+        .faq-answer {
+            padding: 0 2rem;
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.5s ease-out, padding 0.5s ease-out;
+        }
+        
+        .faq-answer p {
+            padding-bottom: 1.5rem;
+            color: var(--gray-text);
+        }
+
+        .faq-item.active .faq-answer {
+            max-height: 300px; /* Adjust as needed */
+            padding-top: 1rem;
+        }
+        
+        .faq-item.active .faq-question:after {
+             transform: rotate(45deg);
+        }
+
+        /* Footer */
+        footer {
+            background: var(--darker-bg);
+            padding: 2rem;
+            text-align: center;
+            border-top: 1px solid rgba(201, 176, 55, 0.2);
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav>
+        <div class="nav-container">
+            <div class="logo">
+                <a href="bluechip-signals-website.html"><img src="logo.png" alt="BlueChip Signals Logo" style="height: 80px; width: 80px;"></a>
+            </div>
+            <ul class="nav-links">
+                <li><a href="bluechip-signals-website.html#features">Features</a></li>
+                <li><a href="bluechip-signals-website.html#bots">Our Bots</a></li>
+                <li><a href="bluechip-signals-website.html#pricing">Pricing</a></li>
+                <li><a href="bluechip-signals-website.html#testimonials">Testimonials</a></li>
+                <li><a href="faq.html">FAQ</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- FAQ Section -->
+    <section class="faq">
+        <h2 class="section-title">Frequently Asked Questions</h2>
+
+        <div class="faq-item">
+            <div class="faq-question">What is BlueChip Signals?</div>
+            <div class="faq-answer">
+                <p>BlueChip Signals is a premium service that provides real-time trading signals for blue-chip stocks like SPY, META, AAPL, TSLA, NVDA, and AMZN. We use a proprietary momentum breakout strategy based on VWAP and MFI indicators to identify high-probability trading opportunities.</p>
+            </div>
+        </div>
+
+        <div class="faq-item">
+            <div class="faq-question">How are the signals delivered?</div>
+            <div class="faq-answer">
+                <p>All signals are sent instantly via dedicated Telegram channels. Once you subscribe, you'll get access to the channels for the bots included in your plan.</p>
+            </div>
+        </div>
+
+        <div class="faq-item">
+            <div class="faq-question">How many signals can I expect per day?</div>
+            <div class="faq-answer">
+                <p>Each of our trading bots generates between 4 to 7 high-quality signals per trading day, ensuring you have a steady stream of opportunities.</p>
+            </div>
+        </div>
+
+        <div class="faq-item">
+            <div class="faq-question">Do I need any trading experience?</div>
+            <div class="faq-answer">
+                <p>No, our signals are designed to be easy to follow for everyone, from beginners to experienced traders. We provide all the necessary details, including the exact entry point and suggested options contract.</p>
+            </div>
+        </div>
+        
+        <div class="faq-item">
+            <div class="faq-question">What do the signals include?</div>
+            <div class="faq-answer">
+                <p>Each signal includes the stock ticker, whether it's a buy (call) or sell (put) signal, the strike price for the suggested options contract, the premium, and the expiration date.</p>
+            </div>
+        </div>
+
+        <div class="faq-item">
+            <div class="faq-question">Can I cancel my subscription?</div>
+            <div class="faq-answer">
+                <p>Yes, you can cancel your subscription at any time. You will retain access to the service for the remainder of your billing period.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+        <p>&copy; 2025 BlueChip Signals. All rights reserved. | <a href="legal.html" style="color: var(--primary-gold); text-decoration: none;">Legal Disclaimer</a> | <a href="bluechip-signals-website.html" style="color: var(--primary-gold); text-decoration: none;">Back to Home</a></p>
+    </footer>
+
+    <script>
+        const faqItems = document.querySelectorAll('.faq-item');
+
+        faqItems.forEach(item => {
+            const question = item.querySelector('.faq-question');
+            question.addEventListener('click', () => {
+                const isActive = item.classList.contains('active');
+                faqItems.forEach(i => i.classList.remove('active'));
+                if (!isActive) {
+                    item.classList.add('active');
+                }
+            });
+        });
+    </script>
+</body>
+</html>

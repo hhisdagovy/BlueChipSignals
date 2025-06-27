@@ -1,0 +1,977 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BlueChip Signals - Elite Trading Signals</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary-gold: #b3a17d;
+            --secondary-gold: #E2CFB5;
+            --dark-bg: #080B0F;
+            --darker-bg: #080B0F;
+            --light-text: #FFFFFF;
+            --gray-text: #A0A0A0;
+            --success-green: #2a571f;
+            --danger-red: #FF3B3B;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background-color: var(--dark-bg);
+            color: var(--light-text);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        /* Navigation */
+        nav {
+            background: rgba(5, 8, 16, 0.8);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            position: fixed;
+            width: 100%;
+            top: 0;
+            z-index: 1000;
+            padding: 0.5rem 0;
+        }
+
+        .nav-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .logo img {
+            width: 50px;
+            height: 50px;
+            
+        }
+
+        .logo-shield {
+            width: 50px;
+            height: 50px;
+            background: linear-gradient(135deg, var(--primary-gold), var(--secondary-gold));
+            -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cpath d='M50 10 L80 25 L80 55 C80 70 70 85 50 90 C30 85 20 70 20 55 L20 25 Z'/%3E%3C/svg%3E") center/contain no-repeat;
+            mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cpath d='M50 10 L80 25 L80 55 C80 70 70 85 50 90 C30 85 20 70 20 55 L20 25 Z'/%3E%3C/svg%3E") center/contain no-repeat;
+        }
+
+        .logo h1 {
+            color: var(--primary-gold);
+            font-size: 1.5rem;
+            font-weight: 700;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 2rem;
+            list-style: none;
+        }
+
+        .nav-links a {
+            color: var(--light-text);
+            text-decoration: none;
+            transition: color 0.3s;
+        }
+
+        .nav-links a:hover {
+            color: var(--primary-gold);
+        }
+
+        /* Hero Section */
+        .hero {
+            margin-top: 80px;
+            padding: 4rem 2rem;
+            min-height: 80vh;
+            display: flex;
+            align-items: center;
+            background: radial-gradient(circle at 50% 50%, rgba(201, 176, 55, 0.1), transparent 50%);
+        }
+
+        .hero-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 4rem;
+            align-items: center;
+        }
+
+        .hero-content h2 {
+            font-size: 3.5rem;
+            line-height: 1.2;
+            margin-bottom: 1.5rem;
+            background: linear-gradient(135deg, var(--primary-gold), var(--secondary-gold));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .hero-content p {
+            font-size: 1.25rem;
+            color: var(--gray-text);
+            margin-bottom: 2rem;
+        }
+
+        .cta-button {
+            display: inline-block;
+            background: linear-gradient(135deg, var(--primary-gold), var(--secondary-gold));
+            color: var(--darker-bg);
+            padding: 1rem 2.5rem;
+            border-radius: 50px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+
+        .cta-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(201, 176, 55, 0.3);
+        }
+
+        .hero-visual {
+            position: relative;
+            perspective: 1000px;
+        }
+
+        .phone-mockup {
+            background: var(--darker-bg);
+            border: 2px solid var(--primary-gold);
+            border-radius: 30px;
+            padding: 1rem;
+            box-shadow: 0 20px 60px rgba(201, 176, 55, 0.2);
+            position: relative;
+            height: 500px;
+            overflow: hidden;
+        }
+
+        .signal-carousel {
+            position: relative;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .signal-preview {
+            background: #1a1f2e;
+            border-radius: 15px;
+            padding: 1.5rem;
+            position: absolute;
+            width: 90%;
+            transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+            transform-origin: center;
+            cursor: pointer;
+        }
+
+        .signal-preview.active {
+            transform: translateY(0) scale(1);
+            opacity: 1;
+            z-index: 3;
+        }
+
+        .signal-preview.next {
+            transform: translateY(80px) scale(0.9);
+            opacity: 0.5;
+            z-index: 2;
+        }
+
+        .signal-preview.prev {
+            transform: translateY(-80px) scale(0.9);
+            opacity: 0.5;
+            z-index: 2;
+        }
+
+        .signal-preview.hidden {
+            transform: translateY(100px) scale(0.8);
+            opacity: 0;
+            z-index: 1;
+        }
+
+        .signal-header {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .signal-icon {
+            width: 40px;
+            height: 40px;
+            background: #0088cc;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            color: white;
+            font-size: 1.5rem;
+        }
+
+        .signal-title {
+            flex: 1;
+        }
+
+        .signal-details {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 10px;
+            padding: 1rem;
+            font-family: monospace;
+        }
+
+        .carousel-indicators {
+            position: absolute;
+            bottom: -30px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 8px;
+        }
+
+        .carousel-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: rgba(201, 176, 55, 0.3);
+            transition: all 0.3s;
+            cursor: pointer;
+        }
+
+        .carousel-dot.active {
+            background: var(--primary-gold);
+            width: 24px;
+            border-radius: 4px;
+        }
+
+        /* Features Section */
+        .features {
+            padding: 4rem 2rem;
+            background: var(--darker-bg);
+        }
+
+        .features-container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .section-title {
+            text-align: center;
+            font-size: 2.5rem;
+            margin-bottom: 3rem;
+            color: var(--primary-gold);
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+        }
+
+        .feature-card {
+            background: rgba(26, 31, 46, 0.5);
+            border: 1px solid rgba(201, 176, 55, 0.2);
+            border-radius: 15px;
+            padding: 2rem;
+            transition: transform 0.3s, border-color 0.3s;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-5px);
+            border-color: var(--primary-gold);
+        }
+
+        .feature-icon {
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, var(--primary-gold), var(--secondary-gold));
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 1.5rem;
+            font-size: 1.5rem;
+        }
+
+        /* Bots Section */
+        .bots {
+            padding: 4rem 2rem;
+        }
+
+        .bots-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .bot-card {
+            background: linear-gradient(135deg, rgba(201, 176, 55, 0.1), rgba(184, 134, 11, 0.1));
+            border: 1px solid var(--primary-gold);
+            border-radius: 15px;
+            padding: 2rem;
+            text-align: center;
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+
+        .bot-card:hover {
+            transform: scale(1.05);
+            box-shadow: 0 10px 30px rgba(201, 176, 55, 0.3);
+        }
+
+        .bot-symbol {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--primary-gold);
+            margin-bottom: 0.5rem;
+        }
+
+        .bot-name {
+            color: var(--gray-text);
+        }
+
+        /* Pricing Section */
+        .pricing {
+            padding: 4rem 2rem;
+            background: var(--darker-bg);
+        }
+
+        .pricing-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .pricing-card {
+            background: rgba(26, 31, 46, 0.8);
+            border: 2px solid rgba(201, 176, 55, 0.3);
+            border-radius: 20px;
+            padding: 3rem 2rem;
+            text-align: center;
+            position: relative;
+            transition: transform 0.3s, border-color 0.3s;
+        }
+
+        .pricing-card.featured {
+            border-color: var(--primary-gold);
+            transform: scale(1.05);
+        }
+
+        .pricing-card:hover {
+            border-color: var(--primary-gold);
+            transform: translateY(-5px);
+        }
+
+        .price-tag {
+            font-size: 3rem;
+            font-weight: 700;
+            color: var(--primary-gold);
+            margin: 1rem 0;
+        }
+
+        .price-period {
+            font-size: 1rem;
+            color: var(--gray-text);
+        }
+
+        .savings-badge {
+            position: absolute;
+            top: -15px;
+            right: 20px;
+            background: var(--success-green);
+            color: var(--darker-bg);
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-weight: 600;
+        }
+
+        /* Testimonials */
+        .testimonials {
+            padding: 4rem 2rem;
+        }
+
+        .testimonials-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .testimonial-card {
+            background: rgba(26, 31, 46, 0.5);
+            border-radius: 15px;
+            padding: 2rem;
+            position: relative;
+        }
+
+        .quote-mark {
+            font-size: 3rem;
+            color: var(--primary-gold);
+            opacity: 0.3;
+            position: absolute;
+            top: 10px;
+            left: 20px;
+        }
+
+        .testimonial-text {
+            margin: 1.5rem 0;
+            font-style: italic;
+            color: var(--gray-text);
+        }
+
+        .testimonial-author {
+            color: var(--primary-gold);
+            font-weight: 600;
+        }
+
+        .rating {
+            color: var(--primary-gold);
+            margin-bottom: 1rem;
+        }
+
+        /* Footer */
+        footer {
+            background: var(--darker-bg);
+            padding: 2rem;
+            text-align: center;
+            border-top: 1px solid rgba(201, 176, 55, 0.2);
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .hero-container {
+                grid-template-columns: 1fr;
+            }
+            
+            .hero-content h2 {
+                font-size: 2.5rem;
+            }
+            
+            .nav-links {
+                display: none;
+            }
+        }
+
+        /* Animations */
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        .phone-mockup {
+            animation: float 3s ease-in-out infinite;
+        }
+    </style>
+    <script async
+        src="https://js.stripe.com/v3/buy-button.js">
+    </script>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav>
+        <div class="nav-container">
+
+            <div class="logo">
+                <img src="logo.png" alt="BlueChip Signals Logo" style="height: 80px; width: 80px;">
+            </div>
+            <ul class="nav-links">
+                <li><a href="#features">Features</a></li>
+                <li><a href="#bots">Our Bots</a></li>
+                <li><a href="#pricing">Pricing</a></li>
+                <li><a href="#testimonials">Testimonials</a></li>
+                <li><a href="faq.html">FAQ</a></li>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="hero-container">
+            <div class="hero-content">
+                <h2>Elite Trading Signals for Blue-Chip Stocks</h2>
+                <p>Get precise buy signals for SPY, META, AAPL, TSLA, NVDA, and AMZN. Our momentum breakout strategy delivers 4-7 high-probability alerts daily.</p>
+                <a href="#pricing" class="cta-button">Start Now</a>
+            </div>
+            <div class="hero-visual">
+                <div class="phone-mockup">
+                    <div class="signal-carousel">
+                        <div class="signal-preview active" data-stock="TSLA">
+                            <div class="signal-header">
+                                 <div class="signal-icon">✈</div>
+                                 <div class="signal-title">
+                                    <strong>TSLA Buy Signal</strong><br>
+                                    <small style="color: #888;">Momentum Breakout</small>
+                                </div>
+                            </div>
+                            <div class="signal-details">
+                                <div style="margin-bottom: 1rem;">
+                                    <div>Price: $339.96</div>
+                                    <div>VWAP: $339.39</div>
+                                    <div>MFI: 63.00</div>
+                                </div>
+                                <div style="border-top: 1px solid rgba(255,255,255,0.1); padding-top: 1rem;">
+                                    <strong style="color: var(--primary-gold);">Suggested Contract:</strong>
+                                    <div style="margin-top: 0.5rem;">
+                                        <div>Ticker: TSLA</div>
+                                        <div>C/P: Call</div>
+                                        <div>Strike Price: $337.50</div>
+                                        <div>Premium: $3.48</div>
+                                        <div>Volume: 66367</div>
+                                        <div>Exp: 2025-05-23</div>
+                                    </div>
+                                </div>
+                                <div style="margin-top: 1rem; text-align: center; color: #0088cc; font-size: 0.9rem;">
+                                    📱 Delivered via Telegram
+                                </div>
+                            </div>
+                        </div>
+                        <div class="signal-preview next" data-stock="META">
+                            <div class="signal-header">
+                                <div class="signal-icon">✈</div>
+                                <div class="signal-title">
+                                    <strong>META Buy Signal</strong><br>
+                                    <small style="color: #888;">Momentum Breakout</small>
+                                </div>
+                            </div>
+                            <div class="signal-details">
+                                <div style="margin-bottom: 1rem;">
+                                    <div>Price: $645.28</div>
+                                    <div>VWAP: $644.01</div>
+                                    <div>MFI: 68.42</div>
+                                </div>
+                                <div style="border-top: 1px solid rgba(255,255,255,0.1); padding-top: 1rem;">
+                                    <strong style="color: var(--primary-gold);">Suggested Contract:</strong>
+                                    <div style="margin-top: 0.5rem;">
+                                        <div>Ticker: META</div>
+                                        <div>C/P: Call</div>
+                                        <div>Strike Price: $642.50</div>
+                                        <div>Premium: $4.75</div>
+                                        <div>Volume: 48293</div>
+                                        <div>Exp: 2025-05-23</div>
+                                    </div>
+                                </div>
+                                <div style="margin-top: 1rem; text-align: center; color: #0088cc; font-size: 0.9rem;">
+                                    📱 Delivered via Telegram
+                                </div>
+                            </div>
+                        </div>
+                        <div class="signal-preview hidden" data-stock="AAPL">
+                            <div class="signal-header">
+                                <div class="signal-icon">✈</div>
+                                <div class="signal-title">
+                                    <strong>AAPL Buy Signal</strong><br>
+                                    <small style="color: #888;">Momentum Breakout</small>
+                                </div>
+                            </div>
+                            <div class="signal-details">
+                                <div style="margin-bottom: 1rem;">
+                                    <div>Price: $200.09</div>
+                                    <div>VWAP: $199.70</div>
+                                    <div>MFI: 71.18</div>
+                                </div>
+                                <div style="border-top: 1px solid rgba(255,255,255,0.1); padding-top: 1rem;">
+                                    <strong style="color: var(--primary-gold);">Suggested Contract:</strong>
+                                    <div style="margin-top: 0.5rem;">
+                                        <div>Ticker: AAPL</div>
+                                        <div>C/P: Call</div>
+                                        <div>Strike Price: $197.50</div>
+                                        <div>Premium: $2.85</div>
+                                        <div>Volume: 52841</div>
+                                        <div>Exp: 2025-05-23</div>
+                                    </div>
+                                </div>
+                                <div style="margin-top: 1rem; text-align: center; color: #0088cc; font-size: 0.9rem;">
+                                    📱 Delivered via Telegram
+                                </div>
+                            </div>
+                        </div>
+                        <div class="signal-preview hidden" data-stock="SPY">
+                            <div class="signal-header">
+                                <div class="signal-icon">✈</div>
+                                <div class="signal-title">
+                                    <strong>SPY Buy Signal</strong><br>
+                                    <small style="color: #888;">Momentum Breakout</small>
+                                </div>
+                            </div>
+                            <div class="signal-details">
+                                <div style="margin-bottom: 1rem;">
+                                    <div>Price: $590.90</div>
+                                    <div>VWAP: $589.60</div>
+                                    <div>MFI: 73.25</div>
+                                </div>
+                                <div style="border-top: 1px solid rgba(255,255,255,0.1); padding-top: 1rem;">
+                                    <strong style="color: var(--primary-gold);">Suggested Contract:</strong>
+                                    <div style="margin-top: 0.5rem;">
+                                        <div>Ticker: SPY</div>
+                                        <div>C/P: Call</div>
+                                        <div>Strike Price: $587.00</div>
+                                        <div>Premium: $3.25</div>
+                                        <div>Volume: 89476</div>
+                                        <div>Exp: 2025-05-23</div>
+                                    </div>
+                                </div>
+                                <div style="margin-top: 1rem; text-align: center; color: #0088cc; font-size: 0.9rem;">
+                                    📱 Delivered via Telegram
+                                </div>
+                            </div>
+                        </div>
+                        <div class="signal-preview hidden" data-stock="NVDA">
+                            <div class="signal-header">
+                                <div class="signal-icon">✈</div>
+                                <div class="signal-title">
+                                    <strong>NVDA Buy Signal</strong><br>
+                                    <small style="color: #888;">Momentum Breakout</small>
+                                </div>
+                            </div>
+                            <div class="signal-details">
+                                <div style="margin-bottom: 1rem;">
+                                    <div>Price: $135.30</div>
+                                    <div>VWAP: $134.99</div>
+                                    <div>MFI: 69.87</div>
+                                </div>
+                                <div style="border-top: 1px solid rgba(255,255,255,0.1); padding-top: 1rem;">
+                                    <strong style="color: var(--primary-gold);">Suggested Contract:</strong>
+                                    <div style="margin-top: 0.5rem;">
+                                        <div>Ticker: NVDA</div>
+                                        <div>C/P: Call</div>
+                                        <div>Strike Price: $132.50</div>
+                                        <div>Premium: $2.15</div>
+                                        <div>Volume: 71523</div>
+                                        <div>Exp: 2025-05-23</div>
+                                    </div>
+                                </div>
+                                <div style="margin-top: 1rem; text-align: center; color: #0088cc; font-size: 0.9rem;">
+                                    📱 Delivered via Telegram
+                                </div>
+                            </div>
+                        </div>
+                        <div class="signal-preview hidden" data-stock="AMZN">
+                            <div class="signal-header">
+                                <div class="signal-icon">✈</div>
+                                <div class="signal-title">
+                                    <strong>AMZN Buy Signal</strong><br>
+                                    <small style="color: #888;">Momentum Breakout</small>
+                                </div>
+                            </div>
+                            <div class="signal-details">
+                                <div style="margin-bottom: 1rem;">
+                                    <div>Price: $204.91</div>
+                                    <div>VWAP: $204.68</div>
+                                    <div>MFI: 70.55</div>
+                                </div>
+                                <div style="border-top: 1px solid rgba(255,255,255,0.1); padding-top: 1rem;">
+                                    <strong style="color: var(--primary-gold);">Suggested Contract:</strong>
+                                    <div style="margin-top: 0.5rem;">
+                                        <div>Ticker: AMZN</div>
+                                        <div>C/P: Call</div>
+                                        <div>Strike Price: $202.50</div>
+                                        <div>Premium: $3.95</div>
+                                        <div>Volume: 56782</div>
+                                        <div>Exp: 2025-05-23</div>
+                                    </div>
+                                </div>
+                                <div style="margin-top: 1rem; text-align: center; color: #0088cc; font-size: 0.9rem;">
+                                    📱 Delivered via Telegram
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="carousel-indicators">
+                        <span class="carousel-dot active" data-index="0"></span>
+                        <span class="carousel-dot" data-index="1"></span>
+                        <span class="carousel-dot" data-index="2"></span>
+                        <span class="carousel-dot" data-index="3"></span>
+                        <span class="carousel-dot" data-index="4"></span>
+                        <span class="carousel-dot" data-index="5"></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section id="features" class="features">
+        <div class="features-container">
+            <h2 class="section-title">Why Choose BlueChip Signals?</h2>
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">📊</div>
+                    <h3>VWAP & MFI Analysis</h3>
+                    <p>Our bots use Volume Weighted Average Price and Money Flow Index to identify optimal entry points with high probability of success.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">⚡</div>
+                    <h3>4-7 Daily Alerts</h3>
+                    <p>Get the perfect balance of quality and quantity with multiple trading opportunities throughout each trading day.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">💎</div>
+                    <h3>Blue-Chip Focus</h3>
+                    <p>Trade the most liquid and reliable stocks in the market - perfect for both day trading and swing trading strategies.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">📱</div>
+                    <h3>Telegram Delivery</h3>
+                    <p>Instant alerts delivered directly to your phone via dedicated Telegram channels for each stock.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">🎯</div>
+                    <h3>Simple & Clear</h3>
+                    <p>No complex analysis needed - we provide exact entry points and contract details for immediate action.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">💰</div>
+                    <h3>Any Account Size</h3>
+                    <p>Whether you're starting small or trading large, our signals work for any account size that can afford the contract.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Bots Section -->
+    <section id="bots" class="bots">
+        <div class="bots-container">
+            <h2 class="section-title">Our Trading Bots</h2>
+            <div class="bots-grid">
+                <div class="bot-card">
+                    <div class="bot-symbol">SPY</div>
+                    <div class="bot-name">S&P 500 ETF</div>
+                </div>
+                <div class="bot-card">
+                    <div class="bot-symbol">META</div>
+                    <div class="bot-name">Meta Platforms</div>
+                </div>
+                <div class="bot-card">
+                    <div class="bot-symbol">AAPL</div>
+                    <div class="bot-name">Apple Inc.</div>
+                </div>
+                <div class="bot-card">
+                    <div class="bot-symbol">TSLA</div>
+                    <div class="bot-name">Tesla Inc.</div>
+                </div>
+                <div class="bot-card">
+                    <div class="bot-symbol">NVDA</div>
+                    <div class="bot-name">NVIDIA Corp.</div>
+                </div>
+                <div class="bot-card">
+                    <div class="bot-symbol">AMZN</div>
+                    <div class="bot-name">Amazon.com</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Pricing Section -->
+    <section id="pricing" class="pricing">
+        <div class="pricing-container">
+            <h2 class="section-title">Simple, Transparent Pricing</h2>
+            <div class="pricing-cards">
+                <div class="pricing-card">
+                    <h3>Daily Plan</h3>
+                    <div class="price-tag">$9.99</div>
+                    <div class="price-period">Per Day</div>
+                    <ul style="list-style: none; padding: 2rem 0;">
+                        <li>✓ Access to 1 trading bot</li>
+                        <li>✓ 4-7 daily signals per bot</li>
+                        <li>✓ Telegram instant alerts</li>
+                        <li>✓ VWAP & MFI analysis</li>
+                        <li>✓ Cancel anytime</li>
+                    </ul>
+                    <stripe-buy-button
+                        buy-button-id="buy_btn_1RdgBrE15xwxzVuyKs86yK2N"
+                        publishable-key="pk_live_51RXYqUE15xwxzVuyFOMaVT2Xq32jXOo1ipJcaBFR6Ur5wlp7bVaR7X49oDZH1XIaXEQBnOafNwTLGXLLzpaOX8Y100rXvYOkYX">
+                    </stripe-buy-button>
+                </div>
+                <div class="pricing-card">
+                    <h3>Weekly Plan</h3>
+                    <div class="savings-badge">Save 70% vs Daily</div>
+                    <div class="price-tag">$19.99</div>
+                    <div class="price-period">Per Week</div>
+                    <ul style="list-style: none; padding: 2rem 0;">
+                        <li>✓ Access to all 6 trading bots</li>
+                        <li>✓ 4-7 daily signals per bot</li>
+                        <li>✓ Telegram instant alerts</li>
+                        <li>✓ VWAP & MFI analysis</li>
+                        <li>✓ Cancel anytime</li>
+                    </ul>
+                    <stripe-buy-button
+                        buy-button-id="buy_btn_1RdgEJE15xwxzVuyntJflpsj"
+                        publishable-key="pk_live_51RXYqUE15xwxzVuyFOMaVT2Xq32jXOo1ipJcaBFR6Ur5wlp7bVaR7X49oDZH1XIaXEQBnOafNwTLGXLLzpaOX8Y100rXvYOkYX">
+                    </stripe-buy-button>
+                </div>
+                <div class="pricing-card">
+                    <h3>Monthly Plan</h3>
+                    <div class="savings-badge">Save 40% vs Weekly</div>
+                    <div class="price-tag">$49.99</div>
+                    <div class="price-period">Per Month</div>
+                    <ul style="list-style: none; padding: 2rem 0;">
+                        <li>✓ Access to 6 trading bot</li>
+                        <li>✓ 4-7 daily signals per bot</li>
+                        <li>✓ Telegram instant alerts</li>
+                        <li>✓ VWAP & MFI analysis</li>
+                        <li>✓ Cancel anytime</li>
+                    </ul>
+                    <stripe-buy-button
+                        buy-button-id="buy_btn_1RdfyiE15xwxzVuyiWUa2Rsf"
+                        publishable-key="pk_live_51RXYqUE15xwxzVuyFOMaVT2Xq32jXOo1ipJcaBFR6Ur5wlp7bVaR7X49oDZH1XIaXEQBnOafNwTLGXLLzpaOX8Y100rXvYOkYX">
+                    </stripe-buy-button>
+                </div>
+                <div class="pricing-card featured">
+                    <div class="savings-badge">Save 17% vs Monthly</div>
+                    <h3>Annual Plan</h3>
+                    <div class="price-tag">$499.99</div>
+                    <div class="price-period">Per Year</div>
+                    <ul style="list-style: none; padding: 2rem 0;">
+                        <li>✓ Everything in Monthly</li>
+                        <li>✓ Save OVER $100 per year vs Monthly</li>
+                        <li>✓ Save OVER $500 per year vs Weekly</li>
+                        <li>✓ Save OVER $3,000 per year vs Daily</li>
+                        <li>✓ Priority support</li>
+                        <li>✓ Future bot releases</li>
+                        <li>✓ Best value</li>
+                    </ul>
+                    <stripe-buy-button
+                        buy-button-id="buy_btn_1RdgX0E15xwxzVuya71vvq0c"
+                        publishable-key="pk_live_51RXYqUE15xwxzVuyFOMaVT2Xq32jXOo1ipJcaBFR6Ur5wlp7bVaR7X49oDZH1XIaXEQBnOafNwTLGXLLzpaOX8Y100rXvYOkYX">
+                    </stripe-buy-button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Testimonials -->
+    <section id="testimonials" class="testimonials">
+        <div class="testimonials-container">
+            <h2 class="section-title">What Our Traders Say</h2>
+            <div class="testimonials-grid">
+                <div class="testimonial-card">
+                    <div class="quote-mark">"</div>
+                    <div class="rating">★★★★★</div>
+                    <p class="testimonial-text">BlueChip Signals transformed my trading. The TSLA bot alone paid for my annual subscription in the first week. The signals are incredibly accurate!</p>
+                    <div class="testimonial-author">Michael R. - Day Trader</div>
+                </div>
+                <div class="testimonial-card">
+                    <div class="quote-mark">"</div>
+                    <div class="rating">★★★★★</div>
+                    <p class="testimonial-text">Finally, a signal service that keeps it simple. No complicated analysis, just clear entry points. I love getting alerts right to my phone via Telegram.</p>
+                    <div class="testimonial-author">Sarah L. - Swing Trader</div>
+                </div>
+                <div class="testimonial-card">
+                    <div class="quote-mark">"</div>
+                    <div class="rating">★★★★★</div>
+                    <p class="testimonial-text">The consistency is what sets BlueChip apart. 4-7 quality signals daily means I always have opportunities. The VWAP/MFI strategy really works!</p>
+                    <div class="testimonial-author">David K. - Full-time Trader</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+        <p>&copy; 2025 BlueChip Signals. All rights reserved. | <a href="legal.html" style="color: var(--primary-gold); text-decoration: none;">Legal Disclaimer</a></p>
+    </footer>
+
+    <script>
+        // Smooth scrolling
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                document.querySelector(this.getAttribute('href')).scrollIntoView({
+                    behavior: 'smooth'
+                });
+            });
+        });
+
+        // Carousel functionality
+        const signals = document.querySelectorAll('.signal-preview');
+        const dots = document.querySelectorAll('.carousel-dot');
+        let currentIndex = 0;
+
+        function updateCarousel(index) {
+            signals.forEach((signal, i) => {
+                signal.classList.remove('active', 'next', 'prev', 'hidden');
+                
+                if (i === index) {
+                    signal.classList.add('active');
+                } else if (i === (index + 1) % signals.length) {
+                    signal.classList.add('next');
+                } else if (i === (index - 1 + signals.length) % signals.length) {
+                    signal.classList.add('prev');
+                } else {
+                    signal.classList.add('hidden');
+                }
+            });
+
+            dots.forEach((dot, i) => {
+                dot.classList.toggle('active', i === index);
+            });
+        }
+
+        // Auto-rotate carousel
+        setInterval(() => {
+            currentIndex = (currentIndex + 1) % signals.length;
+            updateCarousel(currentIndex);
+        }, 3000);
+
+        // Click on dots to navigate
+        dots.forEach((dot, index) => {
+            dot.addEventListener('click', () => {
+                currentIndex = index;
+                updateCarousel(currentIndex);
+            });
+        });
+
+        // Click on cards to rotate
+        signals.forEach((signal, index) => {
+            signal.addEventListener('click', () => {
+                if (signal.classList.contains('next')) {
+                    currentIndex = (currentIndex + 1) % signals.length;
+                } else if (signal.classList.contains('prev')) {
+                    currentIndex = (currentIndex - 1 + signals.length) % signals.length;
+                }
+                updateCarousel(currentIndex);
+            });
+        });
+
+        // Add animation on scroll
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: '0px 0px -50px 0px'
+        };
+
+        const observer = new IntersectionObserver(function(entries) {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.style.opacity = '1';
+                    entry.target.style.transform = 'translateY(0)';
+                }
+            });
+        }, observerOptions);
+
+        document.querySelectorAll('.feature-card, .bot-card, .testimonial-card').forEach(el => {
+            el.style.opacity = '0';
+            el.style.transform = 'translateY(20px)';
+            el.style.transition = 'opacity 0.5s, transform 0.5s';
+            observer.observe(el);
+        });
+
+        
+    </script>
+</body>
+</html>

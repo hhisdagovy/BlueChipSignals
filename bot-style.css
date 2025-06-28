@@ -119,9 +119,7 @@ a {
 }
 
 .bot-page-title {
-    font-size: 2.5rem;
-    color: var(--light-text);
-    margin-bottom: 1rem;
+    font-size: 2rem;
 }
 
 .bot-page-subtitle {
@@ -133,12 +131,12 @@ a {
 
 /* Main Content */
 .main-content {
-    padding: 0 2rem 4rem;
+    padding: 0 1rem 4rem;
+    gap: 1.5rem;
     max-width: 1200px;
     margin: 0 auto;
     display: grid;
     grid-template-columns: 1fr 2fr;
-    gap: 3rem;
 }
 
 .strategy-snapshot, .best-practices {
@@ -378,6 +376,10 @@ footer {
     .main-content {
         grid-template-columns: 1fr;
     }
+    .main-content {
+        padding: 0 1rem 4rem;
+        gap: 1.5rem;
+    }
 }
 
 @media (max-width: 768px) {
@@ -395,7 +397,7 @@ footer {
 
     .main-content {
         padding: 0 1rem 4rem;
-        gap: 2rem;
+        gap: 1.5rem;
     }
 
     .strategy-snapshot, .best-practices, .chart-container {
@@ -448,5 +450,37 @@ footer {
     }
     .nav-links {
         display: flex;
+    }
+}
+
+@media (max-width: 480px) {
+    .bot-hero {
+        padding: 7rem 1rem 2rem;
+    }
+
+    .bot-symbol {
+        font-size: 3.5rem;
+    }
+
+    .bot-page-title {
+        font-size: 1.8rem;
+    }
+    
+    .main-content {
+        padding: 0 1rem 3rem;
+        gap: 1.5rem;
+    }
+
+    .strategy-snapshot h3, .best-practices h3, .chart-container h3, .news-container h3 {
+        font-size: 1.5rem;
+    }
+
+    .chart-container {
+        height: 300px;
+        padding: 1rem;
+    }
+    
+    .news-grid {
+        grid-template-columns: 1fr;
     }
 } 

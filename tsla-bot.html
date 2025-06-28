@@ -6,350 +6,9 @@
     <title>BlueChip Signals - TSLA Bot</title>
     <link rel="icon" type="image/png" href="logo.png">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="bot-style.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        :root {
-            --primary-gold: #b3a17d;
-            --secondary-gold: #E2CFB5;
-            --dark-bg: #080B0F;
-            --darker-bg: #050810;
-            --light-text: #FFFFFF;
-            --gray-text: #A0A0A0;
-            --field-bg: rgba(26, 31, 46, 0.7);
-        }
-
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background-color: var(--darker-bg);
-            color: var(--light-text);
-            line-height: 1.6;
-            overflow-x: hidden;
-        }
-
-        /* Navigation */
-        nav {
-            background: rgba(5, 8, 16, 0.8);
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
-            position: fixed;
-            width: 100%;
-            top: 0;
-            z-index: 1000;
-            padding: 0.5rem 0;
-        }
-
-        .nav-container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 0 2rem;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .logo img {
-            width: 80px;
-            height: 80px;
-        }
-
-        .nav-links {
-            display: flex;
-            gap: 2rem;
-            list-style: none;
-        }
-
-        .nav-links a {
-            color: var(--light-text);
-            text-decoration: none;
-            transition: color 0.3s;
-        }
-
-        a {
-            text-decoration: none;
-        }
-
-        .nav-links a:hover {
-            color: var(--primary-gold);
-        }
-
-        .hamburger-menu {
-            display: none;
-            flex-direction: column;
-            justify-content: space-around;
-            width: 30px;
-            height: 25px;
-            cursor: pointer;
-            z-index: 1100;
-        }
-
-        .hamburger-menu .bar {
-            width: 100%;
-            height: 3px;
-            background-color: var(--primary-gold);
-            transition: all 0.3s ease-in-out;
-        }
-
-        .bot-page-icon {
-            font-size: 4rem;
-            margin-bottom: 1rem;
-            color: #E82127;
-        }
-
-        .bot-page-icon img {
-            width: 64px;
-            height: 64px;
-            filter: invert(38%) sepia(87%) saturate(2758%) hue-rotate(340deg) brightness(94%) contrast(92%);
-        }
-
-        /* Bot Page Hero */
-        .bot-hero {
-            padding: 10rem 2rem 5rem;
-            text-align: center;
-            background: radial-gradient(circle at 50% 30%, rgba(201, 176, 55, 0.1), transparent 60%);
-        }
-        
-        .bot-symbol {
-            font-size: 5rem;
-            font-weight: 700;
-            background: linear-gradient(135deg, var(--primary-gold), var(--secondary-gold));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            margin-bottom: 0.5rem;
-            line-height: 1;
-        }
-
-        .bot-page-title {
-            font-size: 2.5rem;
-            color: var(--light-text);
-            margin-bottom: 1rem;
-        }
-
-        .bot-page-subtitle {
-            font-size: 1.2rem;
-            color: var(--gray-text);
-            max-width: 700px;
-            margin: 0 auto 2rem;
-        }
-
-        /* Main Content */
-        .main-content {
-            padding: 0 2rem 4rem;
-            max-width: 1200px;
-            margin: 0 auto;
-            display: grid;
-            grid-template-columns: 1fr 2fr;
-            gap: 3rem;
-        }
-
-        .strategy-snapshot, .best-practices {
-            background: var(--dark-bg);
-            padding: 2rem;
-            border: 1px solid rgba(201, 176, 55, 0.2);
-            border-radius: 20px;
-        }
-
-        .strategy-snapshot h3, .best-practices h3 {
-            font-size: 1.8rem;
-            color: var(--primary-gold);
-            margin-bottom: 1.5rem;
-        }
-
-        .stock-price-data {
-            margin-top: 1rem;
-            padding-top: 1rem;
-            border-top: 1px solid rgba(201, 176, 55, 0.2);
-            font-size: 1.2rem;
-            font-weight: 600;
-            text-align: center;
-        }
-
-        .price {
-            color: var(--light-text);
-            font-size: 1.8rem;
-        }
-
-        .change.positive {
-            color: var(--success-green);
-        }
-
-        .change.negative {
-            color: var(--danger-red);
-        }
-
-        .info-list {
-            list-style: none;
-        }
-
-        .info-list li {
-            display: flex;
-            align-items: flex-start;
-            gap: 1rem;
-            margin-bottom: 1.5rem;
-            font-size: 1.1rem;
-        }
-
-        .info-list .icon {
-            font-size: 1.2rem;
-            color: var(--primary-gold);
-            margin-top: 4px;
-        }
-
-        .practice-cards {
-            display: grid;
-            grid-template-columns: 1fr;
-            gap: 1.5rem;
-        }
-
-        .practice-card {
-            background-color: var(--field-bg);
-            border: 1px solid rgba(201, 176, 55, 0.15);
-            border-radius: 12px;
-            padding: 1.5rem;
-            transition: transform 0.3s, border-color 0.3s;
-        }
-
-        .practice-card:hover {
-            transform: translateY(-5px);
-            border-color: var(--primary-gold);
-        }
-
-        .practice-card h4 {
-            color: var(--secondary-gold);
-            margin-bottom: 0.5rem;
-            font-size: 1.2rem;
-        }
-
-        /* Floating CTA */
-        .floating-cta {
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            z-index: 999;
-        }
-
-        .cta-button {
-            display: inline-block;
-            background: linear-gradient(135deg, var(--primary-gold), var(--secondary-gold));
-            color: var(--darker-bg);
-            padding: 1rem 2.5rem;
-            border-radius: 50px;
-            text-decoration: none;
-            font-weight: 600;
-            transition: transform 0.3s, box-shadow 0.3s;
-            box-shadow: 0 10px 30px rgba(201, 176, 55, 0.2);
-        }
-
-        .cta-button:hover {
-            transform: translateY(-3px) scale(1.05);
-            box-shadow: 0 15px 40px rgba(201, 176, 55, 0.4);
-        }
-
-        .social-media {
-            margin-top: 1rem;
-        }
-
-        .social-media a {
-            color: var(--primary-gold);
-            font-size: 1.5rem;
-            margin: 0 0.5rem;
-            transition: color 0.3s;
-        }
-
-        .social-media a:hover {
-            color: var(--secondary-gold);
-        }
-
-        /* Footer */
-        footer {
-            background: var(--darker-bg);
-            padding: 2rem;
-            text-align: center;
-            border-top: 1px solid rgba(201, 176, 55, 0.2);
-        }
-
-        /* Responsive */
-        @media (max-width: 992px) {
-            .main-content {
-                grid-template-columns: 1fr;
-            }
-        }
-        
-        @media (max-width: 768px) {
-            .bot-hero {
-                padding: 8rem 1rem 4rem;
-            }
-
-            .main-content {
-                padding: 0 1rem 4rem;
-            }
-
-            .nav-links {
-                display: none;
-                flex-direction: column;
-                position: absolute;
-                top: 0;
-                right: 0;
-                width: 250px;
-                height: 100vh;
-                background: rgba(5, 8, 16, 0.95);
-                padding-top: 5rem;
-                box-shadow: -5px 0 15px rgba(0,0,0,0.5);
-                list-style: none;
-                transform: translateX(100%);
-                transition: transform 0.3s ease-in-out;
-            }
-
-            .nav-links.active {
-                transform: translateX(0);
-                display: flex;
-            }
-
-            .nav-links li {
-                padding: 1rem 2rem;
-                border-bottom: 1px solid rgba(201, 176, 55, 0.1);
-            }
-
-            .nav-links a {
-                font-size: 1.1rem;
-                display: block;
-            }
-
-            .hamburger-menu {
-                display: flex;
-            }
-        }
-
-        @media (min-width: 769px) {
-            .hamburger-menu {
-                display: none;
-            }
-            .nav-links {
-                display: flex;
-            }
-        }
-
-        .chart-container {
-            background: var(--dark-bg);
-            padding: 2rem;
-            border: 1px solid rgba(201, 176, 55, 0.2);
-            border-radius: 20px;
-            margin-top: 2rem;
-            grid-column: 1 / -1; /* Span across all columns */
-        }
-
-        .chart-container h3 {
-            font-size: 1.8rem;
-            color: var(--primary-gold);
-            margin-bottom: 1.5rem;
-            text-align: center;
-        }
-    </style>
+    <link rel="stylesheet" href="news-style.css">
 </head>
 <body>
     <!-- Navigation -->
@@ -378,8 +37,8 @@
     <header class="bot-hero">
         <div class="bot-page-icon"><img src="tesla-logo.svg" alt="Tesla Logo"></div>
         <h1 class="bot-symbol">TSLA</h1>
-        <h2 class="bot-page-title">Tesla, Inc. Bot</h2>
-        <p class="bot-page-subtitle">Trade the pioneer of electric vehicles. The TSLA bot is built to navigate the high volatility and capture the sharp movements of its stock.</p>
+        <h2 class="bot-page-title">Tesla, Inc.</h2>
+        <p class="bot-page-subtitle">Harness the volatility of the electric vehicle pioneer. This bot thrives on the big swings and news-driven momentum that define this stock.</p>
     </header>
 
     <main class="main-content">
@@ -388,23 +47,23 @@
             <ul class="info-list">
                 <li>
                     <span class="icon"><i class="fas fa-bullseye"></i></span>
-                    <div><strong>Focus:</strong> Day Trading</div>
+                    <div><strong>Focus:</strong> High-Volatility Breakouts</div>
                 </li>
                 <li>
                     <span class="icon"><i class="fas fa-chart-line"></i></span>
-                    <div><strong>Indicators:</strong> VWAP & MFI</div>
+                    <div><strong>Indicators:</strong> Volume Spikes & Order Flow</div>
                 </li>
                 <li>
                     <span class="icon"><i class="fas fa-bell"></i></span>
-                    <div><strong>Alerts:</strong> 4-7 Daily</div>
+                    <div><strong>Alerts:</strong> 4-6 Daily</div>
                 </li>
                 <li>
                     <span class="icon"><i class="fas fa-file-contract"></i></span>
-                    <div><strong>Contracts:</strong> High Volume, Short Expiry</div>
+                    <div><strong>Contracts:</strong> Weekly, 5-10% OTM</div>
                 </li>
                  <li>
                     <span class="icon"><i class="fas fa-sync-alt"></i></span>
-                    <div><strong>Method:</strong> Momentum Breakouts</div>
+                    <div><strong>Method:</strong> Supply/Demand Imbalances</div>
                 </li>
             </ul>
             <div class="stock-price-data">
@@ -417,32 +76,39 @@
             <h3>Best Practices for Success</h3>
             <div class="practice-cards">
                 <div class="practice-card">
-                    <h4>Embrace the Volatility</h4>
-                    <p>TSLA is not a stock for the faint of heart. Its price swings can be dramatic. Our bot is designed for this environment, but you must be prepared for fast-moving trades and manage your risk accordingly.</p>
-                </div>
-                <div class="practice-card">
                     <h4>Monitor Elon Musk's Communications</h4>
-                    <p>News, tweets, and announcements from the CEO can have an immediate and dramatic impact on the stock price. Stay informed.</p>
+                    <p>Tweets and statements from Tesla's CEO can trigger immediate, massive price swings. Be aware of any announcements, especially those related to production, new technology, or financials.</p>
                 </div>
                 <div class="practice-card">
-                    <h4>Watch for Key Technical Breaks</h4>
-                    <p>TSLA is a momentum favorite. When it breaks through a key daily or weekly level, the move can be explosive. Our bot is designed to catch these powerful breakouts.</p>
+                    <h4>Track Delivery & Production Numbers</h4>
+                    <p>Tesla's quarterly delivery and production reports are heavily scrutinized by Wall Street. The market's reaction to these numbers often sets the tone for the stock for weeks to come.</p>
                 </div>
                 <div class="practice-card">
-                    <h4>Understand EV Sector Sentiment</h4>
-                    <p>Keep tabs on news from competitors and the broader electric vehicle market. Sector-wide news can lift or weigh on TSLA's price.</p>
+                    <h4>Embrace the Volatility</h4>
+                    <p>TSLA is one of the most volatile large-cap stocks. This means larger potential gains, but also requires wider stops and disciplined risk management. The bot is designed for these conditions.</p>
                 </div>
                 <div class="practice-card">
-                    <h4>Use Options with Care</h4>
-                    <p>While TSLA options are popular, their high prices (premiums) can decay quickly. Our signals provide a strong entry point, but it's crucial to have a clear exit plan.</p>
+                    <h4>Identify Key Supply & Demand Zones</h4>
+                    <p>Our bot looks for imbalances in order flow. These often occur at significant price levels from previous days. A break of a key supply or demand zone can signal a powerful move.</p>
+                </div>
+                <div class="practice-card">
+                    <h4>Don't Fight a Strong Trend</h4>
+                    <p>When TSLA decides to trend, it can be relentless. Our signals are designed to join these trends, not to try and pick a top or bottom against the primary momentum.</p>
                 </div>
             </div>
         </section>
 
-        <section class="chart-container">
+        <div class="chart-container">
             <h3>14-Day Price History</h3>
-            <canvas id="priceChart"></canvas>
-        </section>
+            <canvas id="priceChart" style="height: 400px;"></canvas>
+        </div>
+
+        <div class="news-container">
+            <h3>Latest News</h3>
+            <div class="news-grid" id="news-grid">
+                <!-- News articles will be inserted here by JavaScript -->
+            </div>
+        </div>
     </main>
 
     <div class="floating-cta">
@@ -451,7 +117,7 @@
 
     <!-- Footer -->
     <footer>
-        <p>&copy; 2025 BlueChip Signals. All rights reserved. | <a href="legal.html" style="color: var(--primary-gold); text-decoration: none;">Legal Disclaimer</a> | <a href="index.html" style="color: var(--primary-gold); text-decoration: none;">Back to Home</a></p>
+        <p>&copy; 2025 BlueChip Signals. All rights reserved. | <a href="legal.html" style="color: var(--primary-gold); text-decoration: none;">Legal Disclaimer</a></p>
         <div class="social-media">
             <a href="https://www.tiktok.com/@bluechip.signals" target="_blank"><i class="fab fa-tiktok"></i></a>
             <a href="https://www.instagram.com/@bluechip.signals" target="_blank"><i class="fab fa-instagram"></i></a>

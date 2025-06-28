@@ -372,13 +372,13 @@ footer {
 
 /* --- Responsive Design --- */
 
-@media (max-width: 992px) {
+@media screen and (max-width: 992px) {
     .main-content {
         grid-template-columns: 1fr;
     }
 }
 
-@media (max-width: 768px) {
+@media screen and (max-width: 768px) {
     .bot-hero {
         padding: 8rem 1rem 4rem;
     }
@@ -441,7 +441,7 @@ footer {
     }
 }
 
-@media (min-width: 769px) {
+@media screen and (min-width: 769px) {
     .hamburger-menu {
         display: none;
     }
@@ -456,7 +456,7 @@ footer {
     }
 }
 
-@media (max-width: 480px) {
+@media screen and (max-width: 480px) {
     .bot-hero {
         padding: 7rem 1rem 3rem;
     }

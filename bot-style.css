@@ -1,5 +1,5 @@
 * {
-    outline: 1px solid red !important;
+    /* outline: 1px solid red !important; */
     margin: 0;
     padding: 0;
     box-sizing: border-box;
@@ -229,9 +229,6 @@ a {
     margin-top: 2rem;
     grid-column: 1 / -1; /* Span across all columns */
     height: 500px; /* Give the container a fixed height */
-    max-width: 1200px; /* Ensure it doesn't get too wide */
-    margin-left: auto;
-    margin-right: auto;
     position: relative; /* Needed for the canvas to be responsive */
 }
 

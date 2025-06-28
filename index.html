@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>BlueChip Signals - Elite Trading Signals</title>
+    <link rel="icon" type="image/png" href="logo.png">
     <style>
         * {
             margin: 0;
@@ -58,23 +59,8 @@
         }
 
         .logo img {
-            width: 50px;
-            height: 50px;
-            
-        }
-
-        .logo-shield {
-            width: 50px;
-            height: 50px;
-            background: linear-gradient(135deg, var(--primary-gold), var(--secondary-gold));
-            -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cpath d='M50 10 L80 25 L80 55 C80 70 70 85 50 90 C30 85 20 70 20 55 L20 25 Z'/%3E%3C/svg%3E") center/contain no-repeat;
-            mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cpath d='M50 10 L80 25 L80 55 C80 70 70 85 50 90 C30 85 20 70 20 55 L20 25 Z'/%3E%3C/svg%3E") center/contain no-repeat;
-        }
-
-        .logo h1 {
-            color: var(--primary-gold);
-            font-size: 1.5rem;
-            font-weight: 700;
+            width: 80px;
+            height: 80px;
         }
 
         .nav-links {
@@ -89,8 +75,29 @@
             transition: color 0.3s;
         }
 
+        a {
+            text-decoration: none;
+        }
+
         .nav-links a:hover {
             color: var(--primary-gold);
+        }
+
+        .hamburger-menu {
+            display: none; /* Hidden by default on larger screens */
+            flex-direction: column;
+            justify-content: space-around;
+            width: 30px;
+            height: 25px;
+            cursor: pointer;
+            z-index: 1100;
+        }
+
+        .hamburger-menu .bar {
+            width: 100%;
+            height: 3px;
+            background-color: var(--primary-gold);
+            transition: all 0.3s ease-in-out;
         }
 
         /* Hero Section */
@@ -125,6 +132,12 @@
             font-size: 1.25rem;
             color: var(--gray-text);
             margin-bottom: 2rem;
+        }
+
+        .hero-buttons {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
         }
 
         .cta-button {
@@ -458,6 +471,12 @@
         @media (max-width: 768px) {
             .hero-container {
                 grid-template-columns: 1fr;
+                text-align: center;
+            }
+
+            .hero-buttons {
+                justify-content: center;
+                gap: 1.5rem;
             }
             
             .hero-content h2 {
@@ -465,7 +484,47 @@
             }
             
             .nav-links {
-                display: none;
+                display: none; /* Hide desktop nav on small screens */
+                flex-direction: column;
+                position: absolute;
+                top: 0;
+                right: 0;
+                width: 250px;
+                height: 100vh;
+                background: rgba(5, 8, 16, 0.95);
+                padding-top: 5rem;
+                box-shadow: -5px 0 15px rgba(0,0,0,0.5);
+                list-style: none;
+                transform: translateX(100%);
+                transition: transform 0.3s ease-in-out;
+            }
+
+            .nav-links.active {
+                transform: translateX(0);
+                display: flex; /* Show mobile nav when active */
+            }
+
+            .nav-links li {
+                padding: 1rem 2rem;
+                border-bottom: 1px solid rgba(201, 176, 55, 0.1);
+            }
+
+            .nav-links a {
+                font-size: 1.1rem;
+                display: block;
+            }
+
+            .hamburger-menu {
+                display: flex; /* Show hamburger on small screens */
+            }
+        }
+
+        @media (min-width: 769px) {
+            .hamburger-menu {
+                display: none; /* Hide hamburger on larger screens */
+            }
+            .nav-links {
+                display: flex; /* Show desktop nav on larger screens */
             }
         }
 
@@ -478,6 +537,28 @@
         .phone-mockup {
             animation: float 3s ease-in-out infinite;
         }
+
+        /* Limited Offer Banner */
+        .limited-offer {
+            background: linear-gradient(135deg, var(--primary-gold), var(--secondary-gold));
+            color: var(--darker-bg);
+            padding: 2rem;
+            text-align: center;
+            margin-top: 2rem;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(201, 176, 55, 0.3);
+        }
+
+        .limited-offer h2 {
+            font-size: 2rem;
+            margin-bottom: 1rem;
+        }
+
+        .limited-offer p {
+            font-size: 1.1rem;
+            max-width: 800px;
+            margin: 0 auto;
+        }
     </style>
     <script async
         src="https://js.stripe.com/v3/buy-button.js">
@@ -489,7 +570,12 @@
         <div class="nav-container">
 
             <div class="logo">
-                <img src="logo.png" alt="BlueChip Signals Logo" style="height: 80px; width: 80px;">
+                <a href="index.html"><img src="logo.png" alt="BlueChip Signals Logo" style="height: 80px; width: 80px;"></a>
+            </div>
+            <div class="hamburger-menu">
+                <div class="bar"></div>
+                <div class="bar"></div>
+                <div class="bar"></div>
             </div>
             <ul class="nav-links">
                 <li><a href="#features">Features</a></li>
@@ -497,6 +583,9 @@
                 <li><a href="#pricing">Pricing</a></li>
                 <li><a href="#testimonials">Testimonials</a></li>
                 <li><a href="faq.html">FAQ</a></li>
+                <li><a href="legal.html">Legal Disclaimer</a></li>
+                <li><a href="about.html">About Us</a></li>
+            </ul>
         </div>
     </nav>
 
@@ -506,7 +595,10 @@
             <div class="hero-content">
                 <h2>Elite Trading Signals for Blue-Chip Stocks</h2>
                 <p>Get precise buy signals for SPY, META, AAPL, TSLA, NVDA, and AMZN. Our momentum breakout strategy delivers 4-7 high-probability alerts daily.</p>
-                <a href="#pricing" class="cta-button">Start Now</a>
+                <div class="hero-buttons">
+                    <a href="#pricing" class="cta-button">Start Now</a>
+                    <a href="contact.html" class="cta-button" style="background: none; border: 2px solid var(--primary-gold); color: var(--primary-gold);">Request Custom Bot</a>
+                </div>
             </div>
             <div class="hero-visual">
                 <div class="phone-mockup">
@@ -705,6 +797,14 @@
         </div>
     </section>
 
+    <!-- Limited Offer Banner -->
+    <section class="limited-offer">
+        <div class="limited-offer-container">
+            <h2>Limited Time Offer: Secure Your Annual Rate for Life!</h2>
+            <p>The first 1000 annual members lock in the exclusive $499.99/year rate forever. Don't miss out on this unparalleled value!</p>
+        </div>
+    </section>
+
     <!-- Features Section -->
     <section id="features" class="features">
         <div class="features-container">
@@ -749,30 +849,30 @@
         <div class="bots-container">
             <h2 class="section-title">Our Trading Bots</h2>
             <div class="bots-grid">
-                <div class="bot-card">
+                <a href="spy-bot.html" class="bot-card">
                     <div class="bot-symbol">SPY</div>
                     <div class="bot-name">S&P 500 ETF</div>
-                </div>
-                <div class="bot-card">
+                </a>
+                <a href="meta-bot.html" class="bot-card">
                     <div class="bot-symbol">META</div>
                     <div class="bot-name">Meta Platforms</div>
-                </div>
-                <div class="bot-card">
+                </a>
+                <a href="aapl-bot.html" class="bot-card">
                     <div class="bot-symbol">AAPL</div>
                     <div class="bot-name">Apple Inc.</div>
-                </div>
-                <div class="bot-card">
+                </a>
+                <a href="tsla-bot.html" class="bot-card">
                     <div class="bot-symbol">TSLA</div>
                     <div class="bot-name">Tesla Inc.</div>
-                </div>
-                <div class="bot-card">
+                </a>
+                <a href="nvda-bot.html" class="bot-card">
                     <div class="bot-symbol">NVDA</div>
                     <div class="bot-name">NVIDIA Corp.</div>
-                </div>
-                <div class="bot-card">
+                </a>
+                <a href="amzn-bot.html" class="bot-card">
                     <div class="bot-symbol">AMZN</div>
                     <div class="bot-name">Amazon.com</div>
-                </div>
+                </a>
             </div>
         </div>
     </section>
@@ -787,11 +887,11 @@
                     <div class="price-tag">$9.99</div>
                     <div class="price-period">Per Day</div>
                     <ul style="list-style: none; padding: 2rem 0;">
-                        <li>✓ Access to 1 trading bot</li>
-                        <li>✓ 4-7 daily signals per bot</li>
-                        <li>✓ Telegram instant alerts</li>
-                        <li>✓ VWAP & MFI analysis</li>
-                        <li>✓ Cancel anytime</li>
+                        <li>✓ All 6 Trading Bots</li>
+                        <li>✓ 4-7 Daily Signals</li>
+                        <li>✓ Telegram Alerts</li>
+                        <li>✓ VWAP & MFI Analysis</li>
+                        <li>✓ Cancel Anytime</li>
                     </ul>
                     <stripe-buy-button
                         buy-button-id="buy_btn_1RdgBrE15xwxzVuyKs86yK2N"
@@ -804,11 +904,11 @@
                     <div class="price-tag">$19.99</div>
                     <div class="price-period">Per Week</div>
                     <ul style="list-style: none; padding: 2rem 0;">
-                        <li>✓ Access to all 6 trading bots</li>
-                        <li>✓ 4-7 daily signals per bot</li>
-                        <li>✓ Telegram instant alerts</li>
-                        <li>✓ VWAP & MFI analysis</li>
-                        <li>✓ Cancel anytime</li>
+                        <li>✓ All 6 Trading Bots</li>
+                        <li>✓ 4-7 Daily Signals</li>
+                        <li>✓ Telegram Alerts</li>
+                        <li>✓ VWAP & MFI Analysis</li>
+                        <li>✓ Cancel Anytime</li>
                     </ul>
                     <stripe-buy-button
                         buy-button-id="buy_btn_1RdgEJE15xwxzVuyntJflpsj"
@@ -821,11 +921,11 @@
                     <div class="price-tag">$49.99</div>
                     <div class="price-period">Per Month</div>
                     <ul style="list-style: none; padding: 2rem 0;">
-                        <li>✓ Access to 6 trading bot</li>
-                        <li>✓ 4-7 daily signals per bot</li>
-                        <li>✓ Telegram instant alerts</li>
-                        <li>✓ VWAP & MFI analysis</li>
-                        <li>✓ Cancel anytime</li>
+                        <li>✓ All 6 Trading Bots</li>
+                        <li>✓ 4-7 Daily Signals</li>
+                        <li>✓ Telegram Alerts</li>
+                        <li>✓ VWAP & MFI Analysis</li>
+                        <li>✓ Cancel Anytime</li>
                     </ul>
                     <stripe-buy-button
                         buy-button-id="buy_btn_1RdfyiE15xwxzVuyiWUa2Rsf"
@@ -836,15 +936,15 @@
                     <div class="savings-badge">Save 17% vs Monthly</div>
                     <h3>Annual Plan</h3>
                     <div class="price-tag">$499.99</div>
-                    <div class="price-period">Per Year</div>
+                    <div class="price-period">Per Year <br> (For Life for the first 1000 members!)</div>
                     <ul style="list-style: none; padding: 2rem 0;">
-                        <li>✓ Everything in Monthly</li>
-                        <li>✓ Save OVER $100 per year vs Monthly</li>
-                        <li>✓ Save OVER $500 per year vs Weekly</li>
-                        <li>✓ Save OVER $3,000 per year vs Daily</li>
-                        <li>✓ Priority support</li>
-                        <li>✓ Future bot releases</li>
-                        <li>✓ Best value</li>
+                        <li>✓ All 6 Trading Bots</li>
+                        <li>✓ 4-7 Daily Signals</li>
+                        <li>✓ Telegram Alerts</li>
+                        <li>✓ VWAP & MFI Analysis</li>
+                        <li>✓ Priority Support</li>
+                        <li>✓ Future Bot Releases</li>
+                        <li>✓ Best Value</li>
                     </ul>
                     <stripe-buy-button
                         buy-button-id="buy_btn_1RdgX0E15xwxzVuya71vvq0c"
@@ -877,6 +977,30 @@
                     <div class="rating">★★★★★</div>
                     <p class="testimonial-text">The consistency is what sets BlueChip apart. 4-7 quality signals daily means I always have opportunities. The VWAP/MFI strategy really works!</p>
                     <div class="testimonial-author">David K. - Full-time Trader</div>
+                </div>
+                <div class="testimonial-card">
+                    <div class="quote-mark">"</div>
+                    <div class="rating">★★★★★</div>
+                    <p class="testimonial-text">"BlueChip Signals has been a game-changer for my portfolio. The signals are incredibly precise, and I've seen consistent gains since joining."</p>
+                    <div class="testimonial-author">Emily W. - Investor</div>
+                </div>
+                <div class="testimonial-card">
+                    <div class="quote-mark">"</div>
+                    <div class="rating">★★★★★</div>
+                    <p class="testimonial-text">"I was skeptical at first, but BlueChip Signals delivered. The clear entry and exit points make trading so much easier, even for a beginner like me."</p>
+                    <div class="testimonial-author">John D. - New Trader</div>
+                </div>
+                <div class="testimonial-card">
+                    <div class="quote-mark">"</div>
+                    <div class="rating">★★★★★</div>
+                    <p class="testimonial-text">"The Telegram alerts are super convenient. I never miss a signal, and the quality of the trades is top-notch. Highly recommend!"</p>
+                    <div class="testimonial-author">Jessica P. - Busy Professional</div>
+                </div>
+                <div class="testimonial-card">
+                    <div class="quote-mark">"</div>
+                    <div class="rating">★★★★★</div>
+                    <p class="testimonial-text">"As an experienced trader, I appreciate the depth of analysis behind each signal. BlueChip Signals complements my strategy perfectly."</p>
+                    <div class="testimonial-author">Robert G. - Experienced Trader</div>
                 </div>
             </div>
         </div>
@@ -973,5 +1097,13 @@
 
         
     </script>
-</body>
+        <script>
+            const hamburgerMenu = document.querySelector('.hamburger-menu');
+            const mobileNav = document.querySelector('.nav-links');
+
+            hamburgerMenu.addEventListener('click', () => {
+                mobileNav.classList.toggle('active');
+            });
+        </script>
+    </body>
 </html>

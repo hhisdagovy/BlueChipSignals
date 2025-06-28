@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BlueChip Signals - META Bot</title>
+    <link rel="icon" type="image/png" href="logo.png">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary-gold: #b3a17d;
+            --secondary-gold: #E2CFB5;
+            --dark-bg: #080B0F;
+            --darker-bg: #050810;
+            --light-text: #FFFFFF;
+            --gray-text: #A0A0A0;
+            --field-bg: rgba(26, 31, 46, 0.7);
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background-color: var(--darker-bg);
+            color: var(--light-text);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        /* Navigation */
+        nav {
+            background: rgba(5, 8, 16, 0.8);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            position: fixed;
+            width: 100%;
+            top: 0;
+            z-index: 1000;
+            padding: 0.5rem 0;
+        }
+
+        .nav-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo img {
+            width: 80px;
+            height: 80px;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 2rem;
+            list-style: none;
+        }
+
+        .nav-links a {
+            color: var(--light-text);
+            text-decoration: none;
+            transition: color 0.3s;
+        }
+
+        a {
+            text-decoration: none;
+        }
+
+        .nav-links a:hover {
+            color: var(--primary-gold);
+        }
+
+        .hamburger-menu {
+            display: none;
+            flex-direction: column;
+            justify-content: space-around;
+            width: 30px;
+            height: 25px;
+            cursor: pointer;
+            z-index: 1100;
+        }
+
+        .hamburger-menu .bar {
+            width: 100%;
+            height: 3px;
+            background-color: var(--primary-gold);
+            transition: all 0.3s ease-in-out;
+        }
+
+        /* Bot Page Hero */
+        .bot-hero {
+            padding: 10rem 2rem 5rem;
+            text-align: center;
+            background: radial-gradient(circle at 50% 30%, rgba(201, 176, 55, 0.1), transparent 60%);
+        }
+        
+        .bot-symbol {
+            font-size: 5rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--primary-gold), var(--secondary-gold));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 0.5rem;
+            line-height: 1;
+        }
+
+        .bot-page-title {
+            font-size: 2.5rem;
+            color: var(--light-text);
+            margin-bottom: 1rem;
+        }
+
+        .bot-page-subtitle {
+            font-size: 1.2rem;
+            color: var(--gray-text);
+            max-width: 700px;
+            margin: 0 auto 2rem;
+        }
+
+        /* Main Content */
+        .main-content {
+            padding: 0 2rem 4rem;
+            max-width: 1200px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 1fr 2fr;
+            gap: 3rem;
+        }
+
+        .strategy-snapshot, .best-practices {
+            background: var(--dark-bg);
+            padding: 2rem;
+            border: 1px solid rgba(201, 176, 55, 0.2);
+            border-radius: 20px;
+        }
+
+        .strategy-snapshot h3, .best-practices h3 {
+            font-size: 1.8rem;
+            color: var(--primary-gold);
+            margin-bottom: 1.5rem;
+        }
+
+        .info-list {
+            list-style: none;
+        }
+
+        .info-list li {
+            display: flex;
+            align-items: flex-start;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+            font-size: 1.1rem;
+        }
+
+        .info-list .icon {
+            font-size: 1.2rem;
+            color: var(--primary-gold);
+            margin-top: 4px;
+        }
+
+        .practice-cards {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 1.5rem;
+        }
+
+        .practice-card {
+            background-color: var(--field-bg);
+            border: 1px solid rgba(201, 176, 55, 0.15);
+            border-radius: 12px;
+            padding: 1.5rem;
+            transition: transform 0.3s, border-color 0.3s;
+        }
+
+        .practice-card:hover {
+            transform: translateY(-5px);
+            border-color: var(--primary-gold);
+        }
+
+        .practice-card h4 {
+            color: var(--secondary-gold);
+            margin-bottom: 0.5rem;
+            font-size: 1.2rem;
+        }
+
+        /* Floating CTA */
+        .floating-cta {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 999;
+        }
+
+        .cta-button {
+            display: inline-block;
+            background: linear-gradient(135deg, var(--primary-gold), var(--secondary-gold));
+            color: var(--darker-bg);
+            padding: 1rem 2.5rem;
+            border-radius: 50px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: transform 0.3s, box-shadow 0.3s;
+            box-shadow: 0 10px 30px rgba(201, 176, 55, 0.2);
+        }
+
+        .cta-button:hover {
+            transform: translateY(-3px) scale(1.05);
+            box-shadow: 0 15px 40px rgba(201, 176, 55, 0.4);
+        }
+
+        /* Footer */
+        footer {
+            background: var(--darker-bg);
+            padding: 2rem;
+            text-align: center;
+            border-top: 1px solid rgba(201, 176, 55, 0.2);
+        }
+
+        /* Responsive */
+        @media (max-width: 992px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .bot-hero {
+                padding: 8rem 1rem 4rem;
+            }
+
+            .main-content {
+                padding: 0 1rem 4rem;
+            }
+
+            .nav-links {
+                display: none;
+                flex-direction: column;
+                position: absolute;
+                top: 0;
+                right: 0;
+                width: 250px;
+                height: 100vh;
+                background: rgba(5, 8, 16, 0.95);
+                padding-top: 5rem;
+                box-shadow: -5px 0 15px rgba(0,0,0,0.5);
+                list-style: none;
+                transform: translateX(100%);
+                transition: transform 0.3s ease-in-out;
+            }
+
+            .nav-links.active {
+                transform: translateX(0);
+                display: flex;
+            }
+
+            .nav-links li {
+                padding: 1rem 2rem;
+                border-bottom: 1px solid rgba(201, 176, 55, 0.1);
+            }
+
+            .nav-links a {
+                font-size: 1.1rem;
+                display: block;
+            }
+
+            .hamburger-menu {
+                display: flex;
+            }
+        }
+
+        @media (min-width: 769px) {
+            .hamburger-menu {
+                display: none;
+            }
+            .nav-links {
+                display: flex;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav>
+        <div class="nav-container">
+            <div class="logo">
+                <a href="index.html"><img src="logo.png" alt="BlueChip Signals Logo"></a>
+            </div>
+            <div class="hamburger-menu">
+                <div class="bar"></div>
+                <div class="bar"></div>
+                <div class="bar"></div>
+            </div>
+            <ul class="nav-links">
+                <li><a href="index.html#features">Features</a></li>
+                <li><a href="index.html#bots">Our Bots</a></li>
+                <li><a href="index.html#pricing">Pricing</a></li>
+                <li><a href="index.html#testimonials">Testimonials</a></li>
+                <li><a href="faq.html">FAQ</a></li>
+                <li><a href="legal.html">Legal Disclaimer</a></li>
+                <li><a href="about.html">About Us</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <header class="bot-hero">
+        <h1 class="bot-symbol">META</h1>
+        <h2 class="bot-page-title">Meta Platforms Bot</h2>
+        <p class="bot-page-subtitle">Trade one of the world's leading tech giants. The META bot is optimized to detect momentum shifts in this high-volume stock.</p>
+    </header>
+
+    <main class="main-content">
+        <aside class="strategy-snapshot">
+            <h3>Strategy Snapshot</h3>
+            <ul class="info-list">
+                <li>
+                    <span class="icon"><i class="fas fa-bullseye"></i></span>
+                    <div><strong>Focus:</strong> Day Trading</div>
+                </li>
+                <li>
+                    <span class="icon"><i class="fas fa-chart-line"></i></span>
+                    <div><strong>Indicators:</strong> VWAP & MFI</div>
+                </li>
+                <li>
+                    <span class="icon"><i class="fas fa-bell"></i></span>
+                    <div><strong>Alerts:</strong> 4-7 Daily</div>
+                </li>
+                <li>
+                    <span class="icon"><i class="fas fa-file-contract"></i></span>
+                    <div><strong>Contracts:</strong> High Volume, Short Expiry</div>
+                </li>
+                 <li>
+                    <span class="icon"><i class="fas fa-sync-alt"></i></span>
+                    <div><strong>Method:</strong> Momentum Breakouts</div>
+                </li>
+            </ul>
+        </aside>
+
+        <section class="best-practices">
+            <h3>Best Practices for Success</h3>
+            <div class="practice-cards">
+                <div class="practice-card">
+                    <h4>Wait for Confirmation</h4>
+                    <p>Patience is key. Always wait for the official signal in the Telegram channel before entering a trade. Never jump the gun based on market movement alone.</p>
+                </div>
+                <div class="practice-card">
+                    <h4>Respect the VWAP</h4>
+                    <p>Our strategy is heavily based on the Volume Weighted Average Price (VWAP). A signal is strongest when the price has a clear breakout above this key level.</p>
+                </div>
+                <div class="practice-card">
+                    <h4>Manage Your Risk</h4>
+                    <p>Never allocate your entire portfolio to a single trade. We recommend using 1-5% of your capital per signal to ensure longevity and manage risk effectively.</p>
+                </div>
+                <div class="practice-card">
+                    <h4>Understand the MFI</h4>
+                    <p>The Money Flow Index (MFI) helps us gauge buying pressure. A high MFI on our signals indicates strong momentum, increasing the probability of a successful trade.</p>
+                </div>
+                <div class="practice-card">
+                    <h4>Trade Reversal Bounces</h4>
+                    <p>In addition to breakouts, our bot identifies reversal bounces off key support levels. These signals offer a chance to enter at the start of a potential trend change.</p>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <div class="floating-cta">
+        <a href="index.html#pricing" class="cta-button">Join Now & Get Signals</a>
+    </div>
+
+    <!-- Footer -->
+    <footer>
+        <p>&copy; 2025 BlueChip Signals. All rights reserved. | <a href="legal.html" style="color: var(--primary-gold); text-decoration: none;">Legal Disclaimer</a> | <a href="index.html" style="color: var(--primary-gold); text-decoration: none;">Back to Home</a></p>
+    </footer>
+
+    <script>
+        const hamburgerMenu = document.querySelector('.hamburger-menu');
+        const mobileNav = document.querySelector('.nav-links');
+
+        hamburgerMenu.addEventListener('click', () => {
+            mobileNav.classList.toggle('active');
+        });
+    </script>
+</body>
+</html>

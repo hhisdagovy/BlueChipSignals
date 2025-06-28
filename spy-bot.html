@@ -6,6 +6,7 @@
     <title>BlueChip Signals - SPY Bot</title>
     <link rel="icon" type="image/png" href="logo.png">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         * {
             margin: 0;
@@ -153,6 +154,28 @@
             margin-bottom: 1.5rem;
         }
 
+        .stock-price-data {
+            margin-top: 1rem;
+            padding-top: 1rem;
+            border-top: 1px solid rgba(201, 176, 55, 0.2);
+            font-size: 1.2rem;
+            font-weight: 600;
+            text-align: center;
+        }
+
+        .price {
+            color: var(--light-text);
+            font-size: 1.8rem;
+        }
+
+        .change.positive {
+            color: var(--success-green);
+        }
+
+        .change.negative {
+            color: var(--danger-red);
+        }
+
         .info-list {
             list-style: none;
         }
@@ -194,6 +217,22 @@
             color: var(--secondary-gold);
             margin-bottom: 0.5rem;
             font-size: 1.2rem;
+        }
+
+        .chart-container {
+            background: var(--dark-bg);
+            padding: 2rem;
+            border: 1px solid rgba(201, 176, 55, 0.2);
+            border-radius: 20px;
+            margin-top: 2rem;
+            grid-column: 1 / -1; /* Span across all columns */
+        }
+
+        .chart-container h3 {
+            font-size: 1.8rem;
+            color: var(--primary-gold);
+            margin-bottom: 1.5rem;
+            text-align: center;
         }
 
         /* Floating CTA */
@@ -362,6 +401,10 @@
                     <div><strong>Method:</strong> Momentum Breakouts</div>
                 </li>
             </ul>
+            <div class="stock-price-data">
+                <span class="price">Loading...</span>
+                <span class="change"></span>
+            </div>
         </aside>
 
         <section class="best-practices">
@@ -387,7 +430,16 @@
                     <h4>Trade With the Trend</h4>
                     <p>SPY often establishes a clear intraday trend. Our signals are most effective when they align with the broader market direction for the day. Avoid fighting a strong trend.</p>
                 </div>
+                <div class="practice-card">
+                    <h4>Watch the VIX</h4>
+                    <p>The Volatility Index (VIX) is often called the "fear gauge." A rising VIX indicates increased market fear and can signal larger, more erratic swings in the SPY, creating both risk and opportunity.</p>
+                </div>
             </div>
+        </section>
+
+        <section class="chart-container">
+            <h3>14-Day Price History</h3>
+            <canvas id="priceChart"></canvas>
         </section>
     </main>
 
@@ -404,6 +456,7 @@
         </div>
     </footer>
 
+    <script src="stock-prices.js"></script>
     <script>
         const hamburgerMenu = document.querySelector('.hamburger-menu');
         const mobileNav = document.querySelector('.nav-links');

@@ -6,6 +6,7 @@
     <title>BlueChip Signals - TSLA Bot</title>
     <link rel="icon" type="image/png" href="logo.png">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         * {
             margin: 0;
@@ -159,6 +160,28 @@
             margin-bottom: 1.5rem;
         }
 
+        .stock-price-data {
+            margin-top: 1rem;
+            padding-top: 1rem;
+            border-top: 1px solid rgba(201, 176, 55, 0.2);
+            font-size: 1.2rem;
+            font-weight: 600;
+            text-align: center;
+        }
+
+        .price {
+            color: var(--light-text);
+            font-size: 1.8rem;
+        }
+
+        .change.positive {
+            color: var(--success-green);
+        }
+
+        .change.negative {
+            color: var(--danger-red);
+        }
+
         .info-list {
             list-style: none;
         }
@@ -310,6 +333,22 @@
                 display: flex;
             }
         }
+
+        .chart-container {
+            background: var(--dark-bg);
+            padding: 2rem;
+            border: 1px solid rgba(201, 176, 55, 0.2);
+            border-radius: 20px;
+            margin-top: 2rem;
+            grid-column: 1 / -1; /* Span across all columns */
+        }
+
+        .chart-container h3 {
+            font-size: 1.8rem;
+            color: var(--primary-gold);
+            margin-bottom: 1.5rem;
+            text-align: center;
+        }
     </style>
 </head>
 <body>
@@ -368,6 +407,10 @@
                     <div><strong>Method:</strong> Momentum Breakouts</div>
                 </li>
             </ul>
+            <div class="stock-price-data">
+                <span class="price">Loading...</span>
+                <span class="change"></span>
+            </div>
         </aside>
 
         <section class="best-practices">
@@ -375,7 +418,7 @@
             <div class="practice-cards">
                 <div class="practice-card">
                     <h4>Embrace the Volatility</h4>
-                    <p>TSLA is one of the most volatile stocks. Expect rapid price changes and be ready to act quickly. This volatility is what creates the high-reward opportunities our bot targets.</p>
+                    <p>TSLA is not a stock for the faint of heart. Its price swings can be dramatic. Our bot is designed for this environment, but you must be prepared for fast-moving trades and manage your risk accordingly.</p>
                 </div>
                 <div class="practice-card">
                     <h4>Monitor Elon Musk's Communications</h4>
@@ -395,6 +438,11 @@
                 </div>
             </div>
         </section>
+
+        <section class="chart-container">
+            <h3>14-Day Price History</h3>
+            <canvas id="priceChart"></canvas>
+        </section>
     </main>
 
     <div class="floating-cta">
@@ -410,6 +458,7 @@
         </div>
     </footer>
 
+    <script src="stock-prices.js"></script>
     <script>
         const hamburgerMenu = document.querySelector('.hamburger-menu');
         const mobileNav = document.querySelector('.nav-links');

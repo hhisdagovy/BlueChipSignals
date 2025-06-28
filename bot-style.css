@@ -1,8 +1,11 @@
 * {
-    outline: 1px solid red !important;
     margin: 0;
     padding: 0;
     box-sizing: border-box;
+}
+
+html, body {
+    overflow-x: hidden;
 }
 
 :root {
@@ -22,7 +25,6 @@ body {
     background-color: var(--darker-bg);
     color: var(--light-text);
     line-height: 1.6;
-    overflow-x: hidden;
 }
 
 /* Navigation */

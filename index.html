@@ -994,50 +994,26 @@
                 <a href="spy-bot.html" class="bot-card" data-symbol="SPY">
                     <div class="bot-symbol">SPY</div>
                     <div class="bot-name">S&P 500 ETF</div>
-                    <div class="stock-price-data">
-                        <span class="price">Loading...</span>
-                        <span class="change"></span>
-                    </div>
                 </a>
                 <a href="meta-bot.html" class="bot-card" data-symbol="META">
                     <div class="bot-symbol">META</div>
                     <div class="bot-name">Meta Platforms</div>
-                    <div class="stock-price-data">
-                        <span class="price">Loading...</span>
-                        <span class="change"></span>
-                    </div>
                 </a>
                 <a href="aapl-bot.html" class="bot-card" data-symbol="AAPL">
                     <div class="bot-symbol">AAPL</div>
                     <div class="bot-name">Apple Inc.</div>
-                    <div class="stock-price-data">
-                        <span class="price">Loading...</span>
-                        <span class="change"></span>
-                    </div>
                 </a>
                 <a href="tsla-bot.html" class="bot-card" data-symbol="TSLA">
                     <div class="bot-symbol">TSLA</div>
                     <div class="bot-name">Tesla Inc.</div>
-                    <div class="stock-price-data">
-                        <span class="price">Loading...</span>
-                        <span class="change"></span>
-                    </div>
                 </a>
                 <a href="nvda-bot.html" class="bot-card" data-symbol="NVDA">
                     <div class="bot-symbol">NVDA</div>
                     <div class="bot-name">NVIDIA Corp.</div>
-                    <div class="stock-price-data">
-                        <span class="price">Loading...</span>
-                        <span class="change"></span>
-                    </div>
                 </a>
                 <a href="amzn-bot.html" class="bot-card" data-symbol="AMZN">
                     <div class="bot-symbol">AMZN</div>
                     <div class="bot-name">Amazon.com</div>
-                    <div class="stock-price-data">
-                        <span class="price">Loading...</span>
-                        <span class="change"></span>
-                    </div>
                 </a>
             </div>
         </div>
@@ -1303,15 +1279,14 @@
         startCountdown(); // Call the function to start the timer
         
     </script>
-        <script src="config.js"></script>
-        <script src="stock-prices.js"></script>
-        <script>
-            const hamburgerMenu = document.querySelector('.hamburger-menu');
-            const mobileNav = document.querySelector('.nav-links');
+    <script src="stock-prices.js"></script>
+    <script>
+        const hamburgerMenu = document.querySelector('.hamburger-menu');
+        const mobileNav = document.querySelector('.nav-links');
 
-            hamburgerMenu.addEventListener('click', () => {
-                mobileNav.classList.toggle('active');
-            });
-        </script>
-    </body>
+        hamburgerMenu.addEventListener('click', () => {
+            mobileNav.classList.toggle('active');
+        });
+    </script>
+</body>
 </html>

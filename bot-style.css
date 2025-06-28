@@ -375,28 +375,25 @@ footer {
 @media (max-width: 992px) {
     .main-content {
         grid-template-columns: 1fr;
-    }
-    .main-content {
-        padding: 0 1rem 4rem;
-        gap: 1.5rem;
+        gap: 2rem;
     }
 }
 
 @media (max-width: 768px) {
     .bot-hero {
-        padding: 8rem 1rem 3rem;
+        padding: 7rem 1rem 3rem;
     }
 
     .bot-symbol {
-        font-size: 4rem;
+        font-size: 3.5rem;
     }
 
     .bot-page-title {
-        font-size: 2rem;
+        font-size: 1.8rem;
     }
 
     .main-content {
-        padding: 0 1rem 4rem;
+        padding: 0 1rem 3rem;
         gap: 1.5rem;
     }
 
@@ -404,8 +401,16 @@ footer {
         padding: 1.5rem;
     }
     
+    .strategy-snapshot h3, .best-practices h3, .chart-container h3, .news-container h3 {
+        font-size: 1.5rem;
+    }
+    
     .chart-container {
         height: 350px;
+    }
+
+    .news-grid {
+        grid-template-columns: 1fr; /* Single column for news on mobile */
     }
 
     .nav-links {

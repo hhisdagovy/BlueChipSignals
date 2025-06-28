@@ -6,6 +6,7 @@
     <title>BlueChip Signals - META Bot</title>
     <link rel="icon" type="image/png" href="logo.png">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         * {
             margin: 0;
@@ -153,6 +154,28 @@
             margin-bottom: 1.5rem;
         }
 
+        .stock-price-data {
+            margin-top: 1rem;
+            padding-top: 1rem;
+            border-top: 1px solid rgba(201, 176, 55, 0.2);
+            font-size: 1.2rem;
+            font-weight: 600;
+            text-align: center;
+        }
+
+        .price {
+            color: var(--light-text);
+            font-size: 1.8rem;
+        }
+
+        .change.positive {
+            color: var(--success-green);
+        }
+
+        .change.negative {
+            color: var(--danger-red);
+        }
+
         .info-list {
             list-style: none;
         }
@@ -194,6 +217,22 @@
             color: var(--secondary-gold);
             margin-bottom: 0.5rem;
             font-size: 1.2rem;
+        }
+
+        .chart-container {
+            background: var(--dark-bg);
+            padding: 2rem;
+            border: 1px solid rgba(201, 176, 55, 0.2);
+            border-radius: 20px;
+            margin-top: 2rem;
+            grid-column: 1 / -1; /* Span across all columns */
+        }
+
+        .chart-container h3 {
+            font-size: 1.8rem;
+            color: var(--primary-gold);
+            margin-bottom: 1.5rem;
+            text-align: center;
         }
 
         /* Floating CTA */
@@ -362,6 +401,10 @@
                     <div><strong>Method:</strong> Momentum Breakouts</div>
                 </li>
             </ul>
+            <div class="stock-price-data">
+                <span class="price">Loading...</span>
+                <span class="change"></span>
+            </div>
         </aside>
 
         <section class="best-practices">
@@ -376,8 +419,8 @@
                     <p>META often has opening gaps based on overnight news. These gaps can become significant support or resistance levels. Our bot often targets trades that either fill these gaps or break out from them.</p>
                 </div>
                 <div class="practice-card">
-                    <h4>Monitor for Regulatory Headlines</h4>
-                    <p>As a dominant player in social media, META is often subject to regulatory scrutiny. Be aware of any government-related news, as it can cause sharp, unexpected moves.</p>
+                    <h4>Monitor for Regulatory News</h4>
+                    <p>As a dominant player in social media and the "metaverse," META is often under regulatory scrutiny. News related to data privacy, antitrust, and content moderation can cause significant price swings.</p>
                 </div>
                 <div class="practice-card">
                     <h4>Identify Key Psychological Levels</h4>
@@ -388,6 +431,11 @@
                     <p>Compare META's performance to the broader market (SPY) and tech sector (QQQ). If META is strong while the market is weak (or vice versa), it can signal a particularly high-conviction trade.</p>
                 </div>
             </div>
+        </section>
+
+        <section class="chart-container">
+            <h3>14-Day Price History</h3>
+            <canvas id="priceChart"></canvas>
         </section>
     </main>
 
@@ -404,6 +452,7 @@
         </div>
     </footer>
 
+    <script src="stock-prices.js"></script>
     <script>
         const hamburgerMenu = document.querySelector('.hamburger-menu');
         const mobileNav = document.querySelector('.nav-links');

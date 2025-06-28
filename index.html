@@ -226,15 +226,24 @@
         .signal-icon {
             width: 40px;
             height: 40px;
-            background: #0088cc;
             border-radius: 8px;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-weight: bold;
-            color: white;
-            font-size: 1.5rem;
+            font-size: 1.8rem;
         }
+
+        .signal-icon img {
+            width: 28px;
+            height: 28px;
+        }
+
+        .signal-icon.tsla { background-color: #E82127; color: white; }
+        .signal-icon.meta { background-color: #1877F2; color: white; }
+        .signal-icon.aapl { background-color: #999999; color: white; }
+        .signal-icon.spy { background-color: var(--primary-gold); color: var(--darker-bg); }
+        .signal-icon.nvda { background-color: #76B900; color: white; }
+        .signal-icon.amzn { background-color: #FF9900; color: white; }
 
         .signal-title {
             flex: 1;
@@ -716,7 +725,7 @@
                     <div class="signal-carousel">
                         <div class="signal-preview active" data-stock="TSLA">
                             <div class="signal-header">
-                                 <div class="signal-icon"><img src="telegramlogo.png" alt="Telegram" style="width: 28px; height: 28px;"></div>
+                                 <div class="signal-icon tsla"><img src="tesla-logo.svg" alt="Tesla Logo"></div>
                                  <div class="signal-title">
                                     <strong>TSLA Buy Signal</strong><br>
                                     <small style="color: #888;">Momentum Breakout</small>
@@ -746,7 +755,7 @@
                         </div>
                         <div class="signal-preview next" data-stock="META">
                             <div class="signal-header">
-                                <div class="signal-icon"><img src="telegramlogo.png" alt="Telegram" style="width: 28px; height: 28px;"></div>
+                                <div class="signal-icon meta"><i class="fab fa-meta"></i></div>
                                 <div class="signal-title">
                                     <strong>META Buy Signal</strong><br>
                                     <small style="color: #888;">Momentum Breakout</small>
@@ -776,7 +785,7 @@
                         </div>
                         <div class="signal-preview hidden" data-stock="AAPL">
                             <div class="signal-header">
-                                <div class="signal-icon"><img src="telegramlogo.png" alt="Telegram" style="width: 28px; height: 28px;"></div>
+                                <div class="signal-icon aapl"><i class="fab fa-apple"></i></div>
                                 <div class="signal-title">
                                     <strong>AAPL Buy Signal</strong><br>
                                     <small style="color: #888;">Momentum Breakout</small>
@@ -806,7 +815,7 @@
                         </div>
                         <div class="signal-preview hidden" data-stock="SPY">
                             <div class="signal-header">
-                                <div class="signal-icon"><img src="telegramlogo.png" alt="Telegram" style="width: 28px; height: 28px;"></div>
+                                <div class="signal-icon spy"><i class="fas fa-chart-line"></i></div>
                                 <div class="signal-title">
                                     <strong>SPY Buy Signal</strong><br>
                                     <small style="color: #888;">Momentum Breakout</small>
@@ -836,7 +845,7 @@
                         </div>
                         <div class="signal-preview hidden" data-stock="NVDA">
                             <div class="signal-header">
-                                <div class="signal-icon"><img src="telegramlogo.png" alt="Telegram" style="width: 28px; height: 28px;"></div>
+                                <div class="signal-icon nvda"><i class="fas fa-microchip"></i></div>
                                 <div class="signal-title">
                                     <strong>NVDA Buy Signal</strong><br>
                                     <small style="color: #888;">Momentum Breakout</small>
@@ -866,7 +875,7 @@
                         </div>
                         <div class="signal-preview hidden" data-stock="AMZN">
                             <div class="signal-header">
-                                <div class="signal-icon"><img src="telegramlogo.png" alt="Telegram" style="width: 28px; height: 28px;"></div>
+                                <div class="signal-icon amzn"><i class="fab fa-amazon"></i></div>
                                 <div class="signal-title">
                                     <strong>AMZN Buy Signal</strong><br>
                                     <small style="color: #888;">Momentum Breakout</small>

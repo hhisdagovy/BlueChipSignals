@@ -1,6 +1,8 @@
 document.addEventListener('DOMContentLoaded', () => {
     const stockCards = document.querySelectorAll('.bot-card[data-symbol]');
     
+    const apiKey = "YRQ16Y13CDZLZ0XO";
+
     const fetchStockPrice = async (symbol) => {
         const url = `https://www.alphavantage.co/query?function=GLOBAL_QUOTE&symbol=${symbol}&apikey=${apiKey}`;
         try {

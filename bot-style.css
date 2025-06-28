@@ -447,6 +447,10 @@ footer {
     .hamburger-menu {
         display: flex;
     }
+
+    .practice-cards {
+        grid-template-columns: 1fr; /* single column on mobile */
+    }
 }
 
 @media (min-width: 769px) {

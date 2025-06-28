@@ -382,11 +382,28 @@ footer {
 
 @media (max-width: 768px) {
     .bot-hero {
-        padding: 8rem 1rem 4rem;
+        padding: 8rem 1rem 3rem;
+    }
+
+    .bot-symbol {
+        font-size: 4rem;
+    }
+
+    .bot-page-title {
+        font-size: 2rem;
     }
 
     .main-content {
         padding: 0 1rem 4rem;
+        gap: 2rem;
+    }
+
+    .strategy-snapshot, .best-practices, .chart-container {
+        padding: 1.5rem;
+    }
+    
+    .chart-container {
+        height: 350px;
     }
 
     .nav-links {

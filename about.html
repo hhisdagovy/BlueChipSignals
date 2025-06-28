@@ -101,29 +101,61 @@
         /* About Section */
         .about {
             padding: 8rem 2rem 4rem;
-            max-width: 1000px;
+            max-width: 1200px;
             margin: 0 auto;
+        }
+
+        .about-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 4rem;
+            align-items: center;
+        }
+
+        .about-image img {
+            max-width: 100%;
+            border-radius: 15px;
+            border: 2px solid var(--primary-gold);
         }
 
         .section-title {
             text-align: center;
             font-size: 2.5rem;
-            margin-bottom: 3rem;
+            margin-bottom: 1rem;
             color: var(--primary-gold);
         }
         
         .about-content {
-            background: rgba(26, 31, 46, 0.5);
-            border: 1px solid rgba(201, 176, 55, 0.2);
-            border-radius: 15px;
-            padding: 2rem;
             color: var(--gray-text);
         }
 
         .about-content h3 {
-            color: var(--light-text);
+            color: var(--primary-gold);
+            font-size: 1.5rem;
             margin-top: 1.5rem;
-            margin-bottom: 0.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .about-content p {
+            margin-bottom: 1rem;
+            font-size: 1.1rem;
+        }
+
+        .cta-button {
+            display: inline-block;
+            background: linear-gradient(135deg, var(--primary-gold), var(--secondary-gold));
+            color: var(--darker-bg);
+            padding: 1rem 2.5rem;
+            border-radius: 50px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: transform 0.3s, box-shadow 0.3s;
+            margin-top: 1.5rem;
+        }
+
+        .cta-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(201, 176, 55, 0.3);
         }
 
         /* Footer */
@@ -170,6 +202,10 @@
             .hamburger-menu {
                 display: flex; /* Show hamburger on small screens */
             }
+
+            .about-grid {
+                grid-template-columns: 1fr;
+            }
         }
 
         @media (min-width: 769px) {
@@ -209,14 +245,20 @@
     <!-- About Section -->
     <section class="about">
         <h2 class="section-title">Our Journey: From Vision to Victory</h2>
-        <div class="about-content">
-            <p>BlueChip Signals was born from a singular vision: to demystify the complexities of stock market trading and empower individuals with precise, actionable insights. Our journey began in 2020, a period marked by unprecedented market shifts and a growing need for reliable trading strategies.</p>
-
-            <h3>Years of Relentless Dedication</h3>
-            <p>Since 2020, our team has been relentlessly dedicated to building and rigorously backtesting our proprietary trading algorithms. We immersed ourselves in countless hours of data analysis, refining our momentum breakout strategy against years of historical market data. This wasn't just about theoretical models; it was about proving, unequivocally, that our approach could consistently identify high-probability buy signals for blue-chip stocks like SPY, META, AAPL, TSLA, NVDA, and AMZN.</p>
-
-            <h3>The Conclusion: A Service for All</h3>
-            <p>After years of meticulous development, exhaustive backtesting, and consistent validation of our results, we have officially come to the conclusion that it is time to launch BlueChip Signals to the public. We are confident that the precision and reliability of our signals, honed through extensive research, will provide immense value to traders of all experience levels. Our mission is to equip you with the tools and insights needed to navigate the markets with greater confidence and achieve your trading goals.</p>
+        <div class="about-grid">
+            <div class="about-image">
+                <img src="logo.png" alt="BlueChip Signals Team">
+            </div>
+            <div class="about-content">
+                <p>BlueChip Signals was born from a singular vision: to demystify the complexities of stock market trading and empower individuals with precise, actionable insights. Our journey began in 2020, a period marked by unprecedented market shifts and a growing need for reliable trading strategies.</p>
+    
+                <h3>Years of Relentless Dedication</h3>
+                <p>Since 2020, our team has been relentlessly dedicated to building and rigorously backtesting our proprietary trading algorithms. We immersed ourselves in countless hours of data analysis, refining our momentum breakout strategy against years of historical market data. This wasn't just about theoretical models; it was about proving, unequivocally, that our approach could consistently identify high-probability buy signals for blue-chip stocks like SPY, META, AAPL, TSLA, NVDA, and AMZN.</p>
+    
+                <h3>The Conclusion: A Service for All</h3>
+                <p>After years of meticulous development, exhaustive backtesting, and consistent validation of our results, we have officially come to the conclusion that it is time to launch BlueChip Signals to the public. We are confident that the precision and reliability of our signals, honed through extensive research, will provide immense value to traders of all experience levels. Our mission is to equip you with the tools and insights needed to navigate the markets with greater confidence and achieve your trading goals.</p>
+                <a href="index.html#pricing" class="cta-button">Get Started Now</a>
+            </div>
         </div>
     </section>
 

@@ -372,105 +372,81 @@ footer {
     text-align: center;
     padding: 2rem 1rem;
     margin-top: 2rem;
-    font-size: 0.9rem;
+    border-top: 1px solid rgba(201, 176, 55, 0.1);
     color: var(--gray-text);
+    font-size: 0.9rem;
 }
-
 
 /* --- Responsive Design --- */
 
-/* Base mobile styles */
-body {
-    font-size: 16px;
-    padding-top: 60px; /* Add padding to account for fixed header */
-}
-
-/* Container for main content */
-.main-content {
-    width: 100%;
-    padding: 0 1rem 2rem;
-    box-sizing: border-box;
-    margin: 0 auto;
-}
-
-/* Responsive typography */
-h1, h2, h3, h4, h5, h6 {
-    word-wrap: break-word;
-}
-
-/* Navigation */
+/* Medium screens (tablets) */
 @media screen and (max-width: 768px) {
-    .nav-container {
-        padding: 0.5rem 1rem;
-    }
-    
-    .nav-container {
-        padding: 0 1.5rem;
-    }
-    
-    .logo img {
-        width: 50px;
-        height: auto;
-        margin-top: 0;
-    }
-    
     .nav-links {
-        display: none; /* Mobile menu will be handled by hamburger */
+        display: none;
+        position: absolute;
+        top: 70px; /* Position below the nav bar */
+        left: 0;
+        width: 100%;
+        background: var(--darker-bg);
+        flex-direction: column;
+        align-items: center;
+        padding: 2rem 0;
+        gap: 1.5rem;
     }
-    
+
+    .nav-links.active {
+        display: flex;
+    }
+
+    .nav-links li {
+        width: 100%;
+        text-align: center;
+    }
+
+    .nav-links a {
+        font-size: 1.2rem;
+    }
+
     .hamburger-menu {
         display: flex;
     }
-}
 
-/* Mobile-first styles */
-@media screen and (max-width: 768px) {
-    body {
-        padding-top: 50px; /* Slightly less padding on mobile */
-    }
-    
     .bot-hero {
-        padding-top: 7rem; /* Increased for mobile */
-        padding-bottom: 1.5rem;
+        padding-top: 7rem;
     }
-    
-    .bot-symbol {
-        font-size: 3.5rem;
-        margin-bottom: 0.5rem;
-    }
-    
-    .bot-page-title {
-        font-size: 1.6rem;
-        margin: 0.5rem 0;
-    }
-    
-    .bot-page-subtitle {
-        font-size: 0.95rem;
-        margin: 0.5rem 0 1.5rem;
-    }
-    
-    .main-content {
-        padding: 0 0.75rem 1.5rem;
-    }
-    
+
     .strategy-snapshot, 
-    .practice-cards {
+    .practice-card {
         padding: 1rem;
-        border-radius: 10px;
     }
-    
+
     .strategy-snapshot h3, .practice-cards h3, .news-container h3 {
         font-size: 1.2rem;
     }
 
-    .news-grid {
-        gap: 1rem;
+    .practice-cards {
+        padding: 0;
+    }
+}
+
+/* Small screens (mobile) */
+@media screen and (max-width: 600px) {
+    .bot-symbol {
+        font-size: 3rem;
     }
 
-    .news-card {
-        flex-direction: column;
+    .bot-page-title {
+        font-size: 1.5rem;
     }
-    
+
+    .bot-page-subtitle {
+        font-size: 0.9rem;
+    }
+
+    .main-content {
+        padding: 0 1rem 3rem;
+    }
+
     .floating-cta {
         padding: 0.8rem;
     }
@@ -480,138 +456,7 @@ h1, h2, h3, h4, h5, h6 {
         padding: 0.8rem 1.2rem;
     }
 
-    .strategy-snapshot h3, .practice-cards h3, .news-container h3 {
-        padding-left: 0;
-        padding-right: 0;
-    }
-
     .news-grid {
-        grid-template-columns: 1fr;
-    }
-
-    .hamburger-menu {
-        display: flex;
-    }
-
-    .practice-cards {
-        padding: 0;
+        gap: 1rem;
     }
 }
-
-@media screen and (max-width: 600px) {
-    .bot-hero {
-        padding: 6rem 1rem 3rem;
-    }
-    
-    .bot-symbol {
-        font-size: 3.5rem;
-        margin-bottom: 0.5rem;
-    }
-    
-    .bot-page-title {
-        font-size: 1.5rem;
-        margin: 0.5rem 0;
-    }
-    
-    .bot-page-subtitle {
-        font-size: 1rem;
-        padding: 0 1rem;
-    }
-    
-    .main-content {
-        padding: 0 0.5rem 2rem;
-        grid-template-columns: 1fr;
-        gap: 1rem;
-
-    }
-    
-    .strategy-snapshot, 
-    .practice-cards {
-        padding: 1.25rem;
-        border-radius: 12px;
-        margin: 0 0.5rem;
-        width: calc(100% - 1rem);
-        box-sizing: border-box;
-    }
-    
-    .news-grid {
-        grid-template-columns: 1fr;
-        gap: 1rem;
-        padding: 0 0.5rem;
-    }
-    
-
-    }
-    
-    .strategy-snapshot, 
-    .practice-cards {
-        padding: 1.25rem;
-        border-radius: 12px;
-        margin: 0 0.5rem;
-        width: calc(100% - 1rem);
-        box-sizing: border-box;
-    }
-    
-    .news-grid {
-        grid-template-columns: 1fr;
-        gap: 1rem;
-        padding: 0 0.5rem;
-    }
-    
-        main
-    .news-card {
-        margin-bottom: 1rem;
-    }
-    
-    .floating-cta {
-        bottom: 1rem;
-        right: 1rem;
-    }
-    
-    .cta-button {
-        padding: 0.75rem 1.5rem;
-        font-size: 1rem;
-    }
-    .strategy-snapshot h3, .practice-cards h3, .chart-container h3, .news-container h3 {
-        font-size: 1.5rem;
-    }
-
-    .news-grid {
-        grid-template-columns: 1fr;
-    }
-
-    /* Mobile Navigation */
-    .nav-links {
-        position: fixed;
-        top: 0;
-        background: rgba(5, 8, 16, 0.95);
-        backdrop-filter: blur(15px);
-        -webkit-backdrop-filter: blur(15px);
-        flex-direction: column;
-        justify-content: center;
-        align-items: center;
-        height: 100vh;
-        width: 100%;
-        left: -100%;
-        transition: left 0.4s ease-in-out;
-    }
-
-    .nav-links.active {
-        left: 0;
-    }
-
-    .nav-links li {
-        margin: 1rem 0;
-    }
-
-    .nav-links a {
-        font-size: 1.5rem;
-    }
-
-    .hamburger-menu {
-        display: flex;
-    }
-
-    .practice-cards {
-        grid-template-columns: 1fr;
-    }

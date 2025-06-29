@@ -40,7 +40,7 @@ nav {
     width: 100%;
     top: 0;
     z-index: 1000;
-    padding: 0.5rem 0;
+    padding: 0.8rem 0;
 }
 
 .nav-container {
@@ -111,11 +111,12 @@ a {
 
 /* Bot Page Hero */
 .bot-hero {
-    padding: 4rem 1rem 2rem;
+    padding: 5rem 1rem 2rem;
     max-width: 550px;
     width: 100%;
     box-sizing: border-box;
     margin: 0 auto;
+    padding-top: 7rem; /* Add more space for fixed header */
     text-align: center;
     display: flex;
     flex-direction: column;
@@ -400,13 +401,15 @@ footer {
 /* Base mobile styles */
 body {
     font-size: 16px;
+    padding-top: 60px; /* Add padding to account for fixed header */
 }
 
 /* Container for main content */
 .main-content {
     width: 100%;
-    padding: 0 1rem;
+    padding: 0 1rem 2rem;
     box-sizing: border-box;
+    margin: 0 auto;
 }
 
 /* Responsive typography */
@@ -421,8 +424,8 @@ h1, h2, h3, h4, h5, h6 {
     }
     
     .logo img {
-        width: 60px;
-        height: 60px;
+        width: 50px;
+        height: 50px;
     }
     
     .nav-links {
@@ -435,6 +438,47 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 /* Mobile-first styles */
+@media screen and (max-width: 768px) {
+    body {
+        padding-top: 50px; /* Slightly less padding on mobile */
+    }
+    
+    .bot-hero {
+        padding-top: 5rem;
+        padding-bottom: 1.5rem;
+    }
+    
+    .bot-symbol {
+        font-size: 3.5rem;
+        margin-bottom: 0.5rem;
+    }
+    
+    .bot-page-title {
+        font-size: 1.6rem;
+        margin: 0.5rem 0;
+    }
+    
+    .bot-page-subtitle {
+        font-size: 0.95rem;
+        margin: 0.5rem 0 1.5rem;
+    }
+    
+    .main-content {
+        padding: 0 0.75rem 1.5rem;
+    }
+    
+    .strategy-snapshot, 
+    .practice-cards, 
+    .chart-container {
+        padding: 1rem;
+        margin: 0.5rem 0;
+    }
+    
+    .chart-container {
+        height: 300px;
+    }
+}
+
 @media screen and (max-width: 600px) {
     .bot-hero {
         padding: 6rem 1rem 3rem;
@@ -472,7 +516,7 @@ h1, h2, h3, h4, h5, h6 {
     }
     
     .chart-container {
-        height: 300px;
+        height: 400px;
         margin: 1rem 0.5rem;
     }
     

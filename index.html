@@ -358,6 +358,29 @@
           }
         }
 
+        /* Mobile-only: shrink the limited-offer text & countdown */
+        @media (max-width: 600px) {
+          .limited-offer-container h2 {
+            font-size: 1.5rem;       /* smaller headline */
+            line-height: 1.2;
+          }
+          .limited-offer-container p {
+            font-size: 0.9rem;       /* smaller subtext */
+            margin-bottom: 1rem;
+          }
+          #countdown-timer .timer-unit span {
+            font-size: 1.25rem;      /* smaller numbers */
+          }
+          #countdown-timer .timer-unit small {
+            font-size: 0.75rem;      /* smaller labels */
+          }
+          /* optional: tighten up spacing around the clock */
+          #countdown-timer {
+            gap: 0.5rem;
+            margin: 1rem 0;
+          }
+        }
+
         /* Bots Section */
         .bots {
             padding: 4rem 2rem;

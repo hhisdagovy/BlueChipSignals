@@ -1,12 +1,5 @@
-* {
-    /* outline: 1px solid red !important; */
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-}
-
 html, body {
-    /* overflow-x: hidden; <-- REMOVING THIS */
+    overflow-x: hidden;
 }
 
 :root {
@@ -432,30 +425,5 @@ footer {
 
     .practice-cards {
         grid-template-columns: 1fr;
-    }
-
-    /* Stack main-content columns into a single column on mobile */
-    .main-content {
-        grid-template-columns: 1fr;
-    }
-
-    /* Add spacing between stacked sections */
-    .practice-cards {
-        margin-top: 1.5rem;
-    }
-}
-
-@media screen and (min-width: 769px) {
-    .hamburger-menu {
-        display: none;
-    }
-    .nav-links {
-        position: static;
-        flex-direction: row;
-        height: auto;
-        width: auto;
-        background: none;
-        backdrop-filter: none;
-        left: 0;
     }
 }

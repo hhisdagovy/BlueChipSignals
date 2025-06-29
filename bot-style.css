@@ -372,7 +372,7 @@ footer {
 
 /* --- Responsive Design --- */
 
-@media screen and (max-width: 600px) {
+@media screen and (max-width: 900px) {
     .bot-hero {
         padding: 8rem 1rem 4rem;
     }

@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BlueChip Signals - AAPL Bot</title>
+    <link rel="icon" type="image/png" href="logo.png">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="bot-style.css?v=1751139967">
+    <link rel="stylesheet" href="news-style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+</head>
+<body>
+    <!-- Navigation -->
+    <nav>
+        <div class="nav-container">
+            <div class="logo">
+                <a href="index.html"><img src="logo.png" alt="BlueChip Signals Logo"></a>
+            </div>
+            <div class="hamburger-menu">
+                <div class="bar"></div>
+                <div class="bar"></div>
+                <div class="bar"></div>
+            </div>
+            <ul class="nav-links">
+                <li><a href="index.html#features">Features</a></li>
+                <li><a href="index.html#bots">Our Bots</a></li>
+                <li><a href="index.html#pricing">Pricing</a></li>
+                <li><a href="index.html#testimonials">Testimonials</a></li>
+                <li><a href="faq.html">FAQ</a></li>
+                <li><a href="legal.html">Legal Disclaimer</a></li>
+                <li><a href="about.html">About Us</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <main class="main-content">
+        <header class="content-header card-style">
+            <div class="bot-page-icon"><i class="fab fa-apple"></i></div>
+            <h1 class="page-main-title">AAPL: The Market's Bellwether</h1>
+            <p class="page-main-subtitle">Harness Apple's leadership to forecast and trade the SPY & QQQ with confidence.</p>
+        </header>
+
+        <section class="content-section card-style">
+            <h3>Why Apple Sets the Tone</h3>
+            <p>At a <em>$3T+</em> valuation, AAPL is the single largest weight in both the S&P&nbsp;500 and Nasdaq&nbsp;100. When it moves, index ETFs feel it instantly. Understanding this dynamic lets you front-run broad-market rotations.</p>
+            <ul>
+                <li><strong>Index Weight:</strong> ~7% of SPY and ~11% of QQQ. A 2% move in AAPL can swing the entire index by ~15–20&nbsp;bps.</li>
+                <li><strong>Sector Leadership:</strong> Tech sentiment often pivots on Apple earnings and guidance.</li>
+                <li><strong>Liquidity Magnet:</strong> Institutions express macro views with AAPL because of its tight spreads and deep options market.</li>
+            </ul>
+        </section>
+
+        <section class="content-section card-style">
+            <h3>Bellwether Trading Playbook</h3>
+            <p>Use AAPL tape to time index entries and exits:</p>
+            <ul>
+                <li><strong>Opening Drive:</strong> If AAPL gaps up & holds VWAP in the first 15 min, bias long SPY/QQQ until AAPL loses VWAP.</li>
+                <li><strong>Earnings Reaction:</strong> Post-earnings strength/weakness in AAPL often dictates multi-day index direction—trade index futures accordingly.</li>
+                <li><strong>Relative Strength Screens:</strong> Monitor AAPL vs. XLK; divergence warns of sector rotation.</li>
+                <li><strong>Options Flow:</strong> Surging weekly AAPL call volume can foreshadow index squeezes.</li>
+            </ul>
+        </section>
+
+        <section class="content-section card-style">
+            <h3>Tools & Data Feeds</h3>
+            <p>Keep these dashboards on standby:</p>
+            <ul>
+                <li><strong>Bloomberg WEI GO:</strong> Real-time index weightings & single-stock impact on SPX/NDX.</li>
+                <li><strong>TradingView Correlation Coefficient (CORR):</strong> Plot AAPL vs. SPY/QQQ on 15 min & daily.</li>
+                <li><strong>Unusual Whales / FlowAlgo:</strong> Spot large-lot AAPL options that can ripple into indices.</li>
+                <li><strong>ThinkOrSwim MarketWatch Tab:</strong> Sort SPX components by market-cap to visualize AAPL's drag or lift.</li>
+            </ul>
+        </section>
+    </main>
+
+    <div class="floating-cta">
+        <a href="index.html#pricing" class="cta-button">Join Now & Get Signals</a>
+    </div>
+
+    <!-- Footer -->
+    <footer>
+        <p>&copy; 2025 BlueChip Signals. All rights reserved. | <a href="legal.html" style="color: var(--primary-gold); text-decoration: none;">Legal Disclaimer</a></p>
+        <div class="social-media">
+            <a href="https://www.tiktok.com/@bluechip.signals" target="_blank"><i class="fab fa-tiktok"></i></a>
+            <a href="https://www.instagram.com/bluechip.signals/" target="_blank"><i class="fab fa-instagram"></i></a>
+        </div>
+    </footer>
+
+    <script src="stock-prices.js" defer></script>
+    <script>
+        const hamburgerMenu = document.querySelector('.hamburger-menu');
+        const mobileNav = document.querySelector('.nav-links');
+
+        hamburgerMenu.addEventListener('click', () => {
+            mobileNav.classList.toggle('active');
+        });
+    </script>
+</body>
+</html>

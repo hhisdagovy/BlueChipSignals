@@ -182,53 +182,13 @@ a {
     margin-bottom: 1.5rem;
 }
 
-.strategy-snapshot h3, .practice-cards h3, .chart-container h3, .news-container h3 {
-    font-size: 1.6rem;
+.strategy-snapshot h3, .practice-cards h3 {
+    font-size: 1.4rem;
     color: var(--primary-gold);
-    margin: 0 0 1.5rem 0;
+    margin: 0 0 1rem 0;
     text-align: center;
     width: 100%;
-    padding: 0 1rem;
-}
-
-.stock-price-data {
-    margin-top: 1rem;
-    padding-top: 1rem;
-    border-top: 1px solid rgba(201, 176, 55, 0.2);
-    font-size: 1.2rem;
-    font-weight: 600;
-    text-align: center;
-}
-
-.price {
-    color: var(--light-text);
-    font-size: 1.8rem;
-}
-
-.change.positive {
-    color: var(--success-green);
-}
-
-.change.negative {
-    color: var(--danger-red);
-}
-
-.info-list {
-    list-style: none;
-}
-
-.info-list li {
-    display: flex;
-    align-items: flex-start;
-    gap: 1rem;
-    margin-bottom: 1.5rem;
-    font-size: 1.1rem;
-}
-
-.info-list .icon {
-    font-size: 1.2rem;
-    color: var(--primary-gold);
-    margin-top: 4px;
+    padding: 0 0.5rem;
 }
 
 .practice-cards {
@@ -255,13 +215,14 @@ a {
 
 .chart-container {
     background: var(--dark-bg);
-    padding: 1.5rem;
+    padding: 1.25rem;
     border: 1px solid rgba(201, 176, 55, 0.2);
     border-radius: 15px;
     margin: 0 auto 2rem;
-    height: 350px;
+    height: 380px;
     position: relative;
     width: 100%;
+    overflow: hidden;
     max-width: 100%;
     display: flex;
     flex-direction: column;

@@ -372,7 +372,7 @@ footer {
 
 /* --- Responsive Design --- */
 
-@media screen and (max-width: 900px) {
+@media screen and (max-width: 600px) {
     .bot-hero {
         padding: 8rem 1rem 4rem;
     }
@@ -432,6 +432,16 @@ footer {
 
     .practice-cards {
         grid-template-columns: 1fr;
+    }
+
+    /* Stack main-content columns into a single column on mobile */
+    .main-content {
+        grid-template-columns: 1fr;
+    }
+
+    /* Add spacing between stacked sections */
+    .practice-cards {
+        margin-top: 1.5rem;
     }
 }
 

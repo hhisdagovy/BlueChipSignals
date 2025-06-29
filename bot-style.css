@@ -1,12 +1,10 @@
-* {
-    /* outline: 1px solid red !important; */
+html, body {
+    overflow-x: hidden;
+    width: 100%;
+    max-width: 100%;
     margin: 0;
     padding: 0;
     box-sizing: border-box;
-}
-
-html, body {
-    /* overflow-x: hidden; <-- REMOVING THIS */
 }
 
 :root {
@@ -26,32 +24,49 @@ body {
     background-color: var(--darker-bg);
     color: var(--light-text);
     line-height: 1.6;
+    width: 100%;
+    max-width: 100vw;
+    overflow-x: hidden;
+    padding: 0;
+    margin: 0;
 }
 
 /* Navigation */
 nav {
-    background: rgba(5, 8, 16, 0.8);
+    background: rgba(5, 8, 16, 0.9);
     backdrop-filter: blur(10px);
     -webkit-backdrop-filter: blur(10px);
     position: fixed;
     width: 100%;
     top: 0;
     z-index: 1000;
-    padding: 0.5rem 0;
+    padding: 0.8rem 0;
+    min-height: 70px;
+    display: flex;
+    align-items: center;
+    border-bottom: 1px solid rgba(201, 176, 55, 0.2);
 }
 
 .nav-container {
     max-width: 1200px;
+    width: 100%;
     margin: 0 auto;
     padding: 0 2rem;
     display: flex;
     justify-content: space-between;
     align-items: center;
+    box-sizing: border-box;
 }
 
 .logo img {
-    width: 80px;
-    height: 80px;
+    width: 60px;
+    height: auto;
+    display: block;
+    transition: transform 0.3s ease;
+}
+
+.logo img:hover {
+    transform: scale(1.05);
 }
 
 .nav-links {
@@ -92,9 +107,12 @@ a {
 }
 
 .bot-page-icon {
-    font-size: 4rem;
-    margin-bottom: 1rem;
+    font-size: 3.5rem;
+    margin: 1rem auto;
     color: #999999;
+    display: flex;
+    justify-content: center;
+    align-items: center;
 }
 
 .bot-page-icon img {
@@ -104,7 +122,13 @@ a {
 
 /* Bot Page Hero */
 .bot-hero {
-    padding: 10rem 2rem 5rem;
+    padding: 3rem 1rem 2rem;
+    max-width: 550px;
+    width: 100%;
+    box-sizing: border-box;
+    margin: 0 auto;
+    padding-top: 9rem; /* Increased top padding to lower the content */
+    text-align: center;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -113,7 +137,7 @@ a {
 }
 
 .bot-symbol {
-    font-size: 5rem;
+    font-size: 4rem;
     font-weight: 700;
     background: linear-gradient(135deg, var(--primary-gold), var(--secondary-gold));
     -webkit-background-clip: text;
@@ -123,37 +147,66 @@ a {
 }
 
 .bot-page-title {
-    font-size: 2rem;
+    font-size: 1.8rem;
 }
 
 .bot-page-subtitle {
-    font-size: 1.2rem;
+    font-size: 1rem;
     color: var(--gray-text);
-    max-width: 700px;
+    max-width: 550px;
     margin: 0 auto 2rem;
 }
 
 /* Main Content */
 .main-content {
     padding: 0 1rem 4rem;
-    gap: 1.5rem;
-    max-width: 1200px;
+    gap: 2rem;
+    max-width: 550px;
     margin: 0 auto;
-    display: grid;
-    grid-template-columns: 1fr 2fr;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+    box-sizing: border-box;
 }
 
-.strategy-snapshot, .best-practices {
+.strategy-snapshot, .practice-cards, .chart-container {
     background: var(--dark-bg);
-    padding: 2rem;
+    padding: 1.5rem;
     border: 1px solid rgba(201, 176, 55, 0.2);
-    border-radius: 20px;
+    border-radius: 15px;
+    width: 100%;
+    box-sizing: border-box;
+    margin: 0 auto;
+    text-align: center;
+    margin-bottom: 1.5rem;
 }
 
-.strategy-snapshot h3, .best-practices h3 {
-    font-size: 1.8rem;
+.strategy-snapshot h3, .practice-cards h3, .chart-container h3 {
+    font-size: 1.4rem;
     color: var(--primary-gold);
-    margin-bottom: 1.5rem;
+    margin: 0 0 1rem 0;
+    text-align: center;
+    width: 100%;
+    padding: 0 0.5rem;
+}
+
+/* Chart.js specific overrides */
+.chart-container canvas {
+    max-height: calc(100% - 50px);
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .chart-container h3 {
+        font-size: 1.2rem;
+        margin-bottom: 0.75rem;
+    }
+    
+    .chart-container {
+        padding: 1rem 0.75rem;
+        height: 320px;
+    }
 }
 
 .stock-price-data {
@@ -200,22 +253,19 @@ a {
     display: grid;
     grid-template-columns: 1fr;
     gap: 1.5rem;
-}
-
-.practice-card {
     background-color: var(--field-bg);
     border: 1px solid rgba(201, 176, 55, 0.15);
     border-radius: 12px;
-    padding: 1.5rem;
+    padding: 1.25rem;
     transition: transform 0.3s, border-color 0.3s;
 }
 
-.practice-card:hover {
+.practice-cards:hover {
     transform: translateY(-5px);
     border-color: var(--primary-gold);
 }
 
-.practice-card h4 {
+.practice-cards h4 {
     color: var(--secondary-gold);
     margin-bottom: 0.5rem;
     font-size: 1.2rem;
@@ -223,20 +273,24 @@ a {
 
 .chart-container {
     background: var(--dark-bg);
-    padding: 2rem;
+    padding: 1.25rem;
     border: 1px solid rgba(201, 176, 55, 0.2);
-    border-radius: 20px;
-    margin-top: 2rem;
-    grid-column: 1 / -1; /* Span across all columns */
-    height: 500px; /* Give the container a fixed height */
-    position: relative; /* Needed for the canvas to be responsive */
+    border-radius: 15px;
+    margin: 0 auto 2rem;
+    height: 380px;
+    position: relative;
+    width: 100%;
+    overflow: hidden;
+    max-width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
 }
 
-.chart-container h3 {
-    font-size: 1.8rem;
-    color: var(--primary-gold);
-    margin-bottom: 1.5rem;
-    text-align: center;
+.chart-container canvas {
+    max-width: 100%;
+    height: auto !important;
 }
 
 .news-container {
@@ -244,17 +298,14 @@ a {
     margin-top: 2rem;
 }
 
-.news-container h3 {
-    font-size: 1.8rem;
-    color: var(--primary-gold);
-    margin-bottom: 1.5rem;
-    text-align: center;
-}
-
 .news-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-    gap: 2rem;
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+    max-width: 100%;
+    margin: 0 auto;
+    padding: 0 1rem;
+    box-sizing: border-box;
 }
 
 .news-card {
@@ -265,6 +316,8 @@ a {
     display: flex;
     flex-direction: column;
     transition: transform 0.3s, border-color 0.3s;
+    max-width: 100%;
+    margin: 0 auto;
 }
 
 .news-card:hover {
@@ -279,7 +332,7 @@ a {
 }
 
 .news-content {
-    padding: 1.5rem;
+    padding: 1.25rem;
     display: flex;
     flex-direction: column;
     flex-grow: 1;
@@ -372,29 +425,160 @@ footer {
 
 /* --- Responsive Design --- */
 
-@media (max-width: 992px) {
-    .main-content {
-        grid-template-columns: 1fr;
+/* Base mobile styles */
+body {
+    font-size: 16px;
+    padding-top: 60px; /* Add padding to account for fixed header */
+}
+
+/* Container for main content */
+.main-content {
+    width: 100%;
+    padding: 0 1rem 2rem;
+    box-sizing: border-box;
+    margin: 0 auto;
+}
+
+/* Responsive typography */
+h1, h2, h3, h4, h5, h6 {
+    word-wrap: break-word;
+}
+
+/* Navigation */
+@media screen and (max-width: 768px) {
+    .nav-container {
+        padding: 0.5rem 1rem;
+    }
+    
+    .nav-container {
+        padding: 0 1.5rem;
+    }
+    
+    .logo img {
+        width: 50px;
+        height: auto;
+        margin-top: 0;
+    }
+    
+    .nav-links {
+        display: none; /* Mobile menu will be handled by hamburger */
+    }
+    
+    .hamburger-menu {
+        display: flex;
     }
 }
 
-@media (max-width: 768px) {
+/* Mobile-first styles */
+@media screen and (max-width: 768px) {
+    body {
+        padding-top: 50px; /* Slightly less padding on mobile */
+    }
+    
     .bot-hero {
-        padding: 8rem 1rem 4rem;
+        padding-top: 7rem; /* Increased for mobile */
+        padding-bottom: 1.5rem;
     }
+    
     .bot-symbol {
-        font-size: 4rem;
+        font-size: 3.5rem;
+        margin-bottom: 0.5rem;
     }
+    
     .bot-page-title {
-        font-size: 1.8rem;
+        font-size: 1.6rem;
+        margin: 0.5rem 0;
     }
+    
+    .bot-page-subtitle {
+        font-size: 0.95rem;
+        margin: 0.5rem 0 1.5rem;
+    }
+    
     .main-content {
-        padding: 0 1rem 2rem;
+        padding: 0 0.75rem 1.5rem;
     }
-    .strategy-snapshot, .best-practices, .chart-container {
-        padding: 1.5rem;
+    
+    .strategy-snapshot, 
+    .practice-cards {
+        padding: 1rem;
+        margin: 0.5rem 0;
+        gap: 1rem;
     }
-    .strategy-snapshot h3, .best-practices h3, .chart-container h3, .news-container h3 {
+    
+    .chart-container {
+        padding: 1rem;
+        margin: 0.5rem 0;
+    }
+    
+    .chart-container {
+        height: 300px;
+        padding: 1rem;
+        margin: 0 0 1.5rem 0;
+    }
+}
+
+@media screen and (max-width: 600px) {
+    .bot-hero {
+        padding: 6rem 1rem 3rem;
+    }
+    
+    .bot-symbol {
+        font-size: 3.5rem;
+        margin-bottom: 0.5rem;
+    }
+    
+    .bot-page-title {
+        font-size: 1.5rem;
+        margin: 0.5rem 0;
+    }
+    
+    .bot-page-subtitle {
+        font-size: 1rem;
+        padding: 0 1rem;
+    }
+    
+    .main-content {
+        padding: 0 0.5rem 2rem;
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+    
+    .strategy-snapshot, 
+    .practice-cards, 
+    .chart-container {
+        padding: 1.25rem;
+        border-radius: 12px;
+        margin: 0 0.5rem;
+        width: calc(100% - 1rem);
+        box-sizing: border-box;
+    }
+    
+    .chart-container {
+        height: 400px;
+        margin: 1rem 0.5rem;
+    }
+    
+    .news-grid {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+        padding: 0 0.5rem;
+    }
+    
+    .news-card {
+        margin-bottom: 1rem;
+    }
+    
+    .floating-cta {
+        bottom: 1rem;
+        right: 1rem;
+    }
+    
+    .cta-button {
+        padding: 0.75rem 1.5rem;
+        font-size: 1rem;
+    }
+    .strategy-snapshot h3, .practice-cards h3, .chart-container h3, .news-container h3 {
         font-size: 1.5rem;
     }
     .chart-container {
@@ -438,57 +622,5 @@ footer {
 
     .practice-cards {
         grid-template-columns: 1fr;
-    }
-}
-
-@media (min-width: 769px) {
-    .hamburger-menu {
-        display: none;
-    }
-    .nav-links {
-        position: static;
-        flex-direction: row;
-        height: auto;
-        width: auto;
-        background: none;
-        backdrop-filter: none;
-        left: 0;
-    }
-}
-
-@media (max-width: 480px) {
-    .bot-hero {
-        padding: 7rem 1rem 3rem;
-    }
-    .bot-symbol {
-        font-size: 3.5rem;
-    }
-    .bot-page-title {
-        font-size: 1.5rem;
-    }
-    .main-content {
-        padding: 0 0.5rem 2rem;
-    }
-    .strategy-snapshot h3, .best-practices h3, .chart-container h3, .news-container h3 {
-        font-size: 1.3rem;
-    }
-    .chart-container {
-        height: 350px;
-        padding: 1rem;
-    }
-    .news-grid {
-        gap: 1.5rem;
-    }
-    .practice-card {
-        padding: 1rem;
-    }
-    .practice-card h4 {
-        font-size: 1.1rem;
-    }
-    .practice-card p {
-        font-size: 0.95rem;
-    }
-    .news-card {
-        padding: 1rem;
     }
 }

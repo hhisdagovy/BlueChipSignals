@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BlueChip Signals - AAPL Bot</title>
+    <link rel="icon" type="image/png" href="logo.png">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="bot-style.css?v=1751139967">
+    <link rel="stylesheet" href="news-style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+</head>
+<body>
+    <!-- Navigation -->
+    <nav>
+        <div class="nav-container">
+            <div class="logo">
+                <a href="index.html"><img src="logo.png" alt="BlueChip Signals Logo"></a>
+            </div>
+            <div class="hamburger-menu">
+                <div class="bar"></div>
+                <div class="bar"></div>
+                <div class="bar"></div>
+            </div>
+            <ul class="nav-links">
+                <li><a href="index.html#features">Features</a></li>
+                <li><a href="index.html#bots">Our Bots</a></li>
+                <li><a href="index.html#pricing">Pricing</a></li>
+                <li><a href="index.html#testimonials">Testimonials</a></li>
+                <li><a href="faq.html">FAQ</a></li>
+                <li><a href="legal.html">Legal Disclaimer</a></li>
+                <li><a href="about.html">About Us</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <main class="main-content">
+        <header class="content-header card-style">
+            <div class="bot-page-icon"><i class="fab fa-apple"></i></div>
+            <h1 class="page-main-title">Reading Options Volume in AAPL</h1>
+            <p class="page-main-subtitle">Use unusual call- and put-flow to confirm and turbo-charge your trades.</p>
+        </header>
+
+        <section class="content-section card-style">
+            <h3>Why Flow Leads Price</h3>
+            <p>Big money hides in the options pit before the tape moves. Size buyers of weekly 0DTE calls? Dealers scramble to hedge—spot gamma squeeze. Monster put sweeps? Potential rug-pull ahead. Track the flow, anticipate the pivot.</p>
+            <ul>
+                <li><strong>Open Interest Jumps:</strong> A 50k+ contract spike tells you fresh speculative positioning is underway.</li>
+                <li><strong>Sweep vs. Block:</strong> Sweeps cross multiple exchanges at market—urgent. Blocks are negotiated—less directional.</li>
+                <li><strong>Premium / Delta Paid:</strong> Out-of-the-money lotto plays differ from deep ITM conviction bets—treat them accordingly.</li>
+            </ul>
+        </section>
+
+        <section class="content-section card-style">
+            <h3>Flow-Backed Entry Signals</h3>
+            <p>Combine our algorithm's alert with these flow confirmations:</p>
+            <ul>
+                <li><strong>Call Wall Breach:</strong> Large call volume at a strike previously capping price → potential breakout trigger.</li>
+                <li><strong>Put Wall Absorption:</strong> Heavy put selling into support often precedes sharp reversals higher.</li>
+                <li><strong>Gamma Flip Zone:</strong> SpotGamma's key level turns positive → momentum accelerates.</li>
+                <li><strong>IV Crush Setup:</strong> Elevated volume in short-dated options can set up a post-event volatility collapse—fade the crowd.</li>
+            </ul>
+        </section>
+
+        <section class="content-section card-style">
+            <h3>Scanners & Dashboards</h3>
+            <p>Ditch the noise—these tools surface only the actionable prints:</p>
+            <ul>
+                <li><strong>Unusual Whales Flow:</strong> Real-time large-lot sweeps with sentiment tagging.</li>
+                <li><strong>SpotGamma HI-LO Delta:</strong> Visualizes dealer gamma positioning and flip levels.</li>
+                <li><strong>Cboe Options Alerts:</strong> Institutional blocks straight from the source.</li>
+                <li><strong>ThinkOrSwim Times & Sales (Options):</strong> Filter by >$1M premium to watch whale prints live.</li>
+            </ul>
+        </section>
+    </main>
+
+    <div class="floating-cta">
+        <a href="index.html#pricing" class="cta-button">Join Now & Get Signals</a>
+    </div>
+
+    <!-- Footer -->
+    <footer>
+        <p>&copy; 2025 BlueChip Signals. All rights reserved. | <a href="legal.html" style="color: var(--primary-gold); text-decoration: none;">Legal Disclaimer</a></p>
+        <div class="social-media">
+            <a href="https://www.tiktok.com/@bluechip.signals" target="_blank"><i class="fab fa-tiktok"></i></a>
+            <a href="https://www.instagram.com/bluechip.signals/" target="_blank"><i class="fab fa-instagram"></i></a>
+        </div>
+    </footer>
+
+    <script src="stock-prices.js" defer></script>
+    <script>
+        const hamburgerMenu = document.querySelector('.hamburger-menu');
+        const mobileNav = document.querySelector('.nav-links');
+
+        hamburgerMenu.addEventListener('click', () => {
+            mobileNav.classList.toggle('active');
+        });
+    </script>
+</body>
+</html>

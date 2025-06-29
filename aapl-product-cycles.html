@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BlueChip Signals - AAPL Bot</title>
+    <link rel="icon" type="image/png" href="logo.png">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="bot-style.css?v=1751139967">
+    <link rel="stylesheet" href="news-style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+</head>
+<body>
+    <!-- Navigation -->
+    <nav>
+        <div class="nav-container">
+            <div class="logo">
+                <a href="index.html"><img src="logo.png" alt="BlueChip Signals Logo"></a>
+            </div>
+            <div class="hamburger-menu">
+                <div class="bar"></div>
+                <div class="bar"></div>
+                <div class="bar"></div>
+            </div>
+            <ul class="nav-links">
+                <li><a href="index.html#features">Features</a></li>
+                <li><a href="index.html#bots">Our Bots</a></li>
+                <li><a href="index.html#pricing">Pricing</a></li>
+                <li><a href="index.html#testimonials">Testimonials</a></li>
+                <li><a href="faq.html">FAQ</a></li>
+                <li><a href="legal.html">Legal Disclaimer</a></li>
+                <li><a href="about.html">About Us</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <main class="main-content">
+        <header class="content-header card-style">
+            <div class="bot-page-icon"><i class="fab fa-apple"></i></div>
+            <h1 class="page-main-title">Trading The Apple Product Cycle</h1>
+            <p class="page-main-subtitle">Master the key events and news flow that drive AAPL's stock price. Learn to anticipate, not just react.</p>
+        </header>
+
+        <section class="content-section card-style">
+            <h3>The iPhone Cycle: Your Primary Trading Vehicle</h3>
+            <p>The annual iPhone refresh is the most predictable and potent catalyst for AAPL's stock. Your strategy must be built around it. Here's the playbook:</p>
+            <ul>
+                <li><strong>Phase 1 (Anticipation):</strong> From spring through summer, the market trades on rumors. Supply chain leaks, analyst notes, and feature speculation are your signals. Use this news flow to build a directional bias.</li>
+                <li><strong>Phase 2 (The Event):</strong> The September keynote is the trigger. The price action immediately following the event reveals the market's verdict. A "sell the news" reaction is common, often presenting a key shorting opportunity or a chance to reload at lower levels.</li>
+                <li><strong>Phase 3 (The Launch):</strong> Initial sales data and product reviews in late September are your confirmation signals. Strong uptake validates the bull case and can ignite the next leg up into the holiday season.</li>
+                <li><strong>Phase 4 (Earnings):</strong> The Q4 earnings report in January is the final arbiter. A beat or miss on iPhone sales will dictate the stock's trajectory for the following quarter. Be prepared for significant volatility.</li>
+            </ul>
+        </section>
+
+        <section class="content-section card-style">
+            <h3>Hunting for Growth Catalysts</h3>
+            <p>Beyond the iPhone, other product launches and service milestones create distinct trading opportunities. These are often less crowded trades.</p>
+            <ul>
+                <li><strong>Mac & iPad Events:</strong> Look for M-series chip upgrades as a primary catalyst. These events, typically in spring or fall, can cause short-term momentum bursts.</li>
+                <li><strong>WWDC (Worldwide Developers Conference):</strong> In June, Apple previews new software. Pay attention to AI announcements and the evolution of the Services division—this is a key driver of the stock's long-term valuation.</li>
+                <li><strong>New Categories:</strong> The introduction of a truly new product (like the Vision Pro or a future Apple Car) can redefine the entire narrative for the stock. These are long-term plays that begin with monitoring early-stage rumors.</li>
+            </ul>
+        </section>
+
+         <section class="content-section card-style">
+            <h3>Your Intelligence Briefing</h3>
+            <p>In this game, information is ammunition. These sources provide the highest signal-to-noise ratio for actionable intelligence:</p>
+            <ul>
+                <li><strong>Bloomberg (Mark Gurman):</strong> The gold standard for Apple intelligence. His reports can move the market on their own.</li>
+            </ul>
+        </section>
+
+    </main>
+
+    <div class="floating-cta">
+        <a href="index.html#pricing" class="cta-button">Join Now & Get Signals</a>
+    </div>
+
+    <!-- Footer -->
+    <footer>
+        <p>&copy; 2025 BlueChip Signals. All rights reserved. | <a href="legal.html" style="color: var(--primary-gold); text-decoration: none;">Legal Disclaimer</a></p>
+        <div class="social-media">
+            <a href="https://www.tiktok.com/@bluechip.signals" target="_blank"><i class="fab fa-tiktok"></i></a>
+            <a href="https://www.instagram.com/bluechip.signals/" target="_blank"><i class="fab fa-instagram"></i></a>
+        </div>
+    </footer>
+
+    <script src="stock-prices.js" defer></script>
+    <script>
+        const hamburgerMenu = document.querySelector('.hamburger-menu');
+        const mobileNav = document.querySelector('.nav-links');
+
+        hamburgerMenu.addEventListener('click', () => {
+            mobileNav.classList.toggle('active');
+        });
+    </script>
+</body>
+</html>

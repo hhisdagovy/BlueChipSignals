@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BlueChip Signals - AAPL Bot</title>
+    <link rel="icon" type="image/png" href="logo.png">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="bot-style.css?v=1751139967">
+    <link rel="stylesheet" href="news-style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+</head>
+<body>
+    <!-- Navigation -->
+    <nav>
+        <div class="nav-container">
+            <div class="logo">
+                <a href="index.html"><img src="logo.png" alt="BlueChip Signals Logo"></a>
+            </div>
+            <div class="hamburger-menu">
+                <div class="bar"></div>
+                <div class="bar"></div>
+                <div class="bar"></div>
+            </div>
+            <ul class="nav-links">
+                <li><a href="index.html#features">Features</a></li>
+                <li><a href="index.html#bots">Our Bots</a></li>
+                <li><a href="index.html#pricing">Pricing</a></li>
+                <li><a href="index.html#testimonials">Testimonials</a></li>
+                <li><a href="faq.html">FAQ</a></li>
+                <li><a href="legal.html">Legal Disclaimer</a></li>
+                <li><a href="about.html">About Us</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <main class="main-content">
+        <header class="content-header card-style">
+            <div class="bot-page-icon"><i class="fab fa-apple"></i></div>
+            <h1 class="page-main-title">Trading Orderly Pullbacks in AAPL</h1>
+            <p class="page-main-subtitle">Capitalize on structured retracements to enter with the smart money.</p>
+        </header>
+
+        <section class="content-section card-style">
+            <h3>The Anatomy of an Orderly Pullback</h3>
+            <p>A healthy up-trend <em>breathes</em>. Price drifts back to support zones on lighter volume, resets momentum indicators, and then resumes higher. These are low-risk, high-probability inflection points—if you know what to look for.</p>
+            <ul>
+                <li><strong>Shallow Fibonacci Retrace:</strong> 23-38% pullback from the recent impulse leg keeps the trend intact.</li>
+                <li><strong>20-EMA or Anchored VWAP Tag:</strong> Institutions reload at dynamic support.</li>
+                <li><strong>Volume Contraction:</strong> Red bars shrink as sellers dry up—textbook sign of absorption.</li>
+            </ul>
+        </section>
+
+        <section class="content-section card-style">
+            <h3>Entry Playbook</h3>
+            <p>Follow this checklist before you hit the buy button:</p>
+            <ul>
+                <li><strong>Trend Context:</strong> Higher highs & higher lows on the daily chart—no chop.</li>
+                <li><strong>Pullback Depth:</strong> Price holds above the previous swing low and the 50-EMA.</li>
+                <li><strong>Candlestick Trigger:</strong> Look for a hammer or bullish engulfing on the 30- or 60-minute.</li>
+                <li><strong>Relative Strength:</strong> AAPL green while QQQ is flat to red = institutional accumulation.</li>
+            </ul>
+        </section>
+
+        <section class="content-section card-style">
+            <h3>Tools & Indicators</h3>
+            <p>These help you spot—and trust—the pullback:</p>
+            <ul>
+                <li><strong>Anchored VWAP:</strong> Anchor to the most recent swing low; buy on first touch.</li>
+                <li><strong>Volume Profile:</strong> Identify high-volume nodes <em>below</em> price that act as magnets.</li>
+                <li><strong>RSI / MFI Reset:</strong> Oversold reading in an up-trend screams continuation.</li>
+                <li><strong>Bookmap or DOM:</strong> Watch resting bids step up as price drifts lower.</li>
+            </ul>
+        </section>
+    </main>
+
+    <div class="floating-cta">
+        <a href="index.html#pricing" class="cta-button">Join Now & Get Signals</a>
+    </div>
+
+    <!-- Footer -->
+    <footer>
+        <p>&copy; 2025 BlueChip Signals. All rights reserved. | <a href="legal.html" style="color: var(--primary-gold); text-decoration: none;">Legal Disclaimer</a></p>
+        <div class="social-media">
+            <a href="https://www.tiktok.com/@bluechip.signals" target="_blank"><i class="fab fa-tiktok"></i></a>
+            <a href="https://www.instagram.com/bluechip.signals/" target="_blank"><i class="fab fa-instagram"></i></a>
+        </div>
+    </footer>
+
+    <script src="stock-prices.js" defer></script>
+    <script>
+        const hamburgerMenu = document.querySelector('.hamburger-menu');
+        const mobileNav = document.querySelector('.nav-links');
+
+        hamburgerMenu.addEventListener('click', () => {
+            mobileNav.classList.toggle('active');
+        });
+    </script>
+</body>
+</html>

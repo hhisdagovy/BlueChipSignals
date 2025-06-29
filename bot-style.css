@@ -111,8 +111,8 @@ a {
 
 /* Bot Page Hero */
 .bot-hero {
-    padding: 6rem 1rem 3rem;
-    max-width: 800px;
+    padding: 5rem 1rem 2.5rem;
+    max-width: 700px;
     width: 100%;
     box-sizing: border-box;
     margin: 0 auto;
@@ -149,7 +149,7 @@ a {
 .main-content {
     padding: 0 1rem 4rem;
     gap: 1.5rem;
-    max-width: 800px; /* Match hero section width */
+    max-width: 700px; /* Match hero section width */
     margin: 0 auto;
     display: grid;
     grid-template-columns: 1fr;
@@ -159,7 +159,7 @@ a {
 
 .strategy-snapshot, .practice-cards, .chart-container {
     background: var(--dark-bg);
-    padding: 1.5rem;
+    padding: 1.25rem;
     border: 1px solid rgba(201, 176, 55, 0.2);
     border-radius: 15px;
     width: 100%;
@@ -223,7 +223,7 @@ a {
     background-color: var(--field-bg);
     border: 1px solid rgba(201, 176, 55, 0.15);
     border-radius: 12px;
-    padding: 1.5rem;
+    padding: 1.25rem;
     transition: transform 0.3s, border-color 0.3s;
 }
 
@@ -240,7 +240,7 @@ a {
 
 .chart-container {
     background: var(--dark-bg);
-    padding: 1.5rem;
+    padding: 1.25rem;
     border: 1px solid rgba(201, 176, 55, 0.2);
     border-radius: 15px;
     margin: 1rem auto;
@@ -304,7 +304,7 @@ a {
 }
 
 .news-content {
-    padding: 1.5rem;
+    padding: 1.25rem;
     display: flex;
     flex-direction: column;
     flex-grow: 1;

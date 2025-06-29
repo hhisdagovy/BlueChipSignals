@@ -120,20 +120,24 @@ a {
     height: 64px;
 }
 
-/* Bot Page Hero */
-.bot-hero {
-    max-width: 550px;
-    width: 100%;
-    box-sizing: border-box;
-    margin: 9rem auto 2rem; /* Combines top margin, auto sides, and bottom margin */
-    padding: 2rem 1rem; /* Generous vertical padding, standard horizontal */
-    text-align: center;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
+/* Unified Content Card Style */
+.bot-hero,
+.strategy-snapshot,
+.best-practices {
     background: var(--dark-bg);
     border: 1px solid rgba(201, 176, 55, 0.2);
     border-radius: 15px;
+    padding: 2rem; /* Consistent padding */
+    width: 100%;
+    box-sizing: border-box;
+    text-align: center;
+}
+
+/* Bot Page Hero */
+.bot-hero {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
 }
 
 .bot-symbol {
@@ -159,8 +163,8 @@ a {
 
 /* Main Content */
 .main-content {
-    padding: 0 1rem 4rem;
-    gap: 2rem;
+    padding: 9rem 1rem 4rem;
+    gap: 2rem; /* This now controls the spacing between cards */
     max-width: 550px;
     margin: 0 auto;
     display: flex;
@@ -170,19 +174,12 @@ a {
     box-sizing: border-box;
 }
 
-.strategy-snapshot, .practice-cards {
-    background: var(--dark-bg);
-    padding: 1.5rem;
-    border: 1px solid rgba(201, 176, 55, 0.2);
-    border-radius: 15px;
-    width: 100%;
-    box-sizing: border-box;
-    margin: 0 auto;
-    text-align: center;
-    margin-bottom: 1.5rem;
+.strategy-snapshot, .best-practices {
+    /* All common styles moved to the unified rule */
+    /* This rule can be expanded if unique styles are needed later */
 }
 
-.strategy-snapshot h3, .practice-cards h3 {
+.strategy-snapshot h3, .best-practices h3 {
     font-size: 1.4rem;
     color: var(--primary-gold);
     margin: 0 0 1rem 0;
@@ -196,6 +193,7 @@ a {
     padding: 0;
     margin: 0;
     margin-bottom: 1.5rem;
+    color: var(--light-text);
 }
 
 .info-list li {
@@ -220,9 +218,6 @@ a {
     display: flex;
     flex-direction: column;
     gap: 1rem;
-    background: transparent;
-    border: none;
-    padding: 0;
 }
 
 .practice-card {
@@ -411,17 +406,16 @@ footer {
         display: flex;
     }
 
-    .bot-hero {
-        margin-top: 7rem;
-        margin-bottom: 1.5rem;
+    .main-content {
+        padding-top: 7rem;
     }
 
     .strategy-snapshot, 
-    .practice-card {
+    .practice-card, .best-practices {
         padding: 1rem;
     }
 
-    .strategy-snapshot h3, .practice-cards h3, .news-container h3 {
+    .strategy-snapshot h3, .best-practices h3, .news-container h3 {
         font-size: 1.2rem;
     }
 

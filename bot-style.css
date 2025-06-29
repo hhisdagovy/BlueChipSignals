@@ -111,8 +111,8 @@ a {
 
 /* Bot Page Hero */
 .bot-hero {
-    padding: 5rem 1rem 2.5rem;
-    max-width: 700px;
+    padding: 4rem 1rem 2rem;
+    max-width: 550px;
     width: 100%;
     box-sizing: border-box;
     margin: 0 auto;
@@ -125,7 +125,7 @@ a {
 }
 
 .bot-symbol {
-    font-size: 5rem;
+    font-size: 4rem;
     font-weight: 700;
     background: linear-gradient(135deg, var(--primary-gold), var(--secondary-gold));
     -webkit-background-clip: text;
@@ -135,13 +135,13 @@ a {
 }
 
 .bot-page-title {
-    font-size: 2rem;
+    font-size: 1.8rem;
 }
 
 .bot-page-subtitle {
-    font-size: 1.2rem;
+    font-size: 1rem;
     color: var(--gray-text);
-    max-width: 700px;
+    max-width: 550px;
     margin: 0 auto 2rem;
 }
 
@@ -149,7 +149,7 @@ a {
 .main-content {
     padding: 0 1rem 4rem;
     gap: 1.5rem;
-    max-width: 700px; /* Match hero section width */
+    max-width: 550px; /* Match hero section width */
     margin: 0 auto;
     display: grid;
     grid-template-columns: 1fr;

@@ -1,5 +1,10 @@
 html, body {
     overflow-x: hidden;
+    width: 100%;
+    max-width: 100%;
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
 }
 
 :root {
@@ -19,6 +24,11 @@ body {
     background-color: var(--darker-bg);
     color: var(--light-text);
     line-height: 1.6;
+    width: 100%;
+    max-width: 100vw;
+    overflow-x: hidden;
+    padding: 0;
+    margin: 0;
 }
 
 /* Navigation */
@@ -34,12 +44,13 @@ nav {
 }
 
 .nav-container {
-    max-width: 1200px;
+    max-width: 100%;
     margin: 0 auto;
-    padding: 0 2rem;
+    padding: 0 1rem;
     display: flex;
     justify-content: space-between;
     align-items: center;
+    box-sizing: border-box;
 }
 
 .logo img {
@@ -85,9 +96,12 @@ a {
 }
 
 .bot-page-icon {
-    font-size: 4rem;
-    margin-bottom: 1rem;
+    font-size: 3.5rem;
+    margin: 1rem auto;
     color: #999999;
+    display: flex;
+    justify-content: center;
+    align-items: center;
 }
 
 .bot-page-icon img {
@@ -97,7 +111,11 @@ a {
 
 /* Bot Page Hero */
 .bot-hero {
-    padding: 10rem 2rem 5rem;
+    padding: 8rem 1rem 4rem;
+    max-width: 100%;
+    box-sizing: border-box;
+    margin: 0 auto;
+    text-align: center;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -365,9 +383,9 @@ footer {
 
 /* --- Responsive Design --- */
 
-@media screen and (max-width: 900px) {
+@media screen and (max-width: 600px) {
     .bot-hero {
-        padding: 4rem 1rem 4rem;
+        padding: 8rem 1rem 4rem;
     }
     .bot-symbol {
         font-size: 4rem;

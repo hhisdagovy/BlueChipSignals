@@ -459,4 +459,8 @@ footer {
     .news-grid {
         gap: 1rem;
     }
+    
+    .news-card {
+        margin-bottom: 1rem;
+    }
 }

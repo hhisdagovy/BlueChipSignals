@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BlueChip Signals - AAPL Bot</title>
+    <link rel="icon" type="image/png" href="logo.png">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="bot-style.css?v=1751139967">
+    <link rel="stylesheet" href="news-style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+</head>
+<body>
+    <!-- Navigation -->
+    <nav>
+        <div class="nav-container">
+            <div class="logo">
+                <a href="index.html"><img src="logo.png" alt="BlueChip Signals Logo"></a>
+            </div>
+            <div class="hamburger-menu">
+                <div class="bar"></div>
+                <div class="bar"></div>
+                <div class="bar"></div>
+            </div>
+            <ul class="nav-links">
+                <li><a href="index.html#features">Features</a></li>
+                <li><a href="index.html#bots">Our Bots</a></li>
+                <li><a href="index.html#pricing">Pricing</a></li>
+                <li><a href="index.html#testimonials">Testimonials</a></li>
+                <li><a href="faq.html">FAQ</a></li>
+                <li><a href="legal.html">Legal Disclaimer</a></li>
+                <li><a href="about.html">About Us</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <main class="main-content">
+        <header class="content-header card-style">
+            <div class="bot-page-icon"><i class="fab fa-apple"></i></div>
+            <h1 class="page-main-title">Trading Supplier News for AAPL</h1>
+            <p class="page-main-subtitle">Leverage supply-chain signals from TSMC, Foxconn, and other key partners to stay one step ahead.</p>
+        </header>
+
+        <section class="content-section card-style">
+            <h3>Why Supplier Headlines Move the Stock</h3>
+            <p>Apple's supply chain spans dozens of public companies. When these partners talk, the smart money listens. Production cuts, capacity expansions, or yield hiccups often surface in supplier reports <em>weeks</em> before Apple confirms anything. Early intel = early positioning.</p>
+            <ul>
+                <li><strong>TSMC Wafer Orders:</strong> Cuts or ramps in 3-nm capacity telegraph iPhone demand and Mac silicon road-maps.</li>
+                <li><strong>Foxconn Guidance:</strong> Factory slowdowns in Zhengzhou or Chennai can tip you to iPhone assembly constraints.</li>
+                <li><strong>Lens & LG Display Shipments:</strong> Component shortages show up as shipment downgrades—expect margin pressure.</li>
+            </ul>
+        </section>
+
+        <section class="content-section card-style">
+            <h3>Decode the Signal, Ditch the Noise</h3>
+            <p>Not every headline is actionable. Filter supplier news like a pro:</p>
+            <ul>
+                <li><strong>Size Matters:</strong> Focus on reports referencing 5-10%+ changes to build plans; anything smaller is usually priced in.</li>
+                <li><strong>Source Credibility:</strong> Give weight to regulatory filings and earnings calls over anonymous blog posts.</li>
+                <li><strong>Cross-Check:</strong> Look for two independent reports before you size up a trade.</li>
+                <li><strong>Time the Tape:</strong> The first 30 minutes after a credible supplier headline drops is your highest-edge window.</li>
+            </ul>
+        </section>
+
+        <section class="content-section card-style">
+            <h3>Your Supplier Intelligence Feed</h3>
+            <p>Add these resources to your watchlist and news scraper:</p>
+            <ul>
+                <li><strong>Nikkei Asia:</strong> Best-in-class for Asia-Pacific manufacturing scoops.</li>
+                <li><strong>DigiTimes:</strong> Real-time supply-chain chatter straight from Taiwan.</li>
+                <li><strong>Bloomberg Terminal:</strong> Use <code>CN</code> company news filters for 2317 TT (Hon Hai) and 2330 TT (TSMC).</li>
+                <li><strong>Company Earnings Calls:</strong> Parse TSMC, Foxconn, and Broadcom transcripts for build-plan language.</li>
+            </ul>
+        </section>
+    </main>
+
+    <div class="floating-cta">
+        <a href="index.html#pricing" class="cta-button">Join Now & Get Signals</a>
+    </div>
+
+    <!-- Footer -->
+    <footer>
+        <p>&copy; 2025 BlueChip Signals. All rights reserved. | <a href="legal.html" style="color: var(--primary-gold); text-decoration: none;">Legal Disclaimer</a></p>
+        <div class="social-media">
+            <a href="https://www.tiktok.com/@bluechip.signals" target="_blank"><i class="fab fa-tiktok"></i></a>
+            <a href="https://www.instagram.com/bluechip.signals/" target="_blank"><i class="fab fa-instagram"></i></a>
+        </div>
+    </footer>
+
+    <script src="stock-prices.js" defer></script>
+    <script>
+        const hamburgerMenu = document.querySelector('.hamburger-menu');
+        const mobileNav = document.querySelector('.nav-links');
+
+        hamburgerMenu.addEventListener('click', () => {
+            mobileNav.classList.toggle('active');
+        });
+    </script>
+</body>
+</html>

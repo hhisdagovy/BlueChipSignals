@@ -175,7 +175,7 @@ a {
     box-sizing: border-box;
 }
 
-.strategy-snapshot, .practice-cards, .chart-container {
+.strategy-snapshot, .practice-cards {
     background: var(--dark-bg);
     padding: 1.5rem;
     border: 1px solid rgba(201, 176, 55, 0.2);
@@ -187,7 +187,7 @@ a {
     margin-bottom: 1.5rem;
 }
 
-.strategy-snapshot h3, .practice-cards h3, .chart-container h3 {
+.strategy-snapshot h3, .practice-cards h3 {
     font-size: 1.4rem;
     color: var(--primary-gold);
     margin: 0 0 1rem 0;
@@ -196,48 +196,11 @@ a {
     padding: 0 0.5rem;
 }
 
-/* Chart.js specific overrides */
-.chart-container canvas {
-    max-height: calc(100% - 50px);
-}
-
-/* Responsive adjustments */
-@media (max-width: 768px) {
-    .chart-container h3 {
-        font-size: 1.2rem;
-        margin-bottom: 0.75rem;
-    }
-    
-    .chart-container {
-        padding: 1rem 0.75rem;
-        height: 320px;
-    }
-}
-
-.stock-price-data {
-    margin-top: 1rem;
-    padding-top: 1rem;
-    border-top: 1px solid rgba(201, 176, 55, 0.2);
-    font-size: 1.2rem;
-    font-weight: 600;
-    text-align: center;
-}
-
-.price {
-    color: var(--light-text);
-    font-size: 1.8rem;
-}
-
-.change.positive {
-    color: var(--success-green);
-}
-
-.change.negative {
-    color: var(--danger-red);
-}
-
 .info-list {
     list-style: none;
+    padding: 0;
+    margin: 0;
+    margin-bottom: 1.5rem;
 }
 
 .info-list li {
@@ -254,63 +217,54 @@ a {
     margin-top: 4px;
 }
 
+.info-list strong {
+    color: var(--light-text);
+}
+
 .practice-cards {
-    display: grid;
-    grid-template-columns: 1fr;
-    gap: 1.5rem;
-    background-color: var(--field-bg);
-    border: 1px solid rgba(201, 176, 55, 0.15);
-    border-radius: 12px;
-    padding: 1.25rem;
-    transition: transform 0.3s, border-color 0.3s;
-}
-
-.practice-cards:hover {
-    transform: translateY(-5px);
-    border-color: var(--primary-gold);
-}
-
-.practice-cards h4 {
-    color: var(--secondary-gold);
-    margin-bottom: 0.5rem;
-    font-size: 1.2rem;
-}
-
-.chart-container {
-    background: var(--dark-bg);
-    padding: 1.25rem;
-    border: 1px solid rgba(201, 176, 55, 0.2);
-    border-radius: 15px;
-    margin: 0 auto 2rem;
-    height: 380px;
-    position: relative;
-    width: 100%;
-    overflow: hidden;
-    max-width: 100%;
     display: flex;
     flex-direction: column;
-    align-items: center;
-    justify-content: center;
+    gap: 1rem;
+    background: transparent;
+    border: none;
+    padding: 0;
 }
 
-.chart-container canvas {
-    max-width: 100%;
-    height: auto !important;
+.practice-card {
+    background: var(--dark-bg);
+    padding: 1.5rem;
+    border-radius: 15px;
+    border: 1px solid rgba(201, 176, 55, 0.2);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.practice-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 25px rgba(201, 176, 55, 0.1);
+}
+
+.practice-card h4 {
+    color: var(--secondary-gold);
+    margin: 0 0 0.5rem 0;
+    font-size: 1.1rem;
 }
 
 .news-container {
-    grid-column: 1 / -1;
+    width: 100%;
     margin-top: 2rem;
+}
+
+.news-container h3 {
+    font-size: 1.4rem;
+    color: var(--primary-gold);
+    margin: 0 0 1rem 0;
+    text-align: center;
 }
 
 .news-grid {
     display: grid;
     grid-template-columns: 1fr;
     gap: 1.5rem;
-    max-width: 100%;
-    margin: 0 auto;
-    padding: 0 1rem;
-    box-sizing: border-box;
 }
 
 .news-card {
@@ -507,19 +461,45 @@ h1, h2, h3, h4, h5, h6 {
     .strategy-snapshot, 
     .practice-cards {
         padding: 1rem;
-        margin: 0.5rem 0;
+        border-radius: 10px;
+    }
+    
+    .strategy-snapshot h3, .practice-cards h3, .news-container h3 {
+        font-size: 1.2rem;
+    }
+
+    .news-grid {
         gap: 1rem;
     }
-    
-    .chart-container {
-        padding: 1rem;
-        margin: 0.5rem 0;
+
+    .news-card {
+        flex-direction: column;
     }
     
-    .chart-container {
-        height: 300px;
-        padding: 1rem;
-        margin: 0 0 1.5rem 0;
+    .floating-cta {
+        padding: 0.8rem;
+    }
+
+    .cta-button {
+        font-size: 1rem;
+        padding: 0.8rem 1.2rem;
+    }
+
+    .strategy-snapshot h3, .practice-cards h3, .news-container h3 {
+        padding-left: 0;
+        padding-right: 0;
+    }
+
+    .news-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .hamburger-menu {
+        display: flex;
+    }
+
+    .practice-cards {
+        padding: 0;
     }
 }
 
@@ -551,18 +531,12 @@ h1, h2, h3, h4, h5, h6 {
     }
     
     .strategy-snapshot, 
-    .practice-cards, 
-    .chart-container {
+    .practice-cards {
         padding: 1.25rem;
         border-radius: 12px;
         margin: 0 0.5rem;
         width: calc(100% - 1rem);
         box-sizing: border-box;
-    }
-    
-    .chart-container {
-        height: 400px;
-        margin: 1rem 0.5rem;
     }
     
     .news-grid {
@@ -575,18 +549,12 @@ h1, h2, h3, h4, h5, h6 {
     }
     
     .strategy-snapshot, 
-    .practice-cards, 
-    .chart-container {
+    .practice-cards {
         padding: 1.25rem;
         border-radius: 12px;
         margin: 0 0.5rem;
         width: calc(100% - 1rem);
         box-sizing: border-box;
-    }
-    
-    .chart-container {
-        height: 400px;
-        margin: 1rem 0.5rem;
     }
     
     .news-grid {
@@ -612,9 +580,7 @@ h1, h2, h3, h4, h5, h6 {
     .strategy-snapshot h3, .practice-cards h3, .chart-container h3, .news-container h3 {
         font-size: 1.5rem;
     }
-    .chart-container {
-        height: 400px;
-    }
+
     .news-grid {
         grid-template-columns: 1fr;
     }
@@ -654,8 +620,3 @@ h1, h2, h3, h4, h5, h6 {
     .practice-cards {
         grid-template-columns: 1fr;
     }
-
-}
-
-}
-         main

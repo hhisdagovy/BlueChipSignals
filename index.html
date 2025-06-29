@@ -329,58 +329,6 @@
             font-size: 1.5rem;
         }
         
-        /* ===== Mobile tweaks for the hero/promo ===== */
-        @media (max-width: 600px) {
-          .hero {
-            padding: 2rem 1rem;            /* less padding top/bottom and sides */
-          }
-          .hero-container {
-            grid-template-columns: 1fr;    /* stack content & visual vertically */
-            gap: 2rem;                     /* smaller gap */
-          }
-          .hero-content h2 {
-            font-size: 2rem;               /* shrink headline */
-            line-height: 1.2;
-          }
-          .hero-content p {
-            font-size: 1rem;               /* shrink sub-text */
-            margin-bottom: 1.5rem;
-          }
-          .cta-button {
-            padding: 0.75rem 1.5rem;       /* tighter button */
-            font-size: 0.9rem;
-          }
-          /* if you have a big hero image/phone mockup, you can also scale it: */
-          .hero-visual img {
-            max-width: 100%;
-            height: auto;
-            transform: scale(0.9);
-          }
-        }
-
-        /* Mobile-only: shrink the limited-offer text & countdown */
-        @media (max-width: 600px) {
-          .limited-offer-container h2 {
-            font-size: 1.5rem;       /* smaller headline */
-            line-height: 1.2;
-          }
-          .limited-offer-container p {
-            font-size: 0.9rem;       /* smaller subtext */
-            margin-bottom: 1rem;
-          }
-          #countdown-timer .timer-unit span {
-            font-size: 1.25rem;      /* smaller numbers */
-          }
-          #countdown-timer .timer-unit small {
-            font-size: 0.75rem;      /* smaller labels */
-          }
-          /* optional: tighten up spacing around the clock */
-          #countdown-timer {
-            gap: 0.5rem;
-            margin: 1rem 0;
-          }
-        }
-
         /* Bots Section */
         .bots {
             padding: 4rem 2rem;
@@ -730,6 +678,44 @@
 
         .social-media a:hover {
             color: var(--secondary-gold);
+        }
+        
+        @media (max-width: 600px) {
+            .limited-offer-container {
+              width: 100%;
+              max-width: 100%;
+              margin: 0;
+              padding: 1rem;
+              box-sizing: border-box;
+            }
+            .limited-offer-container h2 {
+              font-size: 1.4rem;
+              line-height: 1.2;
+              margin-bottom: 0.5rem;
+            }
+            .limited-offer-container p {
+              font-size: 0.9rem;
+              margin-bottom: 1rem;
+            }
+            #countdown-timer {
+              display: flex;
+              gap: 0.5rem;
+              margin: 1rem 0;
+            }
+            #countdown-timer .timer-unit {
+              flex: 1;
+              padding: 0.5rem;
+            }
+            #countdown-timer .timer-unit span {
+              font-size: 1.2rem;
+            }
+            #countdown-timer .timer-unit small {
+              font-size: 0.7rem;
+            }
+            .offer-cta {
+              padding: 0.6rem 1.2rem;
+              font-size: 0.9rem;
+            }
         }
     </style>
     <script async

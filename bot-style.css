@@ -121,6 +121,7 @@ a {
 }
 
 /* Unified Content Card Style */
+.card-style,
 .bot-hero,
 .strategy-snapshot,
 .best-practices {
@@ -172,11 +173,6 @@ a {
     align-items: center;
     width: 100%;
     box-sizing: border-box;
-}
-
-.strategy-snapshot, .best-practices {
-    /* All common styles moved to the unified rule */
-    /* This rule can be expanded if unique styles are needed later */
 }
 
 .strategy-snapshot h3, .best-practices h3 {
@@ -354,13 +350,13 @@ a {
     margin-top: 1rem;
 }
 .social-media a {
-    color: var(--light-text);
+    color: var(--primary-gold);
     font-size: 1.5rem;
     margin: 0 0.5rem;
     transition: color 0.3s;
 }
 .social-media a:hover {
-    color: var(--primary-gold);
+    color: var(--secondary-gold);
 }
 
 footer {
@@ -458,4 +454,62 @@ footer {
     .news-card {
         margin-bottom: 1rem;
     }
+}
+
+/* New styles for content pages */
+.content-header {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.page-main-title {
+    font-size: 2.5rem;
+    color: var(--gold-color);
+    margin-bottom: 0.5rem;
+    line-height: 1.1;
+    font-weight: 600;
+}
+
+.page-main-subtitle {
+    font-size: 1.1rem;
+    color: var(--light-gray);
+    max-width: 60ch;
+    margin-bottom: 1rem;
+    font-weight: 300;
+}
+
+.content-section {
+    text-align: left;
+}
+
+.content-section h3 {
+    color: var(--gold-color);
+    font-size: 1.3rem;
+    margin-bottom: 1rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.content-section p, .content-section ul {
+    color: var(--light-gray);
+    line-height: 1.6;
+    margin-bottom: 1rem;
+    font-weight: 300;
+}
+
+.content-section ul {
+    list-style-position: outside;
+    padding-left: 2rem; /* Indent lists */
+}
+
+.content-section li {
+    margin-bottom: 0.75rem;
+}
+
+/* Link styling for practice cards */
+.practice-card a {
+    text-decoration: none;
+    color: inherit;
+    display: block; /* Make the whole card clickable */
 }

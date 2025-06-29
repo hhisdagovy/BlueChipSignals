@@ -40,7 +40,10 @@ nav {
     width: 100%;
     top: 0;
     z-index: 1000;
-    padding: 0.8rem 0;
+    padding: 0.6rem 0;
+    min-height: 60px;
+    display: flex;
+    align-items: center;
 }
 
 .nav-container {
@@ -54,8 +57,9 @@ nav {
 }
 
 .logo img {
-    width: 80px;
-    height: 80px;
+    width: 50px;
+    height: auto;
+    display: block;
 }
 
 .nav-links {
@@ -111,12 +115,12 @@ a {
 
 /* Bot Page Hero */
 .bot-hero {
-    padding: 5rem 1rem 2rem;
+    padding: 3rem 1rem 2rem;
     max-width: 550px;
     width: 100%;
     box-sizing: border-box;
     margin: 0 auto;
-    padding-top: 7rem; /* Add more space for fixed header */
+    padding-top: 9rem; /* Increased top padding to lower the content */
     text-align: center;
     display: flex;
     flex-direction: column;
@@ -149,29 +153,35 @@ a {
 /* Main Content */
 .main-content {
     padding: 0 1rem 4rem;
-    gap: 1.5rem;
-    max-width: 550px; /* Match hero section width */
+    gap: 2rem;
+    max-width: 550px;
     margin: 0 auto;
-    display: grid;
-    grid-template-columns: 1fr;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
     width: 100%;
     box-sizing: border-box;
 }
 
 .strategy-snapshot, .practice-cards, .chart-container {
     background: var(--dark-bg);
-    padding: 1.25rem;
+    padding: 1.5rem;
     border: 1px solid rgba(201, 176, 55, 0.2);
     border-radius: 15px;
     width: 100%;
     box-sizing: border-box;
     margin: 0 auto;
+    text-align: center;
+    margin-bottom: 1.5rem;
 }
 
-.strategy-snapshot h3, .practice-cards h3 {
-    font-size: 1.8rem;
+.strategy-snapshot h3, .practice-cards h3, .chart-container h3, .news-container h3 {
+    font-size: 1.6rem;
     color: var(--primary-gold);
-    margin-bottom: 1.5rem;
+    margin: 0 0 1.5rem 0;
+    text-align: center;
+    width: 100%;
+    padding: 0 1rem;
 }
 
 .stock-price-data {
@@ -218,9 +228,6 @@ a {
     display: grid;
     grid-template-columns: 1fr;
     gap: 1.5rem;
-}
-
-.practice-cards {
     background-color: var(--field-bg);
     border: 1px solid rgba(201, 176, 55, 0.15);
     border-radius: 12px;
@@ -241,34 +248,28 @@ a {
 
 .chart-container {
     background: var(--dark-bg);
-    padding: 1.25rem;
+    padding: 1.5rem;
     border: 1px solid rgba(201, 176, 55, 0.2);
     border-radius: 15px;
-    margin: 1rem auto;
-    grid-column: 1 / -1;
-    height: 400px;
+    margin: 0 auto 2rem;
+    height: 350px;
     position: relative;
     width: 100%;
     max-width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
 }
 
-.chart-container h3 {
-    font-size: 1.8rem;
-    color: var(--primary-gold);
-    margin-bottom: 1.5rem;
-    text-align: center;
+.chart-container canvas {
+    max-width: 100%;
+    height: auto !important;
 }
 
 .news-container {
     grid-column: 1 / -1;
     margin-top: 2rem;
-}
-
-.news-container h3 {
-    font-size: 1.8rem;
-    color: var(--primary-gold);
-    margin-bottom: 1.5rem;
-    text-align: center;
 }
 
 .news-grid {
@@ -424,8 +425,9 @@ h1, h2, h3, h4, h5, h6 {
     }
     
     .logo img {
-        width: 50px;
-        height: 50px;
+        width: 40px;
+        height: auto;
+        margin-top: 0.25rem;
     }
     
     .nav-links {
@@ -444,7 +446,7 @@ h1, h2, h3, h4, h5, h6 {
     }
     
     .bot-hero {
-        padding-top: 5rem;
+        padding-top: 7rem; /* Increased for mobile */
         padding-bottom: 1.5rem;
     }
     
@@ -468,7 +470,12 @@ h1, h2, h3, h4, h5, h6 {
     }
     
     .strategy-snapshot, 
-    .practice-cards, 
+    .practice-cards {
+        padding: 1rem;
+        margin: 0.5rem 0;
+        gap: 1rem;
+    }
+    
     .chart-container {
         padding: 1rem;
         margin: 0.5rem 0;
@@ -476,6 +483,8 @@ h1, h2, h3, h4, h5, h6 {
     
     .chart-container {
         height: 300px;
+        padding: 1rem;
+        margin: 0 0 1.5rem 0;
     }
 }
 

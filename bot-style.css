@@ -59,8 +59,8 @@ nav {
 }
 
 .logo img {
-    width: 60px;
-    height: auto;
+    width: 80px;
+    height: 80px;
     display: block;
     transition: transform 0.3s ease;
 }
@@ -522,21 +522,16 @@ h1, h2, h3, h4, h5, h6 {
         padding: 0 0.5rem 2rem;
         grid-template-columns: 1fr;
         gap: 1rem;
+
     }
     
     .strategy-snapshot, 
-    .practice-cards, 
-    .chart-container {
+    .practice-cards {
         padding: 1.25rem;
         border-radius: 12px;
         margin: 0 0.5rem;
         width: calc(100% - 1rem);
         box-sizing: border-box;
-    }
-    
-    .chart-container {
-        height: 400px;
-        margin: 1rem 0.5rem;
     }
     
     .news-grid {
@@ -545,6 +540,25 @@ h1, h2, h3, h4, h5, h6 {
         padding: 0 0.5rem;
     }
     
+
+    }
+    
+    .strategy-snapshot, 
+    .practice-cards {
+        padding: 1.25rem;
+        border-radius: 12px;
+        margin: 0 0.5rem;
+        width: calc(100% - 1rem);
+        box-sizing: border-box;
+    }
+    
+    .news-grid {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+        padding: 0 0.5rem;
+    }
+    
+        main
     .news-card {
         margin-bottom: 1rem;
     }
@@ -561,9 +575,7 @@ h1, h2, h3, h4, h5, h6 {
     .strategy-snapshot h3, .practice-cards h3, .chart-container h3, .news-container h3 {
         font-size: 1.5rem;
     }
-    .chart-container {
-        height: 400px;
-    }
+
     .news-grid {
         grid-template-columns: 1fr;
     }
@@ -603,4 +615,3 @@ h1, h2, h3, h4, h5, h6 {
     .practice-cards {
         grid-template-columns: 1fr;
     }
-}

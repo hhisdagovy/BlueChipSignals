@@ -328,7 +328,7 @@
             margin-bottom: 1.5rem;
             font-size: 1.5rem;
         }
-
+        
         /* Bots Section */
         .bots {
             padding: 4rem 2rem;
@@ -678,6 +678,44 @@
 
         .social-media a:hover {
             color: var(--secondary-gold);
+        }
+        
+        @media (max-width: 600px) {
+            .limited-offer-container {
+              width: 100%;
+              max-width: 100%;
+              margin: 0;
+              padding: 1rem;
+              box-sizing: border-box;
+            }
+            .limited-offer-container h2 {
+              font-size: 1.4rem;
+              line-height: 1.2;
+              margin-bottom: 0.5rem;
+            }
+            .limited-offer-container p {
+              font-size: 0.9rem;
+              margin-bottom: 1rem;
+            }
+            #countdown-timer {
+              display: flex;
+              gap: 0.5rem;
+              margin: 1rem 0;
+            }
+            #countdown-timer .timer-unit {
+              flex: 1;
+              padding: 0.5rem;
+            }
+            #countdown-timer .timer-unit span {
+              font-size: 1.2rem;
+            }
+            #countdown-timer .timer-unit small {
+              font-size: 0.7rem;
+            }
+            .offer-cta {
+              padding: 0.6rem 1.2rem;
+              font-size: 0.9rem;
+            }
         }
     </style>
     <script async

@@ -143,14 +143,14 @@ a {
     grid-template-columns: 1fr 2fr;
 }
 
-.strategy-snapshot, .best-practices {
+.strategy-snapshot, .practice-cards {
     background: var(--dark-bg);
     padding: 2rem;
     border: 1px solid rgba(201, 176, 55, 0.2);
     border-radius: 20px;
 }
 
-.strategy-snapshot h3, .best-practices h3 {
+.strategy-snapshot h3, .practice-cards h3 {
     font-size: 1.8rem;
     color: var(--primary-gold);
     margin-bottom: 1.5rem;
@@ -202,7 +202,7 @@ a {
     gap: 1.5rem;
 }
 
-.practice-card {
+.practice-cards {
     background-color: var(--field-bg);
     border: 1px solid rgba(201, 176, 55, 0.15);
     border-radius: 12px;
@@ -210,12 +210,12 @@ a {
     transition: transform 0.3s, border-color 0.3s;
 }
 
-.practice-card:hover {
+.practice-cards:hover {
     transform: translateY(-5px);
     border-color: var(--primary-gold);
 }
 
-.practice-card h4 {
+.practice-cards h4 {
     color: var(--secondary-gold);
     margin-bottom: 0.5rem;
     font-size: 1.2rem;
@@ -372,13 +372,7 @@ footer {
 
 /* --- Responsive Design --- */
 
-@media screen and (max-width: 992px) {
-    .main-content {
-        grid-template-columns: 1fr;
-    }
-}
-
-@media screen and (max-width: 768px) {
+@media screen and (max-width: 600px) {
     .bot-hero {
         padding: 8rem 1rem 4rem;
     }
@@ -391,10 +385,10 @@ footer {
     .main-content {
         padding: 0 1rem 2rem;
     }
-    .strategy-snapshot, .best-practices, .chart-container {
+    .strategy-snapshot, .practice-cards, .chart-container {
         padding: 1.5rem;
     }
-    .strategy-snapshot h3, .best-practices h3, .chart-container h3, .news-container h3 {
+    .strategy-snapshot h3, .practice-cards h3, .chart-container h3, .news-container h3 {
         font-size: 1.5rem;
     }
     .chart-container {
@@ -453,42 +447,5 @@ footer {
         background: none;
         backdrop-filter: none;
         left: 0;
-    }
-}
-
-@media screen and (max-width: 480px) {
-    .bot-hero {
-        padding: 7rem 1rem 3rem;
-    }
-    .bot-symbol {
-        font-size: 3.5rem;
-    }
-    .bot-page-title {
-        font-size: 1.5rem;
-    }
-    .main-content {
-        padding: 0 0.5rem 2rem;
-    }
-    .strategy-snapshot h3, .best-practices h3, .chart-container h3, .news-container h3 {
-        font-size: 1.3rem;
-    }
-    .chart-container {
-        height: 350px;
-        padding: 1rem;
-    }
-    .news-grid {
-        gap: 1.5rem;
-    }
-    .practice-card {
-        padding: 1rem;
-    }
-    .practice-card h4 {
-        font-size: 1.1rem;
-    }
-    .practice-card p {
-        font-size: 0.95rem;
-    }
-    .news-card {
-        padding: 1rem;
     }
 }

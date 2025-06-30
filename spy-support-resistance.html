@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BlueChip Signals - SPY Support & Resistance Guide</title>
+    <link rel="icon" type="image/png" href="logo.png">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="bot-style.css?v=1751139967">
+    <link rel="stylesheet" href="news-style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+</head>
+<body>
+    <!-- Navigation -->
+    <nav>
+        <div class="nav-container">
+            <div class="logo">
+                <a href="index.html"><img src="logo.png" alt="BlueChip Signals Logo"></a>
+            </div>
+            <div class="hamburger-menu">
+                <div class="bar"></div>
+                <div class="bar"></div>
+                <div class="bar"></div>
+            </div>
+            <ul class="nav-links">
+                <li><a href="index.html#features">Features</a></li>
+                <li><a href="index.html#bots">Our Bots</a></li>
+                <li><a href="index.html#pricing">Pricing</a></li>
+                <li><a href="index.html#testimonials">Testimonials</a></li>
+                <li><a href="faq.html">FAQ</a></li>
+                <li><a href="legal.html">Legal Disclaimer</a></li>
+                <li><a href="about.html">About Us</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <main class="main-content">
+        <header class="content-header card-style">
+            <div class="bot-page-icon"><i class="fas fa-chart-line"></i></div>
+            <h1 class="page-main-title">Key Support & Resistance Levels</h1>
+            <p class="page-main-subtitle">Master the art of identifying critical price zones where SPY reverses or breaks through.</p>
+        </header>
+
+        <section class="content-section card-style" id="sr-calculator">
+            <h3>S/R Level Calculator</h3>
+            <p class="data-source">Enter recent price data to calculate key levels</p>
+            
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin: 1.5rem 0;">
+                <div>
+                    <label for="high-input" style="display: block; color: var(--gray-text); margin-bottom: 0.5rem; font-size: 1rem; font-weight: 500;">Previous High</label>
+                    <input type="number" id="high-input" step="0.01" placeholder="e.g. 425.50" style="width: 100%; padding: 1rem; background: var(--field-bg); border: 1px solid rgba(201, 176, 55, 0.3); border-radius: 8px; color: var(--light-text); font-size: 1.1rem; box-sizing: border-box;">
+                </div>
+                <div>
+                    <label for="low-input" style="display: block; color: var(--gray-text); margin-bottom: 0.5rem; font-size: 1rem; font-weight: 500;">Previous Low</label>
+                    <input type="number" id="low-input" step="0.01" placeholder="e.g. 420.25" style="width: 100%; padding: 1rem; background: var(--field-bg); border: 1px solid rgba(201, 176, 55, 0.3); border-radius: 8px; color: var(--light-text); font-size: 1.1rem; box-sizing: border-box;">
+                </div>
+            </div>
+            
+            <div style="text-align: center; margin: 1.5rem 0;">
+                <div style="max-width: 300px; margin: 0 auto;">
+                    <label for="close-input" style="display: block; color: var(--gray-text); margin-bottom: 0.5rem; font-size: 1rem; font-weight: 500;">Previous Close</label>
+                    <input type="number" id="close-input" step="0.01" placeholder="e.g. 423.75" style="width: 100%; padding: 1rem; background: var(--field-bg); border: 1px solid rgba(201, 176, 55, 0.3); border-radius: 8px; color: var(--light-text); font-size: 1.1rem; box-sizing: border-box;">
+                </div>
+            </div>
+            
+            <div style="text-align: center;">
+                <button id="calculate-btn" style="background: var(--primary-gold); color: var(--dark-bg); border: none; padding: 0.75rem 2rem; border-radius: 8px; font-weight: 600; cursor: pointer; margin-bottom: 1.5rem;">Calculate Levels</button>
+            </div>
+            
+            <div id="sr-results" style="display: none;">
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-top: 1rem;">
+                    <div>
+                        <h4 style="color: var(--secondary-gold); margin-bottom: 1rem;">Support Levels</h4>
+                        <div style="background: rgba(26, 31, 46, 0.5); padding: 1rem; border-radius: 8px;">
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                                <span>Support 1:</span>
+                                <span id="s1-value" style="color: var(--primary-gold); font-weight: 600;">--</span>
+                            </div>
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                                <span>Support 2:</span>
+                                <span id="s2-value" style="color: var(--primary-gold); font-weight: 600;">--</span>
+                            </div>
+                            <div style="display: flex; justify-content: space-between;">
+                                <span>Support 3:</span>
+                                <span id="s3-value" style="color: var(--primary-gold); font-weight: 600;">--</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div>
+                        <h4 style="color: var(--secondary-gold); margin-bottom: 1rem;">Resistance Levels</h4>
+                        <div style="background: rgba(26, 31, 46, 0.5); padding: 1rem; border-radius: 8px;">
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                                <span>Resistance 1:</span>
+                                <span id="r1-value" style="color: var(--primary-gold); font-weight: 600;">--</span>
+                            </div>
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                                <span>Resistance 2:</span>
+                                <span id="r2-value" style="color: var(--primary-gold); font-weight: 600;">--</span>
+                            </div>
+                            <div style="display: flex; justify-content: space-between;">
+                                <span>Resistance 3:</span>
+                                <span id="r3-value" style="color: var(--primary-gold); font-weight: 600;">--</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div style="text-align: center; margin-top: 1rem; padding: 1rem; background: rgba(26, 31, 46, 0.3); border-radius: 8px;">
+                    <span>Pivot Point: </span>
+                    <span id="pivot-value" style="color: var(--secondary-gold); font-weight: 600; font-size: 1.1rem;">--</span>
+                </div>
+            </div>
+        </section>
+
+        <section class="content-section card-style">
+            <h3>What Makes Levels Matter</h3>
+            <p>Support and resistance aren't just lines on a chart—they're psychological battlegrounds where buyers and sellers clash. Our bot targets flips of key daily and weekly support/resistance levels. When a previous support level breaks, it often becomes new resistance, and vice-versa.</p>
+            <ul>
+                <li><strong>Volume Confirmation:</strong> High-volume breaks are more reliable than low-volume fakeouts.</li>
+                <li><strong>Multiple Touches:</strong> Levels tested 3+ times gain significance and trader attention.</li>
+                <li><strong>Round Numbers:</strong> SPY 400, 420, 450—psychological levels where algos and retail cluster orders.</li>
+            </ul>
+        </section>
+
+        <section class="content-section card-style">
+            <h3>Daily vs. Weekly Levels</h3>
+            <p>Different timeframes reveal different opportunities:</p>
+            <ul>
+                <li><strong>Daily Support/Resistance:</strong> Previous day's high/low, pivot points, and intraday swing levels. Best for scalps and same-day reversals.</li>
+                <li><strong>Weekly Levels:</strong> Prior week's range, monthly opens, quarterly levels. These hold more weight for multi-day swings.</li>
+                <li><strong>Gap Fills:</strong> SPY loves to fill overnight gaps. Mark gap levels as potential magnets for price action.</li>
+                <li><strong>Moving Averages:</strong> 20-day, 50-day, and 200-day MAs act as dynamic support/resistance, especially on pullbacks.</li>
+            </ul>
+        </section>
+
+        <section class="content-section card-style">
+            <h3>Role Reversal Strategy</h3>
+            <p>The bread and butter of S/R trading—when levels flip roles:</p>
+            <ul>
+                <li><strong>Broken Support → New Resistance:</strong> SPY breaks below 420 support? Watch for bounces back to 420 to fail as new resistance.</li>
+                <li><strong>Cleared Resistance → New Support:</strong> SPY powers through 430 resistance? Look for dips back to 430 to hold as new support.</li>
+                <li><strong>Retest Timing:</strong> Most role reversals happen within 1-3 trading sessions. After that, the level loses potency.</li>
+                <li><strong>Volume Pattern:</strong> Strong breakouts should see declining volume on retests—shows conviction in the new direction.</li>
+            </ul>
+        </section>
+
+        <section class="content-section card-style">
+            <h3>Tools & Setup</h3>
+            <p>Mark these levels on your charts daily:</p>
+            <ul>
+                <li><strong>Previous Day High/Low:</strong> Most watched intraday levels. Breaks often signal continuation.</li>
+                <li><strong>Weekly Pivot Points:</strong> (H+L+C)/3 from prior week. Classic institutional reference points.</li>
+                <li><strong>Gap Levels:</strong> Mark any overnight gaps >0.5%. SPY has a 70%+ gap fill rate within 5 sessions.</li>
+                <li><strong>Volume Profile:</strong> Identify high-volume nodes (HVN) and low-volume nodes (LVN) for stronger S/R zones.</li>
+                <li><strong>Options Strikes:</strong> Check max pain and high open interest strikes—these act as magnets near expiration.</li>
+            </ul>
+        </section>
+    </main>
+
+    <div class="floating-cta">
+        <a href="index.html#pricing" class="cta-button">Join Now & Get Signals</a>
+    </div>
+
+    <!-- Footer -->
+    <footer>
+        <p>&copy; 2025 BlueChip Signals. All rights reserved. | <a href="legal.html" style="color: var(--primary-gold); text-decoration: none;">Legal Disclaimer</a></p>
+        <div class="social-media">
+            <a href="https://www.tiktok.com/@bluechip.signals" target="_blank"><i class="fab fa-tiktok"></i></a>
+            <a href="https://www.instagram.com/bluechip.signals/" target="_blank"><i class="fab fa-instagram"></i></a>
+        </div>
+    </footer>
+
+    <script>
+        const hamburgerMenu = document.querySelector('.hamburger-menu');
+        const mobileNav = document.querySelector('.nav-links');
+
+        hamburgerMenu.addEventListener('click', () => {
+            mobileNav.classList.toggle('active');
+        });
+    </script>
+    <script src="stock-prices.js" defer></script>
+    <script src="sr-calculator.js" defer></script>
+</body>
+</html> 

@@ -32,7 +32,8 @@ body {
 }
 
 /* Navigation */
-nav {
+nav,
+.main-nav {
     background: rgba(5, 8, 16, 0.9);
     backdrop-filter: blur(10px);
     -webkit-backdrop-filter: blur(10px);
@@ -58,14 +59,18 @@ nav {
     box-sizing: border-box;
 }
 
-.logo img {
+.logo img,
+.nav-brand img,
+.nav-logo {
     width: 80px;
     height: 80px;
     display: block;
     transition: transform 0.3s ease;
 }
 
-.logo img:hover {
+.logo img:hover,
+.nav-brand img:hover,
+.nav-logo:hover {
     transform: scale(1.05);
 }
 
@@ -597,4 +602,399 @@ footer {
 
 #bls-data .data-source {
     color: var(--light-gray);
+}
+
+/* Hero Section for Guide Pages */
+.hero-section {
+    background: var(--dark-bg);
+    border: 1px solid rgba(201, 176, 55, 0.2);
+    border-radius: 15px;
+    padding: 3rem 2rem;
+    text-align: center;
+    margin: 2rem 0;
+}
+
+.hero-content h1 {
+    font-size: 2.5rem;
+    font-weight: 700;
+    background: linear-gradient(135deg, var(--primary-gold), var(--secondary-gold));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    margin-bottom: 1rem;
+    line-height: 1.2;
+}
+
+.hero-subtitle {
+    font-size: 1.2rem;
+    color: var(--gray-text);
+    margin: 0;
+}
+
+/* Container for Guide Pages */
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 1rem;
+}
+
+/* Breadcrumb Navigation */
+.breadcrumb {
+    margin: 2rem 0;
+    font-size: 0.9rem;
+    color: var(--gray-text);
+}
+
+.breadcrumb a {
+    color: var(--primary-gold);
+    text-decoration: none;
+}
+
+.breadcrumb a:hover {
+    text-decoration: underline;
+}
+
+/* CTA Section */
+.cta-section {
+    background: var(--dark-bg);
+    border: 1px solid rgba(201, 176, 55, 0.2);
+    border-radius: 15px;
+    padding: 2rem;
+    text-align: center;
+    margin: 1rem auto;
+    max-width: 550px;
+    width: calc(100% - 2rem);
+    box-sizing: border-box;
+}
+
+.cta-content h2 {
+    font-size: 1.8rem;
+    color: var(--primary-gold);
+    margin-bottom: 0.8rem;
+    line-height: 1.2;
+}
+
+.cta-content p {
+    font-size: 1rem;
+    color: var(--gray-text);
+    margin-bottom: 1.5rem;
+}
+
+.cta-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    align-items: center;
+}
+
+.cta-button.primary {
+    background: linear-gradient(135deg, var(--primary-gold), var(--secondary-gold));
+    color: var(--darker-bg);
+    padding: 1rem 2rem;
+    border-radius: 8px;
+    text-decoration: none;
+    font-weight: 600;
+    transition: transform 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.cta-button.secondary {
+    background: transparent;
+    color: var(--primary-gold);
+    border: 2px solid var(--primary-gold);
+    padding: 1rem 2rem;
+    border-radius: 8px;
+    text-decoration: none;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.cta-button.primary .fab.fa-meta {
+    font-size: 20px;
+    color: inherit;
+}
+
+.cta-button.secondary .telegram-icon {
+    width: 20px;
+    height: 20px;
+    filter: brightness(0) saturate(100%) invert(75%) sepia(25%) saturate(1167%) hue-rotate(35deg) brightness(95%) contrast(85%);
+}
+
+.cta-button:hover {
+    transform: translateY(-2px);
+}
+
+.cta-button.secondary:hover {
+    background: var(--primary-gold);
+    color: var(--darker-bg);
+}
+
+/* Footer for Guide Pages */
+.main-footer {
+    background: linear-gradient(135deg, var(--darker-bg) 0%, rgba(5, 8, 16, 0.98) 100%);
+    border-top: 2px solid var(--primary-gold);
+    padding: 4rem 0 2rem;
+    margin-top: 4rem;
+    position: relative;
+    overflow: hidden;
+}
+
+.main-footer::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent 0%, var(--primary-gold) 50%, transparent 100%);
+}
+
+.footer-content {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 2rem;
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr;
+    gap: 3rem;
+    position: relative;
+    z-index: 1;
+}
+
+.footer-section h3 {
+    color: var(--primary-gold);
+    margin-bottom: 1.5rem;
+    font-size: 1.8rem;
+    font-weight: 700;
+    background: linear-gradient(135deg, var(--primary-gold), var(--secondary-gold));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.footer-section h4 {
+    color: var(--secondary-gold);
+    margin-bottom: 1.2rem;
+    font-size: 1.2rem;
+    font-weight: 600;
+    position: relative;
+    padding-bottom: 0.5rem;
+}
+
+.footer-section h4::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 30px;
+    height: 2px;
+    background: var(--primary-gold);
+}
+
+.footer-section p {
+    color: var(--gray-text);
+    line-height: 1.6;
+    margin-bottom: 1.5rem;
+    font-size: 1rem;
+}
+
+.footer-section ul {
+    list-style: none;
+    padding: 0;
+}
+
+.footer-section ul li {
+    margin-bottom: 0.8rem;
+    position: relative;
+    padding-left: 1rem;
+}
+
+.footer-section ul li::before {
+    content: '▸';
+    position: absolute;
+    left: 0;
+    color: var(--primary-gold);
+    font-size: 0.8rem;
+}
+
+.footer-section ul li a {
+    color: var(--gray-text);
+    text-decoration: none;
+    transition: all 0.3s ease;
+    font-weight: 500;
+    position: relative;
+}
+
+.footer-section ul li a:hover {
+    color: var(--primary-gold);
+    transform: translateX(5px);
+}
+
+.footer-bottom {
+    margin-top: 3rem;
+    padding-top: 2rem;
+    border-top: 1px solid rgba(201, 176, 55, 0.2);
+    color: var(--gray-text);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 1rem;
+    position: relative;
+    max-width: 1200px;
+    margin-left: auto;
+    margin-right: auto;
+    padding-left: 2rem;
+    padding-right: 2rem;
+}
+
+.footer-bottom p {
+    color: var(--gray-text);
+    margin: 0;
+    font-size: 0.9rem;
+    text-align: center;
+}
+
+.footer-social {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+    position: absolute;
+    right: 2rem;
+    top: 50%;
+    transform: translateY(-50%);
+}
+
+.footer-social a {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 45px;
+    height: 45px;
+    border-radius: 50%;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+    text-decoration: none;
+}
+
+.footer-social a::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    border-radius: 50%;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    z-index: 1;
+}
+
+.footer-social a[href*="tiktok"] {
+    background: rgba(37, 244, 238, 0.1);
+    border: 2px solid rgba(37, 244, 238, 0.3);
+}
+
+.footer-social a[href*="tiktok"]::before {
+    background: linear-gradient(135deg, #25f4ee, #fe2c55);
+}
+
+.footer-social a[href*="tiktok"]:hover::before {
+    opacity: 1;
+}
+
+.footer-social a[href*="tiktok"] i {
+    color: #25f4ee;
+    font-size: 1.5rem;
+    position: relative;
+    z-index: 2;
+    transition: color 0.3s ease;
+}
+
+.footer-social a[href*="tiktok"]:hover i {
+    color: white;
+}
+
+.footer-social a[href*="instagram"] {
+    background: rgba(225, 48, 108, 0.1);
+    border: 2px solid rgba(225, 48, 108, 0.3);
+}
+
+.footer-social a[href*="instagram"]::before {
+    background: linear-gradient(135deg, #833ab4, #fd1d1d, #fcb045);
+}
+
+.footer-social a[href*="instagram"]:hover::before {
+    opacity: 1;
+}
+
+.footer-social a[href*="instagram"] i {
+    color: #e1306c;
+    font-size: 1.5rem;
+    position: relative;
+    z-index: 2;
+    transition: color 0.3s ease;
+}
+
+.footer-social a[href*="instagram"]:hover i {
+    color: white;
+}
+
+.footer-social a:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+}
+
+/* Mobile responsive for guide pages */
+@media screen and (max-width: 768px) {
+    .hero-content h1 {
+        font-size: 2rem;
+    }
+    
+    .hero-subtitle {
+        font-size: 1rem;
+    }
+    
+    .cta-buttons {
+        flex-direction: column;
+        align-items: center;
+    }
+    
+    .cta-button {
+        width: 100%;
+        max-width: 300px;
+    }
+    
+    .footer-content {
+        grid-template-columns: 1fr;
+        gap: 2rem;
+        padding: 0 1rem;
+    }
+    
+    .footer-bottom {
+        flex-direction: column;
+        text-align: center;
+        position: static;
+        padding-left: 1rem;
+        padding-right: 1rem;
+    }
+    
+    .footer-social {
+        position: static;
+        transform: none;
+        justify-content: center;
+        margin-top: 1rem;
+    }
+    
+    .cta-content h2 {
+        font-size: 1.5rem;
+    }
+    
+    .cta-section {
+        padding: 1.5rem;
+        margin: 1.5rem 0;
+    }
 }

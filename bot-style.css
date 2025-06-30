@@ -345,6 +345,33 @@ a {
     transform: translateY(-3px);
 }
 
+/* Practice CTA styles */
+.practice-cta {
+    margin-top: 1rem;
+    text-align: center;
+    padding-top: 1rem;
+    border-top: 1px solid rgba(201, 176, 55, 0.2);
+}
+
+.cta-button-small {
+    background-color: var(--primary-gold);
+    color: var(--dark-bg);
+    padding: 0.6rem 1.2rem;
+    border-radius: 25px;
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 0.9rem;
+    display: inline-block;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+    transition: all 0.3s ease;
+}
+
+.cta-button-small:hover {
+    background-color: var(--secondary-gold);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+}
+
 /* Footer */
 .social-media {
     margin-top: 1rem;

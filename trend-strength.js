@@ -64,13 +64,6 @@
             
             console.log('Using Finnhub current price with estimated MAs:', { currentPrice, ma20, ma50, ma200 });
             updateTrendMeter(currentPrice, ma20, ma50, ma200);
-            
-            // Add note about estimated MAs
-            setTimeout(() => {
-                if (trendDescription.textContent && !trendDescription.textContent.includes('Estimated')) {
-                    trendDescription.textContent = trendDescription.textContent + ' (Estimated MAs)';
-                }
-            }, 1000);
 
         } catch (error) {
             console.error('Error fetching SPY data from Finnhub:', error);

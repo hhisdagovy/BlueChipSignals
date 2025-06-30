@@ -3,12 +3,324 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BlueChip Signals - AAPL Bot</title>
+    <title>AAPL as a Market Bellwether - Trading Guide | BlueChip Signals</title>
     <link rel="icon" type="image/png" href="../../assets/images/logo.png">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="../../assets/css/bot-style.css?v=1751139967">
-    <link rel="stylesheet" href="../../assets/css/news-style.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        /* Enhanced styles for market bellwether guide */
+        .correlation-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin: 2rem 0;
+        }
+
+        .correlation-card {
+            background: linear-gradient(135deg, rgba(179, 161, 125, 0.1), rgba(179, 161, 125, 0.05));
+            border: 1px solid rgba(179, 161, 125, 0.2);
+            border-radius: 12px;
+            padding: 1.5rem;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .correlation-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, var(--primary-gold), var(--secondary-gold));
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .correlation-card:hover {
+            transform: translateY(-5px);
+            border-color: var(--primary-gold);
+            box-shadow: 0 10px 30px rgba(179, 161, 125, 0.2);
+        }
+
+        .correlation-card:hover::before {
+            opacity: 1;
+        }
+
+        .correlation-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .correlation-icon {
+            font-size: 2rem;
+            color: var(--primary-gold);
+            margin-right: 0.75rem;
+            width: 40px;
+            text-align: center;
+        }
+
+        .correlation-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: var(--light-text);
+            margin: 0;
+        }
+
+        .correlation-percentage {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--primary-gold);
+            text-align: center;
+            margin: 1rem 0;
+        }
+
+        .impact-simulator {
+            background: rgba(179, 161, 125, 0.05);
+            border: 1px solid rgba(179, 161, 125, 0.2);
+            border-radius: 12px;
+            padding: 2rem;
+            margin: 2rem 0;
+        }
+
+        .simulator-controls {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .control-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .control-label {
+            color: var(--primary-gold);
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            font-size: 0.9rem;
+        }
+
+        .control-input {
+            padding: 0.75rem;
+            background: var(--dark-bg);
+            border: 1px solid rgba(179, 161, 125, 0.3);
+            border-radius: 8px;
+            color: var(--light-text);
+            font-size: 0.9rem;
+        }
+
+        .control-input:focus {
+            outline: none;
+            border-color: var(--primary-gold);
+            box-shadow: 0 0 0 2px rgba(179, 161, 125, 0.2);
+        }
+
+        .simulator-results {
+            background: var(--dark-bg);
+            border: 1px solid rgba(179, 161, 125, 0.3);
+            border-radius: 8px;
+            padding: 1.5rem;
+        }
+
+        .result-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.75rem 0;
+            border-bottom: 1px solid rgba(179, 161, 125, 0.1);
+        }
+
+        .result-row:last-child {
+            border-bottom: none;
+        }
+
+        .result-label {
+            color: var(--light-text);
+            font-weight: 500;
+        }
+
+        .result-value {
+            color: var(--primary-gold);
+            font-weight: 600;
+            font-size: 1.1rem;
+        }
+
+        .strategy-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.5rem;
+            margin: 2rem 0;
+        }
+
+        .strategy-card {
+            background: var(--dark-bg);
+            border: 1px solid rgba(201, 176, 55, 0.2);
+            border-radius: 12px;
+            padding: 1.5rem;
+            transition: all 0.3s ease;
+        }
+
+        .strategy-card:hover {
+            border-color: var(--primary-gold);
+            transform: translateY(-3px);
+        }
+
+        .strategy-tag {
+            display: inline-block;
+            background: rgba(179, 161, 125, 0.2);
+            color: var(--primary-gold);
+            padding: 0.3rem 0.8rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            margin-bottom: 1rem;
+            border: 1px solid rgba(179, 161, 125, 0.3);
+        }
+
+        .tools-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin: 2rem 0;
+        }
+
+        .tool-card {
+            background: linear-gradient(135deg, rgba(42, 87, 31, 0.1), rgba(42, 87, 31, 0.05));
+            border: 1px solid rgba(42, 87, 31, 0.3);
+            border-radius: 12px;
+            padding: 1.5rem;
+            transition: all 0.3s ease;
+        }
+
+        .tool-card:hover {
+            border-color: var(--success-green);
+            transform: translateY(-3px);
+        }
+
+        .tool-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .tool-icon {
+            font-size: 1.5rem;
+            color: var(--success-green);
+            margin-right: 0.75rem;
+        }
+
+        .tool-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--light-text);
+            margin: 0;
+        }
+
+        .market-cap-visual {
+            background: rgba(179, 161, 125, 0.1);
+            border: 1px solid rgba(179, 161, 125, 0.2);
+            border-radius: 12px;
+            padding: 2rem;
+            margin: 2rem 0;
+            text-align: center;
+        }
+
+        .market-cap-bars {
+            display: flex;
+            align-items: end;
+            justify-content: center;
+            gap: 1rem;
+            margin: 2rem 0;
+            height: 200px;
+        }
+
+        .cap-bar {
+            background: linear-gradient(to top, var(--primary-gold), var(--secondary-gold));
+            border-radius: 4px 4px 0 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: relative;
+            min-width: 60px;
+        }
+
+        .cap-bar.aapl {
+            height: 100%;
+        }
+
+        .cap-bar.msft {
+            height: 85%;
+        }
+
+        .cap-bar.googl {
+            height: 65%;
+        }
+
+        .cap-bar.amzn {
+            height: 55%;
+        }
+
+        .cap-bar.tsla {
+            height: 35%;
+        }
+
+        .cap-label {
+            position: absolute;
+            bottom: -30px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: var(--light-text);
+        }
+
+        .cap-value {
+            position: absolute;
+            top: -25px;
+            font-size: 0.8rem;
+            color: var(--primary-gold);
+            font-weight: 600;
+        }
+
+        @media (max-width: 768px) {
+            .correlation-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .strategy-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .tools-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .simulator-controls {
+                grid-template-columns: 1fr;
+            }
+
+            .market-cap-bars {
+                flex-direction: column;
+                height: auto;
+                align-items: stretch;
+            }
+
+            .cap-bar {
+                height: 40px !important;
+                min-width: auto;
+                flex-direction: row;
+                justify-content: space-between;
+                padding: 0 1rem;
+                align-items: center;
+                margin: 0.5rem 0;
+            }
+
+            .cap-label, .cap-value {
+                position: static;
+            }
+        }
+    </style>
 </head>
 <body>
     <!-- Navigation -->
@@ -35,65 +347,516 @@
     </nav>
 
     <main class="main-content">
+        <!-- Header Section -->
         <header class="content-header card-style">
             <div class="bot-page-icon"><i class="fab fa-apple"></i></div>
-            <h1 class="page-main-title">AAPL: The Market's Bellwether</h1>
-            <p class="page-main-subtitle">Harness Apple's leadership to forecast and trade the SPY & QQQ with confidence.</p>
+            <h1 class="page-main-title">AAPL as a Market Bellwether</h1>
+            <p class="page-main-subtitle">Due to its massive market cap, AAPL's performance can influence the entire market. If AAPL is strong, it often provides a tailwind for the SPY and QQQ.</p>
         </header>
 
+        <!-- Market Cap Visualization -->
         <section class="content-section card-style">
-            <h3>Why Apple Sets the Tone</h3>
-            <p>At a <em>$3T+</em> valuation, AAPL is the single largest weight in both the S&P&nbsp;500 and Nasdaq&nbsp;100. When it moves, index ETFs feel it instantly. Understanding this dynamic lets you front-run broad-market rotations.</p>
-            <ul>
-                <li><strong>Index Weight:</strong> ~7% of SPY and ~11% of QQQ. A 2% move in AAPL can swing the entire index by ~15–20&nbsp;bps.</li>
-                <li><strong>Sector Leadership:</strong> Tech sentiment often pivots on Apple earnings and guidance.</li>
-                <li><strong>Liquidity Magnet:</strong> Institutions express macro views with AAPL because of its tight spreads and deep options market.</li>
-            </ul>
+            <h3><i class="fas fa-crown" style="color: var(--primary-gold); margin-right: 0.5rem;"></i>The $3+ Trillion Giant</h3>
+            <div class="market-cap-visual">
+                <h4>Market Capitalization Comparison (Top 5 US Stocks)</h4>
+                <div class="market-cap-bars">
+                    <div class="cap-bar aapl">
+                        <span class="cap-value">$3.0T</span>
+                        <span class="cap-label">AAPL</span>
+                    </div>
+                    <div class="cap-bar msft">
+                        <span class="cap-value">$2.8T</span>
+                        <span class="cap-label">MSFT</span>
+                    </div>
+                    <div class="cap-bar googl">
+                        <span class="cap-value">$2.1T</span>
+                        <span class="cap-label">GOOGL</span>
+                    </div>
+                    <div class="cap-bar amzn">
+                        <span class="cap-value">$1.8T</span>
+                        <span class="cap-label">AMZN</span>
+                    </div>
+                    <div class="cap-bar tsla">
+                        <span class="cap-value">$1.0T</span>
+                        <span class="cap-label">TSLA</span>
+                    </div>
+                </div>
+                <p style="margin-top: 3rem; color: var(--gray-text);">Apple's massive size means its movements ripple through major indices instantly</p>
+            </div>
         </section>
 
+        <!-- Impact Simulator -->
         <section class="content-section card-style">
-            <h3>Bellwether Trading Playbook</h3>
-            <p>Use AAPL tape to time index entries and exits:</p>
-            <ul>
-                <li><strong>Opening Drive:</strong> If AAPL gaps up & holds VWAP in the first 15 min, bias long SPY/QQQ until AAPL loses VWAP.</li>
-                <li><strong>Earnings Reaction:</strong> Post-earnings strength/weakness in AAPL often dictates multi-day index direction—trade index futures accordingly.</li>
-                <li><strong>Relative Strength Screens:</strong> Monitor AAPL vs. XLK; divergence warns of sector rotation.</li>
-                <li><strong>Options Flow:</strong> Surging weekly AAPL call volume can foreshadow index squeezes.</li>
-            </ul>
+            <h3><i class="fas fa-calculator" style="color: var(--primary-gold); margin-right: 0.5rem;"></i>Market Impact Simulator</h3>
+            <p>Calculate how AAPL movements translate to index ETF performance:</p>
+            
+            <div class="impact-simulator">
+                <div class="simulator-controls">
+                    <div class="control-group">
+                        <label class="control-label">AAPL Price Move (%)</label>
+                        <input type="number" class="control-input" id="aapl-move" placeholder="e.g., 2.5" step="0.1">
+                    </div>
+                    <div class="control-group">
+                        <label class="control-label">Time Period</label>
+                        <select class="control-input" id="time-period">
+                            <option value="intraday">Intraday</option>
+                            <option value="daily">Daily</option>
+                            <option value="weekly">Weekly</option>
+                        </select>
+                    </div>
+                    <div class="control-group">
+                        <label class="control-label">Market Conditions</label>
+                        <select class="control-input" id="market-conditions">
+                            <option value="normal">Normal Volatility</option>
+                            <option value="high">High Volatility</option>
+                            <option value="earnings">Earnings Period</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="simulator-results" id="simulator-results">
+                    <div class="result-row">
+                        <span class="result-label">Expected SPY Impact:</span>
+                        <span class="result-value" id="spy-impact">+0.00%</span>
+                    </div>
+                    <div class="result-row">
+                        <span class="result-label">Expected QQQ Impact:</span>
+                        <span class="result-value" id="qqq-impact">+0.00%</span>
+                    </div>
+                    <div class="result-row">
+                        <span class="result-label">Expected XLK Impact:</span>
+                        <span class="result-value" id="xlk-impact">+0.00%</span>
+                    </div>
+                    <div class="result-row">
+                        <span class="result-label">Confidence Level:</span>
+                        <span class="result-value" id="confidence-level">Medium</span>
+                    </div>
+                </div>
+            </div>
         </section>
 
+        <!-- Correlation Analysis -->
         <section class="content-section card-style">
-            <h3>Tools & Data Feeds</h3>
-            <p>Keep these dashboards on standby:</p>
+            <h3><i class="fas fa-link" style="color: var(--primary-gold); margin-right: 0.5rem;"></i>Index Correlation & Weights</h3>
+            <p>Understanding AAPL's mathematical impact on major indices is crucial for predicting market movements:</p>
+            
+            <div class="correlation-grid">
+                <div class="correlation-card">
+                    <div class="correlation-header">
+                        <div class="correlation-icon"><i class="fas fa-chart-pie"></i></div>
+                        <div>
+                            <h4 class="correlation-title">SPY Weight</h4>
+                        </div>
+                    </div>
+                    <div class="correlation-percentage">~7.2%</div>
+                    <p><strong>Impact:</strong> A 1% move in AAPL affects SPY by ~7.2 basis points</p>
+                    <p><strong>Threshold:</strong> 2%+ AAPL moves can swing SPY by 15-20 bps</p>
+                </div>
+
+                <div class="correlation-card">
+                    <div class="correlation-header">
+                        <div class="correlation-icon"><i class="fas fa-microchip"></i></div>
+                        <div>
+                            <h4 class="correlation-title">QQQ Weight</h4>
+                        </div>
+                    </div>
+                    <div class="correlation-percentage">~11.8%</div>
+                    <p><strong>Impact:</strong> A 1% move in AAPL affects QQQ by ~11.8 basis points</p>
+                    <p><strong>Threshold:</strong> 2%+ AAPL moves can swing QQQ by 25-30 bps</p>
+                </div>
+
+                <div class="correlation-card">
+                    <div class="correlation-header">
+                        <div class="correlation-icon"><i class="fas fa-sync-alt"></i></div>
+                        <div>
+                            <h4 class="correlation-title">30-Day Correlation</h4>
+                        </div>
+                    </div>
+                    <div class="correlation-percentage">0.85</div>
+                    <p><strong>SPY:</strong> Strong positive correlation (0.82-0.88 range)</p>
+                    <p><strong>QQQ:</strong> Very strong correlation (0.85-0.92 range)</p>
+                </div>
+
+                <div class="correlation-card">
+                    <div class="correlation-header">
+                        <div class="correlation-icon"><i class="fas fa-bolt"></i></div>
+                        <div>
+                            <h4 class="correlation-title">Intraday Impact</h4>
+                        </div>
+                    </div>
+                    <div class="correlation-percentage">75%</div>
+                    <p><strong>Leadership:</strong> AAPL leads market direction 75% of the time</p>
+                    <p><strong>Lag Time:</strong> Index ETFs typically follow within 2-5 minutes</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Trading Strategies -->
+        <section class="content-section card-style">
+            <h3><i class="fas fa-chess" style="color: var(--primary-gold); margin-right: 0.5rem;"></i>Bellwether Trading Strategies</h3>
+            <p>Leverage AAPL's market leadership to time index trades with precision:</p>
+            
+            <div class="strategy-grid">
+                <div class="strategy-card">
+                    <div class="strategy-tag">OPENING DRIVE</div>
+                    <h4>Morning Momentum Strategy</h4>
+                    <p><strong>Setup:</strong> AAPL gaps up and holds VWAP in first 15 minutes</p>
+                    <p><strong>Action:</strong> Go long SPY/QQQ with tight stops</p>
+                    <p><strong>Exit:</strong> When AAPL loses VWAP or at 3:30 PM</p>
+                    <p><strong>Success Rate:</strong> ~70% when volume confirms</p>
+                </div>
+
+                <div class="strategy-card">
+                    <div class="strategy-tag">EARNINGS REACTION</div>
+                    <h4>Post-Earnings Momentum</h4>
+                    <p><strong>Setup:</strong> AAPL reports earnings after market close</p>
+                    <p><strong>Action:</strong> Trade index futures in direction of AAPL gap</p>
+                    <p><strong>Duration:</strong> 2-5 trading days</p>
+                    <p><strong>Success Rate:</strong> ~65% for multi-day follow-through</p>
+                </div>
+
+                <div class="strategy-card">
+                    <div class="strategy-tag">RELATIVE STRENGTH</div>
+                    <h4>Divergence Detection</h4>
+                    <p><strong>Setup:</strong> AAPL vs XLK relative strength divergence</p>
+                    <p><strong>Action:</strong> Fade the divergence with sector rotation trades</p>
+                    <p><strong>Timeframe:</strong> 1-3 trading sessions</p>
+                    <p><strong>Success Rate:</strong> ~60% for mean reversion</p>
+                </div>
+
+                <div class="strategy-card">
+                    <div class="strategy-tag">OPTIONS FLOW</div>
+                    <h4>Gamma Squeeze Anticipation</h4>
+                    <p><strong>Setup:</strong> Unusual AAPL weekly call volume surge</p>
+                    <p><strong>Action:</strong> Position for index squeeze via 0DTE options</p>
+                    <p><strong>Risk:</strong> High risk, high reward scalp</p>
+                    <p><strong>Success Rate:</strong> ~45% but outsized winners</p>
+                </div>
+
+                <div class="strategy-card">
+                    <div class="strategy-tag">SECTOR ROTATION</div>
+                    <h4>Tech Leadership Trades</h4>
+                    <p><strong>Setup:</strong> AAPL breaks multi-day range</p>
+                    <p><strong>Action:</strong> Trade sector ETFs (XLK, SMH, SOXX)</p>
+                    <p><strong>Duration:</strong> 3-10 trading days</p>
+                    <p><strong>Success Rate:</strong> ~75% for directional follow-through</p>
+                </div>
+
+                <div class="strategy-card">
+                    <div class="strategy-tag">MACRO HEDGE</div>
+                    <h4>Risk-Off Protection</h4>
+                    <p><strong>Setup:</strong> AAPL shows technical breakdown</p>
+                    <p><strong>Action:</strong> Hedge long positions with SPY puts</p>
+                    <p><strong>Sizing:</strong> 10-20% of portfolio for protection</p>
+                    <p><strong>Success Rate:</strong> ~80% for downside protection</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Professional Tools -->
+        <section class="content-section card-style">
+            <h3><i class="fas fa-tools" style="color: var(--primary-gold); margin-right: 0.5rem;"></i>Professional Tools & Resources</h3>
+            <p>Essential platforms and indicators for tracking AAPL's market influence:</p>
+            
+            <div class="tools-grid">
+                <div class="tool-card">
+                    <div class="tool-header">
+                        <div class="tool-icon"><i class="fas fa-chart-line"></i></div>
+                        <h4 class="tool-title">Bloomberg Terminal</h4>
+                    </div>
+                    <p><strong>Function:</strong> WEI GO for real-time index weights</p>
+                    <p><strong>Key Metric:</strong> Single-stock impact on SPX/NDX</p>
+                    <p><strong>Update Frequency:</strong> Real-time</p>
+                    <p><strong>Cost:</strong> $2,000+/month</p>
+                </div>
+
+                <div class="tool-card">
+                    <div class="tool-header">
+                        <div class="tool-icon"><i class="fas fa-sync-alt"></i></div>
+                        <h4 class="tool-title">TradingView CORR</h4>
+                    </div>
+                    <p><strong>Function:</strong> Correlation coefficient indicator</p>
+                    <p><strong>Key Metric:</strong> AAPL vs SPY/QQQ correlation</p>
+                    <p><strong>Timeframes:</strong> 15min, 1hr, daily</p>
+                    <p><strong>Cost:</strong> $15-60/month</p>
+                </div>
+
+                <div class="tool-card">
+                    <div class="tool-header">
+                        <div class="tool-icon"><i class="fas fa-water"></i></div>
+                        <h4 class="tool-title">Unusual Whales</h4>
+                    </div>
+                    <p><strong>Function:</strong> Large options flow detection</p>
+                    <p><strong>Key Metric:</strong> AAPL unusual activity alerts</p>
+                    <p><strong>Edge:</strong> Pre-move options positioning</p>
+                    <p><strong>Cost:</strong> $50-200/month</p>
+                </div>
+
+                <div class="tool-card">
+                    <div class="tool-header">
+                        <div class="tool-icon"><i class="fas fa-brain"></i></div>
+                        <h4 class="tool-title">ThinkOrSwim</h4>
+                    </div>
+                    <p><strong>Function:</strong> MarketWatch component sorting</p>
+                    <p><strong>Key Metric:</strong> SPX components by market cap</p>
+                    <p><strong>View:</strong> Real-time drag/lift visualization</p>
+                    <p><strong>Cost:</strong> Free with TD Ameritrade</p>
+                </div>
+
+                <div class="tool-card">
+                    <div class="tool-header">
+                        <div class="tool-icon"><i class="fas fa-robot"></i></div>
+                        <h4 class="tool-title">FlowAlgo</h4>
+                    </div>
+                    <p><strong>Function:</strong> Dark pool flow detection</p>
+                    <p><strong>Key Metric:</strong> Institutional AAPL positioning</p>
+                    <p><strong>Edge:</strong> Smart money tracking</p>
+                    <p><strong>Cost:</strong> $100-500/month</p>
+                </div>
+
+                <div class="tool-card">
+                    <div class="tool-header">
+                        <div class="tool-icon"><i class="fas fa-calculator"></i></div>
+                        <h4 class="tool-title">Portfolio Visualizer</h4>
+                    </div>
+                    <p><strong>Function:</strong> Historical correlation analysis</p>
+                    <p><strong>Key Metric:</strong> AAPL impact on portfolio beta</p>
+                    <p><strong>Lookback:</strong> 1-20 year analysis</p>
+                    <p><strong>Cost:</strong> Free basic / $30/month pro</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Key Metrics -->
+        <section class="content-section card-style">
+            <h3><i class="fas fa-tachometer-alt" style="color: var(--primary-gold); margin-right: 0.5rem;"></i>Key Metrics to Monitor</h3>
+            <p>Track these indicators to anticipate when AAPL will lead or lag the broader market:</p>
+            
             <ul>
-                <li><strong>Bloomberg WEI GO:</strong> Real-time index weightings & single-stock impact on SPX/NDX.</li>
-                <li><strong>TradingView Correlation Coefficient (CORR):</strong> Plot AAPL vs. SPY/QQQ on 15 min & daily.</li>
-                <li><strong>Unusual Whales / FlowAlgo:</strong> Spot large-lot AAPL options that can ripple into indices.</li>
-                <li><strong>ThinkOrSwim MarketWatch Tab:</strong> Sort SPX components by market-cap to visualize AAPL's drag or lift.</li>
+                <li><strong>AAPL/SPY Ratio:</strong> Above 0.185 suggests AAPL leadership, below indicates lagging</li>
+                <li><strong>AAPL/QQQ Ratio:</strong> Above 0.085 shows tech sector strength via Apple</li>
+                <li><strong>Options Volume:</strong> 2x average daily volume often precedes significant moves</li>
+                <li><strong>After-Hours Action:</strong> 1%+ moves often carry into next session with 70% probability</li>
+                <li><strong>Sector Rotation Signals:</strong> XLK/SPY ratio divergence from AAPL performance</li>
+                <li><strong>Earnings Season Impact:</strong> 3-day post-earnings performance correlation with QQQ</li>
             </ul>
+
+            <div class="alert-box">
+                <i class="fas fa-info-circle" style="color: var(--primary-gold); margin-right: 0.5rem;"></i>
+                <strong>Pro Tip:</strong> AAPL's market leadership is strongest during the first and last 30 minutes of trading when institutional flows are heaviest.
+            </div>
+        </section>
+
+        <!-- Risk Management -->
+        <section class="content-section card-style">
+            <h3><i class="fas fa-shield-alt" style="color: var(--primary-gold); margin-right: 0.5rem;"></i>Risk Management for Bellwether Trades</h3>
+            <p>Protect your capital when trading index movements based on AAPL signals:</p>
+            
+            <div class="risk-management-grid">
+                <div class="risk-item">
+                    <div class="risk-icon"><i class="fas fa-percentage"></i></div>
+                    <h4>Position Sizing</h4>
+                    <p>Limit bellwether trades to 3-5% of portfolio due to correlation risk</p>
+                </div>
+                
+                <div class="risk-item">
+                    <div class="risk-icon"><i class="fas fa-stopwatch"></i></div>
+                    <h4>Time Decay</h4>
+                    <p>AAPL leadership effects fade after 2-4 hours in normal conditions</p>
+                </div>
+                
+                <div class="risk-item">
+                    <div class="risk-icon"><i class="fas fa-exclamation-triangle"></i></div>
+                    <h4>Divergence Risk</h4>
+                    <p>Market can decouple from AAPL during major news or Fed events</p>
+                </div>
+                
+                <div class="risk-item">
+                    <div class="risk-icon"><i class="fas fa-chart-line"></i></div>
+                    <h4>Volatility Spikes</h4>
+                    <p>Correlation breaks down during VIX >25 periods</p>
+                </div>
+            </div>
+
+            <div class="alert-box">
+                <i class="fas fa-exclamation-triangle alert-icon"></i>
+                <strong>Warning:</strong> Never assume AAPL will always lead. During sector rotation or macro events, traditional correlations can break down temporarily.
+            </div>
         </section>
     </main>
 
-    <div class="floating-cta">
-        <a href="../../index.html#pricing" class="cta-button">Join Now & Get Signals</a>
-    </div>
+    <!-- CTA Section -->
+    <section class="cta-section">
+        <div class="container">
+            <div class="cta-content">
+                <h2>Master Market Leadership with AAPL</h2>
+                <p>Join thousands of traders using our AAPL bot to identify market-moving opportunities and bellwether signals. Get real-time alerts when AAPL is likely to lead the market.</p>
+                <div class="cta-buttons">
+                    <a href="../../index.html#pricing" class="cta-button primary">
+                        <i class="fab fa-apple"></i>
+                        Start AAPL Bot
+                    </a>
+                    <a href="../bots/aapl-bot.html" class="cta-button secondary">
+                        <i class="fas fa-info-circle"></i>
+                        Learn More
+                    </a>
+                </div>
+            </div>
+        </div>
+    </section>
 
     <!-- Footer -->
-    <footer>
-        <p>&copy; 2025 BlueChip Signals. All rights reserved. | <a href="../../legal.html" style="color: var(--primary-gold); text-decoration: none;">Legal Disclaimer</a></p>
-        <div class="social-media">
-            <a href="https://www.tiktok.com/@bluechip.signals" target="_blank"><i class="fab fa-tiktok"></i></a>
-            <a href="https://www.instagram.com/bluechip.signals/" target="_blank"><i class="fab fa-instagram"></i></a>
+    <footer class="main-footer">
+        <div class="footer-content">
+            <div class="footer-section">
+                <h3>BlueChip Signals</h3>
+                <p>Professional trading signals and market intelligence for serious traders. Our algorithmic bots analyze market patterns 24/7 to deliver actionable insights.</p>
+            </div>
+            
+            <div class="footer-section">
+                <h4>Quick Links</h4>
+                <ul>
+                    <li><a href="../../index.html#features">Features</a></li>
+                    <li><a href="../../index.html#bots">Trading Bots</a></li>
+                    <li><a href="../../index.html#pricing">Pricing</a></li>
+                    <li><a href="../../faq.html">FAQ</a></li>
+                    <li><a href="../../legal.html">Legal</a></li>
+                </ul>
+            </div>
+            
+            <div class="footer-section">
+                <h4>Trading Bots</h4>
+                <ul>
+                    <li><a href="../bots/spy-bot.html">SPY Bot</a></li>
+                    <li><a href="../bots/aapl-bot.html">AAPL Bot</a></li>
+                    <li><a href="../bots/tsla-bot.html">TSLA Bot</a></li>
+                    <li><a href="../bots/nvda-bot.html">NVDA Bot</a></li>
+                    <li><a href="../bots/meta-bot.html">META Bot</a></li>
+                </ul>
+            </div>
+        </div>
+        
+        <div class="footer-bottom">
+            <p>&copy; 2025 BlueChip Signals. All rights reserved.</p>
+            <div class="footer-social">
+                <a href="https://www.tiktok.com/@bluechip.signals" target="_blank"><i class="fab fa-tiktok"></i></a>
+                <a href="https://www.instagram.com/bluechip.signals/" target="_blank"><i class="fab fa-instagram"></i></a>
+            </div>
         </div>
     </footer>
 
-    <script src="../../assets/js/stock-prices.js" defer></script>
     <script>
         const hamburgerMenu = document.querySelector('.hamburger-menu');
         const mobileNav = document.querySelector('.nav-links');
 
         hamburgerMenu.addEventListener('click', () => {
             mobileNav.classList.toggle('active');
+        });
+
+        // Market Impact Simulator
+        class MarketImpactSimulator {
+            constructor() {
+                this.aaplMoveInput = document.getElementById('aapl-move');
+                this.timePeriodSelect = document.getElementById('time-period');
+                this.marketConditionsSelect = document.getElementById('market-conditions');
+                
+                this.initEventListeners();
+            }
+
+            initEventListeners() {
+                [this.aaplMoveInput, this.timePeriodSelect, this.marketConditionsSelect].forEach(input => {
+                    input.addEventListener('input', () => this.calculateImpact());
+                });
+            }
+
+            calculateImpact() {
+                const aaplMove = parseFloat(this.aaplMoveInput.value) || 0;
+                const timePeriod = this.timePeriodSelect.value;
+                const marketConditions = this.marketConditionsSelect.value;
+
+                // Base correlations
+                let spyCorrelation = 0.72;
+                let qqqCorrelation = 0.85;
+                let xlkCorrelation = 0.90;
+
+                // Adjust for time period
+                if (timePeriod === 'intraday') {
+                    spyCorrelation *= 0.9;
+                    qqqCorrelation *= 0.95;
+                    xlkCorrelation *= 0.98;
+                } else if (timePeriod === 'weekly') {
+                    spyCorrelation *= 1.1;
+                    qqqCorrelation *= 1.05;
+                    xlkCorrelation *= 1.02;
+                }
+
+                // Adjust for market conditions
+                if (marketConditions === 'high') {
+                    spyCorrelation *= 0.8;
+                    qqqCorrelation *= 0.85;
+                    xlkCorrelation *= 0.9;
+                } else if (marketConditions === 'earnings') {
+                    spyCorrelation *= 1.2;
+                    qqqCorrelation *= 1.3;
+                    xlkCorrelation *= 1.4;
+                }
+
+                // Calculate impacts
+                const spyImpact = aaplMove * spyCorrelation * 0.072; // 7.2% weight
+                const qqqImpact = aaplMove * qqqCorrelation * 0.118; // 11.8% weight
+                const xlkImpact = aaplMove * xlkCorrelation * 0.21; // ~21% weight in XLK
+
+                // Determine confidence
+                let confidence = 'Medium';
+                if (Math.abs(aaplMove) >= 3 && marketConditions === 'earnings') {
+                    confidence = 'High';
+                } else if (Math.abs(aaplMove) < 1 || marketConditions === 'high') {
+                    confidence = 'Low';
+                }
+
+                // Update display
+                this.updateResults(spyImpact, qqqImpact, xlkImpact, confidence);
+            }
+
+            updateResults(spyImpact, qqqImpact, xlkImpact, confidence) {
+                const formatPercent = (value) => {
+                    const sign = value >= 0 ? '+' : '';
+                    return `${sign}${value.toFixed(2)}%`;
+                };
+
+                document.getElementById('spy-impact').textContent = formatPercent(spyImpact);
+                document.getElementById('qqq-impact').textContent = formatPercent(qqqImpact);
+                document.getElementById('xlk-impact').textContent = formatPercent(xlkImpact);
+                document.getElementById('confidence-level').textContent = confidence;
+
+                // Color coding
+                const getColor = (value) => value >= 0 ? '#2a571f' : '#FF3B3B';
+                document.getElementById('spy-impact').style.color = getColor(spyImpact);
+                document.getElementById('qqq-impact').style.color = getColor(qqqImpact);
+                document.getElementById('xlk-impact').style.color = getColor(xlkImpact);
+                
+                const confidenceColors = { 'High': '#2a571f', 'Medium': '#b3a17d', 'Low': '#FF3B3B' };
+                document.getElementById('confidence-level').style.color = confidenceColors[confidence];
+            }
+        }
+
+        // Initialize simulator when DOM is loaded
+        document.addEventListener('DOMContentLoaded', () => {
+            new MarketImpactSimulator();
+        });
+
+        // Smooth scroll for internal links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
         });
     </script>
 </body>

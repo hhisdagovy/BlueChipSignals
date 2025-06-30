@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BlueChip Signals - SPY Trend Trading Guide</title>
+    <link rel="icon" type="image/png" href="logo.png">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="bot-style.css?v=1751139967">
+    <link rel="stylesheet" href="news-style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+</head>
+<body>
+    <!-- Navigation -->
+    <nav>
+        <div class="nav-container">
+            <div class="logo">
+                <a href="index.html"><img src="logo.png" alt="BlueChip Signals Logo"></a>
+            </div>
+            <div class="hamburger-menu">
+                <div class="bar"></div>
+                <div class="bar"></div>
+                <div class="bar"></div>
+            </div>
+            <ul class="nav-links">
+                <li><a href="index.html#features">Features</a></li>
+                <li><a href="index.html#bots">Our Bots</a></li>
+                <li><a href="index.html#pricing">Pricing</a></li>
+                <li><a href="index.html#testimonials">Testimonials</a></li>
+                <li><a href="faq.html">FAQ</a></li>
+                <li><a href="legal.html">Legal Disclaimer</a></li>
+                <li><a href="about.html">About Us</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <main class="main-content">
+        <header class="content-header card-style">
+            <div class="bot-page-icon"><i class="fas fa-chart-line"></i></div>
+            <h1 class="page-main-title">Trade with the Prevailing Trend</h1>
+            <p class="page-main-subtitle">Align with the market's primary direction for higher probability trades.</p>
+        </header>
+
+        <section class="content-section card-style" id="trend-strength">
+            <h3>Live Trend Strength Meter</h3>
+            <p class="data-source">SPY position relative to key moving averages (Live data when available)</p>
+            
+            <svg id="trend-gauge" viewBox="0 0 200 140" width="100%" height="140">
+                <!-- grey background arc -->
+                <path d="M10 110 A90 90 0 0 1 190 110" fill="none" stroke="#333" stroke-opacity="0.1" stroke-width="18"/>
+                <!-- coloured arc (dynamic) -->
+                <path id="trend-arc" d="M10 110 A90 90 0 0 1 190 110" fill="none" stroke="var(--secondary-gold)" stroke-width="18" stroke-linecap="round" stroke-dasharray="0 565"/>
+                <!-- needle -->
+                <line id="trend-needle" x1="100" y1="110" x2="100" y2="35" stroke="#000" stroke-width="4" stroke-linecap="round" transform-origin="100 110" transform="rotate(-90)" />
+                <!-- numeric label -->
+                <text id="trend-score" x="100" y="85" text-anchor="middle" font-size="26" fill="var(--secondary-gold)">--</text>
+                <!-- classification label -->
+                <text id="trend-description" x="100" y="105" text-anchor="middle" font-size="12" fill="var(--gray-text)">--</text>
+                <!-- Bearish/Bullish Labels -->
+                <text x="35" y="135" text-anchor="middle" font-size="14" fill="var(--gray-text)">Bearish</text>
+                <text x="165" y="135" text-anchor="middle" font-size="14" fill="var(--gray-text)">Bullish</text>
+            </svg>
+            
+            <div id="ma-status" style="display: none;">
+                <h4 style="color: var(--secondary-gold); margin-bottom: 1rem; text-align: center;">Moving Average Analysis</h4>
+                <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem; margin: 1rem 0;">
+                    <div style="text-align: center; padding: 1rem; background: rgba(26, 31, 46, 0.5); border-radius: 8px;">
+                        <div style="font-size: 0.9rem; color: var(--gray-text); margin-bottom: 0.5rem;">20-Day MA</div>
+                        <div id="ma20-status" style="font-weight: 600;">--</div>
+                        <div id="ma20-price" style="font-size: 0.9rem; color: var(--gray-text);">--</div>
+                    </div>
+                    <div style="text-align: center; padding: 1rem; background: rgba(26, 31, 46, 0.5); border-radius: 8px;">
+                        <div style="font-size: 0.9rem; color: var(--gray-text); margin-bottom: 0.5rem;">50-Day MA</div>
+                        <div id="ma50-status" style="font-weight: 600;">--</div>
+                        <div id="ma50-price" style="font-size: 0.9rem; color: var(--gray-text);">--</div>
+                    </div>
+                    <div style="text-align: center; padding: 1rem; background: rgba(26, 31, 46, 0.5); border-radius: 8px;">
+                        <div style="font-size: 0.9rem; color: var(--gray-text); margin-bottom: 0.5rem;">200-Day MA</div>
+                        <div id="ma200-status" style="font-weight: 600;">--</div>
+                        <div id="ma200-price" style="font-size: 0.9rem; color: var(--gray-text);">--</div>
+                    </div>
+                </div>
+                <div style="text-align: center; margin-top: 1rem; padding: 1rem; background: rgba(26, 31, 46, 0.3); border-radius: 8px;">
+                    <span>Current SPY Price: </span>
+                    <span id="current-spy-price" style="color: var(--secondary-gold); font-weight: 600; font-size: 1.1rem;">--</span>
+                </div>
+            </div>
+        </section>
+
+        <section class="content-section card-style">
+            <h3>Why Trend Direction Matters</h3>
+            <p>While the bot can trade reversals, its highest probability signals occur in the direction of the market's primary daily trend. Don't fight the overall market direction. The trend is your friend until the bend at the end.</p>
+            <ul>
+                <li><strong>Higher Win Rate:</strong> Trend-following trades have 65-70% success rate vs. 45-50% for counter-trend.</li>
+                <li><strong>Better Risk/Reward:</strong> Trends can run further than expected, offering larger profit potential.</li>
+                <li><strong>Momentum Edge:</strong> Institutional money flows in the trend direction, providing tailwinds.</li>
+            </ul>
+        </section>
+
+        <section class="content-section card-style">
+            <h3>Identifying the Daily Trend</h3>
+            <p>Use multiple timeframes to confirm trend direction:</p>
+            <ul>
+                <li><strong>Higher Highs & Higher Lows:</strong> Classic uptrend pattern. Each pullback holds above the previous low.</li>
+                <li><strong>Moving Average Alignment:</strong> 20 > 50 > 200-day MAs = strong uptrend. Inverse for downtrend.</li>
+                <li><strong>Price Above/Below Key MAs:</strong> SPY holding above 20-day MA = bullish bias. Below = bearish bias.</li>
+                <li><strong>Volume Confirmation:</strong> Rising prices on higher volume, falling prices on lower volume = healthy uptrend.</li>
+            </ul>
+        </section>
+
+        <section class="content-section card-style">
+            <h3>Trend-Following Entry Strategies</h3>
+            <p>Time your entries within the established trend:</p>
+            <ul>
+                <li><strong>Pullback to Moving Average:</strong> In uptrend, buy dips to 20-day MA. In downtrend, short rallies to 20-day MA.</li>
+                <li><strong>Breakout Continuation:</strong> New highs in uptrend or new lows in downtrend often continue the move.</li>
+                <li><strong>Flag Patterns:</strong> Brief consolidation after strong moves often leads to continuation in trend direction.</li>
+                <li><strong>Support/Resistance Flips:</strong> Old resistance becomes new support in uptrends (and vice versa).</li>
+            </ul>
+        </section>
+
+        <section class="content-section card-style">
+            <h3>When NOT to Trade Against Trend</h3>
+            <p>Avoid these counter-trend scenarios:</p>
+            <ul>
+                <li><strong>Strong Momentum Days:</strong> SPY +/-2% days often continue in that direction.</li>
+                <li><strong>Earnings Week:</strong> Major earnings can override technical levels and extend trends.</li>
+                <li><strong>Fed Decision Days:</strong> FOMC announcements create sustained directional moves.</li>
+                <li><strong>End of Quarter:</strong> Institutional rebalancing can create multi-day trend extensions.</li>
+            </ul>
+        </section>
+
+        <section class="content-section card-style">
+            <h3>Trend Reversal Warning Signs</h3>
+            <p>Watch for these signals that the trend may be ending:</p>
+            <ul>
+                <li><strong>Divergence:</strong> Price makes new highs but momentum indicators (RSI, MACD) don't confirm.</li>
+                <li><strong>Volume Decline:</strong> Trend continues but on decreasing volume—shows weakening conviction.</li>
+                <li><strong>Failed Breakouts:</strong> New highs quickly reverse below prior resistance—distribution pattern.</li>
+                <li><strong>Moving Average Breakdown:</strong> Clean break below 20-day MA often signals trend change.</li>
+                <li><strong>VIX Spike:</strong> Sudden fear spikes can end uptrends abruptly.</li>
+            </ul>
+        </section>
+    </main>
+
+    <div class="floating-cta">
+        <a href="index.html#pricing" class="cta-button">Join Now & Get Signals</a>
+    </div>
+
+    <!-- Footer -->
+    <footer>
+        <p>&copy; 2025 BlueChip Signals. All rights reserved. | <a href="legal.html" style="color: var(--primary-gold); text-decoration: none;">Legal Disclaimer</a></p>
+        <div class="social-media">
+            <a href="https://www.tiktok.com/@bluechip.signals" target="_blank"><i class="fab fa-tiktok"></i></a>
+            <a href="https://www.instagram.com/bluechip.signals/" target="_blank"><i class="fab fa-instagram"></i></a>
+        </div>
+    </footer>
+
+    <script>
+        const hamburgerMenu = document.querySelector('.hamburger-menu');
+        const mobileNav = document.querySelector('.nav-links');
+
+        hamburgerMenu.addEventListener('click', () => {
+            mobileNav.classList.toggle('active');
+        });
+    </script>
+    <script src="stock-prices.js" defer></script>
+    <script src="trend-strength.js" defer></script>
+</body>
+</html> 

@@ -47,48 +47,29 @@
 
   async function fetchData() {
     const now = new Date();
-    const payload = {
-      seriesid: SERIES.map(s => s.id),
-      startyear: String(now.getFullYear() - 1),
-      endyear: String(now.getFullYear()),
-      registrationKey: API_KEY,
-      calculations: true
-    };
-
-    const endpoint = 'https://cors.isomorphic-git.org/https://api.bls.gov/publicAPI/v2/timeseries/data/';
-    const res = await fetch(endpoint, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload)
-    });
-
-    if (!res.ok) throw new Error('Network');
-    const json = await res.json();
-    if (json.status !== 'REQUEST_SUCCEEDED') throw new Error('API');
+    const start = now.getFullYear() - 1;
+    const end = now.getFullYear();
 
     const output = {};
 
-    json.Results.series.forEach(series => {
-      const meta = SERIES.find(s => s.id === series.seriesID);
-      if (!meta) return;
+    for (const meta of SERIES) {
+      const url = `https://api.bls.gov/publicAPI/v2/timeseries/data/${meta.id}?startyear=${start}&endyear=${end}&calculations=true&annualaverage=false&registrationKey=${API_KEY}`;
+      const res = await fetch(url);
+      if (!res.ok) continue;
+      const json = await res.json();
+      if (json.status !== 'REQUEST_SUCCEEDED') continue;
+      const series = json.Results.series[0];
       const latest = series.data[0];
-      if (!latest) return;
+      if (!latest) continue;
 
       let value = latest.value;
       let dateLabel = `${latest.periodName} ${latest.year}`;
       let display = value;
 
-      // Attempt to get YoY or MoM change using calculations
       if (series.calculations && series.calculations.net_changes) {
         const changes = series.calculations.net_changes;
-        const findChange = (period) => {
-          const item = changes.find(c => c.period === period);
-          return item ? item.value : null;
-        };
-        const yoy = findChange('M12');
-        const mom = findChange('M01');
-        if (meta.changeType === 'yoy' && yoy !== null) display = yoy;
-        if (meta.changeType === 'mom' && mom !== null) display = mom;
+        const changeObj = changes.find(c => (meta.changeType === 'yoy' ? c.period === 'M12' : c.period === 'M01'));
+        if (changeObj) display = changeObj.value;
       }
 
       output[meta.id] = {
@@ -96,7 +77,7 @@
         value: display + ' %',
         date: dateLabel
       };
-    });
+    }
 
     return output;
   }

@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BlueChip Signals - AAPL Bot</title>
+    <link rel="icon" type="image/png" href="logo.png">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="bot-style.css?v=1751139967">
+    <link rel="stylesheet" href="news-style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+</head>
+<body>
+    <!-- Navigation -->
+    <nav>
+        <div class="nav-container">
+            <div class="logo">
+                <a href="index.html"><img src="logo.png" alt="BlueChip Signals Logo"></a>
+            </div>
+            <div class="hamburger-menu">
+                <div class="bar"></div>
+                <div class="bar"></div>
+                <div class="bar"></div>
+            </div>
+            <ul class="nav-links">
+                <li><a href="index.html#features">Features</a></li>
+                <li><a href="index.html#bots">Our Bots</a></li>
+                <li><a href="index.html#pricing">Pricing</a></li>
+                <li><a href="index.html#testimonials">Testimonials</a></li>
+                <li><a href="faq.html">FAQ</a></li>
+                <li><a href="legal.html">Legal Disclaimer</a></li>
+                <li><a href="about.html">About Us</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <main class="main-content">
+        <header class="content-header card-style">
+            <div class="bot-page-icon"><i class="fas fa-chart-line"></i></div>
+            <h1 class="page-main-title">Monitoring Key Economic Data for SPY</h1>
+            <p class="page-main-subtitle">Stay ahead of CPI, PPI, and FOMC shocks to trade index volatility like a pro.</p>
+        </header>
+
+        <section class="content-section card-style">
+            <h3>High-Impact Releases That Move the Tape</h3>
+            <p>The S&P&nbsp;500 rips or dips on macro prints. Know the schedule, understand the mechanics.</p>
+            <ul>
+                <li><strong>CPI & Core CPI:</strong> Inflation beats/misses reshape Fed expectations and shift equity risk-premium.</li>
+                <li><strong>PPI:</strong> Upstream price pressure often foreshadows future CPI moves—watch revisions too.</li>
+                <li><strong>FOMC Rate Decision & Powell Presser:</strong> The dots, statement language, and Q&A can re-price terminal rate odds in seconds.</li>
+                <li><strong>NFP & Unemployment Rate:</strong> Labor surprises swing growth outlook and yield curve—indices follow.</li>
+            </ul>
+        </section>
+
+        <section class="content-section card-style">
+            <h3>Pre-Print Trading Framework</h3>
+            <p>Plan the trade before the number drops:</p>
+            <ul>
+                <li><strong>Implied Move:</strong> Check weekly SPY straddle pricing to gauge expected range.</li>
+                <li><strong>Position Sizing:</strong> Cut size by 50-70% ahead of binary events; liquidity can vanish.</li>
+                <li><strong>First Reaction vs. Real Move:</strong> Fade knee-jerk spikes that stall at key VWAP/AVWAP levels.</li>
+                <li><strong>Vol Crush Exit:</strong> Post-release IV collapses—harvest theta by selling premium if direction aligns.</li>
+            </ul>
+        </section>
+
+        <section class="content-section card-style">
+            <h3>Calendars & Dashboards</h3>
+            <p>Keep these feeds on a second monitor:</p>
+            <ul>
+                <li><strong>Trading Economics Calendar:</strong> Real-time print vs. consensus plus historical charts.</li>
+                <li><strong>CME FedWatch:</strong> Instantly see how rate-hike odds shift after data.</li>
+                <li><strong>Bloomberg <code>ECON GP</code>:</strong> Professional-grade release tracker with surprise indices.</li>
+                <li><strong>ForexFactory:</strong> Color-coded impact levels and community reactions.</li>
+            </ul>
+        </section>
+
+        <section id="bls-data" class="content-section card-style">
+            <h3>Latest Inflation Snapshot (BLS)</h3>
+            <div id="bls-grid" class="bls-grid"></div>
+            <small>* Headline & Core CPI, plus PPI, sourced from the U.S. Bureau of Labor Statistics.</small>
+        </section>
+    </main>
+
+    <div class="floating-cta">
+        <a href="index.html#pricing" class="cta-button">Join Now & Get Signals</a>
+    </div>
+
+    <!-- Footer -->
+    <footer>
+        <p>&copy; 2025 BlueChip Signals. All rights reserved. | <a href="legal.html" style="color: var(--primary-gold); text-decoration: none;">Legal Disclaimer</a></p>
+        <div class="social-media">
+            <a href="https://www.tiktok.com/@bluechip.signals" target="_blank"><i class="fab fa-tiktok"></i></a>
+            <a href="https://www.instagram.com/bluechip.signals/" target="_blank"><i class="fab fa-instagram"></i></a>
+        </div>
+    </footer>
+
+    <script src="stock-prices.js" defer></script>
+    <script src="bls-data.js" defer></script>
+    <script>
+        const hamburgerMenu = document.querySelector('.hamburger-menu');
+        const mobileNav = document.querySelector('.nav-links');
+
+        hamburgerMenu.addEventListener('click', () => {
+            mobileNav.classList.toggle('active');
+        });
+    </script>
+</body>
+</html>

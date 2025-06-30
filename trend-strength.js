@@ -200,13 +200,13 @@
     function updateMeter(score) {
         const percentage = score / 100;
         const angle = -90 + (percentage * 180); // -90 to +90 degrees
-        const arcLength = percentage * 251; // Half circumference of arc
+        const arcLength = percentage * 282.7; // Half circumference of a 90 radius circle (π*r)
         
         // Update needle position
         trendNeedle.setAttribute('transform', `rotate(${angle})`);
         
         // Update arc length and color
-        trendArc.setAttribute('stroke-dasharray', `${arcLength} 251`);
+        trendArc.setAttribute('stroke-dasharray', `${arcLength} 565`);
         
         // Color based on score
         let color;
@@ -221,17 +221,17 @@
 
     function updateStatus(currentPrice, ma20, ma50, ma200, score, bullishSignals, bearishSignals) {
         // Update main score display
-        trendScore.textContent = `${Math.round(score)}/100`;
+        trendScore.textContent = Math.round(score);
         
         // Update description
         let description;
-        if (score >= 70) description = 'Strong Bullish Trend';
-        else if (score >= 55) description = 'Mild Bullish Bias';
-        else if (score >= 45) description = 'Neutral/Sideways';
-        else if (score >= 30) description = 'Mild Bearish Bias';
-        else description = 'Strong Bearish Trend';
+        if (score >= 70) description = 'Strong Bullish';
+        else if (score >= 55) description = 'Mild Bullish';
+        else if (score >= 45) description = 'Neutral';
+        else if (score >= 30) description = 'Mild Bearish';
+        else description = 'Strong Bearish';
         
-        trendDescription.textContent = `${description} (${bullishSignals}/3 MAs Above)`;
+        trendDescription.textContent = description;
 
         // Update current price
         document.getElementById('current-spy-price').textContent = `$${currentPrice.toFixed(2)}`;

@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BlueChip Signals - SPY Market Hours Guide</title>
+    <link rel="icon" type="image/png" href="logo.png">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="bot-style.css?v=1751139967">
+    <link rel="stylesheet" href="news-style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+</head>
+<body>
+    <!-- Navigation -->
+    <nav>
+        <div class="nav-container">
+            <div class="logo">
+                <a href="index.html"><img src="logo.png" alt="BlueChip Signals Logo"></a>
+            </div>
+            <div class="hamburger-menu">
+                <div class="bar"></div>
+                <div class="bar"></div>
+                <div class="bar"></div>
+            </div>
+            <ul class="nav-links">
+                <li><a href="index.html#features">Features</a></li>
+                <li><a href="index.html#bots">Our Bots</a></li>
+                <li><a href="index.html#pricing">Pricing</a></li>
+                <li><a href="index.html#testimonials">Testimonials</a></li>
+                <li><a href="faq.html">FAQ</a></li>
+                <li><a href="legal.html">Legal Disclaimer</a></li>
+                <li><a href="about.html">About Us</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <main class="main-content">
+        <header class="content-header card-style">
+            <div class="bot-page-icon"><i class="fas fa-chart-line"></i></div>
+            <h1 class="page-main-title">Market Open & Close Strategy</h1>
+            <p class="page-main-subtitle">Master the most volatile and profitable hours of the trading day.</p>
+        </header>
+
+        <section class="content-section card-style" id="power-hour-indicator">
+            <h3>Power Hour Momentum Indicator</h3>
+            <p class="data-source">Real-time analysis of trend continuation probability</p>
+            
+            <div style="text-align: center; margin: 2rem 0;">
+                <div id="momentum-display" style="padding: 2rem; background: rgba(26, 31, 46, 0.5); border-radius: 12px; margin-bottom: 1.5rem;">
+                    <div id="momentum-score" style="font-size: 3rem; font-weight: 700; margin-bottom: 0.5rem; color: var(--secondary-gold);">
+                        --
+                    </div>
+                    <div id="momentum-label" style="font-size: 1.2rem; color: var(--gray-text); margin-bottom: 1rem;">
+                        Analyzing...
+                    </div>
+                    <div id="momentum-description" style="color: var(--light-text); line-height: 1.4;">
+                        Loading market data...
+                    </div>
+                </div>
+                
+                <div id="momentum-factors" style="display: none;">
+                    <h4 style="color: var(--secondary-gold); margin-bottom: 1rem;">Key Factors</h4>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.5rem;">
+                        <div style="padding: 1rem; background: rgba(26, 31, 46, 0.3); border-radius: 8px;">
+                            <div style="font-size: 0.9rem; color: var(--gray-text); margin-bottom: 0.5rem;">Intraday Trend</div>
+                            <div id="trend-strength" style="font-weight: 600;">--</div>
+                        </div>
+                        <div style="padding: 1rem; background: rgba(26, 31, 46, 0.3); border-radius: 8px;">
+                            <div style="font-size: 0.9rem; color: var(--gray-text); margin-bottom: 0.5rem;">Volume Pattern</div>
+                            <div id="volume-pattern" style="font-weight: 600;">--</div>
+                        </div>
+                        <div style="padding: 1rem; background: rgba(26, 31, 46, 0.3); border-radius: 8px;">
+                            <div style="font-size: 0.9rem; color: var(--gray-text); margin-bottom: 0.5rem;">Price vs VWAP</div>
+                            <div id="vwap-position" style="font-weight: 600;">--</div>
+                        </div>
+                        <div style="padding: 1rem; background: rgba(26, 31, 46, 0.3); border-radius: 8px;">
+                            <div style="font-size: 0.9rem; color: var(--gray-text); margin-bottom: 0.5rem;">Session Performance</div>
+                            <div id="session-performance" style="font-weight: 600;">--</div>
+                        </div>
+                    </div>
+                    
+                    <div style="text-align: center; padding: 1rem; background: rgba(26, 31, 46, 0.2); border-radius: 8px;">
+                        <div style="font-size: 0.9rem; color: var(--gray-text); margin-bottom: 0.5rem;">Current SPY Price</div>
+                        <div id="current-price" style="color: var(--secondary-gold); font-weight: 600; font-size: 1.2rem;">--</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="content-section card-style">
+            <h3>Understanding the Momentum Score</h3>
+            <p>The Power Hour Momentum Indicator generates a score from <strong>-100 to +100</strong> based on four key factors. Here's how to interpret the numbers:</p>
+            
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin: 1.5rem 0;">
+                <div style="padding: 1.5rem; background: rgba(0, 255, 136, 0.1); border-left: 4px solid #00ff88; border-radius: 8px;">
+                    <h4 style="color: #00ff88; margin-bottom: 1rem;"><i class="fas fa-arrow-up"></i> Bullish Scores (+25 to +100)</h4>
+                    <ul style="margin: 0; padding-left: 1.2rem;">
+                        <li><strong>+80 to +100:</strong> Very Strong Bullish - High probability trend continuation</li>
+                        <li><strong>+65 to +79:</strong> Strong Bullish - Favorable for power hour longs</li>
+                        <li><strong>+45 to +64:</strong> Moderate Bullish - Watch for confirmation</li>
+                        <li><strong>+25 to +44:</strong> Weak Bullish - Use smaller position sizes</li>
+                    </ul>
+                </div>
+                
+                <div style="padding: 1.5rem; background: rgba(255, 68, 68, 0.1); border-left: 4px solid #ff4444; border-radius: 8px;">
+                    <h4 style="color: #ff4444; margin-bottom: 1rem;"><i class="fas fa-arrow-down"></i> Bearish Scores (-25 to -100)</h4>
+                    <ul style="margin: 0; padding-left: 1.2rem;">
+                        <li><strong>-80 to -100:</strong> Very Strong Bearish - High probability trend continuation</li>
+                        <li><strong>-65 to -79:</strong> Strong Bearish - Favorable for power hour shorts</li>
+                        <li><strong>-45 to -64:</strong> Moderate Bearish - Watch for confirmation</li>
+                        <li><strong>-25 to -44:</strong> Weak Bearish - Use smaller position sizes</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div style="padding: 1.5rem; background: rgba(255, 193, 7, 0.1); border-left: 4px solid var(--secondary-gold); border-radius: 8px; margin-bottom: 1.5rem;">
+                <h4 style="color: var(--secondary-gold); margin-bottom: 1rem;"><i class="fas fa-minus"></i> Neutral Zone (-24 to +24)</h4>
+                <p style="margin: 0;">Choppy/sideways conditions. Power hour could break either direction. Wait for volume confirmation before entering trades.</p>
+            </div>
+            
+            <div style="background: rgba(26, 31, 46, 0.3); padding: 1.5rem; border-radius: 8px;">
+                <h4 style="color: var(--secondary-gold); margin-bottom: 1rem;">How The Score Is Calculated</h4>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                    <div>
+                        <strong style="color: var(--light-text);">Intraday Trend (40% weight)</strong>
+                        <p style="font-size: 0.9rem; color: var(--gray-text); margin: 0.5rem 0 0 0;">Price movement strength vs. session open</p>
+                    </div>
+                    <div>
+                        <strong style="color: var(--light-text);">Volume Pattern (25% weight)</strong>
+                        <p style="font-size: 0.9rem; color: var(--gray-text); margin: 0.5rem 0 0 0;">Recent volume vs. earlier session volume</p>
+                    </div>
+                    <div>
+                        <strong style="color: var(--light-text);">VWAP Position (20% weight)</strong>
+                        <p style="font-size: 0.9rem; color: var(--gray-text); margin: 0.5rem 0 0 0;">Price above/below institutional flow level</p>
+                    </div>
+                    <div>
+                        <strong style="color: var(--light-text);">Session Performance (15% weight)</strong>
+                        <p style="font-size: 0.9rem; color: var(--gray-text); margin: 0.5rem 0 0 0;">Overall daily performance vs. previous close</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div style="margin-top: 1.5rem; padding: 1rem; background: rgba(26, 31, 46, 0.2); border-radius: 8px; text-align: center;">
+                <p style="margin: 0; color: var(--gray-text); font-size: 0.9rem;"><i class="fas fa-clock"></i> Updates every 15 minutes during market hours (9:30 AM - 4:00 PM ET)</p>
+            </div>
+        </section>
+
+        <section class="content-section card-style">
+            <h3>Why Open & Close Matter</h3>
+            <p>The first and last hours of the trading day are typically the most volatile. Our bot is most active during these periods to capitalize on the increased volume and price movement. Smart money moves during these windows.</p>
+            <ul>
+                <li><strong>Opening Hour (9:30-10:30 AM ET):</strong> Overnight news, earnings, and gaps create explosive moves.</li>
+                <li><strong>Power Hour (3:00-4:00 PM ET):</strong> Institutional rebalancing and position adjustments drive volume.</li>
+                <li><strong>Volume Surge:</strong> 40% of daily volume occurs in these two hours combined.</li>
+                <li><strong>Volatility Premium:</strong> Options premiums are highest during these periods.</li>
+            </ul>
+        </section>
+
+        <section class="content-section card-style">
+            <h3>Opening Hour Playbook</h3>
+            <p>The market open sets the tone for the entire session:</p>
+            <ul>
+                <li><strong>Gap Analysis:</strong> SPY gaps >0.5% often continue in the gap direction for 30-60 minutes.</li>
+                <li><strong>Pre-Market Levels:</strong> Watch overnight highs/lows—they become key support/resistance at open.</li>
+                <li><strong>Volume Confirmation:</strong> High-volume breakouts in first 15 minutes have 70% follow-through rate.</li>
+                <li><strong>Reversal Signals:</strong> If SPY fails to hold gap direction by 10:00 AM, expect fade back to previous close.</li>
+                <li><strong>News Catalysts:</strong> Economic data releases at 8:30 AM create immediate directional moves.</li>
+            </ul>
+        </section>
+
+        <section class="content-section card-style">
+            <h3>Power Hour Strategy</h3>
+            <p>The final hour often determines daily outcomes:</p>
+            <ul>
+                <li><strong>Institutional Flow:</strong> Mutual funds and ETFs rebalance in final hour—follow the money.</li>
+                <li><strong>Trend Continuation:</strong> Strong intraday trends often accelerate into close.</li>
+                <li><strong>Option Expiration:</strong> On expiry days, SPY gravitates toward max pain levels.</li>
+                <li><strong>Reversal Patterns:</strong> Weak trends often reverse in power hour as day traders close positions.</li>
+                <li><strong>After-Hours Setup:</strong> Close direction often predicts next day's gap.</li>
+            </ul>
+        </section>
+
+        <section class="content-section card-style">
+            <h3>Avoid the Dead Zone</h3>
+            <p>Mid-day trading (11:00 AM - 2:00 PM) often lacks conviction:</p>
+            <ul>
+                <li><strong>Low Volume:</strong> Institutional traders take lunch—retail dominates with smaller size.</li>
+                <li><strong>Choppy Action:</strong> Ranges and false breakouts are common during lunch hours.</li>
+                <li><strong>Reduced Bot Activity:</strong> Our algorithms scale back during low-conviction periods.</li>
+                <li><strong>Wait for Setups:</strong> Better to be patient than force trades in sideways markets.</li>
+            </ul>
+        </section>
+
+        <section class="content-section card-style">
+            <h3>Time-Based Entry Rules</h3>
+            <p>Optimize your entries based on market hours:</p>
+            <ul>
+                <li><strong>9:30-9:45 AM:</strong> Fade extreme gaps, follow strong breakouts with volume.</li>
+                <li><strong>9:45-10:30 AM:</strong> Trade pullbacks to VWAP, watch for trend establishment.</li>
+                <li><strong>11:00 AM-2:00 PM:</strong> Avoid new positions unless clear breakout with volume.</li>
+                <li><strong>2:00-3:00 PM:</strong> Position for power hour moves, watch for institutional flow.</li>
+                <li><strong>3:00-4:00 PM:</strong> Trade trend continuation, be ready for end-of-day reversals.</li>
+            </ul>
+        </section>
+
+        <section class="content-section card-style">
+            <h3>Risk Management by Time</h3>
+            <p>Adjust position sizing based on market hours:</p>
+            <ul>
+                <li><strong>Opening Hour:</strong> Reduce size by 50%—volatility can spike unexpectedly.</li>
+                <li><strong>Mid-Day:</strong> Standard position sizing, but be selective with entries.</li>
+                <li><strong>Power Hour:</strong> Can increase size slightly—trends are more reliable.</li>
+                <li><strong>Last 10 Minutes:</strong> Close day trades—overnight risk not worth reward.</li>
+                <li><strong>Holiday Weeks:</strong> Reduce all position sizes—volume and volatility drop significantly.</li>
+            </ul>
+        </section>
+    </main>
+
+    <div class="floating-cta">
+        <a href="index.html#pricing" class="cta-button">Join Now & Get Signals</a>
+    </div>
+
+    <!-- Footer -->
+    <footer>
+        <p>&copy; 2025 BlueChip Signals. All rights reserved. | <a href="legal.html" style="color: var(--primary-gold); text-decoration: none;">Legal Disclaimer</a></p>
+        <div class="social-media">
+            <a href="https://www.tiktok.com/@bluechip.signals" target="_blank"><i class="fab fa-tiktok"></i></a>
+            <a href="https://www.instagram.com/bluechip.signals/" target="_blank"><i class="fab fa-instagram"></i></a>
+        </div>
+    </footer>
+
+    <script>
+        const hamburgerMenu = document.querySelector('.hamburger-menu');
+        const mobileNav = document.querySelector('.nav-links');
+
+        hamburgerMenu.addEventListener('click', () => {
+            mobileNav.classList.toggle('active');
+        });
+    </script>
+    <script src="stock-prices.js" defer></script>
+    <script src="power-hour-momentum.js" defer></script>
+</body>
+</html> 

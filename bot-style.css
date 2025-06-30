@@ -484,11 +484,12 @@ footer {
 }
 
 .content-section h3 {
-    color: var(--gold-color);
+    color: var(--primary-gold);
     font-size: 1.3rem;
     margin-bottom: 1rem;
     padding-bottom: 0.5rem;
     border-bottom: 1px solid var(--border-color);
+    text-align: center;
 }
 
 .content-section p, .content-section ul {
@@ -548,4 +549,25 @@ footer {
     margin-top: 0.25rem;
     color: var(--gray-text);
     font-size: 0.75rem;
+}
+
+/* Subtitle under section headings */
+.data-source {
+    color: var(--gray-text);
+    font-size: 0.9rem;
+    margin: -0.5rem 0 1rem 0;
+    text-align: center;
+}
+
+/* Center alignment and brand color overrides for BLS macro section */
+#bls-data {
+    text-align: center;
+}
+
+#bls-data h3 {
+    color: var(--primary-gold);
+}
+
+#bls-data .data-source {
+    color: var(--light-gray);
 }

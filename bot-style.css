@@ -513,3 +513,39 @@ footer {
     color: inherit;
     display: block; /* Make the whole card clickable */
 }
+
+/* Macro data grids */
+.bea-grid, .bls-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    justify-content: center;
+}
+
+.bea-card {
+    flex: 1 1 150px;
+    background: var(--dark-bg);
+    border: 1px solid rgba(201, 176, 55, 0.2);
+    border-radius: 12px;
+    padding: 1rem;
+    text-align: center;
+}
+
+.bea-card h4 {
+    color: var(--secondary-gold);
+    margin: 0 0 0.25rem 0;
+    font-size: 1rem;
+}
+
+.bea-card p {
+    color: var(--light-gray);
+    font-size: 1.1rem;
+    margin: 0;
+}
+
+.bea-card small {
+    display: block;
+    margin-top: 0.25rem;
+    color: var(--gray-text);
+    font-size: 0.75rem;
+}

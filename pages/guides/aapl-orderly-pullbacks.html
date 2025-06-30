@@ -3,12 +3,682 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BlueChip Signals - AAPL Bot</title>
+    <title>Watch for Orderly Pullbacks - AAPL Trading Guide | BlueChip Signals</title>
     <link rel="icon" type="image/png" href="../../assets/images/logo.png">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="../../assets/css/bot-style.css?v=1751139967">
-    <link rel="stylesheet" href="../../assets/css/news-style.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        /* Enhanced styles for pullback guide */
+        .pullback-patterns {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin: 2rem 0;
+        }
+
+        .pattern-card {
+            background: linear-gradient(135deg, rgba(179, 161, 125, 0.1), rgba(179, 161, 125, 0.05));
+            border: 1px solid rgba(179, 161, 125, 0.2);
+            border-radius: 12px;
+            padding: 1.5rem;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .pattern-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, var(--primary-gold), var(--secondary-gold));
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .pattern-card:hover {
+            transform: translateY(-5px);
+            border-color: var(--primary-gold);
+            box-shadow: 0 10px 30px rgba(179, 161, 125, 0.2);
+        }
+
+        .pattern-card:hover::before {
+            opacity: 1;
+        }
+
+        .pattern-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .pattern-icon {
+            font-size: 2rem;
+            color: var(--primary-gold);
+            margin-right: 0.75rem;
+            width: 40px;
+            text-align: center;
+        }
+
+        .pattern-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: var(--light-text);
+            margin: 0;
+        }
+
+        .pattern-success-rate {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--success-green);
+            text-align: center;
+            margin: 1rem 0;
+        }
+
+        .checklist-analyzer {
+            background: rgba(179, 161, 125, 0.05);
+            border: 1px solid rgba(179, 161, 125, 0.2);
+            border-radius: 12px;
+            padding: 2rem;
+            margin: 2rem 0;
+        }
+
+        .checklist-item {
+            display: flex;
+            align-items: center;
+            padding: 1rem;
+            margin: 0.5rem 0;
+            background: var(--dark-bg);
+            border: 1px solid rgba(179, 161, 125, 0.2);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            user-select: none;
+        }
+
+        .checklist-item:hover {
+            border-color: var(--primary-gold);
+        }
+
+        .checklist-checkbox {
+            width: 20px;
+            height: 20px;
+            border: 2px solid var(--primary-gold);
+            border-radius: 4px;
+            margin-right: 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+        }
+
+        .checklist-checkbox.checked {
+            background: var(--success-green);
+            border-color: var(--success-green);
+        }
+
+        .checklist-checkbox.checked::after {
+            content: '✓';
+            color: white;
+            font-weight: bold;
+            font-size: 14px;
+        }
+
+        .checklist-text {
+            flex: 1;
+            color: var(--light-text);
+        }
+
+        .signal-strength {
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            margin-left: 1rem;
+            min-width: 80px;
+            text-align: center;
+        }
+
+        .signal-weak {
+            background: rgba(255, 59, 59, 0.2);
+            color: #FF3B3B;
+            border: 1px solid rgba(255, 59, 59, 0.3);
+        }
+
+        .signal-moderate {
+            background: rgba(179, 161, 125, 0.2);
+            color: var(--primary-gold);
+            border: 1px solid rgba(179, 161, 125, 0.3);
+        }
+
+        .signal-strong {
+            background: rgba(42, 87, 31, 0.2);
+            color: var(--success-green);
+            border: 1px solid rgba(42, 87, 31, 0.3);
+        }
+
+        .pullback-reference {
+            background: rgba(42, 87, 31, 0.1);
+            border: 1px solid rgba(42, 87, 31, 0.3);
+            border-radius: 12px;
+            padding: 2rem;
+            margin: 2rem 0;
+        }
+
+        .depth-levels {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .depth-card {
+            background: var(--dark-bg);
+            border-radius: 8px;
+            padding: 1.5rem;
+            text-align: center;
+            transition: all 0.3s ease;
+            border: 2px solid;
+        }
+
+        .depth-card.healthy {
+            border-color: var(--success-green);
+        }
+
+        .depth-card.moderate {
+            border-color: var(--primary-gold);
+        }
+
+        .depth-card.caution {
+            border-color: #ff8c00;
+        }
+
+        .depth-card.danger {
+            border-color: #ff3b3b;
+        }
+
+        .depth-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        .depth-percentage {
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+
+        .healthy .depth-percentage {
+            color: var(--success-green);
+        }
+
+        .moderate .depth-percentage {
+            color: var(--primary-gold);
+        }
+
+        .caution .depth-percentage {
+            color: #ff8c00;
+        }
+
+        .danger .depth-percentage {
+            color: #ff3b3b;
+        }
+
+        .depth-label {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--light-text);
+            margin-bottom: 0.5rem;
+        }
+
+        .depth-description {
+            font-size: 0.9rem;
+            color: var(--gray-text);
+            margin-bottom: 1rem;
+        }
+
+        .depth-action {
+            font-size: 0.9rem;
+            font-weight: 600;
+            padding: 0.5rem;
+            border-radius: 6px;
+            background: rgba(0, 0, 0, 0.3);
+        }
+
+        .key-levels {
+            background: var(--dark-bg);
+            border: 1px solid rgba(179, 161, 125, 0.3);
+            border-radius: 8px;
+            padding: 1.5rem;
+        }
+
+        .key-levels h4 {
+            color: var(--primary-gold);
+            margin-bottom: 1rem;
+            text-align: center;
+        }
+
+        .level-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 1rem;
+        }
+
+        .level-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            padding: 1.25rem 1rem;
+            background: rgba(179, 161, 125, 0.1);
+            border: 1px solid rgba(179, 161, 125, 0.2);
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+
+        .level-item:hover {
+            border-color: var(--primary-gold);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(179, 161, 125, 0.2);
+        }
+
+        .level-pct {
+            font-weight: 700;
+            font-size: 1.4rem;
+            color: var(--primary-gold);
+            min-width: 60px;
+        }
+
+        .level-desc {
+            font-size: 1rem;
+            color: var(--light-text);
+            font-weight: 500;
+            margin-top: 0.5rem;
+        }
+
+        .entry-signals {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin: 2rem 0;
+        }
+
+        .signal-card {
+            background: var(--dark-bg);
+            border: 1px solid rgba(201, 176, 55, 0.2);
+            border-radius: 12px;
+            padding: 1.5rem;
+            transition: all 0.3s ease;
+        }
+
+        .signal-card:hover {
+            border-color: var(--primary-gold);
+            transform: translateY(-3px);
+        }
+
+        .signal-tag {
+            display: inline-block;
+            background: rgba(179, 161, 125, 0.2);
+            color: var(--primary-gold);
+            padding: 0.3rem 0.8rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            margin-bottom: 1rem;
+            border: 1px solid rgba(179, 161, 125, 0.3);
+        }
+
+        .chart-visualization {
+            background: rgba(179, 161, 125, 0.1);
+            border: 1px solid rgba(179, 161, 125, 0.2);
+            border-radius: 12px;
+            padding: 2rem;
+            margin: 2rem 0;
+            text-align: center;
+        }
+
+        .chart-mockup {
+            background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+            border: 1px solid rgba(179, 161, 125, 0.3);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin: 1rem 0;
+            position: relative;
+            height: 450px;
+            overflow: hidden;
+        }
+
+        .chart-container {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(to bottom, 
+                rgba(42, 87, 31, 0.1) 0%, 
+                rgba(42, 87, 31, 0.05) 30%, 
+                transparent 50%, 
+                rgba(255, 59, 59, 0.05) 80%, 
+                rgba(255, 59, 59, 0.1) 100%);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .price-path {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+        }
+
+        .price-svg {
+            width: 100%;
+            height: 100%;
+        }
+
+        .grid-lines {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            opacity: 0.1;
+        }
+
+        .grid-horizontal {
+            position: absolute;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: rgba(179, 161, 125, 0.3);
+        }
+
+        .grid-vertical {
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            width: 1px;
+            background: rgba(179, 161, 125, 0.3);
+        }
+
+        .price-labels {
+            position: absolute;
+            left: -40px;
+            top: 0;
+            bottom: 0;
+            width: 35px;
+            font-size: 0.7rem;
+            color: var(--gray-text);
+        }
+
+        .price-label {
+            position: absolute;
+            right: 5px;
+            transform: translateY(-50%);
+        }
+
+        .time-labels {
+            position: absolute;
+            left: 0;
+            right: 0;
+            bottom: -25px;
+            height: 20px;
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.7rem;
+            color: var(--gray-text);
+        }
+
+        .volume-bars {
+            position: absolute;
+            bottom: 40px;
+            left: 0;
+            right: 0;
+            height: 60px;
+            display: flex;
+            align-items: end;
+            gap: 3px;
+            padding: 0 20px;
+        }
+
+        .volume-bar {
+            flex: 1;
+            min-width: 8px;
+            max-width: 15px;
+            opacity: 0.7;
+            border-radius: 2px 2px 0 0;
+        }
+
+        .vol-high { background: var(--success-green); }
+        .vol-medium { background: var(--primary-gold); }
+        .vol-low { background: rgba(179, 161, 125, 0.4); }
+
+        .key-points {
+            position: absolute;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            border: 2px solid white;
+            z-index: 10;
+        }
+
+        .swing-high-point {
+            background: var(--success-green);
+            top: 45px;
+            left: 70%;
+            box-shadow: 0 0 8px rgba(42, 87, 31, 0.6);
+        }
+
+        .pullback-low-point {
+            background: var(--primary-gold);
+            top: 185px;
+            left: 50%;
+            box-shadow: 0 0 8px rgba(179, 161, 125, 0.6);
+        }
+
+        .entry-bounce-point {
+            background: #00ff88;
+            top: 165px;
+            left: 80%;
+            animation: pulse-glow 2s infinite;
+            box-shadow: 0 0 10px rgba(0, 255, 136, 0.8);
+        }
+
+        @keyframes pulse-glow {
+            0% { 
+                box-shadow: 0 0 15px rgba(0, 255, 136, 0.7);
+                transform: scale(1);
+            }
+            50% { 
+                box-shadow: 0 0 25px rgba(0, 255, 136, 0.9);
+                transform: scale(1.1);
+            }
+            100% { 
+                box-shadow: 0 0 15px rgba(0, 255, 136, 0.7);
+                transform: scale(1);
+            }
+        }
+
+        .support-zone {
+            position: absolute;
+            bottom: 120px;
+            left: 10px;
+            right: 10px;
+            height: 3px;
+            background: linear-gradient(90deg, 
+                transparent 0%, 
+                rgba(255, 59, 59, 0.6) 20%, 
+                rgba(255, 59, 59, 0.8) 50%, 
+                rgba(255, 59, 59, 0.6) 80%, 
+                transparent 100%);
+            border-radius: 2px;
+        }
+
+        .fibonacci-zone {
+            position: absolute;
+            right: 8px;
+            top: 70px;
+            bottom: 110px;
+            width: 50px;
+            font-size: 0.55rem;
+            color: var(--primary-gold);
+            z-index: 2;
+        }
+
+        .chart-container .fib-level {
+            position: absolute;
+            right: 0;
+            width: 30px;
+            height: 1px;
+            background: rgba(179, 161, 125, 0.7);
+            display: flex;
+            align-items: center;
+        }
+
+        .chart-container .fib-label {
+            position: absolute;
+            right: 33px;
+            top: -6px;
+            font-size: 0.5rem;
+            color: var(--primary-gold);
+            white-space: nowrap;
+            background: rgba(0, 0, 0, 0.85);
+            padding: 1px 2px;
+            border-radius: 2px;
+            border: 1px solid rgba(179, 161, 125, 0.4);
+            font-weight: 500;
+        }
+
+        .annotations {
+            position: absolute;
+            font-size: 0.65rem;
+            color: var(--light-text);
+            background: rgba(0, 0, 0, 0.9);
+            padding: 3px 6px;
+            border-radius: 4px;
+            border: 1px solid rgba(179, 161, 125, 0.4);
+            min-width: 60px;
+            text-align: center;
+            line-height: 1.2;
+            font-weight: 500;
+        }
+
+        .annotation-high {
+            top: 15px;
+            left: 68%;
+            background: rgba(42, 87, 31, 0.9);
+            border-color: var(--success-green);
+            color: white;
+        }
+
+        .annotation-low {
+            top: 170px;
+            left: 48%;
+            background: rgba(179, 161, 125, 0.9);
+            border-color: var(--primary-gold);
+            color: white;
+        }
+
+        .annotation-entry {
+            top: 150px;
+            left: 78%;
+            background: rgba(0, 255, 136, 0.9);
+            border-color: #00ff88;
+            color: #000;
+            font-weight: 600;
+            min-width: 55px;
+        }
+
+        .trend-arrow {
+            position: absolute;
+            font-size: 0.9rem;
+            font-weight: 700;
+            animation: none;
+        }
+
+        .arrow-up {
+            top: 100px;
+            left: 35%;
+            color: var(--success-green);
+        }
+
+        .arrow-down {
+            top: 130px;
+            left: 75%;
+            color: var(--primary-gold);
+        }
+
+        .arrow-bounce {
+            top: 160px;
+            left: 85%;
+            color: #00ff88;
+        }
+
+        .legend {
+            position: absolute;
+            bottom: 8px;
+            left: 8px;
+            right: 8px;
+            display: flex;
+            justify-content: space-around;
+            font-size: 0.65rem;
+            background: rgba(0, 0, 0, 0.8);
+            padding: 6px;
+            border-radius: 4px;
+            border: 1px solid rgba(179, 161, 125, 0.3);
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            font-weight: 500;
+        }
+
+        .legend-color {
+            width: 10px;
+            height: 2px;
+            border-radius: 1px;
+        }
+
+        @media (max-width: 768px) {
+            .pullback-patterns {
+                grid-template-columns: 1fr;
+            }
+            
+            .entry-signals {
+                grid-template-columns: 1fr;
+            }
+
+            .fib-controls {
+                grid-template-columns: 1fr;
+            }
+
+            .chart-mockup {
+                height: 350px;
+            }
+
+            .annotations {
+                font-size: 0.65rem;
+                padding: 4px 6px;
+                min-width: 70px;
+            }
+
+            .annotation-entry {
+                min-width: 80px;
+            }
+
+            .fibonacci-zone {
+                width: 60px;
+                font-size: 0.55rem;
+                right: 2px;
+            }
+
+            .price-labels {
+                left: -35px;
+                width: 30px;
+                font-size: 0.6rem;
+            }
+        }
+    </style>
 </head>
 <body>
     <!-- Navigation -->
@@ -35,65 +705,490 @@
     </nav>
 
     <main class="main-content">
+        <!-- Header Section -->
         <header class="content-header card-style">
             <div class="bot-page-icon"><i class="fab fa-apple"></i></div>
-            <h1 class="page-main-title">Trading Orderly Pullbacks in AAPL</h1>
-            <p class="page-main-subtitle">Capitalize on structured retracements to enter with the smart money.</p>
+            <h1 class="page-main-title">Watch for Orderly Pullbacks</h1>
+            <p class="page-main-subtitle">AAPL often trends in a very structured way. Our bot looks for signals during pullbacks to key support levels within an established uptrend, offering high-probability entries.</p>
         </header>
 
+
+
+        <!-- Pullback Depth Analyzer -->
         <section class="content-section card-style">
-            <h3>The Anatomy of an Orderly Pullback</h3>
-            <p>A healthy up-trend <em>breathes</em>. Price drifts back to support zones on lighter volume, resets momentum indicators, and then resumes higher. These are low-risk, high-probability inflection points—if you know what to look for.</p>
-            <ul>
-                <li><strong>Shallow Fibonacci Retrace:</strong> 23-38% pullback from the recent impulse leg keeps the trend intact.</li>
-                <li><strong>20-EMA or Anchored VWAP Tag:</strong> Institutions reload at dynamic support.</li>
-                <li><strong>Volume Contraction:</strong> Red bars shrink as sellers dry up—textbook sign of absorption.</li>
-            </ul>
+            <h3><i class="fas fa-chart-line" style="color: var(--primary-gold); margin-right: 0.5rem;"></i>Pullback Depth Reference Guide</h3>
+            <p>Quick reference for identifying healthy pullback levels in AAPL trends:</p>
+            
+            <div class="pullback-reference">
+                <div class="depth-levels">
+                    <div class="depth-card healthy">
+                        <div class="depth-percentage">15-25%</div>
+                        <div class="depth-label">Shallow Pullback</div>
+                        <div class="depth-description">Very bullish - Strong uptrend intact</div>
+                        <div class="depth-action">🟢 High Probability Entry</div>
+                    </div>
+                    
+                    <div class="depth-card moderate">
+                        <div class="depth-percentage">25-38%</div>
+                        <div class="depth-label">Normal Pullback</div>
+                        <div class="depth-description">Typical retracement - Good entry zone</div>
+                        <div class="depth-action">🟡 Moderate Probability Entry</div>
+                    </div>
+                    
+                    <div class="depth-card caution">
+                        <div class="depth-percentage">38-50%</div>
+                        <div class="depth-label">Deep Pullback</div>
+                        <div class="depth-description">Requires confirmation - Wait for bounce</div>
+                        <div class="depth-action">🟠 Caution - Need Confirmation</div>
+                    </div>
+                    
+                    <div class="depth-card danger">
+                        <div class="depth-percentage">50%+</div>
+                        <div class="depth-label">Trend Break</div>
+                        <div class="depth-description">Trend likely broken - Avoid entries</div>
+                        <div class="depth-action">🔴 High Risk - Avoid</div>
+                    </div>
+                </div>
+                
+                <div class="key-levels">
+                    <h4>AAPL Key Fibonacci Levels</h4>
+                    <div class="level-grid">
+                        <div class="level-item">
+                            <span class="level-pct">23.6%</span>
+                            <span class="level-desc">First support</span>
+                        </div>
+                        <div class="level-item">
+                            <span class="level-pct">38.2%</span>
+                            <span class="level-desc">Primary entry zone</span>
+                        </div>
+                        <div class="level-item">
+                            <span class="level-pct">50%</span>
+                            <span class="level-desc">Psychological level</span>
+                        </div>
+                        <div class="level-item">
+                            <span class="level-pct">61.8%</span>
+                            <span class="level-desc">Deep support</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </section>
 
+        <!-- Pullback Pattern Types -->
         <section class="content-section card-style">
-            <h3>Entry Playbook</h3>
-            <p>Follow this checklist before you hit the buy button:</p>
-            <ul>
-                <li><strong>Trend Context:</strong> Higher highs & higher lows on the daily chart—no chop.</li>
-                <li><strong>Pullback Depth:</strong> Price holds above the previous swing low and the 50-EMA.</li>
-                <li><strong>Candlestick Trigger:</strong> Look for a hammer or bullish engulfing on the 30- or 60-minute.</li>
-                <li><strong>Relative Strength:</strong> AAPL green while QQQ is flat to red = institutional accumulation.</li>
-            </ul>
+            <h3><i class="fas fa-shapes" style="color: var(--primary-gold); margin-right: 0.5rem;"></i>Types of Orderly Pullbacks</h3>
+            <p>Recognize these high-probability patterns that institutional traders use for accumulation:</p>
+            
+            <div class="pullback-patterns">
+                <div class="pattern-card">
+                    <div class="pattern-header">
+                        <div class="pattern-icon"><i class="fas fa-wave-square"></i></div>
+                        <div>
+                            <h4 class="pattern-title">Flag Pattern</h4>
+                        </div>
+                    </div>
+                    <div class="pattern-success-rate">75% Success</div>
+                    <p><strong>Structure:</strong> Brief consolidation after strong move</p>
+                    <p><strong>Duration:</strong> 3-8 trading sessions</p>
+                    <p><strong>Volume:</strong> Contracts on pullback, expands on breakout</p>
+                    <p><strong>Entry:</strong> Break above flag resistance with volume</p>
+                </div>
+
+                <div class="pattern-card">
+                    <div class="pattern-header">
+                        <div class="pattern-icon"><i class="fas fa-chart-area"></i></div>
+                        <div>
+                            <h4 class="pattern-title">EMA Bounce</h4>
+                        </div>
+                    </div>
+                    <div class="pattern-success-rate">68% Success</div>
+                    <p><strong>Structure:</strong> Price touches 20 or 50 EMA and bounces</p>
+                    <p><strong>Duration:</strong> 1-3 trading sessions</p>
+                    <p><strong>Volume:</strong> High volume rejection at moving average</p>
+                    <p><strong>Entry:</strong> Bullish candle close above EMA</p>
+                </div>
+
+                <div class="pattern-card">
+                    <div class="pattern-header">
+                        <div class="pattern-icon"><i class="fas fa-layer-group"></i></div>
+                        <div>
+                            <h4 class="pattern-title">Support Retest</h4>
+                        </div>
+                    </div>
+                    <div class="pattern-success-rate">72% Success</div>
+                    <p><strong>Structure:</strong> Return to previous resistance as support</p>
+                    <p><strong>Duration:</strong> 2-5 trading sessions</p>
+                    <p><strong>Volume:</strong> Lower volume on retest vs. breakout</p>
+                    <p><strong>Entry:</strong> Hammer or doji at support level</p>
+                </div>
+
+                <div class="pattern-card">
+                    <div class="pattern-header">
+                        <div class="pattern-icon"><i class="fas fa-compress-arrows-alt"></i></div>
+                        <div>
+                            <h4 class="pattern-title">Bull Flag</h4>
+                        </div>
+                    </div>
+                    <div class="pattern-success-rate">78% Success</div>
+                    <p><strong>Structure:</strong> Tight consolidation near highs</p>
+                    <p><strong>Duration:</strong> 5-15 trading sessions</p>
+                    <p><strong>Volume:</strong> Steady decline during consolidation</p>
+                    <p><strong>Entry:</strong> Breakout above flag high with volume</p>
+                </div>
+
+                <div class="pattern-card">
+                    <div class="pattern-header">
+                        <div class="pattern-icon"><i class="fas fa-chart-line"></i></div>
+                        <div>
+                            <h4 class="pattern-title">VWAP Touch</h4>
+                        </div>
+                    </div>
+                    <div class="pattern-success-rate">65% Success</div>
+                    <p><strong>Structure:</strong> Price returns to VWAP from above</p>
+                    <p><strong>Duration:</strong> Intraday to 2 sessions</p>
+                    <p><strong>Volume:</strong> High volume acceptance at VWAP</p>
+                    <p><strong>Entry:</strong> First bounce off VWAP with volume</p>
+                </div>
+
+                <div class="pattern-card">
+                    <div class="pattern-header">
+                        <div class="pattern-icon"><i class="fas fa-step-backward"></i></div>
+                        <div>
+                            <h4 class="pattern-title">Three-Step Pullback</h4>
+                        </div>
+                    </div>
+                    <div class="pattern-success-rate">70% Success</div>
+                    <p><strong>Structure:</strong> Three consecutive lower highs/lows</p>
+                    <p><strong>Duration:</strong> 3-6 trading sessions</p>
+                    <p><strong>Volume:</strong> Diminishing on each step down</p>
+                    <p><strong>Entry:</strong> Break above step 1 high with volume</p>
+                </div>
+            </div>
         </section>
 
+        <!-- Interactive Checklist -->
         <section class="content-section card-style">
-            <h3>Tools & Indicators</h3>
-            <p>These help you spot—and trust—the pullback:</p>
+            <h3><i class="fas fa-tasks" style="color: var(--primary-gold); margin-right: 0.5rem;"></i>Pullback Quality Analyzer</h3>
+            <p>Use this interactive checklist to evaluate the strength of a potential pullback entry:</p>
+            
+            <div class="checklist-analyzer">
+                <div class="checklist-item" onclick="toggleCheckbox(this, 'trend')">
+                    <div class="checklist-checkbox" id="trend-check"></div>
+                    <div class="checklist-text">
+                        <strong>Uptrend Intact:</strong> Higher highs and higher lows on daily chart
+                    </div>
+                    <div class="signal-strength" id="trend-signal">Check</div>
+                </div>
+
+                <div class="checklist-item" onclick="toggleCheckbox(this, 'depth')">
+                    <div class="checklist-checkbox" id="depth-check"></div>
+                    <div class="checklist-text">
+                        <strong>Shallow Pullback:</strong> 23-50% Fibonacci retracement
+                    </div>
+                    <div class="signal-strength" id="depth-signal">Check</div>
+                </div>
+
+                <div class="checklist-item" onclick="toggleCheckbox(this, 'volume')">
+                    <div class="checklist-checkbox" id="volume-check"></div>
+                    <div class="checklist-text">
+                        <strong>Volume Confirmation:</strong> Lower volume on pullback vs. upward moves
+                    </div>
+                    <div class="signal-strength" id="volume-signal">Check</div>
+                </div>
+
+                <div class="checklist-item" onclick="toggleCheckbox(this, 'support')">
+                    <div class="checklist-checkbox" id="support-check"></div>
+                    <div class="checklist-text">
+                        <strong>Key Support Hold:</strong> Price holds above 20/50 EMA or major level
+                    </div>
+                    <div class="signal-strength" id="support-signal">Check</div>
+                </div>
+
+                <div class="checklist-item" onclick="toggleCheckbox(this, 'relative')">
+                    <div class="checklist-checkbox" id="relative-check"></div>
+                    <div class="checklist-text">
+                        <strong>Relative Strength:</strong> AAPL outperforming QQQ during pullback
+                    </div>
+                    <div class="signal-strength" id="relative-signal">Check</div>
+                </div>
+
+                <div class="checklist-item" onclick="toggleCheckbox(this, 'candlestick')">
+                    <div class="checklist-checkbox" id="candlestick-check"></div>
+                    <div class="checklist-text">
+                        <strong>Bullish Reversal:</strong> Hammer, doji, or engulfing pattern
+                    </div>
+                    <div class="signal-strength" id="candlestick-signal">Check</div>
+                </div>
+
+                <div class="checklist-item" onclick="toggleCheckbox(this, 'momentum')">
+                    <div class="checklist-checkbox" id="momentum-check"></div>
+                    <div class="checklist-text">
+                        <strong>Momentum Reset:</strong> RSI/MACD showing oversold bounce
+                    </div>
+                    <div class="signal-strength" id="momentum-signal">Check</div>
+                </div>
+
+                <div style="text-align: center; margin-top: 2rem; padding: 1.5rem; background: var(--dark-bg); border-radius: 8px;">
+                    <h4 style="color: var(--primary-gold); margin-bottom: 1rem;">Overall Signal Strength</h4>
+                    <div id="overall-strength" style="font-size: 2rem; font-weight: 700;">Weak</div>
+                    <div id="strength-description" style="margin-top: 0.5rem; color: var(--gray-text);">Complete more criteria for stronger signal</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Entry Signals -->
+        <section class="content-section card-style">
+            <h3><i class="fas fa-crosshairs" style="color: var(--primary-gold); margin-right: 0.5rem;"></i>Precise Entry Signals</h3>
+            <p>Wait for these specific triggers before entering a pullback trade:</p>
+            
+            <div class="entry-signals">
+                <div class="signal-card">
+                    <div class="signal-tag">TECHNICAL</div>
+                    <h4>Candlestick Confirmation</h4>
+                    <p><strong>Hammer:</strong> Long lower wick at support level</p>
+                    <p><strong>Bullish Engulfing:</strong> Green candle engulfs previous red</p>
+                    <p><strong>Doji:</strong> Indecision at key level suggests reversal</p>
+                    <p><strong>Timing:</strong> Wait for candle close confirmation</p>
+                </div>
+
+                <div class="signal-card">
+                    <div class="signal-tag">VOLUME</div>
+                    <h4>Volume Spike Entry</h4>
+                    <p><strong>Setup:</strong> Volume dries up during pullback</p>
+                    <p><strong>Trigger:</strong> 2x average volume on reversal candle</p>
+                    <p><strong>Confirmation:</strong> Price breaks above pullback high</p>
+                    <p><strong>Edge:</strong> Institutional accumulation visible</p>
+                </div>
+
+                <div class="signal-card">
+                    <div class="signal-tag">MOMENTUM</div>
+                    <h4>RSI Divergence</h4>
+                    <p><strong>Setup:</strong> Price makes lower low, RSI makes higher low</p>
+                    <p><strong>Signal:</strong> Bullish divergence at oversold levels</p>
+                    <p><strong>Entry:</strong> RSI breaks above 30 with price confirmation</p>
+                    <p><strong>Strength:</strong> Works best in strong uptrends</p>
+                </div>
+
+                <div class="signal-card">
+                    <div class="signal-tag">STRUCTURE</div>
+                    <h4>Break of Structure</h4>
+                    <p><strong>Setup:</strong> Series of lower highs during pullback</p>
+                    <p><strong>Trigger:</strong> Break above most recent lower high</p>
+                    <p><strong>Volume:</strong> Must be accompanied by volume expansion</p>
+                    <p><strong>Target:</strong> Next significant resistance level</p>
+                </div>
+
+                <div class="signal-card">
+                    <div class="signal-tag">INSTITUTIONAL</div>
+                    <h4>Dark Pool Activity</h4>
+                    <p><strong>Tool:</strong> Level 2 data or order flow analysis</p>
+                    <p><strong>Signal:</strong> Large hidden bids stepping up</p>
+                    <p><strong>Confirmation:</strong> Price rejection at support level</p>
+                    <p><strong>Edge:</strong> Trade alongside smart money</p>
+                </div>
+
+                <div class="signal-card">
+                    <div class="signal-tag">RELATIVE</div>
+                    <h4>Sector Leadership</h4>
+                    <p><strong>Compare:</strong> AAPL performance vs. XLK/QQQ</p>
+                    <p><strong>Signal:</strong> AAPL showing relative strength</p>
+                    <p><strong>Entry:</strong> When AAPL bounces while indices flat</p>
+                    <p><strong>Logic:</strong> Institutional rotation into quality</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Risk Management -->
+        <section class="content-section card-style">
+            <h3><i class="fas fa-shield-alt" style="color: var(--primary-gold); margin-right: 0.5rem;"></i>Risk Management for Pullback Trades</h3>
+            <p>Protect your capital with these specific risk parameters for orderly pullback entries:</p>
+            
+            <div class="risk-management-grid">
+                <div class="risk-item">
+                    <div class="risk-icon"><i class="fas fa-crosshairs"></i></div>
+                    <h4>Entry Sizing</h4>
+                    <p>Start with 25-50% of intended position size on initial signal</p>
+                </div>
+                
+                <div class="risk-item">
+                    <div class="risk-icon"><i class="fas fa-stop-circle"></i></div>
+                    <h4>Stop Loss Placement</h4>
+                    <p>Place stop 1-2% below key support level that defined the pullback</p>
+                </div>
+                
+                <div class="risk-item">
+                    <div class="risk-icon"><i class="fas fa-layer-group"></i></div>
+                    <h4>Scale-In Strategy</h4>
+                    <p>Add to position as price confirms upward momentum with volume</p>
+                </div>
+                
+                <div class="risk-item">
+                    <div class="risk-icon"><i class="fas fa-flag-checkered"></i></div>
+                    <h4>Profit Targets</h4>
+                    <p>Take partial profits at previous highs, let runners target new highs</p>
+                </div>
+            </div>
+
+            <div class="alert-box">
+                <i class="fas fa-exclamation-triangle alert-icon"></i>
+                <strong>Warning:</strong> If pullback violates key support levels or shows high volume selling, the pattern is invalidated. Exit immediately.
+            </div>
+        </section>
+
+        <!-- Common Mistakes -->
+        <section class="content-section card-style">
+            <h3><i class="fas fa-exclamation-triangle" style="color: var(--primary-gold); margin-right: 0.5rem;"></i>Common Pullback Trading Mistakes</h3>
+            <p>Avoid these pitfalls that lead to unsuccessful pullback trades:</p>
+            
             <ul>
-                <li><strong>Anchored VWAP:</strong> Anchor to the most recent swing low; buy on first touch.</li>
-                <li><strong>Volume Profile:</strong> Identify high-volume nodes <em>below</em> price that act as magnets.</li>
-                <li><strong>RSI / MFI Reset:</strong> Oversold reading in an up-trend screams continuation.</li>
-                <li><strong>Bookmap or DOM:</strong> Watch resting bids step up as price drifts lower.</li>
+                <li><strong>Catching Falling Knives:</strong> Don't buy just because price is down. Wait for reversal confirmation.</li>
+                <li><strong>Ignoring Volume:</strong> High volume on pullbacks often signals distribution, not accumulation.</li>
+                <li><strong>Fighting the Trend:</strong> Only trade pullbacks in the direction of the major trend.</li>
+                <li><strong>Premature Entry:</strong> Wait for complete candle close confirmation before entering.</li>
+                <li><strong>Poor Risk Management:</strong> Never risk more than 2% of portfolio on single pullback trade.</li>
+                <li><strong>No Exit Plan:</strong> Have clear profit targets and stop loss levels before entering.</li>
             </ul>
+
+            <div class="alert-box">
+                <i class="fas fa-lightbulb alert-icon" style="color: var(--primary-gold);"></i>
+                <strong>Pro Tip:</strong> The best pullback entries often feel uncomfortable. When everyone is bearish at support, that's usually the best time to buy.
+            </div>
         </section>
     </main>
 
-    <div class="floating-cta">
-        <a href="../../index.html#pricing" class="cta-button">Join Now & Get Signals</a>
-    </div>
+    <!-- CTA Section -->
+    <section class="cta-section">
+        <div class="container">
+            <div class="cta-content">
+                <h2>Master Pullback Trading with AAPL</h2>
+                <p>Join thousands of traders using our AAPL bot to identify high-probability pullback opportunities. Get real-time alerts when orderly pullbacks set up perfect entry conditions.</p>
+                <div class="cta-buttons">
+                    <a href="../../index.html#pricing" class="cta-button primary">
+                        <i class="fab fa-apple"></i>
+                        Start AAPL Bot
+                    </a>
+                    <a href="../bots/aapl-bot.html" class="cta-button secondary">
+                        <i class="fas fa-info-circle"></i>
+                        Learn More
+                    </a>
+                </div>
+            </div>
+        </div>
+    </section>
 
     <!-- Footer -->
-    <footer>
-        <p>&copy; 2025 BlueChip Signals. All rights reserved. | <a href="../../legal.html" style="color: var(--primary-gold); text-decoration: none;">Legal Disclaimer</a></p>
-        <div class="social-media">
-            <a href="https://www.tiktok.com/@bluechip.signals" target="_blank"><i class="fab fa-tiktok"></i></a>
-            <a href="https://www.instagram.com/bluechip.signals/" target="_blank"><i class="fab fa-instagram"></i></a>
+    <footer class="main-footer">
+        <div class="footer-content">
+            <div class="footer-section">
+                <h3>BlueChip Signals</h3>
+                <p>Professional trading signals and market intelligence for serious traders. Our algorithmic bots analyze market patterns 24/7 to deliver actionable insights.</p>
+            </div>
+            
+            <div class="footer-section">
+                <h4>Quick Links</h4>
+                <ul>
+                    <li><a href="../../index.html#features">Features</a></li>
+                    <li><a href="../../index.html#bots">Trading Bots</a></li>
+                    <li><a href="../../index.html#pricing">Pricing</a></li>
+                    <li><a href="../../faq.html">FAQ</a></li>
+                    <li><a href="../../legal.html">Legal</a></li>
+                </ul>
+            </div>
+            
+            <div class="footer-section">
+                <h4>Trading Bots</h4>
+                <ul>
+                    <li><a href="../bots/spy-bot.html">SPY Bot</a></li>
+                    <li><a href="../bots/aapl-bot.html">AAPL Bot</a></li>
+                    <li><a href="../bots/tsla-bot.html">TSLA Bot</a></li>
+                    <li><a href="../bots/nvda-bot.html">NVDA Bot</a></li>
+                    <li><a href="../bots/meta-bot.html">META Bot</a></li>
+                </ul>
+            </div>
+        </div>
+        
+        <div class="footer-bottom">
+            <p>&copy; 2025 BlueChip Signals. All rights reserved.</p>
+            <div class="footer-social">
+                <a href="https://www.tiktok.com/@bluechip.signals" target="_blank"><i class="fab fa-tiktok"></i></a>
+                <a href="https://www.instagram.com/bluechip.signals/" target="_blank"><i class="fab fa-instagram"></i></a>
+            </div>
         </div>
     </footer>
 
-    <script src="../../assets/js/stock-prices.js" defer></script>
     <script>
         const hamburgerMenu = document.querySelector('.hamburger-menu');
         const mobileNav = document.querySelector('.nav-links');
 
         hamburgerMenu.addEventListener('click', () => {
             mobileNav.classList.toggle('active');
+        });
+
+        // Removed problematic Fibonacci Calculator JavaScript
+
+        // Interactive Checklist
+        const checkedItems = new Set();
+
+        function toggleCheckbox(item, category) {
+            const checkbox = item.querySelector('.checklist-checkbox');
+            const signal = item.querySelector('.signal-strength');
+            
+            if (checkedItems.has(category)) {
+                checkedItems.delete(category);
+                checkbox.classList.remove('checked');
+                signal.textContent = 'Check';
+                signal.className = 'signal-strength';
+            } else {
+                checkedItems.add(category);
+                checkbox.classList.add('checked');
+                signal.textContent = 'Strong';
+                signal.className = 'signal-strength signal-strong';
+            }
+            
+            updateOverallStrength();
+        }
+
+        function updateOverallStrength() {
+            const totalItems = 7;
+            const checkedCount = checkedItems.size;
+            const percentage = checkedCount / totalItems;
+            
+            const strengthElement = document.getElementById('overall-strength');
+            const descriptionElement = document.getElementById('strength-description');
+            
+            if (percentage >= 0.8) {
+                strengthElement.textContent = 'Very Strong';
+                strengthElement.style.color = '#2a571f';
+                descriptionElement.textContent = 'High-probability pullback setup';
+            } else if (percentage >= 0.6) {
+                strengthElement.textContent = 'Strong';
+                strengthElement.style.color = 'var(--success-green)';
+                descriptionElement.textContent = 'Good pullback opportunity';
+            } else if (percentage >= 0.4) {
+                strengthElement.textContent = 'Moderate';
+                strengthElement.style.color = 'var(--primary-gold)';
+                descriptionElement.textContent = 'Marginal setup, wait for more confirmation';
+            } else {
+                strengthElement.textContent = 'Weak';
+                strengthElement.style.color = '#FF3B3B';
+                descriptionElement.textContent = 'Incomplete setup, avoid entry';
+            }
+        }
+
+        // Calculator removed - no initialization needed
+
+        // Smooth scroll for internal links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
         });
     </script>
 </body>

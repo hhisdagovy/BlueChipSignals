@@ -3,12 +3,401 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BlueChip Signals - AAPL Bot</title>
+    <title>Monitor Major Supplier News - AAPL Trading Guide | BlueChip Signals</title>
     <link rel="icon" type="image/png" href="../../assets/images/logo.png">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="../../assets/css/bot-style.css?v=1751139967">
-    <link rel="stylesheet" href="../../assets/css/news-style.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        /* Enhanced styles for supplier news guide */
+        .supplier-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.5rem;
+            margin: 2rem 0;
+        }
+
+        .supplier-card {
+            background: linear-gradient(135deg, rgba(179, 161, 125, 0.1), rgba(179, 161, 125, 0.05));
+            border: 1px solid rgba(179, 161, 125, 0.2);
+            border-radius: 12px;
+            padding: 1.5rem;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .supplier-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, var(--primary-gold), var(--secondary-gold));
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .supplier-card:hover {
+            transform: translateY(-5px);
+            border-color: var(--primary-gold);
+            box-shadow: 0 10px 30px rgba(179, 161, 125, 0.2);
+        }
+
+        .supplier-card:hover::before {
+            opacity: 1;
+        }
+
+        .supplier-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .supplier-icon {
+            font-size: 2rem;
+            color: var(--primary-gold);
+            margin-right: 0.75rem;
+            width: 40px;
+            text-align: center;
+        }
+
+        .supplier-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: var(--light-text);
+            margin: 0;
+        }
+
+        .supplier-subtitle {
+            font-size: 0.9rem;
+            color: var(--gray-text);
+            margin: 0.25rem 0 0 0;
+        }
+
+        .signal-types {
+            margin: 1rem 0;
+        }
+
+        .signal-tag {
+            display: inline-block;
+            background: rgba(179, 161, 125, 0.2);
+            color: var(--primary-gold);
+            padding: 0.3rem 0.8rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            margin: 0.2rem 0.3rem 0.2rem 0;
+            border: 1px solid rgba(179, 161, 125, 0.3);
+        }
+
+        .news-sources-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin: 2rem 0;
+        }
+
+        .news-source-card {
+            background: var(--dark-bg);
+            border: 1px solid rgba(201, 176, 55, 0.2);
+            border-radius: 12px;
+            padding: 1.5rem;
+            transition: all 0.3s ease;
+        }
+
+        .news-source-card:hover {
+            border-color: var(--primary-gold);
+            transform: translateY(-3px);
+        }
+
+        .source-tier {
+            display: inline-block;
+            padding: 0.3rem 0.8rem;
+            border-radius: 15px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+        }
+
+        .tier-premium {
+            background: linear-gradient(135deg, #FFD700, #FFA500);
+            color: #000;
+        }
+
+        .tier-standard {
+            background: linear-gradient(135deg, #C0C0C0, #A9A9A9);
+            color: #000;
+        }
+
+        .tier-free {
+            background: linear-gradient(135deg, #90EE90, #7FFF7F);
+            color: #000;
+        }
+
+        .timeline-container {
+            position: relative;
+            margin: 2rem 0;
+        }
+
+        .timeline-item {
+            display: flex;
+            margin-bottom: 2rem;
+            position: relative;
+        }
+
+        .timeline-time {
+            min-width: 120px;
+            color: var(--primary-gold);
+            font-weight: 600;
+            padding-right: 1rem;
+        }
+
+        .timeline-content {
+            flex: 1;
+            background: rgba(179, 161, 125, 0.1);
+            padding: 1rem;
+            border-radius: 8px;
+            border-left: 3px solid var(--primary-gold);
+        }
+
+        .alert-box {
+            background: linear-gradient(135deg, rgba(255, 59, 59, 0.1), rgba(255, 59, 59, 0.05));
+            border: 1px solid rgba(255, 59, 59, 0.3);
+            border-radius: 8px;
+            padding: 1rem;
+            margin: 1.5rem 0;
+        }
+
+        .alert-box .alert-icon {
+            color: #FF3B3B;
+            margin-right: 0.5rem;
+        }
+
+        .risk-management-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin: 1.5rem 0;
+        }
+
+        .risk-item {
+            background: rgba(42, 87, 31, 0.2);
+            border: 1px solid rgba(42, 87, 31, 0.4);
+            border-radius: 8px;
+            padding: 1rem;
+            text-align: center;
+        }
+
+        .risk-icon {
+            font-size: 1.5rem;
+            color: var(--success-green);
+            margin-bottom: 0.5rem;
+        }
+
+        /* Calculator Styles */
+        .calculator-container {
+            margin: 2rem 0;
+        }
+
+        .calculator-inputs {
+            background: rgba(179, 161, 125, 0.05);
+            border: 1px solid rgba(179, 161, 125, 0.2);
+            border-radius: 12px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .input-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .input-group label {
+            display: block;
+            color: var(--primary-gold);
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            font-size: 0.9rem;
+        }
+
+        .calculator-input {
+            width: 100%;
+            padding: 0.75rem;
+            background: var(--dark-bg);
+            border: 1px solid rgba(179, 161, 125, 0.3);
+            border-radius: 8px;
+            color: var(--light-text);
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+        }
+
+        .calculator-input:focus {
+            outline: none;
+            border-color: var(--primary-gold);
+            box-shadow: 0 0 0 2px rgba(179, 161, 125, 0.2);
+        }
+
+        .calculator-button {
+            background: linear-gradient(135deg, var(--primary-gold), var(--secondary-gold));
+            color: #000;
+            border: none;
+            padding: 1rem 2rem;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            width: 100%;
+            font-size: 1rem;
+        }
+
+        .calculator-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(179, 161, 125, 0.4);
+        }
+
+        .calculator-button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .calculator-results {
+            background: linear-gradient(135deg, rgba(179, 161, 125, 0.1), rgba(179, 161, 125, 0.05));
+            border: 1px solid rgba(179, 161, 125, 0.3);
+            border-radius: 12px;
+            padding: 2rem;
+            animation: fadeInUp 0.5s ease;
+        }
+
+        .results-header h4 {
+            color: var(--primary-gold);
+            margin: 0 0 1.5rem 0;
+            font-size: 1.3rem;
+        }
+
+        .results-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .result-card {
+            background: var(--dark-bg);
+            border: 1px solid rgba(179, 161, 125, 0.2);
+            border-radius: 8px;
+            padding: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .result-icon {
+            font-size: 2rem;
+            color: var(--primary-gold);
+            min-width: 40px;
+        }
+
+        .result-content h5 {
+            margin: 0 0 0.5rem 0;
+            color: var(--light-text);
+            font-size: 0.9rem;
+        }
+
+        .result-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--primary-gold);
+            margin-bottom: 0.25rem;
+        }
+
+        .result-subtitle {
+            font-size: 0.8rem;
+            color: var(--gray-text);
+        }
+
+        .trading-strategy, .risk-parameters {
+            margin: 2rem 0;
+        }
+
+        .trading-strategy h5, .risk-parameters h5 {
+            color: var(--primary-gold);
+            margin-bottom: 1rem;
+            font-size: 1.1rem;
+        }
+
+        .strategy-content {
+            background: rgba(42, 87, 31, 0.2);
+            border: 1px solid rgba(42, 87, 31, 0.4);
+            border-radius: 8px;
+            padding: 1.5rem;
+            line-height: 1.6;
+        }
+
+        .risk-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 1rem;
+        }
+
+        .risk-param {
+            background: rgba(179, 161, 125, 0.1);
+            padding: 0.75rem;
+            border-radius: 6px;
+            font-size: 0.9rem;
+        }
+
+        .risk-param span {
+            color: var(--primary-gold);
+            font-weight: 600;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @media (max-width: 768px) {
+            .supplier-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .news-sources-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .timeline-item {
+                flex-direction: column;
+            }
+            
+            .timeline-time {
+                min-width: auto;
+                margin-bottom: 0.5rem;
+            }
+
+            .results-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .result-card {
+                flex-direction: column;
+                text-align: center;
+            }
+
+            .calculator-inputs {
+                padding: 1.5rem;
+            }
+
+            .risk-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
 </head>
 <body>
     <!-- Navigation -->
@@ -35,59 +424,488 @@
     </nav>
 
     <main class="main-content">
+        <!-- Header Section -->
         <header class="content-header card-style">
             <div class="bot-page-icon"><i class="fab fa-apple"></i></div>
-            <h1 class="page-main-title">Trading Supplier News for AAPL</h1>
-            <p class="page-main-subtitle">Leverage supply-chain signals from TSMC, Foxconn, and other key partners to stay one step ahead.</p>
+            <h1 class="page-main-title">Monitor Major Supplier News</h1>
+            <p class="page-main-subtitle">News from key suppliers (like TSMC or Foxconn) can provide early clues about production levels and potential supply chain issues, impacting AAPL's stock.</p>
         </header>
 
+        <!-- Interactive Calculator Section -->
         <section class="content-section card-style">
-            <h3>Why Supplier Headlines Move the Stock</h3>
-            <p>Apple's supply chain spans dozens of public companies. When these partners talk, the smart money listens. Production cuts, capacity expansions, or yield hiccups often surface in supplier reports <em>weeks</em> before Apple confirms anything. Early intel = early positioning.</p>
-            <ul>
-                <li><strong>TSMC Wafer Orders:</strong> Cuts or ramps in 3-nm capacity telegraph iPhone demand and Mac silicon road-maps.</li>
-                <li><strong>Foxconn Guidance:</strong> Factory slowdowns in Zhengzhou or Chennai can tip you to iPhone assembly constraints.</li>
-                <li><strong>Lens & LG Display Shipments:</strong> Component shortages show up as shipment downgrades—expect margin pressure.</li>
-            </ul>
+            <h3><i class="fas fa-calculator" style="color: var(--primary-gold); margin-right: 0.5rem;"></i>Supplier News Impact Calculator</h3>
+            <p>Use this tool to assess potential AAPL price impact and get personalized trading recommendations based on supplier news.</p>
+            
+            <div class="calculator-container">
+                <div class="calculator-inputs">
+                    <div class="input-group">
+                        <label for="supplier-select">Supplier:</label>
+                        <select id="supplier-select" class="calculator-input">
+                            <option value="">Select Supplier</option>
+                            <option value="tsmc" data-impact="9">TSMC (2330.TW)</option>
+                            <option value="foxconn" data-impact="9">Foxconn (2317.TW)</option>
+                            <option value="lg-display" data-impact="7">LG Display</option>
+                            <option value="largan" data-impact="6">Largan Precision</option>
+                            <option value="memory" data-impact="5">SK Hynix/Micron</option>
+                            <option value="broadcom" data-impact="6">Broadcom</option>
+                            <option value="other" data-impact="4">Other Supplier</option>
+                        </select>
+                    </div>
+
+                    <div class="input-group">
+                        <label for="news-type">News Type:</label>
+                        <select id="news-type" class="calculator-input">
+                            <option value="">Select News Type</option>
+                            <option value="production-cut" data-multiplier="1.5">Production Cut</option>
+                            <option value="production-increase" data-multiplier="1.2">Production Increase</option>
+                            <option value="guidance-down" data-multiplier="1.8">Guidance Downgrade</option>
+                            <option value="guidance-up" data-multiplier="1.3">Guidance Upgrade</option>
+                            <option value="capacity-expansion" data-multiplier="1.1">Capacity Expansion</option>
+                            <option value="supply-shortage" data-multiplier="1.6">Supply Shortage</option>
+                            <option value="labor-issues" data-multiplier="1.4">Labor Issues</option>
+                            <option value="tech-breakthrough" data-multiplier="1.2">Tech Breakthrough</option>
+                        </select>
+                    </div>
+
+                    <div class="input-group">
+                        <label for="magnitude">Magnitude:</label>
+                        <select id="magnitude" class="calculator-input">
+                            <option value="">Select Magnitude</option>
+                            <option value="5">5-10% Change</option>
+                            <option value="15">10-20% Change</option>
+                            <option value="25">20%+ Change</option>
+                        </select>
+                    </div>
+
+                    <div class="input-group">
+                        <label for="market-timing">Market Timing:</label>
+                        <select id="market-timing" class="calculator-input">
+                            <option value="">Select Timing</option>
+                            <option value="premarket" data-volatility="1.3">Pre-Market</option>
+                            <option value="opening" data-volatility="1.5">Market Open (9:30-10:30 ET)</option>
+                            <option value="regular" data-volatility="1.0">Regular Hours</option>
+                            <option value="afterhours" data-volatility="1.2">After Hours</option>
+                        </select>
+                    </div>
+
+                    <div class="input-group">
+                        <label for="portfolio-size">Portfolio Size ($):</label>
+                        <input type="number" id="portfolio-size" class="calculator-input" placeholder="e.g., 50000" min="1000" step="1000">
+                    </div>
+
+                    <button id="calculate-btn" class="calculator-button">
+                        <i class="fas fa-chart-line"></i> Calculate Impact
+                    </button>
+                </div>
+
+                <div id="calculator-results" class="calculator-results" style="display: none;">
+                    <div class="results-header">
+                        <h4><i class="fas fa-chart-bar"></i> Trading Analysis</h4>
+                    </div>
+                    
+                    <div class="results-grid">
+                        <div class="result-card impact-card">
+                            <div class="result-icon"><i class="fas fa-trending-up"></i></div>
+                            <div class="result-content">
+                                <h5>Expected AAPL Impact</h5>
+                                <div class="result-value" id="price-impact">+2.5%</div>
+                                <div class="result-subtitle">Estimated price movement</div>
+                            </div>
+                        </div>
+
+                        <div class="result-card confidence-card">
+                            <div class="result-icon"><i class="fas fa-bullseye"></i></div>
+                            <div class="result-content">
+                                <h5>Confidence Level</h5>
+                                <div class="result-value" id="confidence-level">High</div>
+                                <div class="result-subtitle">Based on historical data</div>
+                            </div>
+                        </div>
+
+                        <div class="result-card timing-card">
+                            <div class="result-icon"><i class="fas fa-clock"></i></div>
+                            <div class="result-content">
+                                <h5>Time Window</h5>
+                                <div class="result-value" id="time-window">30-60 min</div>
+                                <div class="result-subtitle">Peak impact period</div>
+                            </div>
+                        </div>
+
+                        <div class="result-card position-card">
+                            <div class="result-icon"><i class="fas fa-dollar-sign"></i></div>
+                            <div class="result-content">
+                                <h5>Recommended Position</h5>
+                                <div class="result-value" id="position-size">$1,000</div>
+                                <div class="result-subtitle">2% of portfolio</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="trading-strategy">
+                        <h5><i class="fas fa-chess"></i> Trading Strategy</h5>
+                        <div id="strategy-text" class="strategy-content">
+                            <!-- Dynamic strategy content will be inserted here -->
+                        </div>
+                    </div>
+
+                    <div class="risk-parameters">
+                        <h5><i class="fas fa-shield-alt"></i> Risk Parameters</h5>
+                        <div class="risk-grid">
+                            <div class="risk-param">
+                                <strong>Stop Loss:</strong> <span id="stop-loss">1.5%</span>
+                            </div>
+                            <div class="risk-param">
+                                <strong>Take Profit:</strong> <span id="take-profit">3.0%</span>
+                            </div>
+                            <div class="risk-param">
+                                <strong>Max Risk:</strong> <span id="max-risk">$300</span>
+                            </div>
+                            <div class="risk-param">
+                                <strong>Risk/Reward:</strong> <span id="risk-reward">1:2</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </section>
 
+        <!-- Introduction Section -->
         <section class="content-section card-style">
-            <h3>Decode the Signal, Ditch the Noise</h3>
-            <p>Not every headline is actionable. Filter supplier news like a pro:</p>
-            <ul>
-                <li><strong>Size Matters:</strong> Focus on reports referencing 5-10%+ changes to build plans; anything smaller is usually priced in.</li>
-                <li><strong>Source Credibility:</strong> Give weight to regulatory filings and earnings calls over anonymous blog posts.</li>
-                <li><strong>Cross-Check:</strong> Look for two independent reports before you size up a trade.</li>
-                <li><strong>Time the Tape:</strong> The first 30 minutes after a credible supplier headline drops is your highest-edge window.</li>
-            </ul>
+            <h3><i class="fas fa-info-circle" style="color: var(--primary-gold); margin-right: 0.5rem;"></i>Why Supplier Intelligence Matters</h3>
+            <p>Apple's supply chain is a complex web of interdependent partners spanning the globe. When these suppliers speak, smart money listens. Production cuts, capacity expansions, or yield issues often surface in supplier reports <strong>weeks before Apple confirms anything</strong>. This information asymmetry creates profitable trading opportunities for those who know where to look.</p>
+            
+            <div class="alert-box">
+                <i class="fas fa-exclamation-triangle alert-icon"></i>
+                <strong>Key Insight:</strong> Supplier news typically moves AAPL within 30 minutes to 2 hours of release. Position sizing and timing are critical for capturing these moves.
+            </div>
         </section>
 
+        <!-- Key Suppliers Section -->
         <section class="content-section card-style">
-            <h3>Your Supplier Intelligence Feed</h3>
-            <p>Add these resources to your watchlist and news scraper:</p>
-            <ul>
-                <li><strong>Nikkei Asia:</strong> Best-in-class for Asia-Pacific manufacturing scoops.</li>
-                <li><strong>DigiTimes:</strong> Real-time supply-chain chatter straight from Taiwan.</li>
-                <li><strong>Bloomberg Terminal:</strong> Use <code>CN</code> company news filters for 2317 TT (Hon Hai) and 2330 TT (TSMC).</li>
-                <li><strong>Company Earnings Calls:</strong> Parse TSMC, Foxconn, and Broadcom transcripts for build-plan language.</li>
-            </ul>
+            <h3><i class="fas fa-industry" style="color: var(--primary-gold); margin-right: 0.5rem;"></i>Critical Suppliers to Monitor</h3>
+            <p>Focus your intelligence gathering on these tier-1 suppliers that have the highest correlation with AAPL stock movements:</p>
+            
+            <div class="supplier-grid">
+                <div class="supplier-card">
+                    <div class="supplier-header">
+                        <div class="supplier-icon"><i class="fas fa-microchip"></i></div>
+                        <div>
+                            <h4 class="supplier-title">TSMC (2330.TW)</h4>
+                            <p class="supplier-subtitle">Primary chip manufacturer</p>
+                        </div>
+                    </div>
+                    <div class="signal-types">
+                        <span class="signal-tag">Wafer Orders</span>
+                        <span class="signal-tag">3nm Capacity</span>
+                        <span class="signal-tag">Yield Rates</span>
+                    </div>
+                    <p><strong>Impact Level:</strong> Very High - Direct correlation with iPhone/Mac production capacity</p>
+                </div>
+
+                <div class="supplier-card">
+                    <div class="supplier-header">
+                        <div class="supplier-icon"><i class="fas fa-wrench"></i></div>
+                        <div>
+                            <h4 class="supplier-title">Foxconn (2317.TW)</h4>
+                            <p class="supplier-subtitle">Assembly & manufacturing</p>
+                        </div>
+                    </div>
+                    <div class="signal-types">
+                        <span class="signal-tag">Factory Output</span>
+                        <span class="signal-tag">Labor Issues</span>
+                        <span class="signal-tag">Guidance Updates</span>
+                    </div>
+                    <p><strong>Impact Level:</strong> Very High - Assembly bottlenecks directly affect iPhone availability</p>
+                </div>
+
+                <div class="supplier-card">
+                    <div class="supplier-header">
+                        <div class="supplier-icon"><i class="fas fa-tv"></i></div>
+                        <div>
+                            <h4 class="supplier-title">LG Display</h4>
+                            <p class="supplier-subtitle">OLED displays</p>
+                        </div>
+                    </div>
+                    <div class="signal-types">
+                        <span class="signal-tag">Panel Shipments</span>
+                        <span class="signal-tag">Quality Issues</span>
+                        <span class="signal-tag">Capacity Plans</span>
+                    </div>
+                    <p><strong>Impact Level:</strong> High - Display shortages can constrain premium iPhone models</p>
+                </div>
+
+                <div class="supplier-card">
+                    <div class="supplier-header">
+                        <div class="supplier-icon"><i class="fas fa-eye"></i></div>
+                        <div>
+                            <h4 class="supplier-title">Largan Precision</h4>
+                            <p class="supplier-subtitle">Camera lenses</p>
+                        </div>
+                    </div>
+                    <div class="signal-types">
+                        <span class="signal-tag">Lens Orders</span>
+                        <span class="signal-tag">Tech Upgrades</span>
+                        <span class="signal-tag">Shipment Data</span>
+                    </div>
+                    <p><strong>Impact Level:</strong> Medium - Camera component changes signal new iPhone features</p>
+                </div>
+
+                <div class="supplier-card">
+                    <div class="supplier-header">
+                        <div class="supplier-icon"><i class="fas fa-memory"></i></div>
+                        <div>
+                            <h4 class="supplier-title">SK Hynix / Micron</h4>
+                            <p class="supplier-subtitle">Memory components</p>
+                        </div>
+                    </div>
+                    <div class="signal-types">
+                        <span class="signal-tag">DRAM Orders</span>
+                        <span class="signal-tag">NAND Supply</span>
+                        <span class="signal-tag">Pricing Trends</span>
+                    </div>
+                    <p><strong>Impact Level:</strong> Medium - Memory constraints affect device configurations</p>
+                </div>
+
+                <div class="supplier-card">
+                    <div class="supplier-header">
+                        <div class="supplier-icon"><i class="fas fa-satellite-dish"></i></div>
+                        <div>
+                            <h4 class="supplier-title">Broadcom</h4>
+                            <p class="supplier-subtitle">RF & wireless chips</p>
+                        </div>
+                    </div>
+                    <div class="signal-types">
+                        <span class="signal-tag">5G Chips</span>
+                        <span class="signal-tag">WiFi Components</span>
+                        <span class="signal-tag">Custom Silicon</span>
+                    </div>
+                    <p><strong>Impact Level:</strong> Medium - Critical for connectivity features in new devices</p>
+                </div>
+            </div>
         </section>
+
+        <!-- News Sources Section -->
+        <section class="content-section card-style">
+            <h3><i class="fas fa-newspaper" style="color: var(--primary-gold); margin-right: 0.5rem;"></i>Intelligence Sources & Reliability Tiers</h3>
+            <p>Not all sources are created equal. Build your supplier intelligence network using this tiered approach:</p>
+            
+            <div class="news-sources-grid">
+                <div class="news-source-card">
+                    <div class="source-tier tier-premium">TIER 1 - PREMIUM</div>
+                    <h4>Bloomberg Terminal</h4>
+                    <p><strong>Focus:</strong> Real-time supplier earnings, guidance updates</p>
+                    <p><strong>Key Searches:</strong> CN filters for 2317 TT (Foxconn), 2330 TT (TSMC)</p>
+                    <p><strong>Edge:</strong> First to report material supplier changes</p>
+                </div>
+
+                <div class="news-source-card">
+                    <div class="source-tier tier-premium">TIER 1 - PREMIUM</div>
+                    <h4>Nikkei Asia</h4>
+                    <p><strong>Focus:</strong> Asia-Pacific manufacturing scoops</p>
+                    <p><strong>Key Searches:</strong> Apple supply chain, TSMC production</p>
+                    <p><strong>Edge:</strong> Deep sources in Asian manufacturing</p>
+                </div>
+
+                <div class="news-source-card">
+                    <div class="source-tier tier-standard">TIER 2 - STANDARD</div>
+                    <h4>DigiTimes</h4>
+                    <p><strong>Focus:</strong> Taiwan semiconductor industry</p>
+                    <p><strong>Key Searches:</strong> Apple orders, component shortages</p>
+                    <p><strong>Edge:</strong> Real-time supply chain chatter</p>
+                </div>
+
+                <div class="news-source-card">
+                    <div class="source-tier tier-standard">TIER 2 - STANDARD</div>
+                    <h4>Company Filings</h4>
+                    <p><strong>Focus:</strong> Quarterly earnings calls & SEC filings</p>
+                    <p><strong>Key Searches:</strong> Management commentary on Apple business</p>
+                    <p><strong>Edge:</strong> Official guidance from supplier management</p>
+                </div>
+
+                <div class="news-source-card">
+                    <div class="source-tier tier-free">TIER 3 - FREE</div>
+                    <h4>Reuters/WSJ Tech</h4>
+                    <p><strong>Focus:</strong> Major supply chain disruptions</p>
+                    <p><strong>Key Searches:</strong> Apple supplier news alerts</p>
+                    <p><strong>Edge:</strong> Broad market awareness, good for confirmation</p>
+                </div>
+
+                <div class="news-source-card">
+                    <div class="source-tier tier-free">TIER 3 - FREE</div>
+                    <h4>Social Media/Reddit</h4>
+                    <p><strong>Focus:</strong> Factory worker reports, leak validation</p>
+                    <p><strong>Key Searches:</strong> r/Apple, supply chain Twitter</p>
+                    <p><strong>Edge:</strong> Ground-level intelligence, requires verification</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Signal Quality Section -->
+        <section class="content-section card-style">
+            <h3><i class="fas fa-filter" style="color: var(--primary-gold); margin-right: 0.5rem;"></i>Filtering Signal from Noise</h3>
+            <p>Supplier news generates constant chatter. Use these criteria to identify actionable intelligence:</p>
+            
+            <div class="risk-management-grid">
+                <div class="risk-item">
+                    <div class="risk-icon"><i class="fas fa-chart-line"></i></div>
+                    <h4>Size Threshold</h4>
+                    <p>Focus on 5-10%+ changes to build plans. Smaller adjustments are usually priced in.</p>
+                </div>
+                
+                <div class="risk-item">
+                    <div class="risk-icon"><i class="fas fa-certificate"></i></div>
+                    <h4>Source Credibility</h4>
+                    <p>Prioritize regulatory filings and earnings calls over anonymous reports.</p>
+                </div>
+                
+                <div class="risk-item">
+                    <div class="risk-icon"><i class="fas fa-crosshairs"></i></div>
+                    <h4>Cross-Validation</h4>
+                    <p>Wait for two independent sources before sizing up a position.</p>
+                </div>
+                
+                <div class="risk-item">
+                    <div class="risk-icon"><i class="fas fa-clock"></i></div>
+                    <h4>Timing Window</h4>
+                    <p>First 30 minutes after credible news is your highest-edge opportunity.</p>
+                </div>
+            </div>
+
+            <div class="alert-box">
+                <i class="fas fa-lightbulb alert-icon" style="color: var(--primary-gold);"></i>
+                <strong>Pro Tip:</strong> Set up Google Alerts for "TSMC Apple," "Foxconn guidance," and "iPhone production" to catch breaking news quickly.
+            </div>
+        </section>
+
+        <!-- Trading Timeline Section -->
+        <section class="content-section card-style">
+            <h3><i class="fas fa-timeline" style="color: var(--primary-gold); margin-right: 0.5rem;"></i>Typical News-to-Market Timeline</h3>
+            <p>Understanding the typical flow from supplier news to AAPL price action:</p>
+            
+            <div class="timeline-container">
+                <div class="timeline-item">
+                    <div class="timeline-time">T+0 mins</div>
+                    <div class="timeline-content">
+                        <strong>News Breaks</strong><br>
+                        Supplier reports production change or guidance update
+                    </div>
+                </div>
+                
+                <div class="timeline-item">
+                    <div class="timeline-time">T+5-15 mins</div>
+                    <div class="timeline-content">
+                        <strong>Algo Recognition</strong><br>
+                        Automated systems begin parsing and trading on keywords
+                    </div>
+                </div>
+                
+                <div class="timeline-item">
+                    <div class="timeline-time">T+15-30 mins</div>
+                    <div class="timeline-content">
+                        <strong>Human Analysis</strong><br>
+                        Professional traders assess materiality and size positions
+                    </div>
+                </div>
+                
+                <div class="timeline-item">
+                    <div class="timeline-time">T+30-60 mins</div>
+                    <div class="timeline-content">
+                        <strong>Broad Market Awareness</strong><br>
+                        News reaches mainstream financial media, retail traders
+                    </div>
+                </div>
+                
+                <div class="timeline-item">
+                    <div class="timeline-time">T+1-2 hours</div>
+                    <div class="timeline-content">
+                        <strong>Analysis & Rebuttal</strong><br>
+                        Apple may respond, analysts issue notes, momentum fades
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Risk Management Section -->
+        <section class="content-section card-style">
+            <h3><i class="fas fa-shield-alt" style="color: var(--primary-gold); margin-right: 0.5rem;"></i>Risk Management Framework</h3>
+            <p>Supplier news can be volatile and sometimes contradictory. Protect your capital with these guidelines:</p>
+            
+            <ul>
+                <li><strong>Position Sizing:</strong> Never risk more than 2-3% of portfolio on supplier-driven trades</li>
+                <li><strong>Stop Losses:</strong> Set tight stops (1-2%) as news-driven moves can reverse quickly</li>
+                <li><strong>Verification Time:</strong> Allow 15-30 minutes for news verification before entering positions</li>
+                <li><strong>False Signals:</strong> Be prepared for ~30% false positive rate on supplier news</li>
+                <li><strong>Earnings Blackout:</strong> Avoid supplier-based trades 1 week before AAPL earnings</li>
+            </ul>
+
+            <div class="alert-box">
+                <i class="fas fa-exclamation-triangle alert-icon"></i>
+                <strong>Warning:</strong> Supplier news is often priced in within hours. If you're late to the information, consider waiting for the next opportunity rather than chasing.
+            </div>
+        </section>
+
     </main>
 
-    <div class="floating-cta">
-        <a href="../../index.html#pricing" class="cta-button">Join Now & Get Signals</a>
-    </div>
+    <!-- CTA Section -->
+    <section class="cta-section">
+        <div class="container">
+            <div class="cta-content">
+                <h2>Ready to Trade Like the Pros?</h2>
+                <p>Join thousands of traders using our AAPL bot to capitalize on supplier news and market-moving events. Get real-time alerts, analysis, and trade recommendations.</p>
+                <div class="cta-buttons">
+                    <a href="../../index.html#pricing" class="cta-button primary">
+                        <i class="fab fa-apple"></i>
+                        Start AAPL Bot
+                    </a>
+                    <a href="../bots/aapl-bot.html" class="cta-button secondary">
+                        <i class="fas fa-info-circle"></i>
+                        Learn More
+                    </a>
+                </div>
+            </div>
+        </div>
+    </section>
 
     <!-- Footer -->
-    <footer>
-        <p>&copy; 2025 BlueChip Signals. All rights reserved. | <a href="../../legal.html" style="color: var(--primary-gold); text-decoration: none;">Legal Disclaimer</a></p>
-        <div class="social-media">
-            <a href="https://www.tiktok.com/@bluechip.signals" target="_blank"><i class="fab fa-tiktok"></i></a>
-            <a href="https://www.instagram.com/bluechip.signals/" target="_blank"><i class="fab fa-instagram"></i></a>
+    <footer class="main-footer">
+        <div class="footer-content">
+            <div class="footer-section">
+                <h3>BlueChip Signals</h3>
+                <p>Professional trading signals and market intelligence for serious traders. Our algorithmic bots analyze market patterns 24/7 to deliver actionable insights.</p>
+            </div>
+            
+            <div class="footer-section">
+                <h4>Quick Links</h4>
+                <ul>
+                    <li><a href="../../index.html#features">Features</a></li>
+                    <li><a href="../../index.html#bots">Trading Bots</a></li>
+                    <li><a href="../../index.html#pricing">Pricing</a></li>
+                    <li><a href="../../faq.html">FAQ</a></li>
+                    <li><a href="../../legal.html">Legal</a></li>
+                </ul>
+            </div>
+            
+            <div class="footer-section">
+                <h4>Trading Bots</h4>
+                <ul>
+                    <li><a href="../bots/spy-bot.html">SPY Bot</a></li>
+                    <li><a href="../bots/aapl-bot.html">AAPL Bot</a></li>
+                    <li><a href="../bots/tsla-bot.html">TSLA Bot</a></li>
+                    <li><a href="../bots/nvda-bot.html">NVDA Bot</a></li>
+                    <li><a href="../bots/meta-bot.html">META Bot</a></li>
+                </ul>
+            </div>
+        </div>
+        
+        <div class="footer-bottom">
+            <p>&copy; 2025 BlueChip Signals. All rights reserved.</p>
+            <div class="footer-social">
+                <a href="https://www.tiktok.com/@bluechip.signals" target="_blank"><i class="fab fa-tiktok"></i></a>
+                <a href="https://www.instagram.com/bluechip.signals/" target="_blank"><i class="fab fa-instagram"></i></a>
+            </div>
         </div>
     </footer>
 
-    <script src="../../assets/js/stock-prices.js" defer></script>
     <script>
         const hamburgerMenu = document.querySelector('.hamburger-menu');
         const mobileNav = document.querySelector('.nav-links');
@@ -95,6 +913,174 @@
         hamburgerMenu.addEventListener('click', () => {
             mobileNav.classList.toggle('active');
         });
+
+                 // Smooth scroll for internal links
+         document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+             anchor.addEventListener('click', function (e) {
+                 e.preventDefault();
+                 const target = document.querySelector(this.getAttribute('href'));
+                 if (target) {
+                     target.scrollIntoView({
+                         behavior: 'smooth',
+                         block: 'start'
+                     });
+                 }
+             });
+         });
+
+         // Supplier News Impact Calculator
+         class SupplierNewsCalculator {
+             constructor() {
+                 this.supplierSelect = document.getElementById('supplier-select');
+                 this.newsTypeSelect = document.getElementById('news-type');
+                 this.magnitudeSelect = document.getElementById('magnitude');
+                 this.marketTimingSelect = document.getElementById('market-timing');
+                 this.portfolioSizeInput = document.getElementById('portfolio-size');
+                 this.calculateBtn = document.getElementById('calculate-btn');
+                 this.resultsDiv = document.getElementById('calculator-results');
+                 
+                 this.initEventListeners();
+             }
+
+             initEventListeners() {
+                 this.calculateBtn.addEventListener('click', () => this.calculate());
+                 
+                 // Enable/disable button based on inputs
+                 [this.supplierSelect, this.newsTypeSelect, this.magnitudeSelect, this.marketTimingSelect, this.portfolioSizeInput].forEach(input => {
+                     input.addEventListener('change', () => this.updateButtonState());
+                 });
+             }
+
+             updateButtonState() {
+                 const allFilled = this.supplierSelect.value && 
+                                  this.newsTypeSelect.value && 
+                                  this.magnitudeSelect.value && 
+                                  this.marketTimingSelect.value && 
+                                  this.portfolioSizeInput.value;
+                 
+                 this.calculateBtn.disabled = !allFilled;
+             }
+
+             calculate() {
+                 const supplierImpact = parseFloat(this.supplierSelect.selectedOptions[0].dataset.impact);
+                 const newsMultiplier = parseFloat(this.newsTypeSelect.selectedOptions[0].dataset.multiplier);
+                 const magnitude = parseFloat(this.magnitudeSelect.value);
+                 const volatilityMultiplier = parseFloat(this.marketTimingSelect.selectedOptions[0].dataset.volatility);
+                 const portfolioSize = parseFloat(this.portfolioSizeInput.value);
+
+                 // Calculate base impact (supplier importance × news type × magnitude)
+                 const baseImpact = (supplierImpact / 10) * newsMultiplier * (magnitude / 100);
+                 
+                 // Apply market timing volatility
+                 const finalImpact = baseImpact * volatilityMultiplier;
+                 
+                 // Determine if positive or negative impact
+                 const isNegative = ['production-cut', 'guidance-down', 'supply-shortage', 'labor-issues'].includes(this.newsTypeSelect.value);
+                 const priceImpact = isNegative ? -Math.abs(finalImpact) : Math.abs(finalImpact);
+
+                 // Calculate confidence level
+                 const confidence = this.getConfidenceLevel(supplierImpact, newsMultiplier);
+                 
+                 // Calculate position sizing (2-3% of portfolio based on confidence)
+                 const positionPercent = confidence === 'High' ? 0.025 : confidence === 'Medium' ? 0.02 : 0.015;
+                 const recommendedPosition = portfolioSize * positionPercent;
+
+                 // Calculate time window
+                 const timeWindow = this.getTimeWindow(this.marketTimingSelect.value);
+
+                 // Calculate risk parameters
+                 const stopLoss = Math.min(0.02, Math.abs(priceImpact) * 0.75); // 75% of expected move or 2% max
+                 const takeProfit = Math.abs(priceImpact) * 1.2; // 120% of expected move
+                 const maxRisk = recommendedPosition * stopLoss;
+                 const riskReward = (takeProfit / stopLoss).toFixed(1);
+
+                 // Generate trading strategy
+                 const strategy = this.generateStrategy(this.newsTypeSelect.value, this.supplierSelect.value, isNegative, confidence);
+
+                 // Update results display
+                 this.displayResults({
+                     priceImpact: priceImpact,
+                     confidence: confidence,
+                     timeWindow: timeWindow,
+                     recommendedPosition: recommendedPosition,
+                     stopLoss: stopLoss,
+                     takeProfit: takeProfit,
+                     maxRisk: maxRisk,
+                     riskReward: riskReward,
+                     strategy: strategy
+                 });
+             }
+
+             getConfidenceLevel(supplierImpact, newsMultiplier) {
+                 const score = supplierImpact * newsMultiplier;
+                 if (score >= 15) return 'High';
+                 if (score >= 10) return 'Medium';
+                 return 'Low';
+             }
+
+             getTimeWindow(marketTiming) {
+                 switch(marketTiming) {
+                     case 'premarket': return '15-45 min';
+                     case 'opening': return '30-90 min';
+                     case 'regular': return '30-60 min';
+                     case 'afterhours': return '20-60 min';
+                     default: return '30-60 min';
+                 }
+             }
+
+             generateStrategy(newsType, supplier, isNegative, confidence) {
+                 const direction = isNegative ? 'bearish' : 'bullish';
+                 const action = isNegative ? 'short' : 'long';
+                 const supplierName = this.supplierSelect.selectedOptions[0].textContent;
+
+                 let strategy = `<strong>${direction.toUpperCase()} Strategy:</strong> Based on ${supplierName} ${newsType.replace('-', ' ')}, `;
+                 
+                 if (confidence === 'High') {
+                     strategy += `this is a high-confidence ${action} opportunity. Consider taking a full position size immediately after news verification. `;
+                 } else if (confidence === 'Medium') {
+                     strategy += `this represents a moderate ${action} opportunity. Scale into position over 15-30 minutes. `;
+                 } else {
+                     strategy += `this is a low-confidence signal. Consider a smaller position or wait for additional confirmation. `;
+                 }
+
+                 strategy += `<br><br><strong>Entry:</strong> ${isNegative ? 'Short' : 'Long'} AAPL within the recommended time window. `;
+                 strategy += `<strong>Monitor:</strong> Volume and price action for confirmation. `;
+                 strategy += `<strong>Exit:</strong> Take profits at target or stop out if news impact fades quickly.`;
+
+                 return strategy;
+             }
+
+             displayResults(results) {
+                 // Update price impact
+                 const impactElement = document.getElementById('price-impact');
+                 impactElement.textContent = `${results.priceImpact >= 0 ? '+' : ''}${(results.priceImpact * 100).toFixed(1)}%`;
+                 impactElement.style.color = results.priceImpact >= 0 ? '#2a571f' : '#FF3B3B';
+
+                 // Update confidence
+                 const confidenceElement = document.getElementById('confidence-level');
+                 confidenceElement.textContent = results.confidence;
+                 confidenceElement.style.color = results.confidence === 'High' ? '#2a571f' : 
+                                                results.confidence === 'Medium' ? '#b3a17d' : '#FF3B3B';
+
+                 // Update other values
+                 document.getElementById('time-window').textContent = results.timeWindow;
+                 document.getElementById('position-size').textContent = `$${results.recommendedPosition.toLocaleString()}`;
+                 document.getElementById('stop-loss').textContent = `${(results.stopLoss * 100).toFixed(1)}%`;
+                 document.getElementById('take-profit').textContent = `${(results.takeProfit * 100).toFixed(1)}%`;
+                 document.getElementById('max-risk').textContent = `$${results.maxRisk.toLocaleString()}`;
+                 document.getElementById('risk-reward').textContent = `1:${results.riskReward}`;
+                 document.getElementById('strategy-text').innerHTML = results.strategy;
+
+                 // Show results with animation
+                 this.resultsDiv.style.display = 'block';
+                 this.resultsDiv.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+             }
+         }
+
+         // Initialize calculator when DOM is loaded
+         document.addEventListener('DOMContentLoaded', () => {
+             new SupplierNewsCalculator();
+         });
     </script>
 </body>
 </html>

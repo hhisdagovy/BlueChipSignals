@@ -1,0 +1,1090 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Free Trading Tools & Guides - Test All Features | BlueChip Signals</title>
+    <link rel="icon" type="image/png" href="assets/images/logo.png">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="assets/css/bot-style.css?v=1751139967">
+    <style>
+        /* Enhanced styles for free features page */
+        .hero-section {
+            background: linear-gradient(135deg, rgba(179, 161, 125, 0.1) 0%, rgba(42, 87, 31, 0.1) 100%);
+            border: 1px solid rgba(179, 161, 125, 0.2);
+            border-radius: 16px;
+            padding: 3rem 2rem;
+            margin: 2rem 0;
+            text-align: center;
+        }
+
+        .hero-title {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--light-text);
+            margin-bottom: 1rem;
+            background: linear-gradient(135deg, var(--primary-gold), var(--secondary-gold));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .hero-subtitle {
+            font-size: 1.2rem;
+            color: var(--gray-text);
+            margin-bottom: 2rem;
+            max-width: 800px;
+            margin-left: auto;
+            margin-right: auto;
+            line-height: 1.6;
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 2rem;
+            margin: 3rem 0;
+        }
+
+        .feature-card {
+            background: linear-gradient(135deg, rgba(179, 161, 125, 0.1), rgba(179, 161, 125, 0.05));
+            border: 1px solid rgba(179, 161, 125, 0.2);
+            border-radius: 16px;
+            padding: 2rem;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .feature-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, var(--primary-gold), var(--secondary-gold));
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-8px);
+            border-color: var(--primary-gold);
+            box-shadow: 0 15px 40px rgba(179, 161, 125, 0.3);
+        }
+
+        .feature-card:hover::before {
+            opacity: 1;
+        }
+
+        .feature-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .feature-icon {
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, var(--primary-gold), var(--secondary-gold));
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 1rem;
+            font-size: 1.5rem;
+            color: var(--dark-bg);
+        }
+
+        .feature-title {
+            font-size: 1.4rem;
+            font-weight: 600;
+            color: var(--light-text);
+            margin: 0;
+        }
+
+        .feature-description {
+            color: var(--gray-text);
+            margin-bottom: 2rem;
+            line-height: 1.6;
+        }
+
+        .feature-demo {
+            background: var(--dark-bg);
+            border: 1px solid rgba(179, 161, 125, 0.2);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .demo-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--primary-gold);
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .mini-calculator {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .mini-input {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .mini-input label {
+            color: var(--light-text);
+            font-size: 0.85rem;
+            margin-bottom: 0.3rem;
+            font-weight: 500;
+        }
+
+        .mini-input input, .mini-input select {
+            background: rgba(179, 161, 125, 0.1);
+            border: 1px solid rgba(179, 161, 125, 0.3);
+            border-radius: 6px;
+            padding: 0.6rem;
+            color: var(--light-text);
+            font-size: 0.9rem;
+        }
+
+        .mini-input input:focus, .mini-input select:focus {
+            outline: none;
+            border-color: var(--primary-gold);
+            box-shadow: 0 0 0 2px rgba(179, 161, 125, 0.2);
+        }
+
+        .demo-button {
+            background: linear-gradient(135deg, var(--success-green), #2a571f);
+            color: white;
+            border: none;
+            padding: 0.8rem 1.5rem;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.9rem;
+            width: 100%;
+        }
+
+        .demo-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(42, 87, 31, 0.3);
+        }
+
+        .demo-result {
+            margin-top: 1rem;
+            padding: 1rem;
+            background: rgba(42, 87, 31, 0.1);
+            border: 1px solid rgba(42, 87, 31, 0.3);
+            border-radius: 8px;
+            display: none;
+        }
+
+        .result-strong { color: var(--success-green); }
+        .result-moderate { color: var(--primary-gold); }
+        .result-weak { color: #FF3B3B; }
+
+        .feature-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: linear-gradient(135deg, rgba(179, 161, 125, 0.2), rgba(179, 161, 125, 0.1));
+            color: var(--primary-gold);
+            padding: 0.8rem 1.5rem;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 0.95rem;
+            border: 1px solid rgba(179, 161, 125, 0.3);
+            transition: all 0.3s ease;
+        }
+
+        .feature-link:hover {
+            background: rgba(179, 161, 125, 0.3);
+            border-color: var(--primary-gold);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(179, 161, 125, 0.2);
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 1rem;
+            margin: 1.5rem 0;
+        }
+
+        .stat-item {
+            background: rgba(179, 161, 125, 0.1);
+            padding: 1rem;
+            border-radius: 8px;
+            text-align: center;
+            border: 1px solid rgba(179, 161, 125, 0.2);
+        }
+
+        .stat-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--primary-gold);
+            display: block;
+        }
+
+        .stat-label {
+            font-size: 0.8rem;
+            color: var(--gray-text);
+            margin-top: 0.3rem;
+        }
+
+        .checklist-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 0.5rem;
+            margin: 1rem 0;
+        }
+
+        .mini-checklist-item {
+            display: flex;
+            align-items: center;
+            padding: 0.5rem;
+            background: rgba(179, 161, 125, 0.1);
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 1px solid rgba(179, 161, 125, 0.2);
+        }
+
+        .mini-checklist-item:hover {
+            border-color: var(--primary-gold);
+        }
+
+        .mini-checkbox {
+            width: 16px;
+            height: 16px;
+            border: 2px solid var(--primary-gold);
+            border-radius: 3px;
+            margin-right: 0.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+        }
+
+        .mini-checkbox.checked {
+            background: var(--success-green);
+            border-color: var(--success-green);
+        }
+
+        .mini-checkbox.checked::after {
+            content: '✓';
+            color: white;
+            font-weight: bold;
+            font-size: 10px;
+        }
+
+        .mini-checklist-text {
+            flex: 1;
+            color: var(--light-text);
+            font-size: 0.85rem;
+        }
+
+        .upgrade-banner {
+            background: linear-gradient(135deg, var(--primary-gold), var(--secondary-gold));
+            color: var(--dark-bg);
+            padding: 2rem;
+            border-radius: 16px;
+            text-align: center;
+            margin: 3rem 0;
+        }
+
+        .upgrade-title {
+            font-size: 1.8rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+        }
+
+        .upgrade-description {
+            font-size: 1.1rem;
+            margin-bottom: 2rem;
+            opacity: 0.9;
+        }
+
+        .upgrade-button {
+            background: var(--dark-bg);
+            color: var(--primary-gold);
+            padding: 1rem 2rem;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 1.1rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: all 0.3s ease;
+            border: 2px solid var(--dark-bg);
+        }
+
+        .upgrade-button:hover {
+            background: transparent;
+            color: var(--dark-bg);
+            border-color: var(--dark-bg);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        .timeline-demo {
+            position: relative;
+            padding: 1rem 0;
+        }
+
+        .timeline-item {
+            display: flex;
+            align-items: center;
+            margin: 0.5rem 0;
+            padding: 0.5rem;
+            background: rgba(179, 161, 125, 0.1);
+            border-radius: 6px;
+            border: 1px solid rgba(179, 161, 125, 0.2);
+        }
+
+        .timeline-date {
+            background: var(--primary-gold);
+            color: var(--dark-bg);
+            padding: 0.3rem 0.6rem;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            margin-right: 0.8rem;
+            min-width: 60px;
+            text-align: center;
+        }
+
+        .timeline-content {
+            flex: 1;
+            color: var(--light-text);
+            font-size: 0.85rem;
+        }
+
+        @media (max-width: 768px) {
+            .features-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .hero-title {
+                font-size: 2rem;
+            }
+
+            .mini-calculator {
+                grid-template-columns: 1fr;
+            }
+
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav>
+        <div class="nav-container">
+            <div class="logo">
+                <a href="index.html"><img src="assets/images/logo.png" alt="BlueChip Signals Logo"></a>
+            </div>
+            <div class="hamburger-menu">
+                <div class="bar"></div>
+                <div class="bar"></div>
+                <div class="bar"></div>
+            </div>
+            <ul class="nav-links">
+                <li><a href="index.html#features">Features</a></li>
+                <li><a href="index.html#bots">Our Bots</a></li>
+                <li><a href="index.html#pricing">Pricing</a></li>
+                <li><a href="index.html#testimonials">Testimonials</a></li>
+                <li><a href="faq.html">FAQ</a></li>
+                <li><a href="legal.html">Legal Disclaimer</a></li>
+                <li><a href="about.html">About Us</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <main class="main-content">
+        <!-- Hero Section -->
+        <section class="hero-section">
+            <h1 class="hero-title">Free Trading Tools & Guides</h1>
+            <p class="hero-subtitle">
+                Test drive all our professional trading analysis tools in one place. No signup required - explore advanced calculators, 
+                interactive guides, and market analysis tools that power our premium trading signals.
+            </p>
+            <div class="stats-grid">
+                <div class="stat-item">
+                    <span class="stat-value">8+</span>
+                    <span class="stat-label">Interactive Tools</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-value">5</span>
+                    <span class="stat-label">Trading Bots</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-value">15+</span>
+                    <span class="stat-label">Analysis Methods</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-value">100%</span>
+                    <span class="stat-label">Free Testing</span>
+                </div>
+            </div>
+        </section>
+
+        <div class="features-grid">
+            <!-- AAPL Product Cycles -->
+            <div class="feature-card">
+                <div class="feature-header">
+                    <div class="feature-icon"><i class="fab fa-apple"></i></div>
+                    <div>
+                        <h3 class="feature-title">AAPL Product Cycles</h3>
+                    </div>
+                </div>
+                <p class="feature-description">
+                    Analyze how Apple's product announcements and launch cycles impact stock price movements. 
+                    Calculate potential price reactions based on historical patterns.
+                </p>
+                
+                <div class="feature-demo">
+                    <div class="demo-title">
+                        <i class="fas fa-calculator"></i>
+                        Product Impact Calculator
+                    </div>
+                    <div class="mini-calculator">
+                        <div class="mini-input">
+                            <label>Event Type</label>
+                            <select id="product-event">
+                                <option value="iphone">iPhone Launch</option>
+                                <option value="earnings">Earnings Call</option>
+                                <option value="wwdc">WWDC Event</option>
+                                <option value="services">Services Update</option>
+                            </select>
+                        </div>
+                        <div class="mini-input">
+                            <label>Days Until Event</label>
+                            <input type="number" id="product-days" placeholder="e.g., 30" min="1" max="365">
+                        </div>
+                        <div class="mini-input">
+                            <label>Market Sentiment</label>
+                            <select id="product-sentiment">
+                                <option value="bullish">Bullish</option>
+                                <option value="neutral">Neutral</option>
+                                <option value="bearish">Bearish</option>
+                            </select>
+                        </div>
+                    </div>
+                    <button class="demo-button" onclick="calculateProductImpact()">Calculate Impact</button>
+                    <div class="demo-result" id="product-result"></div>
+                </div>
+                
+                <a href="pages/guides/aapl-product-cycles.html" class="feature-link">
+                    <i class="fas fa-external-link-alt"></i>
+                    View Full Guide
+                </a>
+            </div>
+
+            <!-- AAPL Supplier Intelligence -->
+            <div class="feature-card">
+                <div class="feature-header">
+                    <div class="feature-icon"><i class="fas fa-industry"></i></div>
+                    <div>
+                        <h3 class="feature-title">Supplier Intelligence</h3>
+                    </div>
+                </div>
+                <p class="feature-description">
+                    Monitor key Apple suppliers like TSMC, Foxconn, and component manufacturers. 
+                    Assess how supplier news impacts AAPL stock performance.
+                </p>
+                
+                <div class="feature-demo">
+                    <div class="demo-title">
+                        <i class="fas fa-calculator"></i>
+                        Supplier Impact Calculator
+                    </div>
+                    <div class="mini-calculator">
+                        <div class="mini-input">
+                            <label>Supplier</label>
+                            <select id="supplier-name">
+                                <option value="tsmc">TSMC</option>
+                                <option value="foxconn">Foxconn</option>
+                                <option value="broadcom">Broadcom</option>
+                                <option value="qualcomm">Qualcomm</option>
+                            </select>
+                        </div>
+                        <div class="mini-input">
+                            <label>News Type</label>
+                            <select id="supplier-news">
+                                <option value="production">Production Update</option>
+                                <option value="earnings">Earnings Report</option>
+                                <option value="disruption">Supply Disruption</option>
+                                <option value="expansion">Capacity Expansion</option>
+                            </select>
+                        </div>
+                        <div class="mini-input">
+                            <label>Impact Severity</label>
+                            <select id="supplier-severity">
+                                <option value="low">Low</option>
+                                <option value="medium">Medium</option>
+                                <option value="high">High</option>
+                            </select>
+                        </div>
+                    </div>
+                    <button class="demo-button" onclick="calculateSupplierImpact()">Analyze Impact</button>
+                    <div class="demo-result" id="supplier-result"></div>
+                </div>
+                
+                <a href="pages/guides/aapl-supplier-news.html" class="feature-link">
+                    <i class="fas fa-external-link-alt"></i>
+                    View Full Guide
+                </a>
+            </div>
+
+            <!-- Market Bellwether Analysis -->
+            <div class="feature-card">
+                <div class="feature-header">
+                    <div class="feature-icon"><i class="fas fa-chart-area"></i></div>
+                    <div>
+                        <h3 class="feature-title">Market Bellwether</h3>
+                    </div>
+                </div>
+                <p class="feature-description">
+                    Understand how AAPL's massive market cap influences SPY and QQQ movements. 
+                    Simulate market correlations and predict index impacts.
+                </p>
+                
+                <div class="feature-demo">
+                    <div class="demo-title">
+                        <i class="fas fa-chart-line"></i>
+                        Market Impact Simulator
+                    </div>
+                    <div class="mini-calculator">
+                        <div class="mini-input">
+                            <label>AAPL Move (%)</label>
+                            <input type="number" id="market-aapl-move" placeholder="e.g., 3.5" step="0.1">
+                        </div>
+                        <div class="mini-input">
+                            <label>Market Regime</label>
+                            <select id="market-regime">
+                                <option value="bull">Bull Market</option>
+                                <option value="bear">Bear Market</option>
+                                <option value="neutral">Neutral</option>
+                                <option value="volatile">High Volatility</option>
+                            </select>
+                        </div>
+                        <div class="mini-input">
+                            <label>Volume Profile</label>
+                            <select id="market-volume">
+                                <option value="high">High Volume</option>
+                                <option value="average">Average Volume</option>
+                                <option value="low">Low Volume</option>
+                            </select>
+                        </div>
+                    </div>
+                    <button class="demo-button" onclick="calculateMarketImpact()">Simulate Impact</button>
+                    <div class="demo-result" id="market-result"></div>
+                </div>
+                
+                <a href="pages/guides/aapl-market-bellwether.html" class="feature-link">
+                    <i class="fas fa-external-link-alt"></i>
+                    View Full Guide
+                </a>
+            </div>
+
+            <!-- Pullback Quality Analyzer -->
+            <div class="feature-card">
+                <div class="feature-header">
+                    <div class="feature-icon"><i class="fas fa-chart-line"></i></div>
+                    <div>
+                        <h3 class="feature-title">Pullback Analysis</h3>
+                    </div>
+                </div>
+                <p class="feature-description">
+                    Evaluate the quality of AAPL pullbacks using our 7-point professional checklist. 
+                    Identify high-probability entry opportunities within established uptrends.
+                </p>
+                
+                <div class="feature-demo">
+                    <div class="demo-title">
+                        <i class="fas fa-tasks"></i>
+                        Pullback Quality Checklist
+                    </div>
+                    <div class="checklist-grid">
+                        <div class="mini-checklist-item" onclick="toggleMiniCheckbox(this, 'pullback-trend')">
+                            <div class="mini-checkbox" id="pullback-trend-check"></div>
+                            <div class="mini-checklist-text">Uptrend Intact</div>
+                        </div>
+                        <div class="mini-checklist-item" onclick="toggleMiniCheckbox(this, 'pullback-depth')">
+                            <div class="mini-checkbox" id="pullback-depth-check"></div>
+                            <div class="mini-checklist-text">Shallow Pullback</div>
+                        </div>
+                        <div class="mini-checklist-item" onclick="toggleMiniCheckbox(this, 'pullback-volume')">
+                            <div class="mini-checkbox" id="pullback-volume-check"></div>
+                            <div class="mini-checklist-text">Volume Confirmation</div>
+                        </div>
+                        <div class="mini-checklist-item" onclick="toggleMiniCheckbox(this, 'pullback-support')">
+                            <div class="mini-checkbox" id="pullback-support-check"></div>
+                            <div class="mini-checklist-text">Support Hold</div>
+                        </div>
+                        <div class="mini-checklist-item" onclick="toggleMiniCheckbox(this, 'pullback-relative')">
+                            <div class="mini-checkbox" id="pullback-relative-check"></div>
+                            <div class="mini-checklist-text">Relative Strength</div>
+                        </div>
+                        <div class="mini-checklist-item" onclick="toggleMiniCheckbox(this, 'pullback-candle')">
+                            <div class="mini-checkbox" id="pullback-candle-check"></div>
+                            <div class="mini-checklist-text">Reversal Pattern</div>
+                        </div>
+                    </div>
+                    <div style="text-align: center; margin-top: 1rem;">
+                        <div id="pullback-strength" style="font-size: 1.2rem; font-weight: 700; color: var(--gray-text);">Signal: Weak</div>
+                    </div>
+                </div>
+                
+                <a href="pages/guides/aapl-orderly-pullbacks.html" class="feature-link">
+                    <i class="fas fa-external-link-alt"></i>
+                    View Full Guide
+                </a>
+            </div>
+
+            <!-- Options Flow Analyzer -->
+            <div class="feature-card">
+                <div class="feature-header">
+                    <div class="feature-icon"><i class="fas fa-chart-bar"></i></div>
+                    <div>
+                        <h3 class="feature-title">Options Flow Analysis</h3>
+                    </div>
+                </div>
+                <p class="feature-description">
+                    Analyze unusual options activity to identify institutional positioning. 
+                    Decode call sweeps, put blocks, and gamma positioning for directional signals.
+                </p>
+                
+                <div class="feature-demo">
+                    <div class="demo-title">
+                        <i class="fas fa-calculator"></i>
+                        Flow Signal Analyzer
+                    </div>
+                    <div class="mini-calculator">
+                        <div class="mini-input">
+                            <label>Contract Volume</label>
+                            <input type="number" id="flow-volume" placeholder="e.g., 5000" min="100">
+                        </div>
+                        <div class="mini-input">
+                            <label>Option Type</label>
+                            <select id="flow-type">
+                                <option value="calls">Calls</option>
+                                <option value="puts">Puts</option>
+                            </select>
+                        </div>
+                        <div class="mini-input">
+                            <label>Execution Style</label>
+                            <select id="flow-execution">
+                                <option value="sweep">Sweep</option>
+                                <option value="block">Block</option>
+                                <option value="split">Split</option>
+                            </select>
+                        </div>
+                        <div class="mini-input">
+                            <label>Premium ($)</label>
+                            <input type="number" id="flow-premium" placeholder="e.g., 250000" min="1000">
+                        </div>
+                    </div>
+                    <button class="demo-button" onclick="calculateFlowSignal()">Analyze Flow</button>
+                    <div class="demo-result" id="flow-result"></div>
+                </div>
+                
+                <a href="pages/guides/aapl-options-volume.html" class="feature-link">
+                    <i class="fas fa-external-link-alt"></i>
+                    View Full Guide
+                </a>
+            </div>
+
+            <!-- Coming Soon - More Tools -->
+            <div class="feature-card">
+                <div class="feature-header">
+                    <div class="feature-icon"><i class="fas fa-plus-circle"></i></div>
+                    <div>
+                        <h3 class="feature-title">More Tools Coming</h3>
+                    </div>
+                </div>
+                <p class="feature-description">
+                    We're constantly developing new analysis tools and interactive guides. 
+                    Premium members get early access to beta features and advanced calculators.
+                </p>
+                
+                <div class="feature-demo">
+                    <div class="demo-title">
+                        <i class="fas fa-rocket"></i>
+                        Upcoming Features
+                    </div>
+                    <div class="timeline-demo">
+                        <div class="timeline-item">
+                            <div class="timeline-date">Q1</div>
+                            <div class="timeline-content">TSLA Energy Cycle Analyzer</div>
+                        </div>
+                        <div class="timeline-item">
+                            <div class="timeline-date">Q1</div>
+                            <div class="timeline-content">META Metaverse Impact Calculator</div>
+                        </div>
+                        <div class="timeline-item">
+                            <div class="timeline-date">Q2</div>
+                            <div class="timeline-content">NVDA AI Earnings Predictor</div>
+                        </div>
+                        <div class="timeline-item">
+                            <div class="timeline-date">Q2</div>
+                            <div class="timeline-content">SPY Economic Data Correlator</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <a href="index.html#pricing" class="feature-link">
+                    <i class="fas fa-crown"></i>
+                    Get Early Access
+                </a>
+            </div>
+        </div>
+
+        <!-- Upgrade Banner -->
+        <section class="upgrade-banner">
+            <h2 class="upgrade-title">Ready for Live Trading Signals?</h2>
+            <p class="upgrade-description">
+                These tools are just the beginning. Our premium bots combine all these analysis methods 
+                with real-time market data to deliver actionable trading signals directly to your phone.
+            </p>
+            <a href="index.html#pricing" class="upgrade-button">
+                <i class="fas fa-rocket"></i>
+                Start Your Premium Trial
+            </a>
+        </section>
+    </main>
+
+    <!-- CTA Section -->
+    <section class="cta-section">
+        <div class="container">
+            <div class="cta-content">
+                <h2>Experience Professional Trading Analysis</h2>
+                <p>Join thousands of traders using our advanced analysis tools and real-time signals. Start with our free tools, upgrade when you're ready for live trading alerts.</p>
+                <div class="cta-buttons">
+                    <a href="index.html#pricing" class="cta-button primary">
+                        <i class="fas fa-chart-line"></i>
+                        Start Trading Now
+                    </a>
+                    <a href="index.html#features" class="cta-button secondary">
+                        <i class="fas fa-info-circle"></i>
+                        Learn More
+                    </a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="main-footer">
+        <div class="footer-content">
+            <div class="footer-section">
+                <h3>BlueChip Signals</h3>
+                <p>Professional trading signals and market intelligence for serious traders. Our algorithmic bots analyze market patterns 24/7 to deliver actionable insights.</p>
+            </div>
+            
+            <div class="footer-section">
+                <h4>Quick Links</h4>
+                <ul>
+                    <li><a href="index.html#features">Features</a></li>
+                    <li><a href="index.html#bots">Trading Bots</a></li>
+                    <li><a href="index.html#pricing">Pricing</a></li>
+                    <li><a href="faq.html">FAQ</a></li>
+                    <li><a href="legal.html">Legal</a></li>
+                </ul>
+            </div>
+            
+            <div class="footer-section">
+                <h4>Trading Bots</h4>
+                <ul>
+                    <li><a href="pages/bots/spy-bot.html">SPY Bot</a></li>
+                    <li><a href="pages/bots/aapl-bot.html">AAPL Bot</a></li>
+                    <li><a href="pages/bots/tsla-bot.html">TSLA Bot</a></li>
+                    <li><a href="pages/bots/nvda-bot.html">NVDA Bot</a></li>
+                    <li><a href="pages/bots/meta-bot.html">META Bot</a></li>
+                </ul>
+            </div>
+        </div>
+        
+        <div class="footer-bottom">
+            <p>&copy; 2025 BlueChip Signals. All rights reserved.</p>
+            <div class="footer-social">
+                <a href="https://www.tiktok.com/@bluechip.signals" target="_blank"><i class="fab fa-tiktok"></i></a>
+                <a href="https://www.instagram.com/bluechip.signals/" target="_blank"><i class="fab fa-instagram"></i></a>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        const hamburgerMenu = document.querySelector('.hamburger-menu');
+        const mobileNav = document.querySelector('.nav-links');
+
+        hamburgerMenu.addEventListener('click', () => {
+            mobileNav.classList.toggle('active');
+        });
+
+        // Product Impact Calculator
+        function calculateProductImpact() {
+            const event = document.getElementById('product-event').value;
+            const days = parseInt(document.getElementById('product-days').value);
+            const sentiment = document.getElementById('product-sentiment').value;
+
+            if (!days || days < 1) {
+                alert('Please enter valid days until event');
+                return;
+            }
+
+            let impact = 0;
+            let direction = '';
+
+            // Event type impact
+            const eventImpacts = {
+                'iphone': { base: 3.5, direction: 'bullish' },
+                'earnings': { base: 2.8, direction: 'neutral' },
+                'wwdc': { base: 2.2, direction: 'bullish' },
+                'services': { base: 1.8, direction: 'neutral' }
+            };
+
+            impact = eventImpacts[event].base;
+
+            // Days until event modifier
+            if (days <= 7) impact *= 1.3;
+            else if (days <= 30) impact *= 1.1;
+            else if (days > 90) impact *= 0.8;
+
+            // Sentiment modifier
+            if (sentiment === 'bullish') impact *= 1.2;
+            else if (sentiment === 'bearish') impact *= 0.6;
+
+            direction = sentiment === 'bearish' ? 'bearish' : eventImpacts[event].direction;
+
+            document.getElementById('product-result').innerHTML = `
+                <strong style="color: ${direction === 'bullish' ? 'var(--success-green)' : direction === 'bearish' ? '#FF3B3B' : 'var(--primary-gold)'};">
+                    ${direction.toUpperCase()} Signal
+                </strong><br>
+                Expected Impact: <strong>${impact.toFixed(1)}%</strong><br>
+                <span style="font-size: 0.9rem; color: var(--gray-text);">
+                    ${event.toUpperCase()} events typically drive ${impact > 3 ? 'strong' : impact > 2 ? 'moderate' : 'mild'} price movements
+                </span>
+            `;
+            document.getElementById('product-result').style.display = 'block';
+        }
+
+        // Supplier Impact Calculator
+        function calculateSupplierImpact() {
+            const supplier = document.getElementById('supplier-name').value;
+            const newsType = document.getElementById('supplier-news').value;
+            const severity = document.getElementById('supplier-severity').value;
+
+            let impact = 0;
+            let direction = '';
+
+            // Supplier importance weights
+            const supplierWeights = {
+                'tsmc': 2.5,
+                'foxconn': 2.0,
+                'broadcom': 1.5,
+                'qualcomm': 1.3
+            };
+
+            // News type impacts
+            const newsImpacts = {
+                'production': { base: 1.8, direction: 'bullish' },
+                'earnings': { base: 1.2, direction: 'neutral' },
+                'disruption': { base: 2.5, direction: 'bearish' },
+                'expansion': { base: 1.5, direction: 'bullish' }
+            };
+
+            // Severity multipliers
+            const severityMultipliers = {
+                'low': 0.7,
+                'medium': 1.0,
+                'high': 1.4
+            };
+
+            impact = newsImpacts[newsType].base * supplierWeights[supplier] * severityMultipliers[severity];
+            direction = newsType === 'disruption' ? 'bearish' : newsImpacts[newsType].direction;
+
+            document.getElementById('supplier-result').innerHTML = `
+                <strong style="color: ${direction === 'bullish' ? 'var(--success-green)' : direction === 'bearish' ? '#FF3B3B' : 'var(--primary-gold)'};">
+                    ${direction.toUpperCase()} Signal
+                </strong><br>
+                Estimated Impact: <strong>${impact.toFixed(1)}%</strong><br>
+                <span style="font-size: 0.9rem; color: var(--gray-text);">
+                    ${supplier.toUpperCase()} ${newsType} news with ${severity} severity
+                </span>
+            `;
+            document.getElementById('supplier-result').style.display = 'block';
+        }
+
+        // Market Impact Simulator
+        function calculateMarketImpact() {
+            const aaplMove = parseFloat(document.getElementById('market-aapl-move').value);
+            const regime = document.getElementById('market-regime').value;
+            const volume = document.getElementById('market-volume').value;
+
+            if (!aaplMove) {
+                alert('Please enter AAPL move percentage');
+                return;
+            }
+
+            // Base correlation (AAPL to SPY/QQQ)
+            let spyImpact = aaplMove * 0.15; // AAPL is ~7% of SPY
+            let qqqImpact = aaplMove * 0.25; // AAPL is ~12% of QQQ
+
+            // Market regime adjustments
+            const regimeMultipliers = {
+                'bull': 1.2,
+                'bear': 1.5,
+                'neutral': 1.0,
+                'volatile': 1.8
+            };
+
+            // Volume adjustments
+            const volumeMultipliers = {
+                'high': 1.3,
+                'average': 1.0,
+                'low': 0.7
+            };
+
+            const multiplier = regimeMultipliers[regime] * volumeMultipliers[volume];
+            spyImpact *= multiplier;
+            qqqImpact *= multiplier;
+
+            document.getElementById('market-result').innerHTML = `
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                    <div style="text-align: center;">
+                        <strong>SPY Impact</strong><br>
+                        <span style="color: ${aaplMove > 0 ? 'var(--success-green)' : '#FF3B3B'}; font-size: 1.2rem;">
+                            ${spyImpact > 0 ? '+' : ''}${spyImpact.toFixed(2)}%
+                        </span>
+                    </div>
+                    <div style="text-align: center;">
+                        <strong>QQQ Impact</strong><br>
+                        <span style="color: ${aaplMove > 0 ? 'var(--success-green)' : '#FF3B3B'}; font-size: 1.2rem;">
+                            ${qqqImpact > 0 ? '+' : ''}${qqqImpact.toFixed(2)}%
+                        </span>
+                    </div>
+                </div>
+                <div style="margin-top: 0.5rem; font-size: 0.9rem; color: var(--gray-text); text-align: center;">
+                    ${regime} market with ${volume} volume conditions
+                </div>
+            `;
+            document.getElementById('market-result').style.display = 'block';
+        }
+
+        // Pullback Quality Checker
+        const pullbackChecked = new Set();
+
+        function toggleMiniCheckbox(item, category) {
+            const checkbox = item.querySelector('.mini-checkbox');
+            
+            if (pullbackChecked.has(category)) {
+                pullbackChecked.delete(category);
+                checkbox.classList.remove('checked');
+            } else {
+                pullbackChecked.add(category);
+                checkbox.classList.add('checked');
+            }
+            
+            updatePullbackStrength();
+        }
+
+        function updatePullbackStrength() {
+            const totalItems = 6;
+            const checkedCount = pullbackChecked.size;
+            const percentage = checkedCount / totalItems;
+            
+            const strengthElement = document.getElementById('pullback-strength');
+            
+            if (percentage >= 0.83) {
+                strengthElement.textContent = 'Signal: Very Strong';
+                strengthElement.style.color = 'var(--success-green)';
+            } else if (percentage >= 0.67) {
+                strengthElement.textContent = 'Signal: Strong';
+                strengthElement.style.color = 'var(--success-green)';
+            } else if (percentage >= 0.5) {
+                strengthElement.textContent = 'Signal: Moderate';
+                strengthElement.style.color = 'var(--primary-gold)';
+            } else {
+                strengthElement.textContent = 'Signal: Weak';
+                strengthElement.style.color = '#FF3B3B';
+            }
+        }
+
+        // Options Flow Analyzer
+        function calculateFlowSignal() {
+            const volume = parseInt(document.getElementById('flow-volume').value);
+            const type = document.getElementById('flow-type').value;
+            const execution = document.getElementById('flow-execution').value;
+            const premium = parseInt(document.getElementById('flow-premium').value);
+
+            if (!volume || !premium) {
+                alert('Please enter volume and premium values');
+                return;
+            }
+
+            let score = 0;
+
+            // Volume scoring
+            if (volume >= 10000) score += 40;
+            else if (volume >= 5000) score += 30;
+            else if (volume >= 1000) score += 20;
+            else score += 10;
+
+            // Execution scoring
+            if (execution === 'sweep') score += 30;
+            else if (execution === 'block') score += 20;
+            else score += 15;
+
+            // Premium per contract
+            const premiumPerContract = premium / volume;
+            if (premiumPerContract >= 500) score += 30;
+            else if (premiumPerContract >= 100) score += 20;
+            else score += 10;
+
+            const direction = type === 'calls' ? 'BULLISH' : 'BEARISH';
+            let strength, color;
+
+            if (score >= 80) {
+                strength = 'VERY STRONG';
+                color = 'var(--success-green)';
+            } else if (score >= 60) {
+                strength = 'STRONG';
+                color = 'var(--success-green)';
+            } else if (score >= 40) {
+                strength = 'MODERATE';
+                color = 'var(--primary-gold)';
+            } else {
+                strength = 'WEAK';
+                color = '#FF3B3B';
+            }
+
+            document.getElementById('flow-result').innerHTML = `
+                <strong style="color: ${color};">
+                    ${direction} - ${strength}
+                </strong><br>
+                Signal Score: <strong>${score}/100</strong><br>
+                <span style="font-size: 0.9rem; color: var(--gray-text);">
+                    $${(premiumPerContract).toFixed(0)} per contract | ${execution} execution
+                </span>
+            `;
+            document.getElementById('flow-result').style.display = 'block';
+        }
+    </script>
+</body>
+</html> 

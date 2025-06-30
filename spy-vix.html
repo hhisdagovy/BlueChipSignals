@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BlueChip Signals - SPY VIX Guide</title>
+    <link rel="icon" type="image/png" href="logo.png">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="bot-style.css?v=1751139967">
+    <link rel="stylesheet" href="news-style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+</head>
+<body>
+    <!-- Navigation -->
+    <nav>
+        <div class="nav-container">
+            <div class="logo">
+                <a href="index.html"><img src="logo.png" alt="BlueChip Signals Logo"></a>
+            </div>
+            <div class="hamburger-menu">
+                <div class="bar"></div>
+                <div class="bar"></div>
+                <div class="bar"></div>
+            </div>
+            <ul class="nav-links">
+                <li><a href="index.html#features">Features</a></li>
+                <li><a href="index.html#bots">Our Bots</a></li>
+                <li><a href="index.html#pricing">Pricing</a></li>
+                <li><a href="index.html#testimonials">Testimonials</a></li>
+                <li><a href="faq.html">FAQ</a></li>
+                <li><a href="legal.html">Legal Disclaimer</a></li>
+                <li><a href="about.html">About Us</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <main class="main-content">
+        <header class="content-header card-style">
+            <div class="bot-page-icon"><i class="fas fa-chart-line"></i></div>
+            <h1 class="page-main-title">Watching the VIX for SPY Trades</h1>
+            <p class="page-main-subtitle">Use the market's fear gauge to time SPY entries and exits.</p>
+        </header>
+
+        <section class="content-section card-style" id="fear-greed">
+            <h3>Fear &amp; Greed Index</h3>
+            <p class="data-source">(CNN Business)</p>
+            <div id="fg-value" style="font-size:2.5rem;color:var(--secondary-gold);margin:0;">--</div>
+            <small id="fg-label" style="color:var(--gray-text);">Loading...</small>
+        </section>
+
+        <section class="content-section card-style">
+            <h3>Why the VIX Matters</h3>
+            <p>The CBOE Volatility Index (VIX) tracks 30-day implied volatility on S&amp;P 500 options. When fear spikes, VIX soars and SPY usually sinks. A calm VIX signals risk-on sentiment and supports higher SPY prices.</p>
+            <ul>
+                <li><strong>Inverse Correlation:</strong> VIX up → SPY down (and vice-versa) roughly 80% of the time.</li>
+                <li><strong>Volatility Regimes:</strong> VIX &lt; 14 = complacency; 14-20 = normal; 20-35 = risk-off; &gt;35 = panic.</li>
+                <li><strong>Mean Reversion:</strong> Extreme VIX readings tend to revert, presenting contrarian trades.</li>
+            </ul>
+        </section>
+
+        <section class="content-section card-style">
+            <h3>VIX-Driven Playbook</h3>
+            <p>Blend our bot's signals with VIX context:</p>
+            <ul>
+                <li><strong>VIX Breakdown:</strong> When VIX loses a prior support level (e.g., 20 → 18) and our bot flags a long, size up SPY calls.</li>
+                <li><strong>VIX Spike Fade:</strong> Intraday VIX &gt; +10% with SPY at a daily support → look for reversal longs once VIX stalls.</li>
+                <li><strong>VIX Contango vs. Backwardation:</strong> Check VIX futures term structure; backwardation confirms sustained stress—trade SPY puts or stay flat.</li>
+            </ul>
+        </section>
+
+        <section class="content-section card-style">
+            <h3>Dashboards & Indicators</h3>
+            <p>Keep these on your workspace:</p>
+            <ul>
+                <li><strong>TradingView VIX/SPY Overlay:</strong> Overlay VIX (inverted) on SPY to visualize divergence.</li>
+                <li><strong>CBOE VIX Futures Term Structure:</strong> Monitor contango/backwardation for risk tone.</li>
+                <li><strong>VVIX:</strong> Vol of VIX itself. Rising VVIX ahead of VIX suggests a volatility event brewing.</li>
+                <li><strong>10-Day VIX SMA:</strong> Simple moving average to identify regime shifts.</li>
+            </ul>
+        </section>
+    </main>
+
+    <div class="floating-cta">
+        <a href="index.html#pricing" class="cta-button">Join Now & Get Signals</a>
+    </div>
+
+    <!-- Footer -->
+    <footer>
+        <p>&copy; 2025 BlueChip Signals. All rights reserved. | <a href="legal.html" style="color: var(--primary-gold); text-decoration: none;">Legal Disclaimer</a></p>
+        <div class="social-media">
+            <a href="https://www.tiktok.com/@bluechip.signals" target="_blank"><i class="fab fa-tiktok"></i></a>
+            <a href="https://www.instagram.com/bluechip.signals/" target="_blank"><i class="fab fa-instagram"></i></a>
+        </div>
+    </footer>
+
+    <script>
+        const hamburgerMenu = document.querySelector('.hamburger-menu');
+        const mobileNav = document.querySelector('.nav-links');
+
+        hamburgerMenu.addEventListener('click', () => {
+            mobileNav.classList.toggle('active');
+        });
+    </script>
+    <script src="stock-prices.js" defer></script>
+    <script src="fear-greed.js" defer></script>
+</body>
+</html>

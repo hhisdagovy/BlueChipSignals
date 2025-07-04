@@ -415,6 +415,8 @@ footer {
         align-items: center;
         padding: 2rem 0;
         gap: 1.5rem;
+        border-top: 1px solid rgba(201, 176, 55, 0.2);
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
     }
 
     .nav-links.active {
@@ -427,7 +429,14 @@ footer {
     }
 
     .nav-links a {
-        font-size: 1.2rem;
+        font-size: 1.1rem;
+        padding: 0.5rem 1rem;
+        border-radius: 6px;
+        transition: all 0.3s ease;
+    }
+
+    .nav-links a:hover {
+        background: rgba(179, 161, 125, 0.2);
     }
 
     .hamburger-menu {
@@ -435,56 +444,226 @@ footer {
     }
 
     .main-content {
-        padding-top: 7rem;
+        padding: 7rem 1rem 3rem;
+        max-width: 100%;
     }
 
     .strategy-snapshot, 
-    .practice-card, .best-practices {
+    .practice-card, 
+    .best-practices,
+    .content-section,
+    .card-style {
         padding: 1rem;
+        margin-bottom: 1.5rem;
     }
 
-    .strategy-snapshot h3, .best-practices h3, .news-container h3 {
+    .strategy-snapshot h3, 
+    .best-practices h3, 
+    .news-container h3,
+    .content-section h3 {
         font-size: 1.2rem;
     }
 
     .practice-cards {
         padding: 0;
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+
+    .page-main-title {
+        font-size: 2rem;
+        text-align: center;
+        line-height: 1.2;
+    }
+
+    .page-main-subtitle {
+        font-size: 1rem;
+        text-align: center;
+        padding: 0 0.5rem;
+    }
+
+    /* Fix overflow issues */
+    .content-section ul {
+        padding-left: 1rem;
+    }
+
+    .content-section li {
+        margin-bottom: 0.5rem;
+        word-wrap: break-word;
+    }
+
+    /* Button improvements */
+    .cta-button, 
+    .feature-link {
+        font-size: 0.9rem;
+        padding: 0.8rem 1.2rem;
+        text-align: center;
+        display: block;
+        width: 100%;
+        box-sizing: border-box;
+    }
+
+    /* Grid adjustments */
+    .stats-grid,
+    .bea-grid, 
+    .bls-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 0.8rem;
+    }
+
+    /* Typography improvements */
+    .hero-title,
+    .bot-symbol {
+        font-size: 2.2rem;
+    }
+
+    .hero-subtitle,
+    .bot-page-subtitle {
+        font-size: 0.95rem;
+        line-height: 1.5;
     }
 }
 
 /* Small screens (mobile) */
 @media screen and (max-width: 600px) {
+    .nav-container {
+        padding: 0 1rem;
+    }
+
+    .logo img,
+    .nav-brand img,
+    .nav-logo {
+        width: 60px;
+        height: 60px;
+    }
+
     .bot-symbol {
-        font-size: 3rem;
+        font-size: 2.5rem;
     }
 
-    .bot-page-title {
-        font-size: 1.5rem;
+    .bot-page-title,
+    .page-main-title {
+        font-size: 1.6rem;
+        line-height: 1.3;
     }
 
-    .bot-page-subtitle {
+    .bot-page-subtitle,
+    .page-main-subtitle {
         font-size: 0.9rem;
+        padding: 0 0.5rem;
     }
 
     .main-content {
-        padding: 7rem 1rem 3rem;
+        padding: 6rem 0.8rem 2rem;
+    }
+
+    .card-style,
+    .content-section,
+    .strategy-snapshot, 
+    .practice-card, 
+    .best-practices {
+        padding: 0.8rem;
+        margin-bottom: 1rem;
+        border-radius: 12px;
     }
 
     .floating-cta {
         padding: 0.8rem;
+        bottom: 1rem;
+        left: 1rem;
+        right: 1rem;
     }
 
     .cta-button {
-        font-size: 1rem;
-        padding: 0.8rem 1.2rem;
+        font-size: 0.9rem;
+        padding: 0.7rem 1rem;
+        width: 100%;
+        text-align: center;
     }
 
     .news-grid {
-        gap: 1rem;
+        gap: 0.8rem;
+        grid-template-columns: 1fr;
     }
     
     .news-card {
-        margin-bottom: 1rem;
+        margin-bottom: 0.8rem;
+    }
+
+    /* Content improvements for mobile */
+    .content-section h3 {
+        font-size: 1.1rem;
+        margin-bottom: 0.8rem;
+    }
+
+    .content-section p {
+        font-size: 0.9rem;
+        line-height: 1.5;
+        margin-bottom: 0.8rem;
+    }
+
+    .content-section ul {
+        padding-left: 0.8rem;
+    }
+
+    .content-section li {
+        font-size: 0.9rem;
+        margin-bottom: 0.4rem;
+    }
+
+    /* Stats and grids */
+    .stats-grid {
+        grid-template-columns: 1fr 1fr;
+        gap: 0.5rem;
+    }
+
+    .bea-grid, 
+    .bls-grid {
+        grid-template-columns: 1fr;
+        gap: 0.8rem;
+    }
+
+    .bea-card {
+        padding: 0.8rem;
+    }
+
+    /* Fix icon sizes */
+    .bot-page-icon {
+        font-size: 2.5rem;
+        margin: 0.8rem auto;
+    }
+
+    .bot-page-icon img {
+        width: 48px;
+        height: 48px;
+    }
+
+    /* Footer improvements */
+    .footer-content {
+        grid-template-columns: 1fr;
+        gap: 1.5rem;
+        text-align: center;
+    }
+
+    .footer-section h3,
+    .footer-section h4 {
+        font-size: 1rem;
+    }
+
+    .footer-section p,
+    .footer-section ul li {
+        font-size: 0.85rem;
+    }
+
+    /* Navigation improvements */
+    .nav-links {
+        padding: 1.5rem 0;
+        gap: 1rem;
+    }
+
+    .nav-links a {
+        font-size: 1rem;
+        padding: 0.4rem 0.8rem;
     }
 }
 
@@ -996,5 +1175,285 @@ footer {
     .cta-section {
         padding: 1.5rem;
         margin: 1.5rem 0;
+    }
+
+    /* Interactive elements mobile optimization */
+    .volume-analyzer,
+    .analyzer-input-group,
+    .flow-analysis,
+    .scanner-tools,
+    .signal-grid,
+    .features-grid,
+    .mini-calculator {
+        grid-template-columns: 1fr !important;
+        gap: 1rem;
+    }
+
+    .analyzer-button,
+    .demo-button,
+    .feature-link {
+        width: 100%;
+        padding: 0.8rem;
+        font-size: 0.9rem;
+        margin-top: 1rem;
+    }
+
+    .input-field,
+    .mini-input {
+        margin-bottom: 0.8rem;
+    }
+
+    .input-field label,
+    .mini-input label {
+        font-size: 0.85rem;
+        margin-bottom: 0.3rem;
+    }
+
+    .input-field input,
+    .input-field select,
+    .mini-input input,
+    .mini-input select {
+        font-size: 0.9rem;
+        padding: 0.6rem;
+    }
+
+    /* Chart and visual elements */
+    .chart-container,
+    .pullback-chart {
+        width: 100%;
+        overflow-x: auto;
+        margin: 1rem 0;
+    }
+
+    .fibonacci-levels,
+    .depth-reference {
+        grid-template-columns: 1fr 1fr;
+        gap: 0.5rem;
+    }
+
+    /* Flow cards and analysis results */
+    .flow-card,
+    .signal-card,
+    .scanner-card,
+    .feature-card {
+        margin-bottom: 1rem;
+        padding: 0.8rem;
+    }
+
+    .flow-indicators,
+    .signal-details {
+        font-size: 0.85rem;
+    }
+
+    .flow-indicators li,
+    .signal-details li {
+        margin-bottom: 0.3rem;
+    }
+
+    /* Analysis results */
+    .analysis-result,
+    .demo-result {
+        font-size: 0.85rem;
+        padding: 0.8rem;
+        margin-top: 1rem;
+    }
+
+    .result-header h4 {
+        font-size: 1rem;
+    }
+
+    /* Quality checklist */
+    .quality-checklist {
+        grid-template-columns: 1fr;
+    }
+
+    .checklist-item {
+        padding: 0.6rem;
+        margin-bottom: 0.5rem;
+    }
+
+    .checklist-item label {
+        font-size: 0.85rem;
+    }
+
+    /* Timeline and roadmap */
+    .timeline-item {
+        margin: 0.3rem 0;
+        padding: 0.4rem;
+    }
+
+    .timeline-date {
+        font-size: 0.7rem;
+        padding: 0.2rem 0.4rem;
+        margin-right: 0.5rem;
+        min-width: 50px;
+    }
+
+    .timeline-content {
+        font-size: 0.8rem;
+    }
+}
+
+/* Ultra-small screens (320px and below) */
+@media screen and (max-width: 375px) {
+    .nav-container {
+        padding: 0 0.5rem;
+    }
+
+    .main-content {
+        padding: 5.5rem 0.5rem 1.5rem;
+    }
+
+    .card-style,
+    .content-section {
+        padding: 0.6rem;
+        margin-bottom: 0.8rem;
+    }
+
+    .bot-symbol {
+        font-size: 2rem;
+    }
+
+    .page-main-title,
+    .bot-page-title {
+        font-size: 1.4rem;
+    }
+
+    .content-section h3 {
+        font-size: 1rem;
+    }
+
+    .content-section p,
+    .content-section li {
+        font-size: 0.85rem;
+    }
+
+    .stats-grid {
+        grid-template-columns: 1fr;
+        gap: 0.4rem;
+    }
+
+    .stat-item {
+        padding: 0.6rem;
+    }
+
+    .cta-button {
+        font-size: 0.85rem;
+        padding: 0.6rem 0.8rem;
+    }
+
+    .input-field input,
+    .input-field select,
+    .mini-input input,
+    .mini-input select {
+        font-size: 0.85rem;
+        padding: 0.5rem;
+    }
+
+    .fibonacci-levels,
+    .depth-reference {
+        grid-template-columns: 1fr;
+    }
+
+    .analysis-result,
+    .demo-result {
+        font-size: 0.8rem;
+        padding: 0.6rem;
+    }
+
+    /* Stripe button mobile optimization */
+    stripe-buy-button {
+        width: 100% !important;
+        max-width: 100% !important;
+    }
+}
+
+/* Stripe Buy Button Mobile Optimization */
+stripe-buy-button {
+    width: 100% !important;
+    max-width: 100% !important;
+    display: block !important;
+}
+
+@media screen and (max-width: 768px) {
+    /* Pricing card mobile optimization */
+    .pricing-card {
+        padding: 1.5rem 1rem !important;
+        margin-bottom: 1rem;
+    }
+
+    .pricing-cards {
+        grid-template-columns: 1fr !important;
+        gap: 1rem;
+        padding: 0 0.5rem;
+    }
+
+    stripe-buy-button {
+        width: 100% !important;
+        max-width: 100% !important;
+        display: block !important;
+        transform: scale(0.9) !important;
+        transform-origin: center !important;
+    }
+
+    /* Target the internal Stripe button */
+    stripe-buy-button::part(button) {
+        width: 100% !important;
+        max-width: 100% !important;
+        font-size: 0.85rem !important;
+        padding: 0.6rem 0.8rem !important;
+    }
+
+    /* Additional targeting for Stripe's shadow DOM */
+    stripe-buy-button iframe {
+        width: 100% !important;
+        max-width: 100% !important;
+        height: auto !important;
+    }
+}
+
+@media screen and (max-width: 600px) {
+    .pricing-card {
+        padding: 1rem 0.8rem !important;
+    }
+
+    .price-tag {
+        font-size: 2.2rem !important;
+    }
+
+    stripe-buy-button {
+        width: 100% !important;
+        max-width: 100% !important;
+        display: block !important;
+        margin: 0 auto !important;
+        transform: scale(0.85) !important;
+        transform-origin: center !important;
+    }
+
+    /* Target the internal Stripe button for small screens */
+    stripe-buy-button::part(button) {
+        width: 100% !important;
+        max-width: 100% !important;
+        font-size: 0.8rem !important;
+        padding: 0.5rem 0.6rem !important;
+        border-radius: 6px !important;
+    }
+
+    stripe-buy-button iframe {
+        width: 100% !important;
+        max-width: 100% !important;
+        height: auto !important;
+        transform: scale(0.85) !important;
+    }
+}
+
+@media screen and (max-width: 375px) {
+    stripe-buy-button {
+        transform: scale(0.8) !important;
+        transform-origin: center !important;
+    }
+
+    stripe-buy-button iframe {
+        transform: scale(0.8) !important;
     }
 }

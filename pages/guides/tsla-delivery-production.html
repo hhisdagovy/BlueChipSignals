@@ -1,0 +1,886 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Track Delivery & Production Numbers - TSLA Trading Guide | BlueChip Signals</title>
+    <link rel="icon" type="image/png" href="../../assets/images/logo.png">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="../../assets/css/bot-style.css">
+    <style>
+        /* Tesla-specific styling */
+        .tesla-highlight {
+            color: #e31e24;
+        }
+        
+        .production-tracker {
+            background: linear-gradient(135deg, rgba(227, 30, 36, 0.1), rgba(227, 30, 36, 0.05));
+            border: 1px solid rgba(227, 30, 36, 0.3);
+            border-radius: 12px;
+            padding: 2rem;
+            margin: 2rem 0;
+        }
+
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin: 2rem 0;
+        }
+
+        .metric-card {
+            background: var(--dark-bg);
+            border: 1px solid rgba(201, 176, 55, 0.2);
+            border-radius: 12px;
+            padding: 1.5rem;
+            transition: all 0.3s ease;
+        }
+
+        .metric-card:hover {
+            border-color: #e31e24;
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(227, 30, 36, 0.2);
+        }
+
+        .metric-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .metric-icon {
+            font-size: 2rem;
+            margin-right: 0.75rem;
+            width: 40px;
+            text-align: center;
+        }
+
+        .production-icon { color: #4CAF50; }
+        .delivery-icon { color: #2196F3; }
+        .growth-icon { color: var(--primary-gold); }
+        .guidance-icon { color: #FF9800; }
+
+        .metric-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: var(--light-text);
+            margin: 0;
+        }
+
+        .metric-subtitle {
+            font-size: 0.9rem;
+            color: var(--gray-text);
+            margin: 0.25rem 0 0 0;
+        }
+
+        .metric-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #e31e24;
+            margin: 1rem 0 0.5rem 0;
+            display: flex;
+            align-items: baseline;
+            gap: 0.5rem;
+        }
+
+        .metric-change {
+            font-size: 0.9rem;
+            font-weight: 600;
+            padding: 0.2rem 0.6rem;
+            border-radius: 12px;
+        }
+
+        .change-positive { background: rgba(76, 175, 80, 0.2); color: #4CAF50; }
+        .change-negative { background: rgba(244, 67, 54, 0.2); color: #f44336; }
+        .change-neutral { background: rgba(158, 158, 158, 0.2); color: #9e9e9e; }
+
+        .metric-details {
+            list-style: none;
+            padding: 0;
+            margin: 1rem 0 0 0;
+        }
+
+        .metric-details li {
+            padding: 0.3rem 0;
+            color: var(--light-text);
+            font-size: 0.9rem;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .delivery-calculator {
+            background: var(--dark-bg);
+            border: 1px solid rgba(227, 30, 36, 0.3);
+            border-radius: 12px;
+            padding: 2rem;
+            margin: 2rem 0;
+        }
+
+        .calculator-input-group {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .input-field {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .input-field label {
+            color: var(--light-text);
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            font-size: 0.9rem;
+        }
+
+        .input-field input, .input-field select {
+            background: var(--dark-bg);
+            border: 1px solid rgba(179, 161, 125, 0.3);
+            border-radius: 6px;
+            padding: 0.8rem;
+            color: var(--light-text);
+            font-size: 1rem;
+        }
+
+        .input-field input:focus, .input-field select:focus {
+            outline: none;
+            border-color: #e31e24;
+            box-shadow: 0 0 0 2px rgba(227, 30, 36, 0.2);
+        }
+
+        .calculator-button {
+            background: linear-gradient(135deg, #e31e24, #b71c1c);
+            color: white;
+            border: none;
+            padding: 1rem 2rem;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 1rem;
+            width: 100%;
+        }
+
+        .calculator-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(227, 30, 36, 0.3);
+        }
+
+        .calculation-result {
+            margin-top: 2rem;
+            padding: 1.5rem;
+            background: var(--dark-bg);
+            border-radius: 8px;
+            border: 1px solid rgba(179, 161, 125, 0.2);
+            display: none;
+        }
+
+        .result-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .result-icon {
+            font-size: 1.5rem;
+            margin-right: 0.5rem;
+        }
+
+        .result-bullish { color: #4CAF50; }
+        .result-bearish { color: #f44336; }
+        .result-neutral { color: var(--primary-gold); }
+
+        .timeline-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1rem;
+            margin: 2rem 0;
+        }
+
+        .timeline-card {
+            background: var(--dark-bg);
+            border: 1px solid rgba(201, 176, 55, 0.2);
+            border-radius: 12px;
+            padding: 1.5rem;
+            position: relative;
+        }
+
+        .timeline-date {
+            background: #e31e24;
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            position: absolute;
+            top: -10px;
+            left: 1rem;
+        }
+
+        .timeline-content {
+            margin-top: 1rem;
+        }
+
+        .timeline-title {
+            color: var(--primary-gold);
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .timeline-description {
+            color: var(--light-text);
+            font-size: 0.9rem;
+            line-height: 1.5;
+        }
+
+        .historical-data {
+            background: rgba(179, 161, 125, 0.1);
+            border: 1px solid rgba(179, 161, 125, 0.2);
+            border-radius: 12px;
+            padding: 2rem;
+            margin: 2rem 0;
+            overflow-x: auto;
+        }
+
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1rem;
+            min-width: 600px;
+        }
+
+        .data-table th,
+        .data-table td {
+            padding: 0.8rem;
+            text-align: left;
+            border-bottom: 1px solid rgba(179, 161, 125, 0.2);
+            white-space: nowrap;
+        }
+
+        .data-table th {
+            background: rgba(227, 30, 36, 0.1);
+            color: var(--primary-gold);
+            font-weight: 600;
+        }
+
+        .data-table td {
+            color: var(--light-text);
+        }
+
+        .data-table tr:hover {
+            background: rgba(179, 161, 125, 0.05);
+        }
+
+        .market-reaction {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin: 2rem 0;
+        }
+
+        .reaction-card {
+            background: var(--dark-bg);
+            border: 1px solid rgba(201, 176, 55, 0.2);
+            border-radius: 12px;
+            padding: 1.5rem;
+            text-align: center;
+        }
+
+        .reaction-icon {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .beat-icon { color: #4CAF50; }
+        .miss-icon { color: #f44336; }
+        .meet-icon { color: var(--primary-gold); }
+
+        .reaction-title {
+            color: var(--light-text);
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .reaction-impact {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+
+        .reaction-description {
+            color: var(--gray-text);
+            font-size: 0.9rem;
+            line-height: 1.4;
+        }
+
+        @media (max-width: 768px) {
+            .metrics-grid,
+            .timeline-grid,
+            .market-reaction {
+                grid-template-columns: 1fr;
+            }
+
+            .calculator-input-group {
+                grid-template-columns: 1fr;
+            }
+
+            .data-table {
+                font-size: 0.8rem;
+            }
+
+            .data-table th,
+            .data-table td {
+                padding: 0.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav>
+        <div class="nav-container">
+            <div class="logo">
+                <a href="../../index.html"><img src="../../assets/images/logo.png" alt="BlueChip Signals Logo"></a>
+            </div>
+            <div class="hamburger-menu">
+                <div class="bar"></div>
+                <div class="bar"></div>
+                <div class="bar"></div>
+            </div>
+            <ul class="nav-links">
+                <li><a href="../../index.html#features">Features</a></li>
+                <li><a href="../../free-features.html">Free Tools</a></li>
+                <li><a href="../../index.html#bots">Our Bots</a></li>
+                <li><a href="../../index.html#pricing">Pricing</a></li>
+                <li><a href="../../index.html#testimonials">Testimonials</a></li>
+                <li><a href="../../faq.html">FAQ</a></li>
+                <li><a href="../../legal.html">Legal Disclaimer</a></li>
+                <li><a href="../../about.html">About Us</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <main class="main-content">
+        <header class="content-header card-style">
+            <div class="bot-page-icon tesla-highlight"><img src="../../assets/images/tesla-logo.svg" alt="Tesla Logo" style="width: 56px; height: 56px;"></div>
+            <h1 class="page-main-title">Track Delivery & Production Numbers</h1>
+            <p class="page-main-subtitle">Tesla's quarterly delivery and production reports are heavily scrutinized by Wall Street. The market's reaction to these numbers often sets the tone for the stock for weeks to come.</p>
+        </header>
+
+        <!-- Delivery Impact Calculator -->
+        <section class="content-section card-style">
+            <h3><i class="fas fa-calculator" style="color: #e31e24; margin-right: 0.5rem;"></i>Delivery Impact Calculator</h3>
+            <p>Predict potential TSLA price movement based on delivery numbers vs. expectations:</p>
+            
+            <div class="delivery-calculator">
+                <div class="calculator-input-group">
+                    <div class="input-field">
+                        <label for="actual-deliveries">Actual Deliveries</label>
+                        <input type="number" id="actual-deliveries" placeholder="e.g., 478000" min="0">
+                    </div>
+                    <div class="input-field">
+                        <label for="expected-deliveries">Wall Street Estimate</label>
+                        <input type="number" id="expected-deliveries" placeholder="e.g., 470000" min="0">
+                    </div>
+                    <div class="input-field">
+                        <label for="prior-quarter">Prior Quarter Deliveries</label>
+                        <input type="number" id="prior-quarter" placeholder="e.g., 435000" min="0">
+                    </div>
+                    <div class="input-field">
+                        <label for="market-sentiment">Pre-Release Sentiment</label>
+                        <select id="market-sentiment">
+                            <option value="">Select Sentiment</option>
+                            <option value="very-bullish">Very Bullish</option>
+                            <option value="bullish">Bullish</option>
+                            <option value="neutral">Neutral</option>
+                            <option value="bearish">Bearish</option>
+                            <option value="very-bearish">Very Bearish</option>
+                        </select>
+                    </div>
+                    <div class="input-field">
+                        <label for="release-timing">Release Timing</label>
+                        <select id="release-timing">
+                            <option value="">Select Timing</option>
+                            <option value="premarket">Pre-Market</option>
+                            <option value="trading">During Trading</option>
+                            <option value="afterhours">After Hours</option>
+                            <option value="weekend">Weekend</option>
+                        </select>
+                    </div>
+                    <div class="input-field">
+                        <label for="stock-momentum">Recent TSLA Momentum</label>
+                        <select id="stock-momentum">
+                            <option value="">Select Momentum</option>
+                            <option value="strong-up">Strong Uptrend</option>
+                            <option value="weak-up">Weak Uptrend</option>
+                            <option value="sideways">Sideways</option>
+                            <option value="weak-down">Weak Downtrend</option>
+                            <option value="strong-down">Strong Downtrend</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <button class="calculator-button" onclick="calculateDeliveryImpact()">
+                    <i class="fas fa-chart-line" style="margin-right: 0.5rem;"></i>
+                    Calculate Market Impact
+                </button>
+
+                <div class="calculation-result" id="calculation-result">
+                    <div class="result-header">
+                        <div class="result-icon" id="result-icon"></div>
+                        <h4 id="result-title" style="margin: 0; color: var(--light-text);"></h4>
+                    </div>
+                    <div id="result-content"></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Key Metrics Overview -->
+        <section class="content-section card-style">
+            <h3><i class="fas fa-chart-bar" style="color: #e31e24; margin-right: 0.5rem;"></i>Key Production & Delivery Metrics</h3>
+            <p>These are the critical numbers that Wall Street watches every quarter. Understanding these metrics is essential for predicting TSLA price movements:</p>
+            
+            <div class="metrics-grid">
+                <div class="metric-card">
+                    <div class="metric-header">
+                        <div class="metric-icon production-icon"><i class="fas fa-industry"></i></div>
+                        <div>
+                            <h4 class="metric-title">Total Production</h4>
+                            <p class="metric-subtitle">Vehicles manufactured globally</p>
+                        </div>
+                    </div>
+                    <div class="metric-value">
+                        485,000
+                        <span class="metric-change change-positive">+35%</span>
+                    </div>
+                    <ul class="metric-details">
+                        <li><span>Model S/X:</span><span>20,000</span></li>
+                        <li><span>Model 3/Y:</span><span>465,000</span></li>
+                        <li><span>Cybertruck:</span><span>TBD</span></li>
+                    </ul>
+                </div>
+
+                <div class="metric-card">
+                    <div class="metric-header">
+                        <div class="metric-icon delivery-icon"><i class="fas fa-truck"></i></div>
+                        <div>
+                            <h4 class="metric-title">Total Deliveries</h4>
+                            <p class="metric-subtitle">Vehicles delivered to customers</p>
+                        </div>
+                    </div>
+                    <div class="metric-value">
+                        478,000
+                        <span class="metric-change change-positive">+38%</span>
+                    </div>
+                    <ul class="metric-details">
+                        <li><span>Model S/X:</span><span>18,500</span></li>
+                        <li><span>Model 3/Y:</span><span>459,500</span></li>
+                        <li><span>Beat Estimate:</span><span>+12,000</span></li>
+                    </ul>
+                </div>
+
+                <div class="metric-card">
+                    <div class="metric-header">
+                        <div class="metric-icon growth-icon"><i class="fas fa-trending-up"></i></div>
+                        <div>
+                            <h4 class="metric-title">YoY Growth Rate</h4>
+                            <p class="metric-subtitle">Year-over-year comparison</p>
+                        </div>
+                    </div>
+                    <div class="metric-value">
+                        38%
+                        <span class="metric-change change-positive">+8%</span>
+                    </div>
+                    <ul class="metric-details">
+                        <li><span>Q4 2023:</span><span>485K</span></li>
+                        <li><span>Q4 2022:</span><span>351K</span></li>
+                        <li><span>Target Rate:</span><span>50%</span></li>
+                    </ul>
+                </div>
+
+                <div class="metric-card">
+                    <div class="metric-header">
+                        <div class="metric-icon guidance-icon"><i class="fas fa-bullseye"></i></div>
+                        <div>
+                            <h4 class="metric-title">Guidance vs Actual</h4>
+                            <p class="metric-subtitle">Management expectations</p>
+                        </div>
+                    </div>
+                    <div class="metric-value">
+                        102%
+                        <span class="metric-change change-positive">Beat</span>
+                    </div>
+                    <ul class="metric-details">
+                        <li><span>Guided:</span><span>470K</span></li>
+                        <li><span>Actual:</span><span>478K</span></li>
+                        <li><span>Beat by:</span><span>8K units</span></li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- Release Timeline -->
+        <section class="content-section card-style">
+            <h3><i class="fas fa-calendar" style="color: var(--primary-gold); margin-right: 0.5rem;"></i>Quarterly Release Timeline</h3>
+            <p>Tesla typically follows this timeline for production and delivery announcements:</p>
+            
+            <div class="timeline-grid">
+                <div class="timeline-card">
+                    <div class="timeline-date">Day 1-3</div>
+                    <div class="timeline-content">
+                        <h4 class="timeline-title">Initial Delivery Numbers</h4>
+                        <p class="timeline-description">Tesla releases preliminary delivery and production numbers for the quarter, usually within the first few days of the new quarter.</p>
+                    </div>
+                </div>
+
+                <div class="timeline-card">
+                    <div class="timeline-date">Day 4-7</div>
+                    <div class="timeline-content">
+                        <h4 class="timeline-title">Analyst Reactions</h4>
+                        <p class="timeline-description">Wall Street analysts update their models and price targets based on the delivery numbers. This can drive continued price movement.</p>
+                    </div>
+                </div>
+
+                <div class="timeline-card">
+                    <div class="timeline-date">Week 2-3</div>
+                    <div class="timeline-content">
+                        <h4 class="timeline-title">Detailed Breakdown</h4>
+                        <p class="timeline-description">More detailed production and delivery data by model and region becomes available through various sources and Tesla updates.</p>
+                    </div>
+                </div>
+
+                <div class="timeline-card">
+                    <div class="timeline-date">Week 4-6</div>
+                    <div class="timeline-content">
+                        <h4 class="timeline-title">Earnings Context</h4>
+                        <p class="timeline-description">Delivery numbers are put into context during the quarterly earnings call, with guidance for the next quarter.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Historical Performance -->
+        <section class="content-section card-style">
+            <h3><i class="fas fa-history" style="color: var(--primary-gold); margin-right: 0.5rem;"></i>Historical Delivery Performance</h3>
+            <p>Track Tesla's delivery growth and market reactions over recent quarters:</p>
+            
+            <div class="historical-data">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Quarter</th>
+                            <th>Deliveries</th>
+                            <th>vs Estimate</th>
+                            <th>YoY Growth</th>
+                            <th>Stock Reaction</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Q4 2024</td>
+                            <td>485,000</td>
+                            <td class="change-positive">+3.2%</td>
+                            <td class="change-positive">+38%</td>
+                            <td class="change-positive">+8.5%</td>
+                        </tr>
+                        <tr>
+                            <td>Q3 2024</td>
+                            <td>463,000</td>
+                            <td class="change-negative">-1.8%</td>
+                            <td class="change-positive">+35%</td>
+                            <td class="change-negative">-4.2%</td>
+                        </tr>
+                        <tr>
+                            <td>Q2 2024</td>
+                            <td>444,000</td>
+                            <td class="change-positive">+2.1%</td>
+                            <td class="change-positive">+32%</td>
+                            <td class="change-positive">+6.8%</td>
+                        </tr>
+                        <tr>
+                            <td>Q1 2024</td>
+                            <td>387,000</td>
+                            <td class="change-negative">-3.5%</td>
+                            <td class="change-positive">+28%</td>
+                            <td class="change-negative">-12.1%</td>
+                        </tr>
+                        <tr>
+                            <td>Q4 2023</td>
+                            <td>351,000</td>
+                            <td class="change-positive">+4.2%</td>
+                            <td class="change-positive">+31%</td>
+                            <td class="change-positive">+11.3%</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- Market Reaction Patterns -->
+        <section class="content-section card-style">
+            <h3><i class="fas fa-chart-area" style="color: #e31e24; margin-right: 0.5rem;"></i>Typical Market Reactions</h3>
+            <p>Understanding how TSLA typically reacts to different delivery scenarios:</p>
+            
+            <div class="market-reaction">
+                <div class="reaction-card">
+                    <div class="reaction-icon beat-icon">📈</div>
+                    <h4 class="reaction-title">Beat Estimates</h4>
+                    <div class="reaction-impact change-positive">+5% to +15%</div>
+                    <p class="reaction-description">When deliveries exceed Wall Street estimates by 2%+, TSLA typically sees strong positive reaction, especially if growth rate is accelerating.</p>
+                </div>
+
+                <div class="reaction-card">
+                    <div class="reaction-icon meet-icon">➡️</div>
+                    <h4 class="reaction-title">Meet Estimates</h4>
+                    <div class="reaction-impact change-neutral">-2% to +3%</div>
+                    <p class="reaction-description">Meeting estimates usually results in modest movement. Direction depends on guidance, margins, and forward-looking commentary.</p>
+                </div>
+
+                <div class="reaction-card">
+                    <div class="reaction-icon miss-icon">📉</div>
+                    <h4 class="reaction-title">Miss Estimates</h4>
+                    <div class="reaction-impact change-negative">-8% to -20%</div>
+                    <p class="reaction-description">Missing delivery estimates often triggers sharp selloffs, particularly if it suggests demand issues or production problems.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Trading Strategy -->
+        <section class="content-section card-style">
+            <h3><i class="fas fa-strategy" style="color: var(--success-green); margin-right: 0.5rem;"></i>Trading Strategy Guidelines</h3>
+            <div class="checklist-items">
+                <li><strong>Pre-announcement positioning:</strong> Consider small positions 1-2 days before delivery numbers, as leaks and speculation can drive movement.</li>
+                <li><strong>Watch for guidance revisions:</strong> Tesla sometimes provides updated guidance along with delivery numbers, which can be more important than the headline figure.</li>
+                <li><strong>Monitor production vs delivery gap:</strong> Large gaps between production and deliveries can indicate logistics issues or demand softness.</li>
+                <li><strong>Regional breakdown matters:</strong> China delivery numbers are particularly scrutinized for growth and competitive dynamics.</li>
+                <li><strong>Model mix analysis:</strong> Higher-margin Model S/X deliveries are viewed more favorably than Model 3/Y volume.</li>
+                <li><strong>Seasonal adjustments:</strong> Q4 is typically the strongest quarter due to year-end push and tax incentives.</li>
+                <li><strong>Options activity:</strong> Heavy options volume before announcements can amplify price movements through gamma effects.</li>
+            </div>
+        </section>
+
+        <!-- CTA Section -->
+        <section class="cta-section">
+            <div class="cta-content">
+                <h2>Master Tesla Delivery Trading</h2>
+                <p>Get real-time alerts when our TSLA bot detects significant price movements following delivery announcements. Never miss another delivery-driven opportunity.</p>
+                <div class="cta-buttons">
+                    <a href="../bots/tsla-bot.html" class="cta-button primary">
+                        <img src="../../assets/images/tesla-logo.svg" alt="Tesla" style="width: 20px; height: 20px; filter: brightness(0) invert(1); margin-right: 0.5rem;">
+                        Explore TSLA Bot
+                    </a>
+                    <a href="../../index.html#pricing" class="cta-button secondary">
+                        <i class="fas fa-rocket"></i>
+                        View All Plans
+                    </a>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <div class="floating-cta">
+        <a href="../../index.html#pricing" class="cta-button">Join Now & Get Signals</a>
+    </div>
+
+    <!-- Footer -->
+    <footer class="main-footer">
+        <div class="footer-content">
+            <div class="footer-section">
+                <h3>BlueChip Signals</h3>
+                <p>Professional trading signals for blue-chip stocks. Our advanced algorithms analyze market momentum, volume, and technical indicators to deliver high-probability trading opportunities directly to your device.</p>
+            </div>
+            <div class="footer-section">
+                <h4>Quick Links</h4>
+                <ul>
+                    <li><a href="../../index.html#features">Features</a></li>
+                    <li><a href="../../free-features.html">Free Tools</a></li>
+                    <li><a href="../../index.html#pricing">Pricing</a></li>
+                    <li><a href="../../faq.html">FAQ</a></li>
+                    <li><a href="../../legal.html">Legal</a></li>
+                    <li><a href="../../about.html">About</a></li>
+                </ul>
+            </div>
+            <div class="footer-section">
+                <h4>Trading Bots</h4>
+                <ul>
+                    <li><a href="../bots/spy-bot.html">SPY Bot</a></li>
+                    <li><a href="../bots/aapl-bot.html">AAPL Bot</a></li>
+                    <li><a href="../bots/tsla-bot.html">TSLA Bot</a></li>
+                    <li><a href="../bots/meta-bot.html">META Bot</a></li>
+                    <li><a href="../bots/nvda-bot.html">NVDA Bot</a></li>
+                    <li><a href="../bots/amzn-bot.html">AMZN Bot</a></li>
+                </ul>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>&copy; 2025 BlueChip Signals. All rights reserved.</p>
+            <div class="footer-social">
+                <a href="https://www.tiktok.com/@bluechip.signals" target="_blank">
+                    <i class="fab fa-tiktok"></i>
+                </a>
+                <a href="https://www.instagram.com/bluechip.signals/" target="_blank">
+                    <i class="fab fa-instagram"></i>
+                </a>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        function calculateDeliveryImpact() {
+            const actual = parseInt(document.getElementById('actual-deliveries').value);
+            const expected = parseInt(document.getElementById('expected-deliveries').value);
+            const priorQuarter = parseInt(document.getElementById('prior-quarter').value);
+            const sentiment = document.getElementById('market-sentiment').value;
+            const timing = document.getElementById('release-timing').value;
+            const momentum = document.getElementById('stock-momentum').value;
+            
+            if (!actual || !expected || !priorQuarter || !sentiment || !timing || !momentum) {
+                alert('Please fill in all fields to calculate the delivery impact.');
+                return;
+            }
+            
+            // Calculate beat/miss percentage
+            const beatMissPercent = ((actual - expected) / expected) * 100;
+            const qoqGrowth = ((actual - priorQuarter) / priorQuarter) * 100;
+            
+            let impactScore = 0;
+            let direction = 'neutral';
+            
+            // Base score from beat/miss
+            if (beatMissPercent > 3) {
+                impactScore += 3;
+                direction = 'bullish';
+            } else if (beatMissPercent > 1) {
+                impactScore += 2;
+                direction = 'bullish';
+            } else if (beatMissPercent > -1) {
+                impactScore += 0;
+                direction = 'neutral';
+            } else if (beatMissPercent > -3) {
+                impactScore -= 2;
+                direction = 'bearish';
+            } else {
+                impactScore -= 3;
+                direction = 'bearish';
+            }
+            
+            // Adjust for growth rate
+            if (qoqGrowth > 25) impactScore += 1;
+            else if (qoqGrowth < 10) impactScore -= 1;
+            
+            // Adjust for sentiment
+            const sentimentMultipliers = {
+                'very-bullish': 1.5,
+                'bullish': 1.2,
+                'neutral': 1.0,
+                'bearish': 0.8,
+                'very-bearish': 0.6
+            };
+            impactScore *= sentimentMultipliers[sentiment];
+            
+            // Adjust for timing
+            if (timing === 'afterhours' || timing === 'premarket') impactScore *= 1.2;
+            
+            // Adjust for momentum
+            const momentumMultipliers = {
+                'strong-up': 1.3,
+                'weak-up': 1.1,
+                'sideways': 1.0,
+                'weak-down': 0.9,
+                'strong-down': 0.7
+            };
+            impactScore *= momentumMultipliers[momentum];
+            
+            // Determine final impact
+            let impactLevel, impactClass, icon, priceMove, recommendation;
+            
+            if (impactScore >= 3) {
+                impactLevel = 'STRONG BULLISH';
+                impactClass = 'result-bullish';
+                icon = '🚀';
+                priceMove = '+8% to +20%';
+                recommendation = 'Strong positive reaction expected. Consider bullish positions but watch for profit-taking after initial move.';
+            } else if (impactScore >= 1.5) {
+                impactLevel = 'MODERATE BULLISH';
+                impactClass = 'result-bullish';
+                icon = '📈';
+                priceMove = '+3% to +8%';
+                recommendation = 'Positive reaction likely. Good opportunity for swing trades with appropriate risk management.';
+            } else if (impactScore >= -1.5) {
+                impactLevel = 'NEUTRAL';
+                impactClass = 'result-neutral';
+                icon = '➡️';
+                priceMove = '-2% to +3%';
+                recommendation = 'Limited price movement expected. Focus on other catalysts and technical levels.';
+            } else if (impactScore >= -3) {
+                impactLevel = 'MODERATE BEARISH';
+                impactClass = 'result-bearish';
+                icon = '📉';
+                priceMove = '-5% to -12%';
+                recommendation = 'Negative reaction likely. Consider protective strategies or short-term bearish positions.';
+            } else {
+                impactLevel = 'STRONG BEARISH';
+                impactClass = 'result-bearish';
+                icon = '💥';
+                priceMove = '-10% to -25%';
+                recommendation = 'Significant selloff expected. Major disappointment likely to trigger sustained weakness.';
+            }
+            
+            const resultDiv = document.getElementById('calculation-result');
+            const resultIcon = document.getElementById('result-icon');
+            const resultTitle = document.getElementById('result-title');
+            const resultContent = document.getElementById('result-content');
+            
+            resultIcon.innerHTML = icon;
+            resultIcon.className = `result-icon ${impactClass}`;
+            resultTitle.textContent = impactLevel + ' IMPACT';
+            
+            resultContent.innerHTML = `
+                <div style="margin-bottom: 1rem;">
+                    <strong>Expected Price Movement:</strong> ${priceMove}
+                </div>
+                <div style="margin-bottom: 1rem;">
+                    <strong>Trading Recommendation:</strong> ${recommendation}
+                </div>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-top: 1rem;">
+                    <div style="background: rgba(179, 161, 125, 0.1); padding: 1rem; border-radius: 8px;">
+                        <strong>Beat/Miss:</strong><br>
+                        <span style="font-size: 1.2rem; color: ${beatMissPercent >= 0 ? '#4CAF50' : '#f44336'};">
+                            ${beatMissPercent >= 0 ? '+' : ''}${beatMissPercent.toFixed(1)}%
+                        </span>
+                    </div>
+                    <div style="background: rgba(179, 161, 125, 0.1); padding: 1rem; border-radius: 8px;">
+                        <strong>QoQ Growth:</strong><br>
+                        <span style="font-size: 1.2rem; color: var(--primary-gold);">
+                            +${qoqGrowth.toFixed(1)}%
+                        </span>
+                    </div>
+                    <div style="background: rgba(179, 161, 125, 0.1); padding: 1rem; border-radius: 8px;">
+                        <strong>Impact Score:</strong><br>
+                        <span style="font-size: 1.2rem; color: var(--primary-gold);">
+                            ${impactScore.toFixed(1)}/5.0
+                        </span>
+                    </div>
+                </div>
+                <div style="margin-top: 1rem; padding: 1rem; background: rgba(227, 30, 36, 0.1); border-radius: 8px; border-left: 4px solid #e31e24;">
+                    <strong>⚠️ Risk Warning:</strong> Delivery announcements can cause extreme volatility in TSLA. Always use proper position sizing and risk management. Consider the broader market environment and technical levels when trading these events.
+                </div>
+            `;
+            
+            resultDiv.style.display = 'block';
+        }
+
+        // Navigation functionality
+        const hamburgerMenu = document.querySelector('.hamburger-menu');
+        const mobileNav = document.querySelector('.nav-links');
+
+        hamburgerMenu.addEventListener('click', () => {
+            mobileNav.classList.toggle('active');
+        });
+    </script>
+</body>
+</html> 

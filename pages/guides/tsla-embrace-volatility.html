@@ -1,0 +1,891 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Embrace the Volatility - TSLA Trading Guide | BlueChip Signals</title>
+    <link rel="icon" type="image/png" href="../../assets/images/logo.png">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="../../assets/css/bot-style.css">
+    <style>
+        /* Tesla-specific styling */
+        .tesla-highlight {
+            color: #e31e24;
+        }
+        
+        .volatility-tracker {
+            background: linear-gradient(135deg, rgba(227, 30, 36, 0.1), rgba(227, 30, 36, 0.05));
+            border: 1px solid rgba(227, 30, 36, 0.3);
+            border-radius: 12px;
+            padding: 2rem;
+            margin: 2rem 0;
+        }
+
+        .volatility-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.5rem;
+            margin: 2rem 0;
+        }
+
+        .volatility-card {
+            background: var(--dark-bg);
+            border: 1px solid rgba(201, 176, 55, 0.2);
+            border-radius: 12px;
+            padding: 1.5rem;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .volatility-card:hover {
+            border-color: #e31e24;
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(227, 30, 36, 0.2);
+        }
+
+        .volatility-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .volatility-icon {
+            font-size: 2rem;
+            margin-right: 0.75rem;
+            width: 40px;
+            text-align: center;
+        }
+
+        .low-vol { color: #4CAF50; }
+        .medium-vol { color: var(--primary-gold); }
+        .high-vol { color: #FF9800; }
+        .extreme-vol { color: #e31e24; }
+
+        .volatility-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: var(--light-text);
+            margin: 0;
+        }
+
+        .volatility-range {
+            font-size: 0.9rem;
+            color: var(--gray-text);
+            margin: 0.25rem 0 0 0;
+        }
+
+        .volatility-value {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: #e31e24;
+            margin: 1rem 0;
+            display: flex;
+            align-items: baseline;
+            gap: 0.5rem;
+        }
+
+        .volatility-indicator {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+
+        .indicator-low { background: #4CAF50; }
+        .indicator-medium { background: var(--primary-gold); }
+        .indicator-high { background: #FF9800; }
+        .indicator-extreme { background: #e31e24; }
+
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
+
+        .risk-calculator {
+            background: var(--dark-bg);
+            border: 1px solid rgba(227, 30, 36, 0.3);
+            border-radius: 12px;
+            padding: 2rem;
+            margin: 2rem 0;
+        }
+
+        .calculator-input-group {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .input-field {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .input-field label {
+            color: var(--light-text);
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            font-size: 0.9rem;
+        }
+
+        .input-field input, .input-field select {
+            background: var(--dark-bg);
+            border: 1px solid rgba(179, 161, 125, 0.3);
+            border-radius: 6px;
+            padding: 0.8rem;
+            color: var(--light-text);
+            font-size: 1rem;
+        }
+
+        .input-field input:focus, .input-field select:focus {
+            outline: none;
+            border-color: #e31e24;
+            box-shadow: 0 0 0 2px rgba(227, 30, 36, 0.2);
+        }
+
+        .calculator-button {
+            background: linear-gradient(135deg, #e31e24, #b71c1c);
+            color: white;
+            border: none;
+            padding: 1rem 2rem;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 1rem;
+            width: 100%;
+        }
+
+        .calculator-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(227, 30, 36, 0.3);
+        }
+
+        .calculation-result {
+            margin-top: 2rem;
+            padding: 1.5rem;
+            background: var(--dark-bg);
+            border-radius: 8px;
+            border: 1px solid rgba(179, 161, 125, 0.2);
+            display: none;
+        }
+
+        .result-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .result-icon {
+            font-size: 1.5rem;
+            margin-right: 0.5rem;
+        }
+
+        .result-conservative { color: #4CAF50; }
+        .result-moderate { color: var(--primary-gold); }
+        .result-aggressive { color: #e31e24; }
+
+        .strategy-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin: 2rem 0;
+        }
+
+        .strategy-card {
+            background: var(--dark-bg);
+            border: 1px solid rgba(201, 176, 55, 0.2);
+            border-radius: 12px;
+            padding: 2rem;
+            position: relative;
+        }
+
+        .strategy-badge {
+            position: absolute;
+            top: -10px;
+            left: 1.5rem;
+            background: #e31e24;
+            color: white;
+            padding: 0.4rem 1rem;
+            border-radius: 15px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        .strategy-title {
+            color: var(--primary-gold);
+            font-size: 1.3rem;
+            font-weight: 600;
+            margin: 1rem 0 1rem 0;
+        }
+
+        .strategy-description {
+            color: var(--light-text);
+            line-height: 1.6;
+            margin-bottom: 1.5rem;
+        }
+
+        .strategy-metrics {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .metric-item {
+            text-align: center;
+            padding: 1rem;
+            background: rgba(179, 161, 125, 0.1);
+            border-radius: 8px;
+        }
+
+        .metric-label {
+            color: var(--gray-text);
+            font-size: 0.8rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .metric-value {
+            color: var(--primary-gold);
+            font-size: 1.1rem;
+            font-weight: 600;
+        }
+
+        .volatility-chart {
+            background: rgba(179, 161, 125, 0.1);
+            border: 1px solid rgba(179, 161, 125, 0.2);
+            border-radius: 12px;
+            padding: 2rem;
+            margin: 2rem 0;
+            text-align: center;
+        }
+
+        .chart-container {
+            position: relative;
+            height: 200px;
+            margin: 2rem 0;
+            background: var(--dark-bg);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .volatility-bars {
+            display: flex;
+            align-items: end;
+            height: 100%;
+            padding: 1rem;
+            gap: 0.5rem;
+        }
+
+        .vol-bar {
+            flex: 1;
+            background: linear-gradient(to top, #e31e24, rgba(227, 30, 36, 0.6));
+            border-radius: 2px 2px 0 0;
+            position: relative;
+            transition: all 0.3s ease;
+        }
+
+        .vol-bar:hover {
+            background: linear-gradient(to top, var(--primary-gold), rgba(201, 176, 55, 0.6));
+        }
+
+        .bar-label {
+            position: absolute;
+            bottom: -25px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 0.7rem;
+            color: var(--gray-text);
+            white-space: nowrap;
+        }
+
+        .warning-box {
+            background: linear-gradient(135deg, rgba(227, 30, 36, 0.1), rgba(227, 30, 36, 0.05));
+            border: 1px solid rgba(227, 30, 36, 0.3);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin: 2rem 0;
+            border-left: 4px solid #e31e24;
+        }
+
+        .warning-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .warning-icon {
+            font-size: 1.5rem;
+            color: #e31e24;
+            margin-right: 0.5rem;
+        }
+
+        .warning-title {
+            color: var(--light-text);
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin: 0;
+        }
+
+        @media (max-width: 768px) {
+            .volatility-grid,
+            .strategy-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .calculator-input-group {
+                grid-template-columns: 1fr;
+            }
+
+            .strategy-metrics {
+                grid-template-columns: 1fr;
+            }
+
+            .volatility-bars {
+                padding: 0.5rem;
+                gap: 0.3rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav>
+        <div class="nav-container">
+            <div class="logo">
+                <a href="../../index.html"><img src="../../assets/images/logo.png" alt="BlueChip Signals Logo"></a>
+            </div>
+            <div class="hamburger-menu">
+                <div class="bar"></div>
+                <div class="bar"></div>
+                <div class="bar"></div>
+            </div>
+            <ul class="nav-links">
+                <li><a href="../../index.html#features">Features</a></li>
+                <li><a href="../../free-features.html">Free Tools</a></li>
+                <li><a href="../../index.html#bots">Our Bots</a></li>
+                <li><a href="../../index.html#pricing">Pricing</a></li>
+                <li><a href="../../index.html#testimonials">Testimonials</a></li>
+                <li><a href="../../faq.html">FAQ</a></li>
+                <li><a href="../../legal.html">Legal Disclaimer</a></li>
+                <li><a href="../../about.html">About Us</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <main class="main-content">
+        <header class="content-header card-style">
+            <div class="bot-page-icon tesla-highlight"><img src="../../assets/images/tesla-logo.svg" alt="Tesla Logo" style="width: 56px; height: 56px;"></div>
+            <h1 class="page-main-title">Embrace the Volatility</h1>
+            <p class="page-main-subtitle">TSLA is one of the most volatile large-cap stocks. This means larger potential gains, but also requires wider stops and disciplined risk management. The bot is designed for these conditions.</p>
+        </header>
+
+        <!-- Risk Management Calculator -->
+        <section class="content-section card-style">
+            <h3><i class="fas fa-shield-alt" style="color: #e31e24; margin-right: 0.5rem;"></i>Volatility Risk Calculator</h3>
+            <p>Calculate optimal position sizing and stop losses based on TSLA's current volatility conditions:</p>
+            
+            <div class="risk-calculator">
+                <div class="calculator-input-group">
+                    <div class="input-field">
+                        <label for="account-size">Account Size ($)</label>
+                        <input type="number" id="account-size" placeholder="e.g., 50000" min="0">
+                    </div>
+                    <div class="input-field">
+                        <label for="risk-percentage">Risk Per Trade (%)</label>
+                        <input type="number" id="risk-percentage" placeholder="e.g., 2" min="0.1" max="10" step="0.1">
+                    </div>
+                    <div class="input-field">
+                        <label for="entry-price">Entry Price ($)</label>
+                        <input type="number" id="entry-price" placeholder="e.g., 250" min="0" step="0.01">
+                    </div>
+                    <div class="input-field">
+                        <label for="volatility-level">Current Volatility</label>
+                        <select id="volatility-level">
+                            <option value="">Select Volatility</option>
+                            <option value="low">Low (< 30%)</option>
+                            <option value="medium">Medium (30-50%)</option>
+                            <option value="high">High (50-80%)</option>
+                            <option value="extreme">Extreme (> 80%)</option>
+                        </select>
+                    </div>
+                    <div class="input-field">
+                        <label for="trade-timeframe">Trade Timeframe</label>
+                        <select id="trade-timeframe">
+                            <option value="">Select Timeframe</option>
+                            <option value="scalp">Scalp (< 1 hour)</option>
+                            <option value="intraday">Intraday (1-8 hours)</option>
+                            <option value="swing">Swing (1-5 days)</option>
+                            <option value="position">Position (> 1 week)</option>
+                        </select>
+                    </div>
+                    <div class="input-field">
+                        <label for="market-conditions">Market Conditions</label>
+                        <select id="market-conditions">
+                            <option value="">Select Conditions</option>
+                            <option value="trending">Strong Trend</option>
+                            <option value="choppy">Choppy/Sideways</option>
+                            <option value="news">News Event</option>
+                            <option value="earnings">Earnings Week</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <button class="calculator-button" onclick="calculateRiskManagement()">
+                    <i class="fas fa-calculator" style="margin-right: 0.5rem;"></i>
+                    Calculate Position Size & Stops
+                </button>
+
+                <div class="calculation-result" id="calculation-result">
+                    <div class="result-header">
+                        <div class="result-icon" id="result-icon"></div>
+                        <h4 id="result-title" style="margin: 0; color: var(--light-text);"></h4>
+                    </div>
+                    <div id="result-content"></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Current Volatility Metrics -->
+        <section class="content-section card-style">
+            <h3><i class="fas fa-chart-line" style="color: #e31e24; margin-right: 0.5rem;"></i>Current Volatility Metrics</h3>
+            <p>Real-time volatility indicators to help you assess current market conditions:</p>
+            
+            <div class="volatility-grid">
+                <div class="volatility-card">
+                    <div class="volatility-indicator indicator-extreme"></div>
+                    <div class="volatility-header">
+                        <div class="volatility-icon extreme-vol"><i class="fas fa-bolt"></i></div>
+                        <div>
+                            <h4 class="volatility-title">Implied Volatility</h4>
+                            <p class="volatility-range">Options-based expectation</p>
+                        </div>
+                    </div>
+                    <div class="volatility-value">
+                        78%
+                        <span style="font-size: 0.8rem; color: var(--gray-text);">30-day</span>
+                    </div>
+                    <p style="color: var(--light-text); font-size: 0.9rem; margin: 0;">
+                        <strong>Extreme:</strong> Options pricing in major moves. Consider volatility plays.
+                    </p>
+                </div>
+
+                <div class="volatility-card">
+                    <div class="volatility-indicator indicator-high"></div>
+                    <div class="volatility-header">
+                        <div class="volatility-icon high-vol"><i class="fas fa-wave-square"></i></div>
+                        <div>
+                            <h4 class="volatility-title">Historical Volatility</h4>
+                            <p class="volatility-range">Actual price movement</p>
+                        </div>
+                    </div>
+                    <div class="volatility-value">
+                        65%
+                        <span style="font-size: 0.8rem; color: var(--gray-text);">20-day</span>
+                    </div>
+                    <p style="color: var(--light-text); font-size: 0.9rem; margin: 0;">
+                        <strong>High:</strong> Recent price swings above normal. Use wider stops.
+                    </p>
+                </div>
+
+                <div class="volatility-card">
+                    <div class="volatility-indicator indicator-medium"></div>
+                    <div class="volatility-header">
+                        <div class="volatility-icon medium-vol"><i class="fas fa-chart-area"></i></div>
+                        <div>
+                            <h4 class="volatility-title">Intraday Range</h4>
+                            <p class="volatility-range">Daily high-low spread</p>
+                        </div>
+                    </div>
+                    <div class="volatility-value">
+                        8.2%
+                        <span style="font-size: 0.8rem; color: var(--gray-text);">avg</span>
+                    </div>
+                    <p style="color: var(--light-text); font-size: 0.9rem; margin: 0;">
+                        <strong>Medium:</strong> Typical daily range for current conditions.
+                    </p>
+                </div>
+
+                <div class="volatility-card">
+                    <div class="volatility-indicator indicator-high"></div>
+                    <div class="volatility-header">
+                        <div class="volatility-icon high-vol"><i class="fas fa-tachometer-alt"></i></div>
+                        <div>
+                            <h4 class="volatility-title">Beta vs S&P 500</h4>
+                            <p class="volatility-range">Relative volatility</p>
+                        </div>
+                    </div>
+                    <div class="volatility-value">
+                        2.1x
+                        <span style="font-size: 0.8rem; color: var(--gray-text);">90-day</span>
+                    </div>
+                    <p style="color: var(--light-text); font-size: 0.9rem; margin: 0;">
+                        <strong>High:</strong> Moves 2x more than market. Amplified reactions.
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Volatility-Based Strategies -->
+        <section class="content-section card-style">
+            <h3><i class="fas fa-chess" style="color: var(--success-green); margin-right: 0.5rem;"></i>Volatility-Based Trading Strategies</h3>
+            <p>Different approaches for different volatility environments:</p>
+            
+            <div class="strategy-grid">
+                <div class="strategy-card">
+                    <div class="strategy-badge">LOW VOLATILITY</div>
+                    <h4 class="strategy-title">Range Trading Strategy</h4>
+                    <p class="strategy-description">When TSLA volatility drops below 40%, focus on buying support and selling resistance within established ranges. Use tighter stops and smaller position sizes.</p>
+                    <div class="strategy-metrics">
+                        <div class="metric-item">
+                            <div class="metric-label">Stop Loss</div>
+                            <div class="metric-value">2-4%</div>
+                        </div>
+                        <div class="metric-item">
+                            <div class="metric-label">Position Size</div>
+                            <div class="metric-value">Standard</div>
+                        </div>
+                        <div class="metric-item">
+                            <div class="metric-label">Time Horizon</div>
+                            <div class="metric-value">1-3 days</div>
+                        </div>
+                        <div class="metric-item">
+                            <div class="metric-label">Win Rate</div>
+                            <div class="metric-value">65-75%</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="strategy-card">
+                    <div class="strategy-badge">MEDIUM VOLATILITY</div>
+                    <h4 class="strategy-title">Breakout Strategy</h4>
+                    <p class="strategy-description">In moderate volatility (40-60%), focus on momentum breakouts above key levels. Use the volatility to capture larger moves while managing risk.</p>
+                    <div class="strategy-metrics">
+                        <div class="metric-item">
+                            <div class="metric-label">Stop Loss</div>
+                            <div class="metric-value">4-6%</div>
+                        </div>
+                        <div class="metric-item">
+                            <div class="metric-label">Position Size</div>
+                            <div class="metric-value">Reduced</div>
+                        </div>
+                        <div class="metric-item">
+                            <div class="metric-label">Time Horizon</div>
+                            <div class="metric-value">2-5 days</div>
+                        </div>
+                        <div class="metric-item">
+                            <div class="metric-label">Win Rate</div>
+                            <div class="metric-value">55-65%</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="strategy-card">
+                    <div class="strategy-badge">HIGH VOLATILITY</div>
+                    <h4 class="strategy-title">Volatility Expansion</h4>
+                    <p class="strategy-description">When volatility exceeds 60%, use wider stops and smaller positions. Focus on major support/resistance levels and news-driven moves.</p>
+                    <div class="strategy-metrics">
+                        <div class="metric-item">
+                            <div class="metric-label">Stop Loss</div>
+                            <div class="metric-value">6-10%</div>
+                        </div>
+                        <div class="metric-item">
+                            <div class="metric-label">Position Size</div>
+                            <div class="metric-value">Small</div>
+                        </div>
+                        <div class="metric-item">
+                            <div class="metric-label">Time Horizon</div>
+                            <div class="metric-value">1-7 days</div>
+                        </div>
+                        <div class="metric-item">
+                            <div class="metric-label">Win Rate</div>
+                            <div class="metric-value">45-55%</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Volatility Chart -->
+        <section class="content-section card-style">
+            <h3><i class="fas fa-chart-bar" style="color: var(--primary-gold); margin-right: 0.5rem;"></i>30-Day Volatility Trend</h3>
+            <p>Track TSLA's volatility patterns over the past month:</p>
+            
+            <div class="volatility-chart">
+                <div class="chart-container">
+                    <div class="volatility-bars">
+                        <div class="vol-bar" style="height: 45%;">
+                            <div class="bar-label">Week 1</div>
+                        </div>
+                        <div class="vol-bar" style="height: 68%;">
+                            <div class="bar-label">Week 2</div>
+                        </div>
+                        <div class="vol-bar" style="height: 85%;">
+                            <div class="bar-label">Week 3</div>
+                        </div>
+                        <div class="vol-bar" style="height: 92%;">
+                            <div class="bar-label">Week 4</div>
+                        </div>
+                        <div class="vol-bar" style="height: 78%;">
+                            <div class="bar-label">Current</div>
+                        </div>
+                    </div>
+                </div>
+                <p style="color: var(--gray-text); font-size: 0.9rem; margin-top: 1rem;">
+                    Volatility peaked in Week 4 following earnings announcement, now moderating but still elevated.
+                </p>
+            </div>
+        </section>
+
+        <!-- Risk Management Guidelines -->
+        <section class="content-section card-style">
+            <h3><i class="fas fa-exclamation-triangle" style="color: #e31e24; margin-right: 0.5rem;"></i>Critical Risk Management Rules</h3>
+            
+            <div class="warning-box">
+                <div class="warning-header">
+                    <div class="warning-icon"><i class="fas fa-shield-alt"></i></div>
+                    <h4 class="warning-title">Volatility-Adjusted Position Sizing</h4>
+                </div>
+                <div class="checklist-items">
+                    <li><strong>Never risk more than 2% per trade:</strong> TSLA's volatility can quickly turn small losses into large ones.</li>
+                    <li><strong>Scale position size inversely with volatility:</strong> Higher volatility = smaller positions, regardless of confidence level.</li>
+                    <li><strong>Use ATR-based stops:</strong> Set stops at 2-3x Average True Range to avoid getting stopped out by normal volatility.</li>
+                    <li><strong>Monitor implied volatility:</strong> High IV often signals upcoming price expansion - adjust accordingly.</li>
+                    <li><strong>Avoid earnings week unless experienced:</strong> Volatility can exceed 100% around earnings announcements.</li>
+                </div>
+            </div>
+
+            <div class="warning-box">
+                <div class="warning-header">
+                    <div class="warning-icon"><i class="fas fa-clock"></i></div>
+                    <h4 class="warning-title">Time-Based Risk Factors</h4>
+                </div>
+                <div class="checklist-items">
+                    <li><strong>First 30 minutes:</strong> Extreme volatility as overnight news gets digested. Consider waiting for initial move to complete.</li>
+                    <li><strong>Last 30 minutes:</strong> Increased volatility from closing auctions and position adjustments.</li>
+                    <li><strong>Options expiration:</strong> Gamma effects can cause unusual price movements, especially near strike prices.</li>
+                    <li><strong>After-hours trading:</strong> Lower liquidity amplifies volatility. Use limit orders and smaller sizes.</li>
+                </div>
+            </div>
+        </section>
+
+        <!-- Advanced Volatility Techniques -->
+        <section class="content-section card-style">
+            <h3><i class="fas fa-graduation-cap" style="color: var(--success-green); margin-right: 0.5rem;"></i>Advanced Volatility Techniques</h3>
+            <div class="checklist-items">
+                <li><strong>Volatility Breakouts:</strong> When volatility contracts below 30%, prepare for expansion. Often precedes major moves.</li>
+                <li><strong>Mean Reversion Plays:</strong> After extreme volatility spikes (>100%), consider mean reversion strategies as volatility normalizes.</li>
+                <li><strong>News-Driven Volatility:</strong> Elon tweets, regulatory news, and earnings create predictable volatility patterns.</li>
+                <li><strong>Options Strategies:</strong> Consider straddles/strangles when expecting volatility expansion, iron condors during contraction.</li>
+                <li><strong>Correlation Breaks:</strong> Monitor when TSLA breaks correlation with broader market - often signals independent catalysts.</li>
+                <li><strong>Volume-Volatility Relationship:</strong> High volume + high volatility = sustainable moves. Low volume + high volatility = likely reversal.</li>
+                <li><strong>Volatility Clustering:</strong> High volatility periods tend to cluster. One volatile day often leads to several more.</li>
+            </div>
+        </section>
+
+        <!-- CTA Section -->
+        <section class="cta-section">
+            <div class="cta-content">
+                <h2>Master TSLA's Volatility</h2>
+                <p>Our TSLA bot is specifically designed for high-volatility conditions. Get real-time signals that adapt to changing volatility environments and help you profit from TSLA's wild swings.</p>
+                <div class="cta-buttons">
+                    <a href="../bots/tsla-bot.html" class="cta-button primary">
+                        <img src="../../assets/images/tesla-logo.svg" alt="Tesla" style="width: 20px; height: 20px; filter: brightness(0) invert(1); margin-right: 0.5rem;">
+                        Explore TSLA Bot
+                    </a>
+                    <a href="../../index.html#pricing" class="cta-button secondary">
+                        <i class="fas fa-rocket"></i>
+                        View All Plans
+                    </a>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <div class="floating-cta">
+        <a href="../../index.html#pricing" class="cta-button">Join Now & Get Signals</a>
+    </div>
+
+    <!-- Footer -->
+    <footer class="main-footer">
+        <div class="footer-content">
+            <div class="footer-section">
+                <h3>BlueChip Signals</h3>
+                <p>Professional trading signals for blue-chip stocks. Our advanced algorithms analyze market momentum, volume, and technical indicators to deliver high-probability trading opportunities directly to your device.</p>
+            </div>
+            <div class="footer-section">
+                <h4>Quick Links</h4>
+                <ul>
+                    <li><a href="../../index.html#features">Features</a></li>
+                    <li><a href="../../free-features.html">Free Tools</a></li>
+                    <li><a href="../../index.html#pricing">Pricing</a></li>
+                    <li><a href="../../faq.html">FAQ</a></li>
+                    <li><a href="../../legal.html">Legal</a></li>
+                    <li><a href="../../about.html">About</a></li>
+                </ul>
+            </div>
+            <div class="footer-section">
+                <h4>Trading Bots</h4>
+                <ul>
+                    <li><a href="../bots/spy-bot.html">SPY Bot</a></li>
+                    <li><a href="../bots/aapl-bot.html">AAPL Bot</a></li>
+                    <li><a href="../bots/tsla-bot.html">TSLA Bot</a></li>
+                    <li><a href="../bots/meta-bot.html">META Bot</a></li>
+                    <li><a href="../bots/nvda-bot.html">NVDA Bot</a></li>
+                    <li><a href="../bots/amzn-bot.html">AMZN Bot</a></li>
+                </ul>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>&copy; 2025 BlueChip Signals. All rights reserved.</p>
+            <div class="footer-social">
+                <a href="https://www.tiktok.com/@bluechip.signals" target="_blank">
+                    <i class="fab fa-tiktok"></i>
+                </a>
+                <a href="https://www.instagram.com/bluechip.signals/" target="_blank">
+                    <i class="fab fa-instagram"></i>
+                </a>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        function calculateRiskManagement() {
+            const accountSize = parseFloat(document.getElementById('account-size').value);
+            const riskPercentage = parseFloat(document.getElementById('risk-percentage').value);
+            const entryPrice = parseFloat(document.getElementById('entry-price').value);
+            const volatilityLevel = document.getElementById('volatility-level').value;
+            const timeframe = document.getElementById('trade-timeframe').value;
+            const marketConditions = document.getElementById('market-conditions').value;
+            
+            if (!accountSize || !riskPercentage || !entryPrice || !volatilityLevel || !timeframe || !marketConditions) {
+                alert('Please fill in all fields to calculate risk management parameters.');
+                return;
+            }
+            
+            // Calculate base risk amount
+            const riskAmount = accountSize * (riskPercentage / 100);
+            
+            // Volatility multipliers for stop loss
+            const volMultipliers = {
+                'low': 0.8,
+                'medium': 1.0,
+                'high': 1.4,
+                'extreme': 2.0
+            };
+            
+            // Timeframe multipliers
+            const timeMultipliers = {
+                'scalp': 0.5,
+                'intraday': 0.8,
+                'swing': 1.2,
+                'position': 1.8
+            };
+            
+            // Market condition adjustments
+            const conditionMultipliers = {
+                'trending': 0.9,
+                'choppy': 1.3,
+                'news': 1.6,
+                'earnings': 2.2
+            };
+            
+            // Calculate stop loss percentage
+            const baseStopPercent = 3.0; // Base 3% stop
+            const adjustedStopPercent = baseStopPercent * 
+                volMultipliers[volatilityLevel] * 
+                timeMultipliers[timeframe] * 
+                conditionMultipliers[marketConditions];
+            
+            const stopLossPrice = entryPrice * (1 - adjustedStopPercent / 100);
+            const stopLossDistance = entryPrice - stopLossPrice;
+            
+            // Calculate position size
+            const maxShares = Math.floor(riskAmount / stopLossDistance);
+            const positionValue = maxShares * entryPrice;
+            const positionPercent = (positionValue / accountSize) * 100;
+            
+            // Determine risk level and recommendations
+            let riskLevel, riskClass, icon, recommendations;
+            
+            if (adjustedStopPercent <= 4) {
+                riskLevel = 'CONSERVATIVE';
+                riskClass = 'result-conservative';
+                icon = '🛡️';
+                recommendations = 'Low volatility environment allows for tighter risk management. Consider standard position sizing.';
+            } else if (adjustedStopPercent <= 8) {
+                riskLevel = 'MODERATE';
+                riskClass = 'result-moderate';
+                icon = '⚖️';
+                recommendations = 'Moderate volatility requires balanced approach. Use reduced position sizes and wider stops.';
+            } else {
+                riskLevel = 'AGGRESSIVE';
+                riskClass = 'result-aggressive';
+                icon = '🔥';
+                recommendations = 'High volatility environment! Use small positions and wide stops. Consider waiting for better conditions.';
+            }
+            
+            const resultDiv = document.getElementById('calculation-result');
+            const resultIcon = document.getElementById('result-icon');
+            const resultTitle = document.getElementById('result-title');
+            const resultContent = document.getElementById('result-content');
+            
+            resultIcon.innerHTML = icon;
+            resultIcon.className = `result-icon ${riskClass}`;
+            resultTitle.textContent = riskLevel + ' RISK PROFILE';
+            
+            resultContent.innerHTML = `
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 1.5rem;">
+                    <div style="background: rgba(179, 161, 125, 0.1); padding: 1rem; border-radius: 8px; text-align: center;">
+                        <strong>Position Size</strong><br>
+                        <span style="font-size: 1.3rem; color: var(--primary-gold);">${maxShares.toLocaleString()} shares</span><br>
+                        <span style="font-size: 0.9rem; color: var(--gray-text);">$${positionValue.toLocaleString()}</span>
+                    </div>
+                    <div style="background: rgba(179, 161, 125, 0.1); padding: 1rem; border-radius: 8px; text-align: center;">
+                        <strong>Stop Loss</strong><br>
+                        <span style="font-size: 1.3rem; color: #e31e24;">$${stopLossPrice.toFixed(2)}</span><br>
+                        <span style="font-size: 0.9rem; color: var(--gray-text);">${adjustedStopPercent.toFixed(1)}% below entry</span>
+                    </div>
+                    <div style="background: rgba(179, 161, 125, 0.1); padding: 1rem; border-radius: 8px; text-align: center;">
+                        <strong>Max Risk</strong><br>
+                        <span style="font-size: 1.3rem; color: #e31e24;">$${riskAmount.toFixed(0)}</span><br>
+                        <span style="font-size: 0.9rem; color: var(--gray-text);">${riskPercentage}% of account</span>
+                    </div>
+                    <div style="background: rgba(179, 161, 125, 0.1); padding: 1rem; border-radius: 8px; text-align: center;">
+                        <strong>Portfolio %</strong><br>
+                        <span style="font-size: 1.3rem; color: var(--primary-gold);">${positionPercent.toFixed(1)}%</span><br>
+                        <span style="font-size: 0.9rem; color: var(--gray-text);">of total capital</span>
+                    </div>
+                </div>
+                
+                <div style="background: rgba(227, 30, 36, 0.1); padding: 1rem; border-radius: 8px; margin-bottom: 1rem;">
+                    <strong>📋 Trading Recommendations:</strong><br>
+                    ${recommendations}
+                </div>
+                
+                <div style="background: rgba(179, 161, 125, 0.1); padding: 1rem; border-radius: 8px;">
+                    <strong>⚠️ Risk Factors:</strong><br>
+                    • Volatility Level: ${volatilityLevel.toUpperCase()}<br>
+                    • Market Conditions: ${marketConditions.replace('-', ' ').toUpperCase()}<br>
+                    • Timeframe: ${timeframe.toUpperCase()}<br>
+                    • Adjusted Stop: ${adjustedStopPercent.toFixed(1)}% (Base: ${baseStopPercent}%)
+                </div>
+            `;
+            
+            resultDiv.style.display = 'block';
+        }
+
+        // Navigation functionality
+        const hamburgerMenu = document.querySelector('.hamburger-menu');
+        const mobileNav = document.querySelector('.nav-links');
+
+        hamburgerMenu.addEventListener('click', () => {
+            mobileNav.classList.toggle('active');
+        });
+    </script>
+</body>
+</html> 

@@ -1326,6 +1326,60 @@
         hamburgerMenu.addEventListener('click', () => {
             mobileNav.classList.toggle('active');
         });
+
+        // Stripe Button Mobile Optimization
+        function optimizeStripeButtons() {
+            const stripeButtons = document.querySelectorAll('stripe-buy-button');
+            
+            stripeButtons.forEach(button => {
+                // Apply mobile-friendly styles directly
+                if (window.innerWidth <= 768) {
+                    button.style.width = '100%';
+                    button.style.maxWidth = '100%';
+                    button.style.display = 'block';
+                    button.style.margin = '0 auto';
+                    
+                    if (window.innerWidth <= 600) {
+                        button.style.transform = 'scale(0.9)';
+                        button.style.transformOrigin = 'center';
+                    }
+                    
+                    if (window.innerWidth <= 375) {
+                        button.style.transform = 'scale(0.8)';
+                        button.style.transformOrigin = 'center';
+                    }
+                }
+                
+                // Try to access and modify the shadow DOM if possible
+                setTimeout(() => {
+                    try {
+                        const shadowRoot = button.shadowRoot;
+                        if (shadowRoot) {
+                            const innerButton = shadowRoot.querySelector('button');
+                            if (innerButton && window.innerWidth <= 768) {
+                                innerButton.style.width = '100%';
+                                innerButton.style.maxWidth = '100%';
+                                innerButton.style.fontSize = window.innerWidth <= 600 ? '0.85rem' : '0.9rem';
+                                innerButton.style.padding = window.innerWidth <= 600 ? '0.6rem 0.8rem' : '0.8rem 1rem';
+                            }
+                        }
+                    } catch (e) {
+                        // Shadow DOM access might be restricted
+                        console.log('Shadow DOM access restricted for Stripe buttons');
+                    }
+                }, 2000); // Wait for Stripe buttons to fully load
+            });
+        }
+
+        // Run optimization when DOM is loaded
+        document.addEventListener('DOMContentLoaded', optimizeStripeButtons);
+        
+        // Run optimization when window is resized
+        window.addEventListener('resize', optimizeStripeButtons);
+        
+        // Run optimization periodically to catch dynamically loaded Stripe buttons
+        setTimeout(optimizeStripeButtons, 3000);
+        setTimeout(optimizeStripeButtons, 5000);
     </script>
 </body>
 </html>

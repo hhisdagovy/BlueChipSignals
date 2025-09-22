@@ -101,77 +101,13 @@
         </div>
     </nav>
 
-    <section class="demo-page">
-        <h1 class="section-title">Book a Private Demo</h1>
-        <p class="section-subtitle">Experience BlueChip Signals live. We'll walk you through our real-time alerts, trade workflow, and risk management approach, and answer your questions. Limited slots weekly.</p>
+    <section class="demo-page" style="text-align: center; max-width: 760px;">
+        <h1 class="section-title">Schedule a Live Demo</h1>
+        <p class="section-subtitle">Use our Calendly link to pick a time that works for you. No forms, no friction.</p>
 
-        <div class="demo-grid">
-            <div class="card">
-                <h3>Secure Your Time</h3>
-                <form id="demoForm" action="https://formspree.io/f/xblyqkkw" method="POST">
-                    <div class="form-group">
-                        <label for="name">Full Name</label>
-                        <input id="name" name="name" type="text" placeholder="Jane Doe" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="email">Email</label>
-                        <input id="email" name="email" type="email" placeholder="you@example.com" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="phone">Phone</label>
-                        <input id="phone" name="phone" type="tel" placeholder="(123) 456-7890" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="timezone">Time Zone</label>
-                        <select id="timezone" name="timezone" required>
-                            <option value="" disabled selected>Select your time zone</option>
-                            <option>UTC−08:00 Pacific Time (PT)</option>
-                            <option>UTC−07:00 Mountain Time (MT)</option>
-                            <option>UTC−06:00 Central Time (CT)</option>
-                            <option>UTC−05:00 Eastern Time (ET)</option>
-                            <option>UTC+00:00 Greenwich Mean Time (GMT)</option>
-                            <option>UTC+01:00 Central Europe (CET)</option>
-                            <option>UTC+05:30 India Standard Time (IST)</option>
-                            <option>UTC+08:00 China Standard Time (CST)</option>
-                            <option>UTC+10:00 Australian Eastern Time (AET)</option>
-                        </select>
-                    </div>
-                    <div class="form-group" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
-                        <div>
-                            <label for="preferred_date">Preferred Date</label>
-                            <input id="preferred_date" name="preferred_date" type="date" required>
-                        </div>
-                        <div>
-                            <label for="preferred_time">Preferred Time</label>
-                            <input id="preferred_time" name="preferred_time" type="time" required>
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <label for="goals">Your Goals for the Demo</label>
-                        <textarea id="goals" name="goals" placeholder="Tell us what you want to see or achieve..."></textarea>
-                    </div>
-                    <div class="form-group">
-                        <label for="notes">Anything Else?</label>
-                        <textarea id="notes" name="notes" placeholder="Share context about your trading style, experience, or questions."></textarea>
-                    </div>
-                    <button type="submit" class="cta-button">Request Demo</button>
-                    <div id="successMessage" style="display:none; margin-top: 1rem; background: #2a571f; color: #fff; padding: 0.8rem; border-radius: 8px; text-align: center;">Thanks! We received your request and will confirm shortly.</div>
-                    <div id="errorMessage" style="display:none; margin-top: 1rem; background: #FF3B3B; color: #fff; padding: 0.8rem; border-radius: 8px; text-align: center;">Oops! There was a problem submitting your form.</div>
-                </form>
-            </div>
-            <div class="card">
-                <h3>What You'll See</h3>
-                <ul class="benefits-list">
-                    <li><span class="icon">⚡</span><span>Live signal flow across SPY, META, AAPL, TSLA, NVDA, AMZN</span></li>
-                    <li><span class="icon">📈</span><span>How we combine VWAP, MFI and momentum to time entries</span></li>
-                    <li><span class="icon">🎯</span><span>Trade selection and risk management walkthrough</span></li>
-                    <li><span class="icon">📱</span><span>Telegram delivery and mobile workflow</span></li>
-                    <li><span class="icon">🔒</span><span>Membership options discussed privately after the demo</span></li>
-                </ul>
-                <div style="margin-top: 1.2rem;">
-                    <a class="cta-button" href="contact.html" style="background: none; border: 2px solid var(--primary-gold); color: var(--primary-gold);">Have a question?</a>
-                </div>
-            </div>
+        <div class="card" style="margin: 0 auto;">
+            <p style="margin-bottom: 1.5rem; color: var(--gray-text);">Click below to schedule. You will be redirected to our Calendly booking page.</p>
+            <a id="calendlyBtn" class="cta-button" href="#" data-calendly-url="https://calendly.com/YOUR-CALENDLY-SLUG/demo">Schedule on Calendly</a>
         </div>
     </section>
 
@@ -184,53 +120,21 @@
         const mobileNav = document.querySelector('.nav-links');
         hamburgerMenu.addEventListener('click', () => { mobileNav.classList.toggle('active'); });
 
-        const form = document.getElementById('demoForm');
-        const successMessage = document.getElementById('successMessage');
-        const errorMessage = document.getElementById('errorMessage');
+        // Calendly redirect handling (set your URL on the button's data-calendly-url)
+        const btn = document.getElementById('calendlyBtn');
+        const calendlyUrl = btn.getAttribute('data-calendly-url');
 
-        function validatePhoneNumber(phone) {
-            const justDigits = phone.replace(/\D/g, '');
-            return justDigits.length >= 10;
-        }
-
-        form.addEventListener('submit', function(event) {
-            event.preventDefault();
-            successMessage.style.display = 'none';
-            errorMessage.style.display = 'none';
-
-            const phoneInput = document.getElementById('phone');
-            if (!validatePhoneNumber(phoneInput.value)) {
-                errorMessage.textContent = 'Please enter a valid phone number with at least 10 digits.';
-                errorMessage.style.display = 'block';
-                phoneInput.focus();
-                return;
+        // If a valid Calendly URL is provided, enable button and optional auto-redirect via ?auto=1
+        try {
+            const url = new URL(calendlyUrl);
+            btn.href = url.toString();
+            const params = new URLSearchParams(window.location.search);
+            if (params.get('auto') === '1') {
+                window.location.replace(url.toString());
             }
-
-            const formData = new FormData(form);
-            const button = form.querySelector('button[type="submit"]');
-            const originalButtonText = button.textContent;
-            button.disabled = true;
-            button.textContent = 'Submitting...';
-
-            fetch(form.action, { method: 'POST', body: formData, headers: { 'Accept': 'application/json' }})
-                .then(response => {
-                    if (response.ok) {
-                        successMessage.style.display = 'block';
-                        form.reset();
-                    } else {
-                        errorMessage.style.display = 'block';
-                        errorMessage.textContent = 'Oops! There was a problem submitting your form.';
-                    }
-                })
-                .catch(() => {
-                    errorMessage.style.display = 'block';
-                    errorMessage.textContent = 'Oops! There was a problem submitting your form.';
-                })
-                .finally(() => {
-                    button.disabled = false;
-                    button.textContent = originalButtonText;
-                });
-        });
+        } catch (_) {
+            btn.href = '#';
+        }
     </script>
 </body>
 </html>

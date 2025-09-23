@@ -31,6 +31,32 @@
             color: var(--light-text);
             line-height: 1.6;
             overflow-x: hidden;
+            /* Deck scrolling */
+            scroll-snap-type: y proximity;
+        }
+
+        /* Full-screen deck panels */
+        .panel {
+            min-height: 100vh;
+            scroll-snap-align: start;
+            scroll-snap-stop: always;
+            display: flex;
+            align-items: center;
+            padding: 4rem 0; /* retain breathing room under fixed nav */
+        }
+
+        .panel-card {
+            width: 100%;
+            transform: translateY(12px) scale(0.985);
+            opacity: 0;
+            transition: transform 450ms cubic-bezier(0.22, 1, 0.36, 1),
+                        opacity 450ms cubic-bezier(0.22, 1, 0.36, 1);
+            will-change: transform, opacity;
+        }
+
+        .panel.in-view .panel-card {
+            transform: translateY(0) scale(1);
+            opacity: 1;
         }
 
         /* Navigation */
@@ -540,19 +566,24 @@
 
         /* Responsive */
         @media (max-width: 768px) {
+            /* Mobile refinements: faster reveals, no snap, ensure visibility */
+            body { scroll-snap-type: none; }
+            .panel { min-height: auto; padding: 2.25rem 0; }
+            .panel-card { opacity: 1; transform: none; transition-duration: 300ms; }
+            .hero { padding: 2.2rem 1.25rem; }
             .hero-container {
                 grid-template-columns: 1fr;
                 text-align: center;
+                gap: 1.6rem;
             }
 
             .hero-buttons {
                 justify-content: center;
-                gap: 1.5rem;
+                gap: 1rem;
             }
             
-            .hero-content h2 {
-                font-size: 2.5rem;
-            }
+            .hero-content h2 { font-size: 2.2rem; line-height: 1.15; }
+            .hero-content p { font-size: 1.05rem; }
             
             .nav-links {
                 display: none; /* Hide desktop nav on small screens */
@@ -796,8 +827,8 @@
     </nav>
 
     <!-- Hero Section -->
-    <section class="hero">
-        <div class="hero-container">
+    <section class="hero panel">
+        <div class="hero-container panel-card">
             <div class="hero-content">
                 <h2>Elite Trading Signals for Blue-Chip Stocks</h2>
                 <p>Get precise buy signals for SPY, META, AAPL, TSLA, NVDA, and AMZN. Our momentum breakout strategy delivers 2-4 high-probability alerts daily.</p>
@@ -1006,8 +1037,8 @@
     
 
     <!-- Features Section -->
-    <section id="features" class="features">
-        <div class="features-container">
+    <section id="features" class="features panel">
+        <div class="features-container panel-card">
             <h2 class="section-title">Why Choose BlueChip Signals?</h2>
             <div class="features-grid">
                 <div class="feature-card">
@@ -1045,8 +1076,8 @@
     </section>
 
     <!-- Supported Stocks Section -->
-    <section id="bots" class="bots">
-        <div class="bots-container">
+    <section id="bots" class="bots panel">
+        <div class="bots-container panel-card">
             <h2 class="section-title">Supported Stocks</h2>
             <div class="bots-grid">
                 <a href="pages/bots/spy-bot.html" class="bot-card premium" data-symbol="SPY">
@@ -1080,8 +1111,8 @@
     
 
     <!-- Testimonials -->
-    <section id="testimonials" class="testimonials">
-        <div class="testimonials-container">
+    <section id="testimonials" class="testimonials panel">
+        <div class="testimonials-container panel-card">
             <h2 class="section-title">What Our Traders Say</h2>
             <div class="testimonials-grid">
                 <div class="testimonial-card">
@@ -1201,27 +1232,50 @@
             });
         });
 
-        // Add animation on scroll
-        const observerOptions = {
-            threshold: 0.1,
-            rootMargin: '0px 0px -50px 0px'
-        };
+        // Add smooth, slightly delayed scroll-reveal
+        const observerOptions = { threshold: 0.06, rootMargin: '0px 0px -40px 0px' };
 
-        const observer = new IntersectionObserver(function(entries) {
+        const revealObserver = new IntersectionObserver((entries, obs) => {
             entries.forEach(entry => {
                 if (entry.isIntersecting) {
-                    entry.target.style.opacity = '1';
-                    entry.target.style.transform = 'translateY(0)';
+                    const el = entry.target;
+                    el.style.opacity = '1';
+                    el.style.transform = 'translateY(0)';
+                    // Reveal once, then stop observing to prevent jitter
+                    obs.unobserve(el);
                 }
             });
         }, observerOptions);
 
-        document.querySelectorAll('.feature-card, .bot-card, .testimonial-card').forEach(el => {
-            el.style.opacity = '0';
-            el.style.transform = 'translateY(20px)';
-            el.style.transition = 'opacity 0.5s, transform 0.5s';
-            observer.observe(el);
-        });
+        function primeReveal(elements, baseDelayMs = 30) {
+            elements.forEach((el, index) => {
+                el.style.opacity = '0';
+                el.style.transform = 'translateY(12px)';
+                el.style.transition = 'opacity 450ms cubic-bezier(0.22, 1, 0.36, 1), transform 450ms cubic-bezier(0.22, 1, 0.36, 1)';
+                el.style.transitionDelay = `${index * baseDelayMs}ms`;
+                el.style.willChange = 'opacity, transform';
+                revealObserver.observe(el);
+            });
+        }
+
+        primeReveal(document.querySelectorAll('.features-grid .feature-card'), 70);
+        primeReveal(document.querySelectorAll('.bots-grid .bot-card'), 70);
+        primeReveal(document.querySelectorAll('.testimonials-grid .testimonial-card'), 70);
+        // Subtle fade for section titles
+        primeReveal(document.querySelectorAll('.section-title'), 0);
+
+        // Deck panel observer for section-level animation
+        const panelObserver = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('in-view');
+                } else {
+                    entry.target.classList.remove('in-view');
+                }
+            });
+        }, { threshold: 0.35 });
+
+        document.querySelectorAll('.panel').forEach(p => panelObserver.observe(p));
 
         // Countdown Timer for Limited Offer
         function startCountdown() {

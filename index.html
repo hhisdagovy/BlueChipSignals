@@ -373,35 +373,41 @@
 
         .bots-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 1.5rem;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 1.8rem;
             max-width: 1200px;
             margin: 0 auto;
         }
 
         .bot-card {
-            background: linear-gradient(135deg, rgba(201, 176, 55, 0.1), rgba(184, 134, 11, 0.1));
-            border: 1px solid var(--primary-gold);
-            border-radius: 15px;
-            padding: 2rem;
-            text-align: center;
-            transition: transform 0.3s, box-shadow 0.3s;
+            position: relative;
+            background: radial-gradient(1000px 160px at 0% 0%, rgba(201,176,55,0.07), transparent 25%),
+                        rgba(18, 22, 32, 0.72);
+            border: 1px solid rgba(201, 176, 55, 0.22);
+            border-radius: 16px;
+            padding: 1.6rem 1.8rem;
+            text-align: left;
+            transition: transform 0.35s ease, box-shadow 0.35s ease, border-color 0.35s ease;
+            box-shadow: 0 10px 26px rgba(0,0,0,0.25), inset 0 1px 0 rgba(255,255,255,0.02);
         }
 
-        .bot-card:hover {
-            transform: scale(1.05);
-            box-shadow: 0 10px 30px rgba(201, 176, 55, 0.3);
+        .bot-card.premium:hover {
+            transform: translateY(-6px);
+            border-color: rgba(201, 176, 55, 0.38);
+            box-shadow: 0 16px 40px rgba(201,176,55,0.12);
         }
 
         .bot-symbol {
-            font-size: 2rem;
-            font-weight: 700;
+            font-size: 2.1rem;
+            font-weight: 800;
             color: var(--primary-gold);
-            margin-bottom: 0.5rem;
+            margin-bottom: 0.35rem;
+            letter-spacing: 0.6px;
         }
 
         .bot-name {
             color: var(--gray-text);
+            font-weight: 500;
         }
 
         .stock-price-data {
@@ -1038,32 +1044,32 @@
         </div>
     </section>
 
-    <!-- Bots Section -->
+    <!-- Supported Stocks Section -->
     <section id="bots" class="bots">
         <div class="bots-container">
-            <h2 class="section-title">Our Signal Bots</h2>
+            <h2 class="section-title">Supported Stocks</h2>
             <div class="bots-grid">
-                <a href="pages/bots/spy-bot.html" class="bot-card" data-symbol="SPY">
+                <a href="pages/bots/spy-bot.html" class="bot-card premium" data-symbol="SPY">
                     <div class="bot-symbol">SPY</div>
                     <div class="bot-name">S&P 500 ETF</div>
                 </a>
-                <a href="pages/bots/meta-bot.html" class="bot-card" data-symbol="META">
+                <a href="pages/bots/meta-bot.html" class="bot-card premium" data-symbol="META">
                     <div class="bot-symbol">META</div>
                     <div class="bot-name">Meta Platforms</div>
                 </a>
-                <a href="pages/bots/aapl-bot.html" class="bot-card" data-symbol="AAPL">
+                <a href="pages/bots/aapl-bot.html" class="bot-card premium" data-symbol="AAPL">
                     <div class="bot-symbol">AAPL</div>
                     <div class="bot-name">Apple Inc.</div>
                 </a>
-                <a href="pages/bots/tsla-bot.html" class="bot-card" data-symbol="TSLA">
+                <a href="pages/bots/tsla-bot.html" class="bot-card premium" data-symbol="TSLA">
                     <div class="bot-symbol">TSLA</div>
                     <div class="bot-name">Tesla Inc.</div>
                 </a>
-                <a href="pages/bots/nvda-bot.html" class="bot-card" data-symbol="NVDA">
+                <a href="pages/bots/nvda-bot.html" class="bot-card premium" data-symbol="NVDA">
                     <div class="bot-symbol">NVDA</div>
                     <div class="bot-name">NVIDIA Corp.</div>
                 </a>
-                <a href="pages/bots/amzn-bot.html" class="bot-card" data-symbol="AMZN">
+                <a href="pages/bots/amzn-bot.html" class="bot-card premium" data-symbol="AMZN">
                     <div class="bot-symbol">AMZN</div>
                     <div class="bot-name">Amazon.com</div>
                 </a>

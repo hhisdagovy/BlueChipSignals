@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BlueChip Signals - Contact Us & Custom Bots</title>
+    <title>BlueChip Signals - Contact & Support</title>
     <link rel="icon" type="image/png" href="assets/images/logo.png">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="assets/css/bot-style.css">
@@ -76,9 +76,14 @@
             text-decoration: none;
         }
 
-        .nav-links a:hover {
-            color: var(--primary-gold);
-        }
+        .nav-links a:hover { color: var(--primary-gold); }
+        .dropdown { position: relative; }
+        .dropdown > a::after { content: " \25BE"; font-size: 0.8rem; }
+        .dropdown-menu { display: none; position: absolute; top: 100%; right: 0; background: rgba(5, 8, 16, 0.95); border: 1px solid rgba(201, 176, 55, 0.2); border-radius: 8px; min-width: 220px; padding: 0.5rem 0; z-index: 1200; }
+        .dropdown-menu li { list-style: none; }
+        .dropdown-menu a { display: block; padding: 0.6rem 1rem; color: var(--light-text); white-space: nowrap; }
+        .dropdown-menu a:hover { background: rgba(201, 176, 55, 0.08); color: var(--primary-gold); }
+        .dropdown:hover .dropdown-menu { display: block; }
 
         .hamburger-menu {
             display: none;
@@ -351,20 +356,28 @@
             </div>
             <ul class="nav-links">
                 <li><a href="index.html#features">Features</a></li>
-                <li><a href="index.html#bots">Our Bots</a></li>
-                <li><a href="index.html#pricing">Pricing</a></li>
-                <li><a href="index.html#testimonials">Testimonials</a></li>
-                <li><a href="faq.html">FAQ</a></li>
-                <li><a href="legal.html">Legal Disclaimer</a></li>
-                <li><a href="about.html">About Us</a></li>
+                <li><a href="index.html#bots">Supported Stocks</a></li>
+                <li><a href="book-demo.html">Book a Demo</a></li>
+                <li><a href="contact.html">Contact</a></li>
+                <li class="dropdown"><a href="#">More</a>
+                    <ul class="dropdown-menu">
+                        <li><a href="free-features.html">Free Tools</a></li>
+                        <li><a href="index.html#testimonials">Testimonials</a></li>
+                        <li><a href="faq.html">FAQ</a></li>
+                        <li><a href="about.html">About Us</a></li>
+                        <li><a href="legal.html">Legal Disclaimer</a></li>
+                        <li><a href="terms.html">Terms of Service</a></li>
+                        <li><a href="privacy.html">Privacy Policy</a></li>
+                    </ul>
+                </li>
             </ul>
         </div>
     </nav>
 
     <!-- Contact Section -->
     <section class="contact-page">
-        <h2 class="section-title">Let's Build Your Vision</h2>
-        <p class="section-subtitle">Have a question or a brilliant idea for a custom trading bot? We're here to listen and help you bring it to life. Reach out to us using the form below or through our direct contact channels.</p>
+        <h2 class="section-title">Contact & Support</h2>
+        <p class="section-subtitle">We’re here to help with account questions, technical support, billing, and complaints. Use the form below or reach us through our direct contact channels.</p>
         
         <div class="contact-grid">
             <div class="contact-form-container">
@@ -379,12 +392,22 @@
                         <input type="email" id="email" name="email" placeholder="you@example.com" required>
                     </div>
                     <div class="form-group">
+                        <label for="topic">Topic</label>
+                        <select id="topic" name="topic" required>
+                            <option value="" disabled selected>Select a topic</option>
+                            <option value="support">Technical Support</option>
+                            <option value="billing">Billing</option>
+                            <option value="complaint">Complaint / Issue</option>
+                            <option value="general">General Inquiry</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
                         <label for="phone">Phone Number</label>
                         <input type="tel" id="phone" name="phone" placeholder="(123) 456-7890" required>
                     </div>
                     <div class="form-group">
-                        <label for="bot_details">How can we help?</label>
-                        <textarea id="bot_details" name="bot_details" placeholder="Tell us about your custom bot idea or your question..." required></textarea>
+                        <label for="message">How can we help?</label>
+                        <textarea id="message" name="message" placeholder="Share details about your issue or request..." required></textarea>
                     </div>
                     <button type="submit" class="submit-button">Submit Request</button>
                 </form>
@@ -405,24 +428,11 @@
                     </li>
                 </ul>
 
-                <h3>Custom Bot Pricing</h3>
+                <h3>Support & Complaints</h3>
                 <ul class="feature-list">
-                    <li>
-                        <span class="icon"><i class="fas fa-tag"></i></span>
-                        <span>Starts at <strong>$10,000</strong> per bot.</span>
-                    </li>
-                    <li>
-                        <span class="icon"><i class="fas fa-tags"></i></span>
-                        <span>Save <strong>$20,000</strong> with a 5-bot package.</span>
-                    </li>
-                </ul>
-
-                <h3>Why a Custom Bot?</h3>
-                <ul class="feature-list">
-                    <li><span class="icon"><i class="fas fa-cogs"></i></span><span>Automate your unique trading strategy.</span></li>
-                    <li><span class="icon"><i class="fas fa-chart-line"></i></span><span>Explore niche markets beyond blue-chips.</span></li>
-                    <li><span class="icon"><i class="fas fa-lightbulb"></i></span><span>Implement complex, multi-indicator models.</span></li>
-                    <li><span class="icon"><i class="fas fa-database"></i></span><span>Integrate with alternative data sources.</span></li>
+                    <li><span class="icon"><i class="fas fa-headset"></i></span><span>For urgent issues, email <strong>support@bluechipsignals.online</strong> with subject “URGENT”.</span></li>
+                    <li><span class="icon"><i class="fas fa-bullhorn"></i></span><span>For complaints, include dates, screenshots, and a brief description to help us resolve quickly.</span></li>
+                    <li><span class="icon"><i class="fas fa-clock"></i></span><span>We aim to respond within 1 business day.</span></li>
                 </ul>
             </div>
         </div>

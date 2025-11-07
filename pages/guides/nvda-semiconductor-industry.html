@@ -1,0 +1,1196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NVDA Semiconductor Industry Guide - BlueChip Signals</title>
+    <link rel="icon" type="image/png" href="../../assets/images/logo.png">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="../../assets/css/bot-style.css?v=1751139967">
+    <script>
+        // Redirect non-logged-in users to book demo page
+        (function() {
+            const isLoggedIn = localStorage.getItem('bluechip_logged_in') || sessionStorage.getItem('bluechip_logged_in');
+            if (!isLoggedIn) {
+                window.location.href = '../../book-demo.html';
+            }
+        })();
+    </script>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav>
+        <div class="nav-container">
+            <div class="logo">
+                <a href="../../index.html"><img src="../../assets/images/logo.png" alt="BlueChip Signals Logo"></a>
+            </div>
+            <div class="hamburger-menu">
+                <div class="bar"></div>
+                <div class="bar"></div>
+                <div class="bar"></div>
+            </div>
+            <ul class="nav-links">
+                <li><a href="../../index.html#features">Features</a></li>
+                <li><a href="../../index.html#bots">Supported Stocks</a></li>
+                <li><a href="../../book-demo.html">Book a Demo</a></li>
+                <li><a href="../../index.html#testimonials">Testimonials</a></li>
+                <li><a href="../../faq.html">FAQ</a></li>
+                <li><a href="../../legal.html">Legal Disclaimer</a></li>
+                <li><a href="../../about.html">About Us</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div class="breadcrumb">
+            <a href="../../index.html">Home</a> > <a href="../bots/nvda-bot.html">NVDA Bot</a> > Semiconductor Industry Guide
+        </div>
+    </div>
+
+    <main class="main-content">
+        <header class="content-header card-style">
+            <div class="bot-page-icon"><i class="fas fa-microchip"></i></div>
+            <h1 class="page-main-title">Monitor the Semiconductor Industry</h1>
+            <p class="page-main-subtitle">Track the SMH ETF and sector dynamics that create powerful tailwinds or headwinds for NVDA</p>
+        </header>
+
+        <section class="content-section card-style">
+            <h3>Why SMH ETF Matters for NVDA Trading</h3>
+            <p>The VanEck Semiconductor ETF (SMH) represents the broader semiconductor sector performance and serves as a crucial leading indicator for NVDA movements. Understanding sector-wide trends helps predict whether NVDA will outperform or underperform the market.</p>
+            
+            <div style="background: rgba(255, 193, 7, 0.1); padding: 2rem; border-radius: 12px; border-left: 4px solid var(--primary-gold); margin: 2rem 0;">
+                <h4 style="color: var(--primary-gold); margin-bottom: 1rem;"><i class="fas fa-chart-line"></i> The Sector Correlation Advantage</h4>
+                <p style="margin: 0; color: var(--light-text); line-height: 1.8;">NVDA and SMH maintain an 85%+ correlation during normal market conditions. When this correlation breaks down, it often signals either NVDA-specific catalysts or broader sector rotation, creating high-probability trading opportunities.</p>
+            </div>
+            
+            <div class="correlation-tracker">
+                <h4><i class="fas fa-link"></i> Live SMH-NVDA Correlation Monitor</h4>
+                <div class="correlation-metrics">
+                    <div class="correlation-card strong">
+                        <div class="correlation-header">
+                            <i class="fas fa-arrow-up"></i>
+                            <span>30-Day Correlation</span>
+                            <div class="correlation-strength">Strong</div>
+                        </div>
+                        <div class="correlation-value">87%</div>
+                        <div class="correlation-status">Normal Range (80-90%)</div>
+                    </div>
+                    
+                    <div class="correlation-card">
+                        <div class="correlation-header">
+                            <i class="fas fa-chart-area"></i>
+                            <span>Sector Performance</span>
+                            <div class="performance-indicator positive">+2.4%</div>
+                        </div>
+                        <div class="performance-comparison">
+                            <div class="performance-item">
+                                <span>SMH ETF:</span>
+                                <span class="positive">+2.8%</span>
+                            </div>
+                            <div class="performance-item">
+                                <span>NVDA:</span>
+                                <span class="positive">+3.1%</span>
+                            </div>
+                            <div class="performance-item">
+                                <span>Outperformance:</span>
+                                <span class="neutral">+0.3%</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="correlation-card">
+                        <div class="correlation-header">
+                            <i class="fas fa-exclamation-triangle"></i>
+                            <span>Divergence Alert</span>
+                            <div class="alert-level low">Low Risk</div>
+                        </div>
+                        <div class="divergence-info">
+                            <p>No significant divergences detected. NVDA tracking sector normally.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="content-section card-style">
+            <h3>Key SMH Holdings & Their NVDA Impact</h3>
+            <div class="holdings-grid">
+                <div class="holding-card tier-1">
+                    <div class="holding-header">
+                        <h4><i class="fab fa-nvidia"></i> NVIDIA</h4>
+                        <span class="holding-weight">21.2%</span>
+                    </div>
+                    <div class="holding-details">
+                        <div class="impact-level extreme">Extreme Impact</div>
+                        <p>Largest holding - NVDA movements drive SMH performance</p>
+                    </div>
+                </div>
+                
+                <div class="holding-card tier-1">
+                    <div class="holding-header">
+                        <h4><i class="fas fa-microchip"></i> Taiwan Semi (TSM)</h4>
+                        <span class="holding-weight">12.8%</span>
+                    </div>
+                    <div class="holding-details">
+                        <div class="impact-level high">High Impact</div>
+                        <p>NVDA's primary foundry partner - production capacity indicator</p>
+                    </div>
+                </div>
+                
+                <div class="holding-card tier-2">
+                    <div class="holding-header">
+                        <h4><i class="fas fa-memory"></i> AMD</h4>
+                        <span class="holding-weight">8.4%</span>
+                    </div>
+                    <div class="holding-details">
+                        <div class="impact-level medium">Medium Impact</div>
+                        <p>Direct AI chip competitor - competitive positioning gauge</p>
+                    </div>
+                </div>
+                
+                <div class="holding-card tier-2">
+                    <div class="holding-header">
+                        <h4><i class="fas fa-microchip"></i> Broadcom (AVGO)</h4>
+                        <span class="holding-weight">7.9%</span>
+                    </div>
+                    <div class="holding-details">
+                        <div class="impact-level medium">Medium Impact</div>
+                        <p>Custom AI chip solutions - market expansion indicator</p>
+                    </div>
+                </div>
+                
+                <div class="holding-card tier-3">
+                    <div class="holding-header">
+                        <h4><i class="fas fa-mobile-alt"></i> Qualcomm (QCOM)</h4>
+                        <span class="holding-weight">6.1%</span>
+                    </div>
+                    <div class="holding-details">
+                        <div class="impact-level low">Low Impact</div>
+                        <p>Mobile/edge AI - broader sector health indicator</p>
+                    </div>
+                </div>
+                
+                <div class="holding-card tier-3">
+                    <div class="holding-header">
+                        <h4><i class="fas fa-server"></i> Marvell (MRVL)</h4>
+                        <span class="holding-weight">4.3%</span>
+                    </div>
+                    <div class="holding-details">
+                        <div class="impact-level low">Low Impact</div>
+                        <p>Data center infrastructure - demand environment gauge</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="content-section card-style">
+            <h3>Daily SMH Monitoring Workflow</h3>
+            <p>Follow this systematic approach to track semiconductor sector trends that impact NVDA. This 10-minute routine keeps you informed of sector-wide developments.</p>
+            
+            <div class="workflow-container">
+                <h4><i class="fas fa-clock"></i> Your 10-Minute Sector Check</h4>
+                
+                <div class="workflow-timeline">
+                    <div class="workflow-step">
+                        <div class="step-number">1</div>
+                        <div class="step-content">
+                            <h5><i class="fas fa-chart-line"></i> Check SMH vs NVDA Performance (3 minutes)</h5>
+                            <div class="step-actions">
+                                <div class="performance-tracker">
+                                    <h6>Current Session Comparison:</h6>
+                                    <div class="comparison-grid">
+                                        <div class="comparison-item">
+                                            <strong>SMH ETF</strong>
+                                            <span class="price">$240.50</span>
+                                            <span class="change positive">+1.2%</span>
+                                        </div>
+                                        <div class="comparison-item">
+                                            <strong>NVDA</strong>
+                                            <span class="price">$875.30</span>
+                                            <span class="change positive">+1.8%</span>
+                                        </div>
+                                        <div class="comparison-item">
+                                            <strong>Relative Performance</strong>
+                                            <span class="relative-perf positive">NVDA +0.6%</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="quick-links">
+                                    <a href="https://finance.yahoo.com/quote/SMH" target="_blank" class="external-link">View SMH Chart <i class="fas fa-external-link-alt"></i></a>
+                                    <a href="https://finviz.com/quote.ashx?t=SMH" target="_blank" class="external-link">SMH Analysis <i class="fas fa-external-link-alt"></i></a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="workflow-step">
+                        <div class="step-number">2</div>
+                        <div class="step-content">
+                            <h5><i class="fas fa-newspaper"></i> Scan Semiconductor News (4 minutes)</h5>
+                            <div class="news-sources">
+                                <div class="source-priority">
+                                    <h6>Priority Sources:</h6>
+                                    <div class="source-link">
+                                        <strong>Semiconductor Industry Association</strong>
+                                        <small>Industry reports and market data</small>
+                                        <a href="https://www.semiconductors.org/news/" target="_blank" class="external-link">Visit SIA <i class="fas fa-external-link-alt"></i></a>
+                                    </div>
+                                    <div class="source-link">
+                                        <strong>EE Times</strong>
+                                        <small>Technical and industry developments</small>
+                                        <a href="https://www.eetimes.com/" target="_blank" class="external-link">Visit EE Times <i class="fas fa-external-link-alt"></i></a>
+                                    </div>
+                                    <div class="source-link">
+                                        <strong>Tom's Hardware</strong>
+                                        <small>Product launches and performance analysis</small>
+                                        <a href="https://www.tomshardware.com/" target="_blank" class="external-link">Visit Tom's Hardware <i class="fas fa-external-link-alt"></i></a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="workflow-step">
+                        <div class="step-number">3</div>
+                        <div class="step-content">
+                            <h5><i class="fas fa-search"></i> Identify Divergence Opportunities (3 minutes)</h5>
+                            <div class="divergence-framework">
+                                <div class="divergence-signals">
+                                    <h6>Watch For These Signals:</h6>
+                                    <div class="signal-grid">
+                                        <div class="signal-item bullish">
+                                            <i class="fas fa-arrow-up"></i>
+                                            <strong>NVDA Outperforming SMH</strong>
+                                            <small>Company-specific strength vs sector</small>
+                                        </div>
+                                        <div class="signal-item bearish">
+                                            <i class="fas fa-arrow-down"></i>
+                                            <strong>NVDA Underperforming SMH</strong>
+                                            <small>Potential sector rotation or NVDA weakness</small>
+                                        </div>
+                                        <div class="signal-item neutral">
+                                            <i class="fas fa-balance-scale"></i>
+                                            <strong>High Correlation (85%+)</strong>
+                                            <small>Normal sector dynamics - trend following</small>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="action-framework">
+                                    <h6>Trading Actions:</h6>
+                                    <div class="action-item">
+                                        <strong>If NVDA outperforms:</strong>
+                                        <span>Consider increased NVDA position vs SMH</span>
+                                    </div>
+                                    <div class="action-item">
+                                        <strong>If SMH leads up:</strong>
+                                        <span>NVDA likely to follow - sector tailwind</span>
+                                    </div>
+                                    <div class="action-item">
+                                        <strong>If SMH leads down:</strong>
+                                        <span>Reduce NVDA exposure - sector headwind</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="workflow-tools">
+                    <h4><i class="fas fa-tools"></i> Essential SMH Tracking Tools</h4>
+                    <div class="tools-grid">
+                        <div class="tool-card">
+                            <h5>TradingView</h5>
+                            <p>SMH/NVDA correlation charts and sector comparison</p>
+                            <span class="tool-cost">Free/Pro</span>
+                        </div>
+                        <div class="tool-card">
+                            <h5>Finviz</h5>
+                            <p>Semiconductor sector heatmap and screening</p>
+                            <span class="tool-cost">Free</span>
+                        </div>
+                        <div class="tool-card">
+                            <h5>Yahoo Finance</h5>
+                            <p>SMH ETF holdings and performance tracking</p>
+                            <span class="tool-cost">Free</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="content-section card-style">
+            <h3>Sector Rotation Detection System</h3>
+            <p>Identify when money is flowing into or out of semiconductors, giving you advance warning of NVDA directional moves.</p>
+            
+            <div class="rotation-detector">
+                <h4><i class="fas fa-exchange-alt"></i> Current Sector Rotation Status</h4>
+                
+                <div class="rotation-metrics">
+                    <div class="rotation-card">
+                        <div class="metric-header">
+                            <i class="fas fa-trendline"></i>
+                            <span>SMH vs QQQ (Tech)</span>
+                        </div>
+                        <div class="metric-value positive">+0.8%</div>
+                        <div class="metric-status">Semiconductors outperforming tech</div>
+                    </div>
+                    
+                    <div class="rotation-card">
+                        <div class="metric-header">
+                            <i class="fas fa-chart-bar"></i>
+                            <span>SMH vs SPY (Market)</span>
+                        </div>
+                        <div class="metric-value positive">+1.2%</div>
+                        <div class="metric-status">Strong relative performance</div>
+                    </div>
+                    
+                    <div class="rotation-card">
+                        <div class="metric-header">
+                            <i class="fas fa-dollar-sign"></i>
+                            <span>SMH Volume</span>
+                        </div>
+                        <div class="metric-value neutral">125% avg</div>
+                        <div class="metric-status">Above average interest</div>
+                    </div>
+                </div>
+                
+                <div class="rotation-signals">
+                    <h5>Key Rotation Indicators:</h5>
+                    <div class="indicator-grid">
+                        <div class="indicator-item positive">
+                            <i class="fas fa-check-circle"></i>
+                            <strong>Money Flow:</strong>
+                            <span>Institutional buying in semiconductor names</span>
+                        </div>
+                        <div class="indicator-item neutral">
+                            <i class="fas fa-minus-circle"></i>
+                            <strong>Momentum:</strong>
+                            <span>SMH 20-day MA above 50-day MA</span>
+                        </div>
+                        <div class="indicator-item positive">
+                            <i class="fas fa-plus-circle"></i>
+                            <strong>Breadth:</strong>
+                            <span>70% of SMH holdings above 10-day MA</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="content-section card-style">
+            <h3>Advanced Correlation Analysis</h3>
+            <div class="correlation-analysis">
+                <h4><i class="fas fa-calculator"></i> SMH-NVDA Relationship Breakdown</h4>
+                
+                <div class="correlation-timeline">
+                    <h5>Historical Correlation Periods:</h5>
+                    <div class="timeline-grid">
+                        <div class="timeline-period">
+                            <div class="period-header">
+                                <strong>Bull Market (2023)</strong>
+                                <span class="correlation-strength high">92% correlation</span>
+                            </div>
+                            <p>High correlation during AI boom - both assets moved in lockstep</p>
+                        </div>
+                        <div class="timeline-period">
+                            <div class="period-header">
+                                <strong>Earnings Seasons</strong>
+                                <span class="correlation-strength medium">75% correlation</span>
+                            </div>
+                            <p>Lower correlation as company-specific results drive individual performance</p>
+                        </div>
+                        <div class="timeline-period">
+                            <div class="period-header">
+                                <strong>Market Stress</strong>
+                                <span class="correlation-strength high">95% correlation</span>
+                            </div>
+                            <p>Very high correlation during sell-offs - risk-off sentiment affects all chips</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="breakout-signals">
+                    <h5>Correlation Breakdown Signals:</h5>
+                    <div class="signal-checklist">
+                        <div class="checklist-item">
+                            <input type="checkbox" id="correlation-1">
+                            <label for="correlation-1">
+                                <span class="checkmark"></span>
+                                5-day correlation drops below 70%
+                            </label>
+                        </div>
+                        <div class="checklist-item">
+                            <input type="checkbox" id="correlation-2">
+                            <label for="correlation-2">
+                                <span class="checkmark"></span>
+                                NVDA outperforms SMH by 3%+ in 3 days
+                            </label>
+                        </div>
+                        <div class="checklist-item">
+                            <input type="checkbox" id="correlation-3">
+                            <label for="correlation-3">
+                                <span class="checkmark"></span>
+                                Unusual options activity in NVDA vs SMH
+                            </label>
+                        </div>
+                        <div class="checklist-item">
+                            <input type="checkbox" id="correlation-4">
+                            <label for="correlation-4">
+                                <span class="checkmark"></span>
+                                NVDA-specific news while SMH stable
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="cta-section">
+            <div class="cta-content">
+                <h2>Ready to Trade NVDA with Sector Intelligence?</h2>
+                <p>Master the semiconductor sector dynamics that drive NVDA's explosive moves.</p>
+                <div class="cta-buttons">
+                    <a href="../../book-demo.html" class="cta-button primary">
+                        <i class="fas fa-rocket"></i> Start Trading NVDA
+                    </a>
+                    <a href="../bots/nvda-bot.html" class="cta-button secondary">
+                        <i class="fas fa-arrow-left"></i> Back to NVDA Bot
+                    </a>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="main-footer">
+        <div class="footer-content">
+            <div class="footer-section">
+                <h3>BlueChip Signals</h3>
+                <p>Advanced algorithmic trading signals for the modern trader. Our bots analyze market conditions 24/7 to deliver high-probability setups.</p>
+            </div>
+            <div class="footer-section">
+                <h4>Quick Links</h4>
+                <ul>
+                    <li><a href="../../index.html#features">Features</a></li>
+                    <li><a href="../../index.html#bots">Supported Stocks</a></li>
+                    <li><a href="../../book-demo.html">Book a Demo</a></li>
+                    <li><a href="../../faq.html">FAQ</a></li>
+                </ul>
+            </div>
+            <div class="footer-section">
+                <h4>Legal</h4>
+                <ul>
+                    <li><a href="../../legal.html">Legal Disclaimer</a></li>
+                    <li><a href="../../about.html">About Us</a></li>
+                    <li><a href="../../contact.html">Contact</a></li>
+                </ul>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>&copy; 2025 BlueChip Signals. All rights reserved.</p>
+            <div class="footer-social">
+                <a href="https://www.tiktok.com/@bluechip.signals" target="_blank"><i class="fab fa-tiktok"></i></a>
+                <a href="https://www.instagram.com/bluechip.signals/" target="_blank"><i class="fab fa-instagram"></i></a>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        const hamburgerMenu = document.querySelector('.hamburger-menu');
+        const mobileNav = document.querySelector('.nav-links');
+
+        hamburgerMenu.addEventListener('click', () => {
+            mobileNav.classList.toggle('active');
+        });
+    </script>
+
+    <style>
+        /* Correlation Tracker Styles */
+        .correlation-tracker {
+            background: var(--dark-bg);
+            border: 1px solid rgba(255, 193, 7, 0.2);
+            border-radius: 15px;
+            padding: 2rem;
+            margin: 2rem 0;
+        }
+
+        .correlation-metrics {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin-top: 1.5rem;
+        }
+
+        .correlation-card {
+            background: rgba(255, 193, 7, 0.05);
+            border: 1px solid rgba(255, 193, 7, 0.2);
+            border-radius: 12px;
+            padding: 1.5rem;
+        }
+
+        .correlation-card.strong {
+            border-color: rgba(34, 197, 94, 0.3);
+            background: rgba(34, 197, 94, 0.05);
+        }
+
+        .correlation-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 1rem;
+        }
+
+        .correlation-header i {
+            color: var(--primary-gold);
+            margin-right: 0.5rem;
+        }
+
+        .correlation-strength {
+            padding: 0.3rem 0.8rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            background: rgba(34, 197, 94, 0.2);
+            color: #22c55e;
+        }
+
+        .correlation-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--primary-gold);
+            text-align: center;
+            margin: 1rem 0;
+        }
+
+        .correlation-status {
+            text-align: center;
+            color: var(--gray-text);
+            font-size: 0.9rem;
+        }
+
+        .performance-indicator {
+            padding: 0.3rem 0.8rem;
+            border-radius: 15px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        .performance-indicator.positive {
+            background: rgba(34, 197, 94, 0.2);
+            color: #22c55e;
+        }
+
+        .performance-comparison {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .performance-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.5rem 0;
+            border-bottom: 1px solid rgba(255, 193, 7, 0.1);
+        }
+
+        .performance-item span.positive {
+            color: #22c55e;
+        }
+
+        .performance-item span.neutral {
+            color: var(--primary-gold);
+        }
+
+        .alert-level {
+            padding: 0.3rem 0.8rem;
+            border-radius: 15px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        .alert-level.low {
+            background: rgba(34, 197, 94, 0.2);
+            color: #22c55e;
+        }
+
+        .divergence-info p {
+            color: var(--gray-text);
+            font-size: 0.9rem;
+            margin: 0.5rem 0 0 0;
+        }
+
+        /* Holdings Grid Styles */
+        .holdings-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.5rem;
+            margin: 2rem 0;
+        }
+
+        .holding-card {
+            background: rgba(255, 193, 7, 0.05);
+            border: 1px solid rgba(255, 193, 7, 0.2);
+            border-radius: 12px;
+            padding: 1.5rem;
+        }
+
+        .holding-card.tier-1 {
+            border-color: rgba(34, 197, 94, 0.3);
+            background: rgba(34, 197, 94, 0.05);
+        }
+
+        .holding-card.tier-2 {
+            border-color: rgba(255, 193, 7, 0.3);
+            background: rgba(255, 193, 7, 0.05);
+        }
+
+        .holding-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .holding-header h4 {
+            color: var(--primary-gold);
+            margin: 0;
+            font-size: 1.1rem;
+        }
+
+        .holding-header i {
+            margin-right: 0.5rem;
+        }
+
+        .holding-weight {
+            background: var(--primary-gold);
+            color: var(--dark-bg);
+            padding: 0.3rem 0.8rem;
+            border-radius: 15px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        .impact-level {
+            padding: 0.3rem 0.8rem;
+            border-radius: 15px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            margin-bottom: 0.8rem;
+            display: inline-block;
+        }
+
+        .impact-level.extreme {
+            background: rgba(239, 68, 68, 0.2);
+            color: #ef4444;
+        }
+
+        .impact-level.high {
+            background: rgba(255, 165, 0, 0.2);
+            color: #FFA500;
+        }
+
+        .impact-level.medium {
+            background: rgba(255, 193, 7, 0.2);
+            color: var(--primary-gold);
+        }
+
+        .impact-level.low {
+            background: rgba(34, 197, 94, 0.2);
+            color: #22c55e;
+        }
+
+        /* Workflow Section Styles */
+        .workflow-container {
+            background: var(--dark-bg);
+            border: 1px solid rgba(255, 193, 7, 0.2);
+            border-radius: 15px;
+            padding: 2rem;
+            margin: 2rem 0;
+        }
+
+        .workflow-timeline {
+            margin: 2rem 0;
+        }
+
+        .workflow-step {
+            display: flex;
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+            padding-bottom: 2rem;
+            border-bottom: 1px solid rgba(255, 193, 7, 0.1);
+        }
+
+        .workflow-step:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+            padding-bottom: 0;
+        }
+
+        .step-number {
+            background: linear-gradient(135deg, var(--primary-gold), rgba(255, 193, 7, 0.8));
+            color: var(--dark-bg);
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 1.2rem;
+            flex-shrink: 0;
+            margin-top: 0.5rem;
+        }
+
+        .step-content {
+            flex: 1;
+        }
+
+        .step-content h5 {
+            color: var(--primary-gold);
+            margin-bottom: 1rem;
+            font-size: 1.1rem;
+        }
+
+        .step-content h5 i {
+            margin-right: 0.5rem;
+        }
+
+        .performance-tracker {
+            background: rgba(255, 193, 7, 0.05);
+            padding: 1.5rem;
+            border-radius: 8px;
+            border: 1px solid rgba(255, 193, 7, 0.2);
+            margin-bottom: 1rem;
+        }
+
+        .comparison-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .comparison-item {
+            text-align: center;
+            padding: 1rem;
+            background: rgba(255, 193, 7, 0.1);
+            border-radius: 8px;
+        }
+
+        .comparison-item strong {
+            color: var(--primary-gold);
+            display: block;
+            margin-bottom: 0.5rem;
+        }
+
+        .comparison-item .price {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: var(--light-text);
+            display: block;
+            margin-bottom: 0.3rem;
+        }
+
+        .comparison-item .change {
+            font-weight: 600;
+        }
+
+        .comparison-item .change.positive {
+            color: #22c55e;
+        }
+
+        .comparison-item .relative-perf {
+            font-weight: 600;
+            font-size: 1.1rem;
+        }
+
+        .comparison-item .relative-perf.positive {
+            color: #22c55e;
+        }
+
+        .quick-links {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .external-link {
+            background: rgba(255, 193, 7, 0.2);
+            color: var(--primary-gold);
+            padding: 0.3rem 0.8rem;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.3rem;
+        }
+
+        .external-link:hover {
+            background: rgba(255, 193, 7, 0.3);
+            transform: translateY(-1px);
+            box-shadow: 0 2px 8px rgba(255, 193, 7, 0.2);
+        }
+
+        .external-link i {
+            font-size: 0.7rem;
+        }
+
+        .source-link {
+            background: rgba(255, 193, 7, 0.05);
+            border: 1px solid rgba(255, 193, 7, 0.2);
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 0.8rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .source-link strong {
+            color: var(--primary-gold);
+            display: block;
+            margin-bottom: 0.3rem;
+        }
+
+        .source-link small {
+            color: var(--gray-text);
+            font-size: 0.85rem;
+        }
+
+        /* Divergence Framework Styles */
+        .signal-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin: 1rem 0;
+        }
+
+        .signal-item {
+            padding: 1rem;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .signal-item.bullish {
+            background: rgba(34, 197, 94, 0.1);
+            border: 1px solid rgba(34, 197, 94, 0.3);
+        }
+
+        .signal-item.bearish {
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+        }
+
+        .signal-item.neutral {
+            background: rgba(255, 193, 7, 0.1);
+            border: 1px solid rgba(255, 193, 7, 0.3);
+        }
+
+        .signal-item i {
+            font-size: 1.5rem;
+            margin-bottom: 0.5rem;
+            display: block;
+        }
+
+        .signal-item.bullish i {
+            color: #22c55e;
+        }
+
+        .signal-item.bearish i {
+            color: #ef4444;
+        }
+
+        .signal-item.neutral i {
+            color: var(--primary-gold);
+        }
+
+        .action-framework {
+            margin-top: 1.5rem;
+            padding-top: 1.5rem;
+            border-top: 1px solid rgba(255, 193, 7, 0.2);
+        }
+
+        .action-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.8rem;
+            margin-bottom: 0.5rem;
+            background: rgba(255, 193, 7, 0.05);
+            border-radius: 6px;
+        }
+
+        .action-item strong {
+            color: var(--primary-gold);
+        }
+
+        .action-item span {
+            color: var(--gray-text);
+            font-size: 0.9rem;
+        }
+
+        .tools-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+            margin-top: 1.5rem;
+        }
+
+        .tool-card {
+            background: rgba(255, 193, 7, 0.05);
+            border: 1px solid rgba(255, 193, 7, 0.2);
+            border-radius: 12px;
+            padding: 1.5rem;
+            text-align: center;
+        }
+
+        .tool-card h5 {
+            color: var(--primary-gold);
+            margin-bottom: 0.8rem;
+            font-size: 1.1rem;
+        }
+
+        .tool-card p {
+            color: var(--gray-text);
+            font-size: 0.9rem;
+            margin-bottom: 1rem;
+            line-height: 1.5;
+        }
+
+        .tool-cost {
+            background: var(--primary-gold);
+            color: var(--dark-bg);
+            padding: 0.4rem 0.8rem;
+            border-radius: 15px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        /* Rotation Detector Styles */
+        .rotation-detector {
+            background: var(--dark-bg);
+            border: 1px solid rgba(255, 193, 7, 0.2);
+            border-radius: 15px;
+            padding: 2rem;
+            margin: 2rem 0;
+        }
+
+        .rotation-metrics {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin: 1.5rem 0;
+        }
+
+        .rotation-card {
+            background: rgba(255, 193, 7, 0.05);
+            border: 1px solid rgba(255, 193, 7, 0.2);
+            border-radius: 12px;
+            padding: 1.5rem;
+            text-align: center;
+        }
+
+        .metric-header {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+            color: var(--primary-gold);
+        }
+
+        .metric-value {
+            font-size: 1.8rem;
+            font-weight: 700;
+            margin: 0.8rem 0;
+        }
+
+        .metric-value.positive {
+            color: #22c55e;
+        }
+
+        .metric-value.neutral {
+            color: var(--primary-gold);
+        }
+
+        .metric-status {
+            color: var(--gray-text);
+            font-size: 0.9rem;
+        }
+
+        .indicator-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .indicator-item {
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+            padding: 1rem;
+            border-radius: 8px;
+        }
+
+        .indicator-item.positive {
+            background: rgba(34, 197, 94, 0.1);
+            border: 1px solid rgba(34, 197, 94, 0.2);
+        }
+
+        .indicator-item.neutral {
+            background: rgba(255, 193, 7, 0.1);
+            border: 1px solid rgba(255, 193, 7, 0.2);
+        }
+
+        .indicator-item i {
+            font-size: 1.2rem;
+        }
+
+        .indicator-item.positive i {
+            color: #22c55e;
+        }
+
+        .indicator-item.neutral i {
+            color: var(--primary-gold);
+        }
+
+        /* Correlation Analysis Styles */
+        .correlation-analysis {
+            background: var(--dark-bg);
+            border: 1px solid rgba(255, 193, 7, 0.2);
+            border-radius: 15px;
+            padding: 2rem;
+            margin: 2rem 0;
+        }
+
+        .timeline-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .timeline-period {
+            background: rgba(255, 193, 7, 0.05);
+            border: 1px solid rgba(255, 193, 7, 0.2);
+            border-radius: 8px;
+            padding: 1.5rem;
+        }
+
+        .period-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.8rem;
+        }
+
+        .period-header strong {
+            color: var(--primary-gold);
+        }
+
+        .correlation-strength.high {
+            background: rgba(34, 197, 94, 0.2);
+            color: #22c55e;
+            padding: 0.3rem 0.8rem;
+            border-radius: 15px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        .correlation-strength.medium {
+            background: rgba(255, 193, 7, 0.2);
+            color: var(--primary-gold);
+            padding: 0.3rem 0.8rem;
+            border-radius: 15px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        .signal-checklist {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .checklist-item {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 1rem;
+            background: rgba(255, 193, 7, 0.05);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .checklist-item:hover {
+            background: rgba(255, 193, 7, 0.1);
+        }
+
+        .checkmark {
+            width: 20px;
+            height: 20px;
+            border: 2px solid rgba(255, 193, 7, 0.5);
+            border-radius: 4px;
+            position: relative;
+            transition: all 0.3s ease;
+        }
+
+        .checklist-item input:checked + label .checkmark {
+            background: var(--primary-gold);
+            border-color: var(--primary-gold);
+        }
+
+        .checklist-item input:checked + label .checkmark::after {
+            content: '✓';
+            position: absolute;
+            top: -2px;
+            left: 3px;
+            color: var(--dark-bg);
+            font-weight: bold;
+        }
+
+        .checklist-item input {
+            display: none;
+        }
+
+        @media screen and (max-width: 768px) {
+            .correlation-metrics,
+            .holdings-grid,
+            .signal-grid,
+            .rotation-metrics,
+            .indicator-grid,
+            .timeline-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .workflow-step {
+                flex-direction: column;
+                gap: 1rem;
+            }
+            
+            .step-number {
+                align-self: flex-start;
+            }
+            
+            .comparison-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .quick-links {
+                flex-direction: column;
+            }
+            
+            .tools-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</body>
+</html> 

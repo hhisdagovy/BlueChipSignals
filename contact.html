@@ -1,0 +1,566 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BlueChip Signals - Contact & Support</title>
+    <link rel="icon" type="image/png" href="assets/images/logo.png">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="assets/css/bot-style.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary-gold: #b3a17d;
+            --secondary-gold: #E2CFB5;
+            --dark-bg: #080B0F;
+            --darker-bg: #080B0F;
+            --light-text: #FFFFFF;
+            --gray-text: #A0A0A0;
+            --success-green: #2a571f;
+            --danger-red: #FF3B3B;
+            --field-bg: rgba(26, 31, 46, 0.7);
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background-color: var(--dark-bg);
+            color: var(--light-text);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        /* Navigation */
+        nav {
+            background: rgba(5, 8, 16, 0.8);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            position: fixed;
+            width: 100%;
+            top: 0;
+            z-index: 1000;
+            padding: 0.5rem 0;
+        }
+
+        .nav-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo img {
+            width: 80px;
+            height: 80px;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 2rem;
+            list-style: none;
+        }
+
+        .nav-links a {
+            color: var(--light-text);
+            text-decoration: none;
+            transition: color 0.3s;
+        }
+
+        a {
+            text-decoration: none;
+        }
+
+        .nav-links a:hover { color: var(--primary-gold); }
+
+        .login-btn {
+            background: linear-gradient(135deg, var(--primary-gold), var(--secondary-gold));
+            color: var(--darker-bg);
+            padding: 0.5rem 1.2rem;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 0.95rem;
+            transition: transform 0.3s, box-shadow 0.3s;
+            display: inline-block;
+        }
+
+        .login-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(201, 176, 55, 0.3);
+            color: var(--darker-bg);
+        }
+
+        .dropdown { position: relative; }
+        .dropdown > a::after { content: " \25BE"; font-size: 0.8rem; }
+        .dropdown-menu { display: none; position: absolute; top: 100%; right: 0; background: rgba(5, 8, 16, 0.95); border: 1px solid rgba(201, 176, 55, 0.2); border-radius: 8px; min-width: 220px; padding: 0.5rem 0; z-index: 1200; }
+        .dropdown-menu li { list-style: none; }
+        .dropdown-menu a { display: block; padding: 0.6rem 1rem; color: var(--light-text); white-space: nowrap; }
+        .dropdown-menu a:hover { background: rgba(201, 176, 55, 0.08); color: var(--primary-gold); }
+        .dropdown:hover .dropdown-menu { display: block; }
+
+        .hamburger-menu {
+            display: none;
+            flex-direction: column;
+            justify-content: space-around;
+            width: 30px;
+            height: 25px;
+            cursor: pointer;
+            z-index: 1100;
+        }
+
+        .hamburger-menu .bar {
+            width: 100%;
+            height: 3px;
+            background-color: var(--primary-gold);
+            transition: all 0.3s ease-in-out;
+        }
+
+        /* Contact Page */
+        .contact-page {
+            padding: 8rem 2rem 4rem;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .section-title {
+            text-align: center;
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            background: linear-gradient(135deg, var(--primary-gold), var(--secondary-gold));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .section-subtitle {
+            text-align: center;
+            font-size: 1.2rem;
+            color: var(--gray-text);
+            margin-bottom: 4rem;
+            max-width: 700px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        
+        .contact-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 4rem;
+            align-items: flex-start;
+        }
+
+        .contact-form-container, .contact-info-container {
+            background: var(--darker-bg);
+            padding: 2.5rem;
+            border: 1px solid rgba(201, 176, 55, 0.2);
+            border-radius: 20px;
+        }
+
+        .contact-form-container h3, .contact-info-container h3 {
+            font-size: 1.8rem;
+            color: var(--primary-gold);
+            margin-bottom: 1.5rem;
+        }
+
+        .contact-form .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .contact-form label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: var(--gray-text);
+            font-size: 0.9rem;
+        }
+
+        .contact-form input,
+        .contact-form textarea {
+            width: 100%;
+            padding: 1rem;
+            border: 1px solid rgba(201, 176, 55, 0.3);
+            border-radius: 8px;
+            background-color: var(--field-bg);
+            color: var(--light-text);
+            font-size: 1rem;
+            transition: border-color 0.3s, box-shadow 0.3s;
+        }
+
+        .contact-form input:focus,
+        .contact-form textarea:focus {
+            outline: none;
+            border-color: var(--primary-gold);
+            box-shadow: 0 0 15px rgba(201, 176, 55, 0.2);
+        }
+
+        .contact-form textarea {
+            min-height: 140px;
+            resize: vertical;
+        }
+
+        .submit-button {
+            background: linear-gradient(135deg, var(--primary-gold), var(--secondary-gold));
+            color: var(--darker-bg);
+            padding: 1rem 2.5rem;
+            border-radius: 50px;
+            text-decoration: none;
+            font-weight: 600;
+            border: none;
+            cursor: pointer;
+            transition: transform 0.3s, box-shadow 0.3s;
+            font-size: 1.1rem;
+        }
+
+        .submit-button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 30px rgba(201, 176, 55, 0.3);
+        }
+        
+        .contact-info-list {
+            list-style: none;
+            padding: 0;
+        }
+
+        .contact-info-list li {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+            font-size: 1.1rem;
+        }
+
+        .contact-info-list .icon {
+            font-size: 1.5rem;
+            color: var(--primary-gold);
+            width: 30px;
+            text-align: center;
+        }
+
+        .feature-list {
+            margin-top: 2rem;
+            list-style: none;
+        }
+
+        .feature-list li {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .feature-list .icon {
+            color: var(--primary-gold);
+        }
+
+        .success-message {
+            background-color: var(--success-green);
+            color: var(--light-text);
+            padding: 1rem;
+            border-radius: 8px;
+            margin-top: 1.5rem;
+            text-align: center;
+            display: none;
+        }
+
+        .error-message {
+            background-color: var(--danger-red);
+            color: var(--light-text);
+            padding: 1rem;
+            border-radius: 8px;
+            margin-top: 1.5rem;
+            text-align: center;
+            display: none;
+        }
+
+        .social-media {
+            margin-top: 1rem;
+        }
+
+        .social-media a {
+            color: var(--primary-gold);
+            font-size: 1.5rem;
+            margin: 0 0.5rem;
+            transition: color 0.3s;
+        }
+
+        .social-media a:hover {
+            color: var(--secondary-gold);
+        }
+
+        /* Footer */
+        footer {
+            background: var(--darker-bg);
+            padding: 2rem;
+            text-align: center;
+            border-top: 1px solid rgba(201, 176, 55, 0.2);
+        }
+
+        /* Responsive */
+        @media (max-width: 992px) {
+            .contact-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .contact-page {
+                padding: 6rem 1rem 3rem;
+            }
+
+            .contact-form-container, .contact-info-container {
+                padding: 1.5rem;
+            }
+
+            .nav-links {
+                display: none;
+                flex-direction: column;
+                position: absolute;
+                top: 0;
+                right: 0;
+                width: 250px;
+                height: 100vh;
+                background: rgba(5, 8, 16, 0.95);
+                padding-top: 5rem;
+                box-shadow: -5px 0 15px rgba(0,0,0,0.5);
+                list-style: none;
+                transform: translateX(100%);
+                transition: transform 0.3s ease-in-out;
+            }
+
+            .nav-links.active {
+                transform: translateX(0);
+                display: flex;
+            }
+
+            .nav-links li {
+                padding: 1rem 2rem;
+                border-bottom: 1px solid rgba(201, 176, 55, 0.1);
+            }
+
+            .nav-links a {
+                font-size: 1.1rem;
+                display: block;
+            }
+
+            .hamburger-menu {
+                display: flex;
+            }
+        }
+
+        @media (min-width: 769px) {
+            .hamburger-menu {
+                display: none;
+            }
+            .nav-links {
+                display: flex;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav>
+        <div class="nav-container">
+            <div class="logo">
+                <a href="index.html"><img src="assets/images/logo.png" alt="BlueChip Signals Logo"></a>
+            </div>
+            <div class="hamburger-menu">
+                <div class="bar"></div>
+                <div class="bar"></div>
+                <div class="bar"></div>
+            </div>
+            <ul class="nav-links">
+                <li><a href="index.html#features">Features</a></li>
+                <li><a href="index.html#bots">Supported Stocks</a></li>
+                <li><a href="book-demo.html">Book a Demo</a></li>
+                <li><a href="contact.html">Contact</a></li>
+                <li class="dropdown"><a href="#">More</a>
+                    <ul class="dropdown-menu">
+                        <li><a href="index.html#testimonials">Testimonials</a></li>
+                        <li><a href="faq.html">FAQ</a></li>
+                        <li><a href="about.html">About Us</a></li>
+                        <li><a href="legal.html">Legal Disclaimer</a></li>
+                        <li><a href="terms.html">Terms of Service</a></li>
+                        <li><a href="privacy.html">Privacy Policy</a></li>
+                    </ul>
+                </li>
+                <li><a href="login.html" class="login-btn" id="authButton"><i class="fas fa-sign-in-alt"></i> Login</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Contact Section -->
+    <section class="contact-page">
+        <h2 class="section-title">Contact & Support</h2>
+        <p class="section-subtitle">We’re here to help with account questions, technical support, billing, and complaints. Use the form below or reach us through our direct contact channels.</p>
+        
+        <div class="contact-grid">
+            <div class="contact-form-container">
+                <h3>Send Us a Message</h3>
+                <form id="contactForm" action="https://formspree.io/f/xblyqkkw" method="POST" class="contact-form">
+                    <div class="form-group">
+                        <label for="name">Full Name</label>
+                        <input type="text" id="name" name="name" placeholder="John Doe" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="email">Email Address</label>
+                        <input type="email" id="email" name="email" placeholder="you@example.com" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="topic">Topic</label>
+                        <select id="topic" name="topic" required>
+                            <option value="" disabled selected>Select a topic</option>
+                            <option value="support">Technical Support</option>
+                            <option value="billing">Billing</option>
+                            <option value="complaint">Complaint / Issue</option>
+                            <option value="general">General Inquiry</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="phone">Phone Number</label>
+                        <input type="tel" id="phone" name="phone" placeholder="(123) 456-7890" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="message">How can we help?</label>
+                        <textarea id="message" name="message" placeholder="Share details about your issue or request..." required></textarea>
+                    </div>
+                    <button type="submit" class="submit-button">Submit Request</button>
+                </form>
+                <div id="successMessage" class="success-message">Thank you for your request! We will be in touch shortly.</div>
+                <div id="errorMessage" class="error-message" style="display: none;"></div>
+            </div>
+
+            <div class="contact-info-container">
+                <h3>Contact Information</h3>
+                <ul class="contact-info-list">
+                    <li>
+                        <span class="icon"><i class="fas fa-envelope"></i></span>
+                        <span>support@bluechipsignals.online</span>
+                    </li>
+                    <li>
+                        <span class="icon"><i class="fas fa-info-circle"></i></span>
+                        <span>General Inquiries & Support</span>
+                    </li>
+                </ul>
+
+                <h3>Support & Complaints</h3>
+                <ul class="feature-list">
+                    <li><span class="icon"><i class="fas fa-headset"></i></span><span>For urgent issues, email <strong>support@bluechipsignals.online</strong> with subject “URGENT”.</span></li>
+                    <li><span class="icon"><i class="fas fa-bullhorn"></i></span><span>For complaints, include dates, screenshots, and a brief description to help us resolve quickly.</span></li>
+                    <li><span class="icon"><i class="fas fa-clock"></i></span><span>We aim to respond within 1 business day.</span></li>
+                </ul>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+        <p>&copy; 2025 BlueChip Signals. All rights reserved. | <a href="legal.html" style="color: var(--primary-gold); text-decoration: none;">Legal Disclaimer</a> | <a href="index.html" style="color: var(--primary-gold); text-decoration: none;">Back to Home</a></p>
+        <div class="social-media">
+            <a href="https://www.tiktok.com/@bluechip.signals" target="_blank"><i class="fab fa-tiktok"></i></a>
+            <a href="https://www.instagram.com/bluechip.signals/" target="_blank"><i class="fab fa-instagram"></i></a>
+        </div>
+    </footer>
+
+    <script>
+        const hamburgerMenu = document.querySelector('.hamburger-menu');
+        const mobileNav = document.querySelector('.nav-links');
+
+        hamburgerMenu.addEventListener('click', () => {
+            mobileNav.classList.toggle('active');
+        });
+
+        const form = document.getElementById('contactForm');
+        const successMessage = document.getElementById('successMessage');
+        const errorMessage = document.getElementById('errorMessage');
+
+        function validatePhoneNumber(phone) {
+            // Strips all non-digit characters and checks if the length is at least 10.
+            const justDigits = phone.replace(/\D/g, '');
+            return justDigits.length >= 10;
+        }
+
+        form.addEventListener('submit', function(event) {
+            event.preventDefault();
+
+            const phoneInput = document.getElementById('phone');
+            
+            successMessage.style.display = 'none';
+            errorMessage.style.display = 'none';
+
+            // Custom phone number validation
+            if (!validatePhoneNumber(phoneInput.value)) {
+                errorMessage.textContent = 'Please enter a valid phone number with at least 10 digits.';
+                errorMessage.style.display = 'block';
+                phoneInput.focus();
+                return;
+            }
+
+            const formData = new FormData(form);
+            const button = form.querySelector('button[type="submit"]');
+            const originalButtonText = button.textContent;
+            
+            button.disabled = true;
+            button.textContent = 'Submitting...';
+
+            fetch(form.action, {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'Accept': 'application/json'
+                }
+            }).then(response => {
+                if (response.ok) {
+                    successMessage.style.display = 'block';
+                    form.reset();
+                } else {
+                    errorMessage.style.display = 'block';
+                    errorMessage.textContent = 'Oops! There was a problem submitting your form.';
+                }
+            }).catch(error => {
+                errorMessage.style.display = 'block';
+                errorMessage.textContent = 'Oops! There was a problem submitting your form.';
+            }).finally(() => {
+                button.disabled = false;
+                button.textContent = originalButtonText;
+            });
+        });
+    </script>
+
+    <script>
+        // Check if user is logged in and update the navigation button immediately
+        (function() {
+            const isLoggedIn = localStorage.getItem('bluechip_logged_in') || sessionStorage.getItem('bluechip_logged_in');
+            
+            if (isLoggedIn) {
+                if (document.readyState === 'loading') {
+                    document.addEventListener('DOMContentLoaded', updateAuthButton);
+                } else {
+                    updateAuthButton();
+                }
+            }
+            
+            function updateAuthButton() {
+                const authButton = document.getElementById('authButton');
+                
+                if (authButton) {
+                    authButton.removeAttribute('href');
+                    authButton.innerHTML = '<i class="fas fa-sign-out-alt"></i> Logout';
+                    authButton.style.cursor = 'pointer';
+                    
+                authButton.onclick = function(e) {
+                    e.preventDefault();
+                    localStorage.clear();
+                    sessionStorage.clear();
+                    window.location.href = 'login.html';
+                    return false;
+                };
+                }
+            }
+        })();
+    </script>
+</body>
+</html>

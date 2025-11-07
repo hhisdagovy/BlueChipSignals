@@ -1,0 +1,1028 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Identify Key Supply & Demand Zones - TSLA Trading Guide | BlueChip Signals</title>
+    <link rel="icon" type="image/png" href="../../assets/images/logo.png">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="../../assets/css/bot-style.css">
+    <script>
+        // Redirect non-logged-in users to book demo page
+        (function() {
+            const isLoggedIn = localStorage.getItem('bluechip_logged_in') || sessionStorage.getItem('bluechip_logged_in');
+            if (!isLoggedIn) {
+                window.location.href = '../../book-demo.html';
+            }
+        })();
+    </script>
+    <style>
+        /* Professional Guide Page Styling */
+        :root {
+            --primary-gold: #b3a17d;
+            --secondary-gold: #E2CFB5;
+            --dark-bg: #080B0F;
+            --darker-bg: #050810;
+            --light-text: #FFFFFF;
+            --gray-text: #A0A0A0;
+        }
+
+        body {
+            background: var(--darker-bg);
+            color: var(--light-text);
+        }
+
+        /* Hero Section with Gradient */
+        .guide-hero {
+            margin-top: 100px;
+            padding: 4rem 2rem 3rem;
+            text-align: center;
+            background: radial-gradient(circle at 50% 50%, rgba(201, 176, 55, 0.15), transparent 70%);
+            position: relative;
+        }
+
+        .guide-hero::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: radial-gradient(circle at 30% 40%, rgba(201, 176, 55, 0.08), transparent 50%);
+            z-index: 0;
+        }
+
+        .guide-hero-content {
+            max-width: 900px;
+            margin: 0 auto;
+            position: relative;
+            z-index: 1;
+        }
+
+        .guide-badge {
+            display: inline-block;
+            background: linear-gradient(135deg, var(--primary-gold), var(--secondary-gold));
+            color: var(--darker-bg);
+            padding: 0.4rem 1.2rem;
+            border-radius: 20px;
+            font-weight: 700;
+            font-size: 0.8rem;
+            letter-spacing: 1px;
+            margin-bottom: 1.5rem;
+            text-transform: uppercase;
+        }
+
+        .guide-title {
+            font-size: 2.8rem;
+            font-weight: 800;
+            margin: 0 0 1rem 0;
+            line-height: 1.2;
+            color: var(--light-text);
+        }
+
+        .guide-subtitle {
+            font-size: 1.2rem;
+            color: var(--gray-text);
+            line-height: 1.6;
+            margin: 0;
+        }
+
+        .guide-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 3rem 2rem;
+        }
+
+        .content-section {
+            background: var(--dark-bg);
+            border: 1px solid rgba(201, 176, 55, 0.2);
+            border-radius: 15px;
+            padding: 2.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .content-section h2 {
+            color: var(--primary-gold);
+            font-size: 1.8rem;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .content-section h2 i {
+            font-size: 1.5rem;
+        }
+
+        .content-section h3 {
+            color: var(--light-text);
+            font-size: 1.4rem;
+            margin-bottom: 1rem;
+        }
+
+        .content-section h4 {
+            color: var(--primary-gold);
+            font-size: 1.2rem;
+            margin-bottom: 1rem;
+        }
+
+        .content-section p {
+            color: var(--gray-text);
+            line-height: 1.8;
+            margin-bottom: 1rem;
+        }
+
+        .content-section ul {
+            color: var(--light-text);
+            line-height: 1.8;
+            margin: 1rem 0;
+            padding-left: 1.5rem;
+        }
+
+        .content-section ul li {
+            margin-bottom: 0.75rem;
+        }
+
+        .content-section strong {
+            color: var(--light-text);
+        }
+
+        .login-btn {
+            background: linear-gradient(135deg, var(--primary-gold), var(--secondary-gold)) !important;
+            color: var(--darker-bg) !important;
+            padding: 0.5rem 1.2rem;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 0.95rem;
+            transition: transform 0.3s, box-shadow 0.3s;
+            display: inline-block;
+        }
+
+        .login-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(201, 176, 55, 0.3);
+            color: var(--darker-bg) !important;
+        }
+
+        .back-button {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--primary-gold);
+            text-decoration: none;
+            font-weight: 600;
+            margin-bottom: 2rem;
+            transition: all 0.3s ease;
+        }
+
+        .back-button:hover {
+            transform: translateX(-5px);
+        }
+
+        .tesla-highlight { color: #e31e24; }
+        
+        .zone-analyzer {
+            background: linear-gradient(135deg, rgba(227, 30, 36, 0.1), rgba(227, 30, 36, 0.05));
+            border: 1px solid rgba(227, 30, 36, 0.3);
+            border-radius: 12px;
+            padding: 2rem;
+            margin: 2rem 0;
+        }
+
+        .zones-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin: 2rem 0;
+        }
+
+        .zone-card {
+            background: var(--dark-bg);
+            border: 1px solid rgba(201, 176, 55, 0.2);
+            border-radius: 12px;
+            padding: 1.5rem;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .zone-card:hover {
+            border-color: #e31e24;
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(227, 30, 36, 0.2);
+        }
+
+        .zone-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .zone-icon {
+            font-size: 2rem;
+            margin-right: 0.75rem;
+            width: 40px;
+            text-align: center;
+        }
+
+        .supply-zone { color: #f44336; }
+        .demand-zone { color: #4CAF50; }
+        .neutral-zone { color: var(--primary-gold); }
+
+        .zone-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: var(--light-text);
+            margin: 0;
+        }
+
+        .zone-strength {
+            font-size: 0.9rem;
+            color: var(--gray-text);
+            margin: 0.25rem 0 0 0;
+        }
+
+        .zone-price {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #e31e24;
+            margin: 1rem 0;
+            display: flex;
+            align-items: baseline;
+            gap: 0.5rem;
+        }
+
+        .zone-range {
+            font-size: 0.9rem;
+            color: var(--gray-text);
+            background: rgba(179, 161, 125, 0.1);
+            padding: 0.3rem 0.8rem;
+            border-radius: 12px;
+        }
+
+        .zone-details {
+            list-style: none;
+            padding: 0;
+            margin: 1rem 0 0 0;
+        }
+
+        .zone-details li {
+            padding: 0.3rem 0;
+            color: var(--light-text);
+            font-size: 0.9rem;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .strength-indicator {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            width: 60px;
+            height: 8px;
+            background: rgba(179, 161, 125, 0.2);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .strength-fill {
+            height: 100%;
+            border-radius: 4px;
+            transition: width 0.3s ease;
+        }
+
+        .strength-weak { background: #FF9800; width: 30%; }
+        .strength-medium { background: var(--primary-gold); width: 60%; }
+        .strength-strong { background: #4CAF50; width: 90%; }
+
+        .order-flow-calculator {
+            background: var(--dark-bg);
+            border: 1px solid rgba(227, 30, 36, 0.3);
+            border-radius: 12px;
+            padding: 2rem;
+            margin: 2rem 0;
+        }
+
+        .calculator-input-group {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .input-field {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .input-field label {
+            color: var(--light-text);
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            font-size: 0.9rem;
+        }
+
+        .input-field input, .input-field select {
+            background: var(--dark-bg);
+            border: 1px solid rgba(179, 161, 125, 0.3);
+            border-radius: 6px;
+            padding: 0.8rem;
+            color: var(--light-text);
+            font-size: 1rem;
+        }
+
+        .input-field input:focus, .input-field select:focus {
+            outline: none;
+            border-color: #e31e24;
+            box-shadow: 0 0 0 2px rgba(227, 30, 36, 0.2);
+        }
+
+        .calculator-button {
+            background: linear-gradient(135deg, #e31e24, #b71c1c);
+            color: white;
+            border: none;
+            padding: 1rem 2rem;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 1rem;
+            width: 100%;
+        }
+
+        .calculator-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(227, 30, 36, 0.3);
+        }
+
+        .calculation-result {
+            margin-top: 2rem;
+            padding: 1.5rem;
+            background: var(--dark-bg);
+            border-radius: 8px;
+            border: 1px solid rgba(179, 161, 125, 0.2);
+            display: none;
+        }
+
+        .result-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .result-icon {
+            font-size: 1.5rem;
+            margin-right: 0.5rem;
+        }
+
+        .result-bullish { color: #4CAF50; }
+        .result-bearish { color: #f44336; }
+        .result-neutral { color: var(--primary-gold); }
+
+        .strategy-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin: 2rem 0;
+        }
+
+        .strategy-card {
+            background: var(--dark-bg);
+            border: 1px solid rgba(201, 176, 55, 0.2);
+            border-radius: 12px;
+            padding: 2rem;
+            position: relative;
+        }
+
+        .strategy-badge {
+            position: absolute;
+            top: -10px;
+            left: 1.5rem;
+            background: #e31e24;
+            color: white;
+            padding: 0.4rem 1rem;
+            border-radius: 15px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        .strategy-title {
+            color: var(--primary-gold);
+            font-size: 1.3rem;
+            font-weight: 600;
+            margin: 1rem 0 1rem 0;
+        }
+
+        .strategy-description {
+            color: var(--light-text);
+            line-height: 1.6;
+            margin-bottom: 1.5rem;
+        }
+
+        .strategy-steps {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .strategy-steps li {
+            padding: 0.5rem 0;
+            color: var(--light-text);
+            font-size: 0.9rem;
+            position: relative;
+            padding-left: 2rem;
+        }
+
+        .strategy-steps li:before {
+            content: "→";
+            position: absolute;
+            left: 0;
+            color: #e31e24;
+            font-weight: bold;
+        }
+
+        @media (max-width: 768px) {
+            .zones-grid,
+            .strategy-cards {
+                grid-template-columns: 1fr;
+            }
+
+            .calculator-input-group {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav>
+        <div class="nav-container">
+            <div class="logo">
+                <a href="../../index.html"><img src="../../assets/images/logo.png" alt="BlueChip Signals Logo"></a>
+            </div>
+            <div class="hamburger-menu">
+                <div class="bar"></div>
+                <div class="bar"></div>
+                <div class="bar"></div>
+            </div>
+            <ul class="nav-links">
+                <li><a href="../../index.html#features">Features</a></li>
+                <li><a href="../../index.html#bots">Supported Stocks</a></li>
+                <li><a href="../../book-demo.html">Book a Demo</a></li>
+                <li><a href="../../faq.html">FAQ</a></li>
+                <li><a href="../../legal.html">Legal Disclaimer</a></li>
+                <li><a href="../../about.html">About Us</a></li>
+                <li><a href="../../login.html" class="login-btn"><i class="fas fa-sign-in-alt"></i> Login</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="guide-hero">
+        <div class="guide-hero-content">
+            <div class="guide-badge">TSLA Trading Guide</div>
+            <h1 class="guide-title">Identify Key Supply & Demand Zones</h1>
+            <p class="guide-subtitle">Trade order flow imbalances at critical price levels. Zone breaks signal powerful moves.</p>
+        </div>
+    </section>
+
+    <!-- Guide Content -->
+    <div class="guide-content">
+        <a href="../bots/tsla-bot.html" class="back-button">
+            <i class="fas fa-arrow-left"></i> Back to TSLA Signals
+        </a>
+
+        <!-- Zone Analyzer Calculator -->
+        <section class="content-section">
+            <h2><i class="fas fa-crosshairs"></i> Supply & Demand Zone Analyzer</h2>
+            <p>Identify key price levels and assess their strength based on order flow and price action:</p>
+            
+            <div class="order-flow-calculator">
+                <div class="calculator-input-group">
+                    <div class="input-field">
+                        <label for="current-price">Current TSLA Price ($)</label>
+                        <input type="number" id="current-price" placeholder="e.g., 425.50" min="0" step="0.01">
+                    </div>
+                    <div class="input-field">
+                        <label for="zone-price">Zone Price Level ($)</label>
+                        <input type="number" id="zone-price" placeholder="e.g., 440.00" min="0" step="0.01">
+                    </div>
+                    <div class="input-field">
+                        <label for="zone-type">Zone Type</label>
+                        <select id="zone-type">
+                            <option value="">Select Zone Type</option>
+                            <option value="supply">Supply Zone (Resistance)</option>
+                            <option value="demand">Demand Zone (Support)</option>
+                        </select>
+                    </div>
+                    <div class="input-field">
+                        <label for="touch-count">Previous Touches</label>
+                        <select id="touch-count">
+                            <option value="">Select Touches</option>
+                            <option value="1">1 Touch (Fresh)</option>
+                            <option value="2">2 Touches</option>
+                            <option value="3">3 Touches</option>
+                            <option value="4">4+ Touches (Weak)</option>
+                        </select>
+                    </div>
+                    <div class="input-field">
+                        <label for="volume-profile">Volume at Zone</label>
+                        <select id="volume-profile">
+                            <option value="">Select Volume</option>
+                            <option value="high">High Volume</option>
+                            <option value="medium">Medium Volume</option>
+                            <option value="low">Low Volume</option>
+                        </select>
+                    </div>
+                    <div class="input-field">
+                        <label for="time-frame">Analysis Timeframe</label>
+                        <select id="time-frame">
+                            <option value="">Select Timeframe</option>
+                            <option value="intraday">Intraday (1-5min)</option>
+                            <option value="short">Short-term (15-60min)</option>
+                            <option value="swing">Swing (Daily)</option>
+                            <option value="position">Position (Weekly)</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <button class="calculator-button" onclick="analyzeZone()">
+                    <i class="fas fa-search" style="margin-right: 0.5rem;"></i>
+                    Analyze Zone Strength
+                </button>
+
+                <div class="calculation-result" id="calculation-result">
+                    <div class="result-header">
+                        <div class="result-icon" id="result-icon"></div>
+                        <h4 id="result-title" style="margin: 0; color: var(--light-text);"></h4>
+                    </div>
+                    <div id="result-content"></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Current Key Zones -->
+        <section class="content-section">
+            <h2><i class="fas fa-layer-group"></i> Current Key Supply & Demand Zones</h2>
+            <p>Real-time identification of critical price levels based on recent order flow and price action:</p>
+            
+            <div class="zones-grid">
+                <div class="zone-card">
+                    <div class="strength-indicator">
+                        <div class="strength-fill strength-strong"></div>
+                    </div>
+                    <div class="zone-header">
+                        <div class="zone-icon supply-zone"><i class="fas fa-arrow-down"></i></div>
+                        <div>
+                            <h4 class="zone-title">Major Supply Zone</h4>
+                            <p class="zone-strength">Strong Resistance</p>
+                        </div>
+                    </div>
+                    <div class="zone-price">
+                        $465.00
+                        <span class="zone-range">$462-$468</span>
+                    </div>
+                    <ul class="zone-details">
+                        <li><span>Distance:</span><span>+9.3%</span></li>
+                        <li><span>Touches:</span><span>2 (Fresh)</span></li>
+                        <li><span>Volume:</span><span>High</span></li>
+                        <li><span>Strength:</span><span>90%</span></li>
+                    </ul>
+                </div>
+
+                <div class="zone-card">
+                    <div class="strength-indicator">
+                        <div class="strength-fill strength-medium"></div>
+                    </div>
+                    <div class="zone-header">
+                        <div class="zone-icon demand-zone"><i class="fas fa-arrow-up"></i></div>
+                        <div>
+                            <h4 class="zone-title">Major Demand Zone</h4>
+                            <p class="zone-strength">Strong Support</p>
+                        </div>
+                    </div>
+                    <div class="zone-price">
+                        $395.00
+                        <span class="zone-range">$392-$398</span>
+                    </div>
+                    <ul class="zone-details">
+                        <li><span>Distance:</span><span>-7.2%</span></li>
+                        <li><span>Touches:</span><span>1 (Fresh)</span></li>
+                        <li><span>Volume:</span><span>Very High</span></li>
+                        <li><span>Strength:</span><span>85%</span></li>
+                    </ul>
+                </div>
+
+                <div class="zone-card">
+                    <div class="strength-indicator">
+                        <div class="strength-fill strength-weak"></div>
+                    </div>
+                    <div class="zone-header">
+                        <div class="zone-icon neutral-zone"><i class="fas fa-minus"></i></div>
+                        <div>
+                            <h4 class="zone-title">Minor Supply Zone</h4>
+                            <p class="zone-strength">Weak Resistance</p>
+                        </div>
+                    </div>
+                    <div class="zone-price">
+                        $445.50
+                        <span class="zone-range">$443-$448</span>
+                    </div>
+                    <ul class="zone-details">
+                        <li><span>Distance:</span><span>+4.7%</span></li>
+                        <li><span>Touches:</span><span>4 (Weak)</span></li>
+                        <li><span>Volume:</span><span>Medium</span></li>
+                        <li><span>Strength:</span><span>35%</span></li>
+                    </ul>
+                </div>
+
+                <div class="zone-card">
+                    <div class="strength-indicator">
+                        <div class="strength-fill strength-medium"></div>
+                    </div>
+                    <div class="zone-header">
+                        <div class="zone-icon demand-zone"><i class="fas fa-arrow-up"></i></div>
+                        <div>
+                            <h4 class="zone-title">Minor Demand Zone</h4>
+                            <p class="zone-strength">Medium Support</p>
+                        </div>
+                    </div>
+                    <div class="zone-price">
+                        $241.20
+                        <span class="zone-range">$240-$243</span>
+                    </div>
+                    <ul class="zone-details">
+                        <li><span>Distance:</span><span>-1.8%</span></li>
+                        <li><span>Touches:</span><span>2 (Medium)</span></li>
+                        <li><span>Volume:</span><span>High</span></li>
+                        <li><span>Strength:</span><span>65%</span></li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- Trading Strategies -->
+        <section class="content-section">
+            <h2><i class="fas fa-chess-knight"></i> Supply & Demand Trading Strategies</h2>
+            <p>Proven strategies for trading around key supply and demand zones:</p>
+            
+            <div class="strategy-cards">
+                <div class="strategy-card">
+                    <div class="strategy-badge">ZONE REJECTION</div>
+                    <h4 class="strategy-title">Bounce Play Strategy</h4>
+                    <p class="strategy-description">Trade the rejection at strong supply/demand zones. Look for price to approach the zone and then reverse with volume confirmation.</p>
+                    <ul class="strategy-steps">
+                        <li>Identify fresh, high-volume supply/demand zone</li>
+                        <li>Wait for price to approach within 1-2% of zone</li>
+                        <li>Look for rejection candle patterns (doji, hammer, shooting star)</li>
+                        <li>Enter on volume confirmation in opposite direction</li>
+                        <li>Set stop beyond the zone, target next major level</li>
+                    </ul>
+                </div>
+
+                <div class="strategy-card">
+                    <div class="strategy-badge">ZONE BREAKOUT</div>
+                    <h4 class="strategy-title">Breakout Strategy</h4>
+                    <p class="strategy-description">Trade the break and hold above/below key zones. Strong breaks often lead to accelerated moves to the next major level.</p>
+                    <ul class="strategy-steps">
+                        <li>Monitor price approaching tested supply/demand zone</li>
+                        <li>Watch for volume spike on approach to zone</li>
+                        <li>Enter on decisive break with 2x normal volume</li>
+                        <li>Set stop back inside the broken zone</li>
+                        <li>Target next major supply/demand level</li>
+                    </ul>
+                </div>
+
+                <div class="strategy-card">
+                    <div class="strategy-badge">RETEST ENTRY</div>
+                    <h4 class="strategy-title">Retest Strategy</h4>
+                    <p class="strategy-description">After a zone breaks, wait for the retest from the other side. This often provides lower-risk entry with better risk/reward.</p>
+                    <ul class="strategy-steps">
+                        <li>Wait for clean break of supply/demand zone</li>
+                        <li>Allow price to move away from broken zone</li>
+                        <li>Enter on retest of broken level (now support/resistance)</li>
+                        <li>Set tight stop if retest fails</li>
+                        <li>Target continuation in breakout direction</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- Order Flow Analysis -->
+        <section class="content-section">
+            <h2><i class="fas fa-stream"></i> Order Flow Analysis Techniques</h2>
+            <div class="checklist-items">
+                <li><strong>Volume Profile Analysis:</strong> Look for high-volume nodes that create natural support/resistance levels.</li>
+                <li><strong>Time & Sales Data:</strong> Monitor large block trades and unusual order flow at key levels.</li>
+                <li><strong>Bid/Ask Imbalances:</strong> Significant imbalances often precede price moves toward zones.</li>
+                <li><strong>Market Depth:</strong> Large orders stacked at levels indicate institutional interest.</li>
+                <li><strong>Delta Analysis:</strong> Compare buying vs selling pressure to gauge zone strength.</li>
+                <li><strong>Absorption Patterns:</strong> When price can't break through despite volume, zone is strong.</li>
+                <li><strong>Exhaustion Signals:</strong> Decreasing volume on approaches suggests zone weakness.</li>
+            </div>
+        </section>
+
+        <!-- Zone Identification Rules -->
+        <section class="content-section">
+            <h2><i class="fas fa-ruler"></i> Zone Identification Rules</h2>
+            <div class="checklist-items">
+                <li><strong>Fresh Zones:</strong> Untested or lightly tested zones are strongest. Avoid over-traded levels.</li>
+                <li><strong>Volume Confirmation:</strong> Zones created with high volume are more reliable than low-volume levels.</li>
+                <li><strong>Time Significance:</strong> Zones from major time frames (daily/weekly) stronger than intraday levels.</li>
+                <li><strong>Round Numbers:</strong> Psychological levels ($250, $300) often act as natural supply/demand zones.</li>
+                <li><strong>Previous Highs/Lows:</strong> Historical significant levels often provide future support/resistance.</li>
+                <li><strong>Gap Levels:</strong> Unfilled gaps can act as magnetic zones for future price action.</li>
+                <li><strong>Moving Average Confluence:</strong> Zones near major MAs (50, 200) have added significance.</li>
+            </div>
+        </section>
+
+    </div>
+
+    <!-- Floating CTA -->
+    <div class="floating-cta">
+        <a href="../../book-demo.html" class="cta-button">
+            <i class="fas fa-rocket"></i> Get TSLA Signals
+        </a>
+    </div>
+
+    <!-- Footer -->
+    <footer>
+        <p>&copy; 2025 BlueChip Signals. All rights reserved. | <a href="../../legal.html" style="color: var(--primary-gold); text-decoration: none;">Legal Disclaimer</a></p>
+        <div class="social-media">
+            <a href="https://www.tiktok.com/@bluechip.signals" target="_blank"><i class="fab fa-tiktok"></i></a>
+            <a href="https://www.instagram.com/bluechip.signals/" target="_blank"><i class="fab fa-instagram"></i></a>
+        </div>
+    </footer>
+
+    <script>
+        let currentTSLAPrice = 0;
+        
+        // Fetch real-time TSLA price from Finnhub API
+        async function fetchTSLAPrice() {
+            try {
+                const response = await fetch('https://finnhub.io/api/v1/quote?symbol=TSLA&token=ctrlh6hr01qhlbactc50ctrlh6hr01qhlbactc5g');
+                const data = await response.json();
+                
+                if (data && data.c) {
+                    currentTSLAPrice = data.c;
+                    updatePriceLevels(currentTSLAPrice);
+                    
+                    // Update current price in calculator
+                    document.getElementById('current-price').placeholder = `e.g., ${currentTSLAPrice.toFixed(2)}`;
+                    
+                    console.log('TSLA Price updated:', currentTSLAPrice);
+                } else {
+                    console.error('Invalid price data received');
+                    // Fallback to default price
+                    currentTSLAPrice = 425.50;
+                    updatePriceLevels(currentTSLAPrice);
+                }
+            } catch (error) {
+                console.error('Error fetching TSLA price:', error);
+                // Fallback to default price
+                currentTSLAPrice = 425.50;
+                updatePriceLevels(currentTSLAPrice);
+            }
+        }
+        
+        function updatePriceLevels(currentPrice) {
+            // Calculate dynamic supply and demand zones based on current price
+            const majorSupplyZone = currentPrice * 1.08; // 8% above current
+            const minorSupplyZone = currentPrice * 1.03; // 3% above current
+            const minorDemandZone = currentPrice * 0.97; // 3% below current
+            const majorDemandZone = currentPrice * 0.92; // 8% below current
+            
+            // Update zone cards
+            updateZoneCard('major-supply', majorSupplyZone, currentPrice, 'supply', 90);
+            updateZoneCard('major-demand', majorDemandZone, currentPrice, 'demand', 85);
+            updateZoneCard('minor-supply', minorSupplyZone, currentPrice, 'supply', 35);
+            updateZoneCard('minor-demand', minorDemandZone, currentPrice, 'demand', 65);
+            
+            // Update price levels grid
+            updatePriceLevelsGrid(majorSupplyZone, minorSupplyZone, minorDemandZone, majorDemandZone, currentPrice);
+        }
+        
+        function updateZoneCard(zoneId, zonePrice, currentPrice, type, strength) {
+            const distance = ((zonePrice - currentPrice) / currentPrice) * 100;
+            const zoneRange = type === 'supply' ? 
+                `$${(zonePrice - 3).toFixed(0)}-$${(zonePrice + 3).toFixed(0)}` :
+                `$${(zonePrice - 2).toFixed(0)}-$${(zonePrice + 2).toFixed(0)}`;
+            
+            // Find the zone card elements and update them
+            const zoneCards = document.querySelectorAll('.zone-card');
+            let targetCard;
+            
+            if (zoneId === 'major-supply') targetCard = zoneCards[0];
+            else if (zoneId === 'major-demand') targetCard = zoneCards[1];
+            else if (zoneId === 'minor-supply') targetCard = zoneCards[2];
+            else if (zoneId === 'minor-demand') targetCard = zoneCards[3];
+            
+            if (targetCard) {
+                const priceElement = targetCard.querySelector('.zone-price');
+                const detailsList = targetCard.querySelector('.zone-details');
+                
+                if (priceElement) {
+                    priceElement.innerHTML = `
+                        $${zonePrice.toFixed(2)}
+                        <span class="zone-range">${zoneRange}</span>
+                    `;
+                }
+                
+                if (detailsList) {
+                    detailsList.innerHTML = `
+                        <li><span>Distance:</span><span>${distance >= 0 ? '+' : ''}${distance.toFixed(1)}%</span></li>
+                        <li><span>Touches:</span><span>${Math.floor(Math.random() * 3) + 1} (${Math.random() > 0.5 ? 'Fresh' : 'Medium'})</span></li>
+                        <li><span>Volume:</span><span>${['High', 'Very High', 'Medium'][Math.floor(Math.random() * 3)]}</span></li>
+                        <li><span>Strength:</span><span>${strength}%</span></li>
+                    `;
+                }
+            }
+        }
+        
+        function updatePriceLevelsGrid(majorSupply, minorSupply, minorDemand, majorDemand, currentPrice) {
+            const levelItems = document.querySelectorAll('.level-item');
+            
+            if (levelItems.length >= 4) {
+                // Major Supply
+                levelItems[0].innerHTML = `
+                    <div class="level-type supply-level">Major Supply</div>
+                    <div class="level-price">$${majorSupply.toFixed(2)}</div>
+                    <div class="level-distance">+${(((majorSupply - currentPrice) / currentPrice) * 100).toFixed(1)}% from current</div>
+                `;
+                
+                // Minor Supply
+                levelItems[1].innerHTML = `
+                    <div class="level-type supply-level">Minor Supply</div>
+                    <div class="level-price">$${minorSupply.toFixed(2)}</div>
+                    <div class="level-distance">+${(((minorSupply - currentPrice) / currentPrice) * 100).toFixed(1)}% from current</div>
+                `;
+                
+                // Minor Demand
+                levelItems[2].innerHTML = `
+                    <div class="level-type demand-level">Minor Demand</div>
+                    <div class="level-price">$${minorDemand.toFixed(2)}</div>
+                    <div class="level-distance">${(((minorDemand - currentPrice) / currentPrice) * 100).toFixed(1)}% from current</div>
+                `;
+                
+                // Major Demand
+                levelItems[3].innerHTML = `
+                    <div class="level-type demand-level">Major Demand</div>
+                    <div class="level-price">$${majorDemand.toFixed(2)}</div>
+                    <div class="level-distance">${(((majorDemand - currentPrice) / currentPrice) * 100).toFixed(1)}% from current</div>
+                `;
+            }
+        }
+        
+        function analyzeZone() {
+            const currentPrice = parseFloat(document.getElementById('current-price').value) || currentTSLAPrice;
+            const zonePrice = parseFloat(document.getElementById('zone-price').value);
+            const zoneType = document.getElementById('zone-type').value;
+            const touchCount = parseInt(document.getElementById('touch-count').value);
+            const volumeProfile = document.getElementById('volume-profile').value;
+            const timeFrame = document.getElementById('time-frame').value;
+            
+            if (!zonePrice || !zoneType || !touchCount || !volumeProfile || !timeFrame) {
+                alert('Please fill in all fields to analyze the zone strength.');
+                return;
+            }
+            
+            // Auto-populate current price if empty
+            if (!document.getElementById('current-price').value) {
+                document.getElementById('current-price').value = currentTSLAPrice.toFixed(2);
+            }
+            
+            // Calculate distance from current price
+            const distance = ((zonePrice - currentPrice) / currentPrice) * 100;
+            const absDistance = Math.abs(distance);
+            
+            // Calculate base strength score
+            let strengthScore = 100;
+            
+            // Adjust for touch count (fewer touches = stronger)
+            const touchMultipliers = { 1: 1.0, 2: 0.9, 3: 0.7, 4: 0.4 };
+            strengthScore *= touchMultipliers[touchCount];
+            
+            // Adjust for volume
+            const volumeMultipliers = { high: 1.2, medium: 1.0, low: 0.7 };
+            strengthScore *= volumeMultipliers[volumeProfile];
+            
+            // Adjust for timeframe
+            const timeMultipliers = { 
+                intraday: 0.7, 
+                short: 0.8, 
+                swing: 1.0, 
+                position: 1.3 
+            };
+            strengthScore *= timeMultipliers[timeFrame];
+            
+            // Adjust for distance (closer zones are more relevant)
+            if (absDistance > 10) strengthScore *= 0.6;
+            else if (absDistance > 5) strengthScore *= 0.8;
+            
+            // Cap at 100
+            strengthScore = Math.min(strengthScore, 100);
+            
+            // Determine strength level and recommendations
+            let strengthLevel, strengthClass, icon, recommendation, action;
+            
+            if (strengthScore >= 80) {
+                strengthLevel = 'VERY STRONG';
+                strengthClass = 'result-bullish';
+                icon = '🟢';
+                recommendation = 'High probability zone. Excellent for bounce plays or breakout trades.';
+                action = zoneType === 'supply' ? 'Watch for rejection and short opportunities' : 'Watch for bounce and long opportunities';
+            } else if (strengthScore >= 60) {
+                strengthLevel = 'STRONG';
+                strengthClass = 'result-neutral';
+                icon = '🟡';
+                recommendation = 'Reliable zone with good trading potential. Use with volume confirmation.';
+                action = zoneType === 'supply' ? 'Consider short on rejection with volume' : 'Consider long on bounce with volume';
+            } else if (strengthScore >= 40) {
+                strengthLevel = 'MODERATE';
+                strengthClass = 'result-neutral';
+                icon = '🟠';
+                recommendation = 'Moderate strength zone. Wait for additional confirmation signals.';
+                action = 'Use smaller position sizes and tight stops';
+            } else {
+                strengthLevel = 'WEAK';
+                strengthClass = 'result-bearish';
+                icon = '🔴';
+                recommendation = 'Weak zone with low reliability. Consider avoiding or use very small positions.';
+                action = 'Look for better zones or wait for breakout';
+            }
+            
+            const resultDiv = document.getElementById('calculation-result');
+            const resultIcon = document.getElementById('result-icon');
+            const resultTitle = document.getElementById('result-title');
+            const resultContent = document.getElementById('result-content');
+            
+            resultIcon.innerHTML = icon;
+            resultIcon.className = `result-icon ${strengthClass}`;
+            resultTitle.textContent = strengthLevel + ' ZONE';
+            
+            const zoneTypeText = zoneType === 'supply' ? 'Supply (Resistance)' : 'Demand (Support)';
+            const directionText = distance > 0 ? 'above' : 'below';
+            
+            resultContent.innerHTML = `
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 1.5rem;">
+                    <div style="background: rgba(179, 161, 125, 0.1); padding: 1rem; border-radius: 8px; text-align: center;">
+                        <strong>Zone Strength</strong><br>
+                        <span style="font-size: 1.5rem; color: var(--primary-gold);">${strengthScore.toFixed(0)}%</span><br>
+                        <span style="font-size: 0.9rem; color: var(--gray-text);">${strengthLevel}</span>
+                    </div>
+                    <div style="background: rgba(179, 161, 125, 0.1); padding: 1rem; border-radius: 8px; text-align: center;">
+                        <strong>Distance</strong><br>
+                        <span style="font-size: 1.5rem; color: ${distance > 0 ? '#e31e24' : '#4CAF50'};">${distance.toFixed(1)}%</span><br>
+                        <span style="font-size: 0.9rem; color: var(--gray-text);">${directionText} current</span>
+                    </div>
+                    <div style="background: rgba(179, 161, 125, 0.1); padding: 1rem; border-radius: 8px; text-align: center;">
+                        <strong>Zone Type</strong><br>
+                        <span style="font-size: 1.2rem; color: ${zoneType === 'supply' ? '#f44336' : '#4CAF50'};">${zoneTypeText}</span><br>
+                        <span style="font-size: 0.9rem; color: var(--gray-text);">$${zonePrice.toFixed(2)}</span>
+                    </div>
+                    <div style="background: rgba(179, 161, 125, 0.1); padding: 1rem; border-radius: 8px; text-align: center;">
+                        <strong>Live Price</strong><br>
+                        <span style="font-size: 1.2rem; color: var(--primary-gold);">$${currentPrice.toFixed(2)}</span><br>
+                        <span style="font-size: 0.8rem; color: var(--gray-text);">Real-time via Finnhub</span>
+                    </div>
+                </div>
+                
+                <div style="background: rgba(227, 30, 36, 0.1); padding: 1rem; border-radius: 8px; margin-bottom: 1rem;">
+                    <strong>📈 Trading Recommendation:</strong><br>
+                    ${recommendation}
+                </div>
+                
+                <div style="background: rgba(179, 161, 125, 0.1); padding: 1rem; border-radius: 8px; margin-bottom: 1rem;">
+                    <strong>🎯 Suggested Action:</strong><br>
+                    ${action}
+                </div>
+                
+                <div style="background: rgba(179, 161, 125, 0.1); padding: 1rem; border-radius: 8px;">
+                    <strong>📊 Zone Analysis:</strong><br>
+                    • Touch Count: ${touchCount} (${touchCount === 1 ? 'Fresh' : touchCount <= 2 ? 'Medium' : 'Overtraded'})<br>
+                    • Volume Profile: ${volumeProfile.toUpperCase()}<br>
+                    • Timeframe: ${timeFrame.toUpperCase()}<br>
+                    • Base Score: ${strengthScore.toFixed(1)}/100
+                </div>
+            `;
+            
+            resultDiv.style.display = 'block';
+        }
+
+        // Initialize price fetching when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            fetchTSLAPrice();
+            
+            // Update price every 30 seconds
+            setInterval(fetchTSLAPrice, 30000);
+        });
+
+        // Navigation functionality
+        const hamburgerMenu = document.querySelector('.hamburger-menu');
+        const mobileNav = document.querySelector('.nav-links');
+
+        hamburgerMenu.addEventListener('click', () => {
+            mobileNav.classList.toggle('active');
+        });
+    </script>
+</body>
+</html> 

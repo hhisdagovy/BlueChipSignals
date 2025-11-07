@@ -1,0 +1,535 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>META Regulatory News Trading | BlueChip Signals</title>
+    <meta name="description" content="Learn how to trade META around regulatory news, data privacy issues, antitrust concerns, and content moderation policies that impact stock price.">
+    <link rel="icon" type="image/png" href="../../assets/images/logo.png">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="../../assets/css/bot-style.css?v=1751139967">
+    <style>
+        :root {
+            --primary-gold: #b3a17d;
+            --secondary-gold: #E2CFB5;
+            --dark-bg: #080B0F;
+            --darker-bg: #050810;
+            --light-text: #FFFFFF;
+            --gray-text: #A0A0A0;
+        }
+
+        body {
+            background: var(--darker-bg);
+            color: var(--light-text);
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        }
+
+        .guide-hero {
+            margin-top: 100px;
+            padding: 4rem 2rem 3rem;
+            text-align: center;
+            background: radial-gradient(circle at 50% 50%, rgba(201, 176, 55, 0.15), transparent 70%);
+            position: relative;
+        }
+
+        .guide-hero::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: radial-gradient(circle at 30% 40%, rgba(201, 176, 55, 0.08), transparent 50%);
+            z-index: 0;
+        }
+
+        .guide-hero-content {
+            max-width: 900px;
+            margin: 0 auto;
+            position: relative;
+            z-index: 1;
+        }
+
+        .guide-badge {
+            display: inline-block;
+            background: linear-gradient(135deg, var(--primary-gold), var(--secondary-gold));
+            color: var(--darker-bg);
+            padding: 0.4rem 1.2rem;
+            border-radius: 20px;
+            font-weight: 700;
+            font-size: 0.8rem;
+            letter-spacing: 1px;
+            margin-bottom: 1.5rem;
+            text-transform: uppercase;
+        }
+
+        .guide-title {
+            font-size: 2.8rem;
+            font-weight: 800;
+            margin: 0 0 1rem 0;
+            line-height: 1.2;
+            color: var(--light-text);
+        }
+
+        .guide-subtitle {
+            font-size: 1.2rem;
+            color: var(--gray-text);
+            line-height: 1.6;
+            margin: 0;
+        }
+
+        .guide-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 3rem 2rem;
+        }
+
+        .content-section {
+            background: var(--dark-bg);
+            border: 1px solid rgba(201, 176, 55, 0.2);
+            border-radius: 15px;
+            padding: 2.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .content-section h2 {
+            color: var(--primary-gold);
+            font-size: 1.8rem;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .content-section h2 i {
+            font-size: 1.5rem;
+        }
+
+        .content-section h3 {
+            color: var(--light-text);
+            font-size: 1.4rem;
+            margin-bottom: 1rem;
+        }
+
+        .content-section h4 {
+            color: var(--primary-gold);
+            font-size: 1.2rem;
+            margin-bottom: 1rem;
+        }
+
+        .content-section h5 {
+            color: var(--secondary-gold);
+            font-size: 1rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .content-section p {
+            color: var(--gray-text);
+            line-height: 1.8;
+            margin-bottom: 1rem;
+        }
+
+        .content-section ul {
+            color: var(--light-text);
+            line-height: 1.8;
+            margin: 1rem 0;
+            padding-left: 1.5rem;
+        }
+
+        .content-section ul li {
+            margin-bottom: 0.75rem;
+        }
+
+        .content-section strong {
+            color: var(--light-text);
+        }
+
+        .login-btn {
+            background: linear-gradient(135deg, var(--primary-gold), var(--secondary-gold)) !important;
+            color: var(--darker-bg) !important;
+            padding: 0.5rem 1.2rem;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 0.95rem;
+            transition: transform 0.3s, box-shadow 0.3s;
+            display: inline-block;
+        }
+
+        .login-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(201, 176, 55, 0.3);
+            color: var(--darker-bg) !important;
+        }
+
+        .back-button {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--primary-gold);
+            text-decoration: none;
+            font-weight: 600;
+            margin-bottom: 2rem;
+            transition: all 0.3s ease;
+        }
+
+        .back-button:hover {
+            transform: translateX(-5px);
+        }
+
+        @media (max-width: 768px) {
+            .guide-title {
+                font-size: 2rem;
+            }
+
+            .guide-subtitle {
+                font-size: 1rem;
+            }
+
+            .content-section {
+                padding: 1.5rem;
+            }
+        }
+    </style>
+    <script>
+        // Redirect non-logged-in users to book demo page
+        (function() {
+            const isLoggedIn = localStorage.getItem('bluechip_logged_in') || sessionStorage.getItem('bluechip_logged_in');
+            if (!isLoggedIn) {
+                window.location.href = '../../book-demo.html';
+            }
+        })();
+    </script>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav>
+        <div class="nav-container">
+            <div class="logo">
+                <a href="../../index.html"><img src="../../assets/images/logo.png" alt="BlueChip Signals Logo"></a>
+            </div>
+            <div class="hamburger-menu">
+                <div class="bar"></div>
+                <div class="bar"></div>
+                <div class="bar"></div>
+            </div>
+            <ul class="nav-links">
+                <li><a href="../../index.html#features">Features</a></li>
+                <li><a href="../../index.html#bots">Supported Stocks</a></li>
+                <li><a href="../../book-demo.html">Book a Demo</a></li>
+                <li><a href="../../faq.html">FAQ</a></li>
+                <li><a href="../../legal.html">Legal Disclaimer</a></li>
+                <li><a href="../../about.html">About Us</a></li>
+                <li><a href="../../login.html" class="login-btn"><i class="fas fa-sign-in-alt"></i> Login</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="guide-hero">
+        <div class="guide-hero-content">
+            <div class="guide-badge">META Trading Guide</div>
+            <h1 class="guide-title">Regulatory News Trading</h1>
+            <p class="guide-subtitle">Navigate regulatory headlines and their impact on META's stock price.</p>
+        </div>
+    </section>
+
+    <!-- Guide Content -->
+    <div class="guide-content">
+        <a href="../bots/meta-bot.html" class="back-button">
+            <i class="fas fa-arrow-left"></i> Back to META Signals
+        </a>
+
+        <!-- Understanding Impact -->
+        <section class="content-section">
+            <h2><i class="fas fa-balance-scale"></i> Understanding Regulatory Impact on META</h2>
+            <p>As a global social media platform, META is constantly under regulatory scrutiny regarding data privacy, antitrust, and content moderation. Headlines on these topics can cause sudden, sharp moves in the stock price.</p>
+            
+            <div style="background: rgba(201, 176, 55, 0.1); border: 1px solid rgba(201, 176, 55, 0.3); border-left: 4px solid var(--primary-gold); padding: 2rem; border-radius: 12px; margin-top: 2rem;">
+                <h4 style="margin-bottom: 1rem;"><i class="fas fa-exclamation-triangle"></i> Why Regulatory News Matters</h4>
+                <p style="margin: 0; color: var(--light-text);">Regulatory actions can result in billions in fines, operational restrictions, or business model changes. Smart traders monitor regulatory calendars and news cycles to position themselves before major announcements.</p>
+            </div>
+        </section>
+
+        <!-- Key Regulatory Areas -->
+        <section class="content-section">
+            <h2><i class="fas fa-binoculars"></i> Key Regulatory Areas to Monitor</h2>
+            <p>Focus on these three main regulatory themes that consistently impact META's stock:</p>
+            
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 2rem; margin: 2rem 0;">
+                <div style="background: rgba(255, 68, 68, 0.1); border: 1px solid rgba(255, 68, 68, 0.2); border-left: 4px solid #ff4444; padding: 2rem; border-radius: 12px;">
+                    <h4 style="color: #ff4444; margin-bottom: 1.5rem;"><i class="fas fa-shield-alt"></i> Data Privacy & Protection</h4>
+                    <ul style="margin: 0; padding-left: 1.2rem;">
+                        <li><strong>GDPR Compliance:</strong> European data protection fines</li>
+                        <li><strong>State Privacy Laws:</strong> California CCPA, Virginia CDPA</li>
+                        <li><strong>Data Breaches:</strong> User information security incidents</li>
+                        <li><strong>Consent Mechanisms:</strong> User tracking and data collection</li>
+                    </ul>
+                    <div style="margin-top: 1.5rem; padding: 1rem; background: rgba(255, 68, 68, 0.15); border-radius: 8px;">
+                        <p style="margin: 0; font-size: 0.9rem; color: var(--gray-text);"><strong>Impact:</strong> Typically results in 2-8% moves on major headlines</p>
+                    </div>
+                </div>
+                
+                <div style="background: rgba(201, 176, 55, 0.1); border: 1px solid rgba(201, 176, 55, 0.2); border-left: 4px solid var(--primary-gold); padding: 2rem; border-radius: 12px;">
+                    <h4 style="color: var(--primary-gold); margin-bottom: 1.5rem;"><i class="fas fa-gavel"></i> Antitrust & Competition</h4>
+                    <ul style="margin: 0; padding-left: 1.2rem;">
+                        <li><strong>FTC Investigations:</strong> Monopoly and market dominance</li>
+                        <li><strong>Congressional Hearings:</strong> CEO testimony and questioning</li>
+                        <li><strong>Acquisition Reviews:</strong> New purchase scrutiny</li>
+                        <li><strong>Platform Breakup Talk:</strong> Calls to split companies</li>
+                    </ul>
+                    <div style="margin-top: 1.5rem; padding: 1rem; background: rgba(201, 176, 55, 0.15); border-radius: 8px;">
+                        <p style="margin: 0; font-size: 0.9rem; color: var(--gray-text);"><strong>Impact:</strong> Can cause 5-15% moves on major developments</p>
+                    </div>
+                </div>
+                
+                <div style="background: rgba(138, 43, 226, 0.1); border: 1px solid rgba(138, 43, 226, 0.2); border-left: 4px solid #8a2be2; padding: 2rem; border-radius: 12px;">
+                    <h4 style="color: #8a2be2; margin-bottom: 1.5rem;"><i class="fas fa-comments"></i> Content Moderation</h4>
+                    <ul style="margin: 0; padding-left: 1.2rem;">
+                        <li><strong>Section 230 Debates:</strong> Platform liability protection</li>
+                        <li><strong>Misinformation Policies:</strong> Fact-checking and removal</li>
+                        <li><strong>Political Content:</strong> Election-related moderation</li>
+                        <li><strong>Hate Speech Rules:</strong> Community guidelines enforcement</li>
+                    </ul>
+                    <div style="margin-top: 1.5rem; padding: 1rem; background: rgba(138, 43, 226, 0.15); border-radius: 8px;">
+                        <p style="margin: 0; font-size: 0.9rem; color: var(--gray-text);"><strong>Impact:</strong> Usually results in 1-5% moves, higher during elections</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Regulatory Calendar -->
+        <section class="content-section">
+            <h2><i class="fas fa-calendar-alt"></i> Regulatory Calendar & Key Events</h2>
+            <p>Stay ahead by monitoring these regular regulatory events that can impact META:</p>
+            
+            <div style="background: rgba(0, 255, 136, 0.1); border: 1px solid rgba(0, 255, 136, 0.2); padding: 2.5rem; border-radius: 12px; margin-top: 2rem;">
+                <h3 style="color: #00ff88; margin-bottom: 2rem; text-align: center;"><i class="fas fa-calendar-check"></i> Annual Regulatory Events to Watch</h3>
+                
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 1.5rem;">
+                    <div style="background: rgba(26, 31, 46, 0.5); border: 1px solid rgba(201, 176, 55, 0.2); padding: 1.5rem; border-radius: 8px;">
+                        <h5 style="color: var(--primary-gold); margin-bottom: 1rem;">Q1 Events</h5>
+                        <ul style="margin: 0; padding-left: 1rem; font-size: 0.9rem; line-height: 1.6;">
+                            <li>Congressional tech hearings</li>
+                            <li>GDPR anniversary assessments</li>
+                            <li>State legislative sessions begin</li>
+                        </ul>
+                    </div>
+                    
+                    <div style="background: rgba(26, 31, 46, 0.5); border: 1px solid rgba(201, 176, 55, 0.2); padding: 1.5rem; border-radius: 8px;">
+                        <h5 style="color: var(--primary-gold); margin-bottom: 1rem;">Q2 Events</h5>
+                        <ul style="margin: 0; padding-left: 1rem; font-size: 0.9rem; line-height: 1.6;">
+                            <li>FTC quarterly reports</li>
+                            <li>European regulatory reviews</li>
+                            <li>Antitrust case developments</li>
+                        </ul>
+                    </div>
+                    
+                    <div style="background: rgba(26, 31, 46, 0.5); border: 1px solid rgba(201, 176, 55, 0.2); padding: 1.5rem; border-radius: 8px;">
+                        <h5 style="color: var(--primary-gold); margin-bottom: 1rem;">Q3 Events</h5>
+                        <ul style="margin: 0; padding-left: 1rem; font-size: 0.9rem; line-height: 1.6;">
+                            <li>Summer recess hearings</li>
+                            <li>Mid-year compliance reviews</li>
+                            <li>International summit discussions</li>
+                        </ul>
+                    </div>
+                    
+                    <div style="background: rgba(26, 31, 46, 0.5); border: 1px solid rgba(201, 176, 55, 0.2); padding: 1.5rem; border-radius: 8px;">
+                        <h5 style="color: var(--primary-gold); margin-bottom: 1rem;">Q4 Events</h5>
+                        <ul style="margin: 0; padding-left: 1rem; font-size: 0.9rem; line-height: 1.6;">
+                            <li>Election-related scrutiny</li>
+                            <li>Year-end regulatory push</li>
+                            <li>New legislation introductions</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Trading Strategies -->
+        <section class="content-section">
+            <h2><i class="fas fa-chart-line"></i> Trading Strategies Around Regulatory News</h2>
+            <p>Learn how to position yourself before, during, and after regulatory announcements:</p>
+            
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(380px, 1fr)); gap: 2rem; margin: 2rem 0;">
+                <div style="background: rgba(0, 255, 136, 0.1); border: 1px solid rgba(0, 255, 136, 0.2); border-left: 4px solid #00ff88; padding: 2rem; border-radius: 12px;">
+                    <h4 style="color: #00ff88; margin-bottom: 1.5rem;"><i class="fas fa-chess"></i> Pre-Event Positioning</h4>
+                    
+                    <h5 style="margin-top: 1.5rem;">Bullish Setup (Expecting Positive News)</h5>
+                    <ul style="margin: 1rem 0; padding-left: 1.2rem; font-size: 0.95rem;">
+                        <li><strong>Entry:</strong> Buy calls 1-2 weeks before known hearings</li>
+                        <li><strong>Strike:</strong> Slightly OTM (5-10% above current price)</li>
+                        <li><strong>Time:</strong> 30-45 days to expiration</li>
+                        <li><strong>Stop Loss:</strong> 50% of premium paid</li>
+                    </ul>
+                    
+                    <h5 style="margin-top: 1.5rem;">Bearish Setup (Expecting Negative News)</h5>
+                    <ul style="margin: 1rem 0; padding-left: 1.2rem; font-size: 0.95rem;">
+                        <li><strong>Entry:</strong> Buy puts before regulatory deadlines</li>
+                        <li><strong>Strike:</strong> At-the-money or slightly ITM</li>
+                        <li><strong>Time:</strong> 45-60 days to expiration</li>
+                        <li><strong>Stop Loss:</strong> 40% of premium paid</li>
+                    </ul>
+                </div>
+                
+                <div style="background: rgba(201, 176, 55, 0.1); border: 1px solid rgba(201, 176, 55, 0.2); border-left: 4px solid var(--primary-gold); padding: 2rem; border-radius: 12px;">
+                    <h4 style="color: var(--primary-gold); margin-bottom: 1.5rem;"><i class="fas fa-bolt"></i> Event Day Trading</h4>
+                    
+                    <h5 style="margin-top: 1.5rem;">Immediate Reaction Strategy</h5>
+                    <ul style="margin: 1rem 0; padding-left: 1.2rem; font-size: 0.95rem;">
+                        <li><strong>Wait 5-10 minutes:</strong> Let initial panic/euphoria settle</li>
+                        <li><strong>Volume confirmation:</strong> Look for above-average volume</li>
+                        <li><strong>Direction clarity:</strong> Wait for clear directional bias</li>
+                        <li><strong>Quick exits:</strong> Take profits within 1-2 hours</li>
+                    </ul>
+                    
+                    <h5 style="margin-top: 1.5rem;">Volatility Play Strategy</h5>
+                    <ul style="margin: 1rem 0; padding-left: 1.2rem; font-size: 0.95rem;">
+                        <li><strong>Straddle Setup:</strong> Buy calls and puts before announcement</li>
+                        <li><strong>ATM Strikes:</strong> Both legs at current price</li>
+                        <li><strong>Exit Strategy:</strong> Close profitable leg quickly</li>
+                        <li><strong>Risk Management:</strong> Exit if move is less than 3%</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- News Sources -->
+        <section class="content-section">
+            <h2><i class="fas fa-rss"></i> News Sources & Monitoring Tools</h2>
+            <p>Stay informed with these reliable sources for regulatory news and developments:</p>
+            
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 2rem; margin: 2rem 0;">
+                <div style="background: rgba(26, 31, 46, 0.3); border: 1px solid rgba(201, 176, 55, 0.2); padding: 1.5rem; border-radius: 12px;">
+                    <h5 style="color: var(--primary-gold); margin-bottom: 1rem;">Government Sources</h5>
+                    <ul style="margin: 0; padding-left: 1rem; font-size: 0.9rem; line-height: 1.6;">
+                        <li>FTC.gov press releases</li>
+                        <li>SEC.gov filings and news</li>
+                        <li>House/Senate committee schedules</li>
+                        <li>State attorney general offices</li>
+                    </ul>
+                </div>
+                
+                <div style="background: rgba(26, 31, 46, 0.3); border: 1px solid rgba(201, 176, 55, 0.2); padding: 1.5rem; border-radius: 12px;">
+                    <h5 style="color: var(--primary-gold); margin-bottom: 1rem;">Financial News</h5>
+                    <ul style="margin: 0; padding-left: 1rem; font-size: 0.9rem; line-height: 1.6;">
+                        <li>Bloomberg Government</li>
+                        <li>Reuters regulatory section</li>
+                        <li>Wall Street Journal tech</li>
+                        <li>Financial Times regulation</li>
+                    </ul>
+                </div>
+                
+                <div style="background: rgba(26, 31, 46, 0.3); border: 1px solid rgba(201, 176, 55, 0.2); padding: 1.5rem; border-radius: 12px;">
+                    <h5 style="color: var(--primary-gold); margin-bottom: 1rem;">Tech Industry</h5>
+                    <ul style="margin: 0; padding-left: 1rem; font-size: 0.9rem; line-height: 1.6;">
+                        <li>TechCrunch policy</li>
+                        <li>The Verge regulation</li>
+                        <li>Ars Technica policy</li>
+                        <li>Politico tech newsletters</li>
+                    </ul>
+                </div>
+                
+                <div style="background: rgba(26, 31, 46, 0.3); border: 1px solid rgba(201, 176, 55, 0.2); padding: 1.5rem; border-radius: 12px;">
+                    <h5 style="color: var(--primary-gold); margin-bottom: 1rem;">Alert Services</h5>
+                    <ul style="margin: 0; padding-left: 1rem; font-size: 0.9rem; line-height: 1.6;">
+                        <li>Google Alerts for "META regulation"</li>
+                        <li>Twitter lists of regulatory reporters</li>
+                        <li>Seeking Alpha news alerts</li>
+                        <li>Yahoo Finance breaking news</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- Risk Management -->
+        <section class="content-section">
+            <h2><i class="fas fa-shield-alt"></i> Risk Management for Regulatory Trades</h2>
+            <p>Regulatory events can be unpredictable. Follow these risk management principles:</p>
+            
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 2rem; margin: 2rem 0;">
+                <div style="background: rgba(255, 68, 68, 0.1); border: 1px solid rgba(255, 68, 68, 0.2); border-left: 4px solid #ff4444; padding: 2rem; border-radius: 12px;">
+                    <h4 style="color: #ff4444; margin-bottom: 1.5rem;"><i class="fas fa-times-circle"></i> What NOT to Do</h4>
+                    <ul style="margin: 0; padding-left: 1.2rem;">
+                        <li><strong>Don't go all-in:</strong> Regulatory outcomes are unpredictable</li>
+                        <li><strong>Don't ignore timing:</strong> News can break at any moment</li>
+                        <li><strong>Don't chase moves:</strong> Late entries often lead to losses</li>
+                        <li><strong>Don't hold overnight:</strong> Unless you're prepared for gaps</li>
+                        <li><strong>Don't trade without stops:</strong> Regulatory moves can be violent</li>
+                    </ul>
+                </div>
+                
+                <div style="background: rgba(0, 255, 136, 0.1); border: 1px solid rgba(0, 255, 136, 0.2); border-left: 4px solid #00ff88; padding: 2rem; border-radius: 12px;">
+                    <h4 style="color: #00ff88; margin-bottom: 1.5rem;"><i class="fas fa-check-circle"></i> Best Practices</h4>
+                    <ul style="margin: 0; padding-left: 1.2rem;">
+                        <li><strong>Size appropriately:</strong> Risk only 1-2% per trade</li>
+                        <li><strong>Set alerts:</strong> Use news feeds and price alerts</li>
+                        <li><strong>Have a plan:</strong> Know your exit before you enter</li>
+                        <li><strong>Stay flexible:</strong> Be ready to change direction</li>
+                        <li><strong>Use spreads:</strong> Limit risk with defined strategies</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- Historical Examples -->
+        <section class="content-section">
+            <h2><i class="fas fa-history"></i> Historical Regulatory Impact Examples</h2>
+            <p>Learn from past regulatory events and their impact on META's stock price:</p>
+            
+            <div style="margin-top: 2rem;">
+                <div style="background: rgba(26, 31, 46, 0.3); border: 1px solid rgba(255, 68, 68, 0.2); border-left: 4px solid #ff4444; padding: 1.5rem; border-radius: 8px; margin-bottom: 1.5rem;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; flex-wrap: wrap; gap: 0.5rem;">
+                        <h4 style="color: #ff4444; margin: 0;">Cambridge Analytica Scandal</h4>
+                        <span style="color: var(--gray-text); font-size: 0.9rem;">March 2018</span>
+                    </div>
+                    <p style="margin-bottom: 1rem;">Stock dropped 20% in two weeks as data privacy concerns mounted. Congressional hearings and $5B FTC fine followed.</p>
+                    <div style="color: var(--gray-text); font-size: 0.9rem;"><strong>Trading Lesson:</strong> Initial drop was opportunity for put buyers, recovery took months.</div>
+                </div>
+                
+                <div style="background: rgba(26, 31, 46, 0.3); border: 1px solid rgba(201, 176, 55, 0.2); border-left: 4px solid var(--primary-gold); padding: 1.5rem; border-radius: 8px; margin-bottom: 1.5rem;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; flex-wrap: wrap; gap: 0.5rem;">
+                        <h4 style="color: var(--primary-gold); margin: 0;">FTC Antitrust Lawsuit</h4>
+                        <span style="color: var(--gray-text); font-size: 0.9rem;">December 2020</span>
+                    </div>
+                    <p style="margin-bottom: 1rem;">Initial 4% drop on lawsuit filing, but stock recovered as legal challenges proved difficult to execute.</p>
+                    <div style="color: var(--gray-text); font-size: 0.9rem;"><strong>Trading Lesson:</strong> Market often overreacts to initial headlines; legal processes are slow.</div>
+                </div>
+                
+                <div style="background: rgba(26, 31, 46, 0.3); border: 1px solid rgba(138, 43, 226, 0.2); border-left: 4px solid #8a2be2; padding: 1.5rem; border-radius: 8px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; flex-wrap: wrap; gap: 0.5rem;">
+                        <h4 style="color: #8a2be2; margin: 0;">Section 230 Reform Discussions</h4>
+                        <span style="color: var(--gray-text); font-size: 0.9rem;">2020-2024</span>
+                    </div>
+                    <p style="margin-bottom: 1rem;">Ongoing political debates created periodic volatility but no major legislative changes materialized.</p>
+                    <div style="color: var(--gray-text); font-size: 0.9rem;"><strong>Trading Lesson:</strong> Political rhetoric often lacks follow-through; focus on actual policy changes.</div>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <!-- Floating CTA -->
+    <div class="floating-cta">
+        <a href="../../book-demo.html" class="cta-button">
+            <i class="fas fa-rocket"></i> Get META Signals
+        </a>
+    </div>
+
+    <!-- Footer -->
+    <footer>
+        <p>&copy; 2025 BlueChip Signals. All rights reserved. | <a href="../../legal.html" style="color: var(--primary-gold); text-decoration: none;">Legal Disclaimer</a></p>
+        <div class="social-media">
+            <a href="https://www.tiktok.com/@bluechip.signals" target="_blank"><i class="fab fa-tiktok"></i></a>
+            <a href="https://www.instagram.com/bluechip.signals/" target="_blank"><i class="fab fa-instagram"></i></a>
+        </div>
+    </footer>
+
+    <script>
+        const hamburgerMenu = document.querySelector('.hamburger-menu');
+        const mobileNav = document.querySelector('.nav-links');
+
+        hamburgerMenu.addEventListener('click', () => {
+            mobileNav.classList.toggle('active');
+        });
+    </script>
+</body>
+</html>

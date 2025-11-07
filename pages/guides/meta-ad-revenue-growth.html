@@ -1,0 +1,553 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>META Ad Revenue & User Growth | BlueChip Signals</title>
+    <link rel="icon" type="image/png" href="../../assets/images/logo.png">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="../../assets/css/bot-style.css?v=1751139967">
+    <style>
+        :root {
+            --primary-gold: #b3a17d;
+            --secondary-gold: #E2CFB5;
+            --dark-bg: #080B0F;
+            --darker-bg: #050810;
+            --light-text: #FFFFFF;
+            --gray-text: #A0A0A0;
+        }
+
+        body {
+            background: var(--darker-bg);
+            color: var(--light-text);
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        }
+
+        .guide-hero {
+            margin-top: 100px;
+            padding: 4rem 2rem 3rem;
+            text-align: center;
+            background: radial-gradient(circle at 50% 50%, rgba(201, 176, 55, 0.15), transparent 70%);
+            position: relative;
+        }
+
+        .guide-hero::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: radial-gradient(circle at 30% 40%, rgba(201, 176, 55, 0.08), transparent 50%);
+            z-index: 0;
+        }
+
+        .guide-hero-content {
+            max-width: 900px;
+            margin: 0 auto;
+            position: relative;
+            z-index: 1;
+        }
+
+        .guide-badge {
+            display: inline-block;
+            background: linear-gradient(135deg, var(--primary-gold), var(--secondary-gold));
+            color: var(--darker-bg);
+            padding: 0.4rem 1.2rem;
+            border-radius: 20px;
+            font-weight: 700;
+            font-size: 0.8rem;
+            letter-spacing: 1px;
+            margin-bottom: 1.5rem;
+            text-transform: uppercase;
+        }
+
+        .guide-title {
+            font-size: 2.8rem;
+            font-weight: 800;
+            margin: 0 0 1rem 0;
+            line-height: 1.2;
+            color: var(--light-text);
+        }
+
+        .guide-subtitle {
+            font-size: 1.2rem;
+            color: var(--gray-text);
+            line-height: 1.6;
+            margin: 0;
+        }
+
+        .guide-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 3rem 2rem;
+        }
+
+        .content-section {
+            background: var(--dark-bg);
+            border: 1px solid rgba(201, 176, 55, 0.2);
+            border-radius: 15px;
+            padding: 2.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .content-section h2 {
+            color: var(--primary-gold);
+            font-size: 1.8rem;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .content-section h2 i {
+            font-size: 1.5rem;
+        }
+
+        .content-section h3 {
+            color: var(--light-text);
+            font-size: 1.4rem;
+            margin-bottom: 1rem;
+        }
+
+        .content-section p {
+            color: var(--gray-text);
+            line-height: 1.8;
+            margin-bottom: 1rem;
+        }
+
+        .content-section ul {
+            list-style: none;
+            padding: 0;
+            margin: 1.5rem 0;
+        }
+
+        .content-section ul li {
+            color: var(--gray-text);
+            line-height: 1.8;
+            margin-bottom: 1rem;
+            padding-left: 2rem;
+            position: relative;
+        }
+
+        .content-section ul li::before {
+            content: "→";
+            position: absolute;
+            left: 0;
+            color: var(--primary-gold);
+            font-weight: 700;
+        }
+
+        .content-section ul li strong {
+            color: var(--light-text);
+        }
+
+        .login-btn {
+            background: linear-gradient(135deg, var(--primary-gold), var(--secondary-gold)) !important;
+            color: var(--darker-bg) !important;
+            padding: 0.5rem 1.2rem;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 0.95rem;
+            transition: transform 0.3s, box-shadow 0.3s;
+            display: inline-block;
+        }
+
+        .login-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(201, 176, 55, 0.3);
+            color: var(--darker-bg) !important;
+        }
+
+        .back-button {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--primary-gold);
+            text-decoration: none;
+            font-weight: 600;
+            margin-bottom: 2rem;
+            transition: all 0.3s ease;
+        }
+
+        .back-button:hover {
+            transform: translateX(-5px);
+        }
+
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 1.5rem;
+            margin: 2rem 0;
+        }
+
+        .metric-box {
+            background: rgba(26, 31, 46, 0.5);
+            border: 1px solid rgba(201, 176, 55, 0.2);
+            border-radius: 12px;
+            padding: 2rem;
+        }
+
+        .metric-box h4 {
+            color: var(--primary-gold);
+            margin-bottom: 1.5rem;
+            font-size: 1.1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .metric-value {
+            font-size: 2.2rem;
+            font-weight: 700;
+            color: var(--primary-gold);
+            margin-bottom: 0.5rem;
+        }
+
+        .metric-label {
+            color: var(--gray-text);
+            font-size: 0.95rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .signal-box {
+            padding: 1rem;
+            border-radius: 8px;
+            font-size: 0.9rem;
+        }
+
+        .signal-box.bullish {
+            background: rgba(0, 255, 136, 0.1);
+            border: 1px solid rgba(0, 255, 136, 0.2);
+        }
+
+        .signal-box.bearish {
+            background: rgba(255, 68, 68, 0.1);
+            border: 1px solid rgba(255, 68, 68, 0.2);
+        }
+
+        .signal-box.bullish strong {
+            color: #00ff88;
+        }
+
+        .signal-box.bearish strong {
+            color: #ff4444;
+        }
+
+        .platform-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.5rem;
+            margin: 2rem 0;
+        }
+
+        .platform-card {
+            padding: 1.8rem;
+            border-radius: 12px;
+            border: 1px solid;
+        }
+
+        @media (max-width: 768px) {
+            .guide-title {
+                font-size: 2rem;
+            }
+
+            .guide-subtitle {
+                font-size: 1rem;
+            }
+
+            .content-section {
+                padding: 1.5rem;
+            }
+
+            .metrics-grid,
+            .platform-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+    <script>
+        // Redirect non-logged-in users to book demo page
+        (function() {
+            const isLoggedIn = localStorage.getItem('bluechip_logged_in') || sessionStorage.getItem('bluechip_logged_in');
+            if (!isLoggedIn) {
+                window.location.href = '../../book-demo.html';
+            }
+        })();
+    </script>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav>
+        <div class="nav-container">
+            <div class="logo">
+                <a href="../../index.html"><img src="../../assets/images/logo.png" alt="BlueChip Signals Logo"></a>
+            </div>
+            <div class="hamburger-menu">
+                <div class="bar"></div>
+                <div class="bar"></div>
+                <div class="bar"></div>
+            </div>
+            <ul class="nav-links">
+                <li><a href="../../index.html#features">Features</a></li>
+                <li><a href="../../index.html#bots">Supported Stocks</a></li>
+                <li><a href="../../book-demo.html">Book a Demo</a></li>
+                <li><a href="../../faq.html">FAQ</a></li>
+                <li><a href="../../legal.html">Legal Disclaimer</a></li>
+                <li><a href="../../about.html">About Us</a></li>
+                <li><a href="../../login.html" class="login-btn"><i class="fas fa-sign-in-alt"></i> Login</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="guide-hero">
+        <div class="guide-hero-content">
+            <div class="guide-badge">META Trading Guide</div>
+            <h1 class="guide-title">Ad Revenue & User Growth</h1>
+            <p class="guide-subtitle">Track META's core business metrics to anticipate earnings beats and stock movements.</p>
+        </div>
+    </section>
+
+    <!-- Guide Content -->
+    <div class="guide-content">
+        <a href="../bots/meta-bot.html" class="back-button">
+            <i class="fas fa-arrow-left"></i> Back to META Signals
+        </a>
+
+        <!-- Key Metrics -->
+        <section class="content-section">
+            <h2><i class="fas fa-chart-line"></i> Key Revenue Metrics</h2>
+            <p>META's stock performance is directly tied to these advertising and user engagement metrics:</p>
+            
+            <div class="metrics-grid">
+                <div class="metric-box">
+                    <h4><i class="fas fa-dollar-sign"></i> Average Revenue Per User (ARPU)</h4>
+                    <div class="metric-value">$12.84</div>
+                    <div class="metric-label">Last Quarter: $11.57 (Global)</div>
+                    <div class="signal-box bullish">
+                        <strong>Bullish Signal:</strong><br>
+                        ARPU growth >5% QoQ indicates strong monetization and pricing power.
+                    </div>
+                </div>
+                
+                <div class="metric-box">
+                    <h4><i class="fas fa-users"></i> Monthly Active Users (MAU)</h4>
+                    <div class="metric-value">3.98B</div>
+                    <div class="metric-label">Family of Apps: 3.96B users</div>
+                    <div class="signal-box bearish">
+                        <strong>Bearish Signal:</strong><br>
+                        User growth <2% signals market saturation concerns.
+                    </div>
+                </div>
+            </div>
+
+            <div style="background: rgba(26, 31, 46, 0.3); border: 1px solid rgba(201, 176, 55, 0.2); border-radius: 12px; padding: 2rem; margin-top: 1.5rem;">
+                <h3 style="color: var(--primary-gold); margin-bottom: 1.5rem; text-align: center;">Digital Ad Market Health</h3>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 2rem; text-align: center;">
+                    <div>
+                        <div style="font-size: 1.8rem; font-weight: 700; color: var(--primary-gold); margin-bottom: 0.5rem;">+12.3%</div>
+                        <div style="color: var(--gray-text);">Global Ad Spend Growth</div>
+                    </div>
+                    <div>
+                        <div style="font-size: 1.8rem; font-weight: 700; color: var(--primary-gold); margin-bottom: 0.5rem;">78.4%</div>
+                        <div style="color: var(--gray-text);">Mobile Ad Share</div>
+                    </div>
+                    <div>
+                        <div style="font-size: 1.8rem; font-weight: 700; color: var(--primary-gold); margin-bottom: 0.5rem;">+18.7%</div>
+                        <div style="color: var(--gray-text);">Video Engagement YoY</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Family of Apps -->
+        <section class="content-section">
+            <h2><i class="fab fa-meta"></i> Family of Apps Ecosystem</h2>
+            <p>META's advertising empire spans multiple platforms. Monitor each for comprehensive analysis:</p>
+            
+            <div class="platform-grid">
+                <div class="platform-card" style="background: rgba(59, 89, 152, 0.1); border-color: rgba(59, 89, 152, 0.3);">
+                    <h4 style="color: #3b5998; margin-bottom: 1.2rem; font-size: 1.1rem;"><i class="fab fa-facebook"></i> Facebook</h4>
+                    <ul style="margin: 0; padding-left: 1.2rem; color: var(--light-text); line-height: 1.6; list-style: disc;">
+                        <li style="margin-bottom: 0.6rem;"><strong>2.96B MAU:</strong> Largest user base, highest ARPU</li>
+                        <li style="margin-bottom: 0.6rem;"><strong>News Feed Ads:</strong> Primary revenue driver</li>
+                        <li style="margin-bottom: 0.6rem;"><strong>Marketplace:</strong> E-commerce integration</li>
+                        <li><strong>Watch Platform:</strong> Video content competing</li>
+                    </ul>
+                </div>
+                
+                <div class="platform-card" style="background: rgba(225, 48, 108, 0.1); border-color: rgba(225, 48, 108, 0.3);">
+                    <h4 style="color: #e1306c; margin-bottom: 1.2rem; font-size: 1.1rem;"><i class="fab fa-instagram"></i> Instagram</h4>
+                    <ul style="margin: 0; padding-left: 1.2rem; color: var(--light-text); line-height: 1.6; list-style: disc;">
+                        <li style="margin-bottom: 0.6rem;"><strong>2B+ Users:</strong> Fastest-growing platform</li>
+                        <li style="margin-bottom: 0.6rem;"><strong>Stories & Reels:</strong> Premium ad rates</li>
+                        <li style="margin-bottom: 0.6rem;"><strong>Shopping:</strong> Direct purchase capabilities</li>
+                        <li><strong>Influencers:</strong> Creator partnerships</li>
+                    </ul>
+                </div>
+                
+                <div class="platform-card" style="background: rgba(37, 211, 102, 0.1); border-color: rgba(37, 211, 102, 0.3);">
+                    <h4 style="color: #25d366; margin-bottom: 1.2rem; font-size: 1.1rem;"><i class="fab fa-whatsapp"></i> WhatsApp</h4>
+                    <ul style="margin: 0; padding-left: 1.2rem; color: var(--light-text); line-height: 1.6; list-style: disc;">
+                        <li style="margin-bottom: 0.6rem;"><strong>2B+ Users:</strong> International dominance</li>
+                        <li style="margin-bottom: 0.6rem;"><strong>Business API:</strong> B2B messaging growth</li>
+                        <li style="margin-bottom: 0.6rem;"><strong>Click-to-WhatsApp:</strong> Ad integration</li>
+                        <li><strong>Payments:</strong> Financial services expansion</li>
+                    </ul>
+                </div>
+                
+                <div class="platform-card" style="background: rgba(24, 119, 242, 0.1); border-color: rgba(24, 119, 242, 0.3);">
+                    <h4 style="color: #1877f2; margin-bottom: 1.2rem; font-size: 1.1rem;"><i class="fab fa-facebook-messenger"></i> Messenger</h4>
+                    <ul style="margin: 0; padding-left: 1.2rem; color: var(--light-text); line-height: 1.6; list-style: disc;">
+                        <li style="margin-bottom: 0.6rem;"><strong>1.3B Users:</strong> Cross-platform messaging</li>
+                        <li style="margin-bottom: 0.6rem;"><strong>Chatbot Ads:</strong> Automated service</li>
+                        <li style="margin-bottom: 0.6rem;"><strong>Sponsored Messages:</strong> Direct marketing</li>
+                        <li><strong>Business Tools:</strong> CRM integration</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- Metrics to Track -->
+        <section class="content-section">
+            <h2><i class="fas fa-binoculars"></i> Key Metrics to Track Before Earnings</h2>
+            <p>These leading indicators often predict META's quarterly performance:</p>
+            
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 2rem; margin-top: 2rem;">
+                <div style="background: rgba(26, 31, 46, 0.3); padding: 2rem; border-radius: 12px; border: 1px solid rgba(201, 176, 55, 0.2);">
+                    <h3 style="color: var(--primary-gold); margin-bottom: 1.5rem;">Revenue Drivers</h3>
+                    <ul style="color: var(--light-text); line-height: 1.8; margin: 0; padding-left: 1.2rem; list-style: disc;">
+                        <li style="margin-bottom: 1rem;"><strong>Ad Pricing (CPM):</strong> Cost per 1,000 impressions</li>
+                        <li style="margin-bottom: 1rem;"><strong>Ad Load:</strong> Ads shown per user session</li>
+                        <li style="margin-bottom: 1rem;"><strong>Click-Through Rates:</strong> Ad engagement quality</li>
+                        <li><strong>Time Spent:</strong> More engagement = more inventory</li>
+                    </ul>
+                </div>
+                
+                <div style="background: rgba(26, 31, 46, 0.3); padding: 2rem; border-radius: 12px; border: 1px solid rgba(0, 255, 136, 0.2);">
+                    <h3 style="color: var(--primary-gold); margin-bottom: 1.5rem;">User Engagement Signals</h3>
+                    <ul style="color: var(--light-text); line-height: 1.8; margin: 0; padding-left: 1.2rem; list-style: disc;">
+                        <li style="margin-bottom: 1rem;"><strong>Daily Active Users:</strong> DAU/MAU ratio indicates stickiness</li>
+                        <li style="margin-bottom: 1rem;"><strong>Stories Usage:</strong> High-engagement premium format</li>
+                        <li style="margin-bottom: 1rem;"><strong>Video Watch Time:</strong> Competes with YouTube/TikTok</li>
+                        <li><strong>Cross-Platform Usage:</strong> Higher lifetime value</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- Competition -->
+        <section class="content-section">
+            <h2><i class="fas fa-trophy"></i> Competitive Landscape Monitoring</h2>
+            <p>META's ad revenue is impacted by competition. Watch these rivals:</p>
+            
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1.5rem; margin-top: 2rem;">
+                <div style="padding: 1.5rem; background: rgba(26, 31, 46, 0.3); border-radius: 10px; border: 1px solid rgba(201, 176, 55, 0.2);">
+                    <h4 style="color: var(--primary-gold); margin-bottom: 1rem; font-size: 1rem;"><i class="fab fa-google"></i> Google/Alphabet</h4>
+                    <p style="font-size: 0.95rem; color: var(--gray-text); margin: 0; line-height: 1.5;">Search ads dominance, YouTube competition</p>
+                </div>
+                <div style="padding: 1.5rem; background: rgba(26, 31, 46, 0.3); border-radius: 10px; border: 1px solid rgba(201, 176, 55, 0.2);">
+                    <h4 style="color: var(--primary-gold); margin-bottom: 1rem; font-size: 1rem;"><i class="fab fa-tiktok"></i> TikTok/ByteDance</h4>
+                    <p style="font-size: 0.95rem; color: var(--gray-text); margin: 0; line-height: 1.5;">Short-form video, younger demographics</p>
+                </div>
+                <div style="padding: 1.5rem; background: rgba(26, 31, 46, 0.3); border-radius: 10px; border: 1px solid rgba(201, 176, 55, 0.2);">
+                    <h4 style="color: var(--primary-gold); margin-bottom: 1rem; font-size: 1rem;"><i class="fab fa-amazon"></i> Amazon</h4>
+                    <p style="font-size: 0.95rem; color: var(--gray-text); margin: 0; line-height: 1.5;">E-commerce ads, purchase intent data</p>
+                </div>
+                <div style="padding: 1.5rem; background: rgba(26, 31, 46, 0.3); border-radius: 10px; border: 1px solid rgba(201, 176, 55, 0.2);">
+                    <h4 style="color: var(--primary-gold); margin-bottom: 1rem; font-size: 1rem;"><i class="fab fa-apple"></i> Apple</h4>
+                    <p style="font-size: 0.95rem; color: var(--gray-text); margin: 0; line-height: 1.5;">iOS privacy changes, App Store ads</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Trading Strategy -->
+        <section class="content-section">
+            <h2><i class="fas fa-chess"></i> Trading Strategy Framework</h2>
+            <p>How to position META trades based on ad revenue and user growth data:</p>
+            
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 2rem; margin-top: 2rem;">
+                <div style="padding: 2rem; background: rgba(0, 255, 136, 0.1); border-left: 4px solid #00ff88; border-radius: 12px; border: 1px solid rgba(0, 255, 136, 0.2);">
+                    <h3 style="color: #00ff88; margin-bottom: 1.5rem;"><i class="fas fa-arrow-up"></i> Bullish Signals</h3>
+                    <ul style="margin: 0; padding-left: 1.2rem; color: var(--light-text); line-height: 1.8; list-style: disc;">
+                        <li style="margin-bottom: 0.8rem;"><strong>ARPU Growth >8%:</strong> Strong monetization</li>
+                        <li style="margin-bottom: 0.8rem;"><strong>User Growth >3%:</strong> Expanding market</li>
+                        <li style="margin-bottom: 0.8rem;"><strong>High Video Engagement:</strong> Premium ad formats</li>
+                        <li style="margin-bottom: 0.8rem;"><strong>Holiday Season:</strong> Q4 ad spend peak</li>
+                        <li><strong>E-commerce Integration:</strong> Higher conversions</li>
+                    </ul>
+                </div>
+                
+                <div style="padding: 2rem; background: rgba(255, 68, 68, 0.1); border-left: 4px solid #ff4444; border-radius: 12px; border: 1px solid rgba(255, 68, 68, 0.2);">
+                    <h3 style="color: #ff4444; margin-bottom: 1.5rem;"><i class="fas fa-arrow-down"></i> Bearish Signals</h3>
+                    <ul style="margin: 0; padding-left: 1.2rem; color: var(--light-text); line-height: 1.8; list-style: disc;">
+                        <li style="margin-bottom: 0.8rem;"><strong>User Growth <1%:</strong> Platform saturation</li>
+                        <li style="margin-bottom: 0.8rem;"><strong>Declining Time Spent:</strong> Competition threat</li>
+                        <li style="margin-bottom: 0.8rem;"><strong>Privacy Regulation:</strong> Targeting impact</li>
+                        <li style="margin-bottom: 0.8rem;"><strong>Economic Slowdown:</strong> Ad budget cuts</li>
+                        <li><strong>Antitrust Issues:</strong> Regulatory threats</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div style="margin-top: 2rem; padding: 1.5rem; background: rgba(179, 161, 125, 0.1); border: 1px solid rgba(179, 161, 125, 0.3); border-radius: 10px; text-align: center;">
+                <p style="margin: 0; color: var(--light-text);"><strong>Pro Tip:</strong> <span style="color: var(--gray-text);">META typically provides forward guidance on user growth and ARPU trends during earnings calls. Listen for management commentary on competitive pressures and new monetization initiatives.</span></p>
+            </div>
+        </section>
+
+        <!-- Data Sources -->
+        <section class="content-section">
+            <h2><i class="fas fa-database"></i> Data Sources & Tools</h2>
+            <p>Essential resources for tracking META's ad revenue and user metrics:</p>
+            
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 2rem; margin-top: 2rem;">
+                <div style="background: rgba(26, 31, 46, 0.3); padding: 2rem; border-radius: 12px; border: 1px solid rgba(201, 176, 55, 0.2);">
+                    <h3 style="color: var(--primary-gold); margin-bottom: 1.5rem;">Official Sources</h3>
+                    <ul style="color: var(--light-text); line-height: 1.8; margin: 0; padding-left: 1.2rem; list-style: disc;">
+                        <li style="margin-bottom: 0.8rem;"><strong>META Investor Relations:</strong> Quarterly earnings & metrics</li>
+                        <li style="margin-bottom: 0.8rem;"><strong>SEC Filings:</strong> Detailed financial statements</li>
+                        <li style="margin-bottom: 0.8rem;"><strong>Transparency Reports:</strong> User engagement indicators</li>
+                        <li><strong>Developer Conferences:</strong> New ad products</li>
+                    </ul>
+                </div>
+                
+                <div style="background: rgba(26, 31, 46, 0.3); padding: 2rem; border-radius: 12px; border: 1px solid rgba(0, 255, 136, 0.2);">
+                    <h3 style="color: var(--primary-gold); margin-bottom: 1.5rem;">Third-Party Analytics</h3>
+                    <ul style="color: var(--light-text); line-height: 1.8; margin: 0; padding-left: 1.2rem; list-style: disc;">
+                        <li style="margin-bottom: 0.8rem;"><strong>eMarketer:</strong> Ad spending forecasts</li>
+                        <li style="margin-bottom: 0.8rem;"><strong>App Annie/Data.ai:</strong> Mobile usage metrics</li>
+                        <li style="margin-bottom: 0.8rem;"><strong>SimilarWeb:</strong> Traffic & behavior analysis</li>
+                        <li><strong>Sensor Tower:</strong> App download tracking</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <!-- Floating CTA -->
+    <div class="floating-cta">
+        <a href="../../book-demo.html" class="cta-button">
+            <i class="fas fa-rocket"></i> Get META Signals
+        </a>
+    </div>
+
+    <!-- Footer -->
+    <footer>
+        <p>&copy; 2025 BlueChip Signals. All rights reserved. | <a href="../../legal.html" style="color: var(--primary-gold); text-decoration: none;">Legal Disclaimer</a></p>
+        <div class="social-media">
+            <a href="https://www.tiktok.com/@bluechip.signals" target="_blank"><i class="fab fa-tiktok"></i></a>
+            <a href="https://www.instagram.com/bluechip.signals/" target="_blank"><i class="fab fa-instagram"></i></a>
+        </div>
+    </footer>
+
+    <script>
+        const hamburgerMenu = document.querySelector('.hamburger-menu');
+        const mobileNav = document.querySelector('.nav-links');
+
+        hamburgerMenu.addEventListener('click', () => {
+            mobileNav.classList.toggle('active');
+        });
+    </script>
+</body>
+</html>

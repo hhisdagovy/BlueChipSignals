@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SPY VIX & Fear Greed Index | BlueChip Signals</title>
+    <link rel="icon" type="image/png" href="../../assets/images/logo.png">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="../../assets/css/bot-style.css?v=1751139967">
+    <script>
+        // Redirect non-logged-in users to book demo page
+        (function() {
+            const isLoggedIn = localStorage.getItem('bluechip_logged_in') || sessionStorage.getItem('bluechip_logged_in');
+            if (!isLoggedIn) {
+                window.location.href = '../../book-demo.html';
+            }
+        })();
+    </script>
+    <style>
+        :root {
+            --primary-gold: #b3a17d;
+            --secondary-gold: #E2CFB5;
+            --dark-bg: #080B0F;
+            --darker-bg: #050810;
+            --light-text: #FFFFFF;
+            --gray-text: #A0A0A0;
+        }
+
+        body {
+            background: var(--darker-bg);
+            color: var(--light-text);
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        }
+
+        .guide-hero {
+            margin-top: 100px;
+            padding: 4rem 2rem 3rem;
+            text-align: center;
+            background: radial-gradient(circle at 50% 50%, rgba(201, 176, 55, 0.15), transparent 70%);
+            position: relative;
+        }
+
+        .guide-hero::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: radial-gradient(circle at 30% 40%, rgba(201, 176, 55, 0.08), transparent 50%);
+            z-index: 0;
+        }
+
+        .guide-hero-content {
+            max-width: 900px;
+            margin: 0 auto;
+            position: relative;
+            z-index: 1;
+        }
+
+        .guide-badge {
+            display: inline-block;
+            background: linear-gradient(135deg, var(--primary-gold), var(--secondary-gold));
+            color: var(--darker-bg);
+            padding: 0.4rem 1.2rem;
+            border-radius: 20px;
+            font-weight: 700;
+            font-size: 0.8rem;
+            letter-spacing: 1px;
+            margin-bottom: 1.5rem;
+            text-transform: uppercase;
+        }
+
+        .guide-title {
+            font-size: 2.8rem;
+            font-weight: 800;
+            margin: 0 0 1rem 0;
+            line-height: 1.2;
+            color: var(--light-text);
+        }
+
+        .guide-subtitle {
+            font-size: 1.2rem;
+            color: var(--gray-text);
+            line-height: 1.6;
+            margin: 0;
+        }
+
+        .guide-content {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 3rem 2rem;
+        }
+
+        .content-section {
+            background: var(--dark-bg);
+            border: 1px solid rgba(201, 176, 55, 0.2);
+            border-radius: 15px;
+            padding: 2.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .content-section h2 {
+            color: var(--primary-gold);
+            font-size: 1.8rem;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .content-section h2 i {
+            font-size: 1.5rem;
+        }
+
+        .content-section h3 {
+            color: var(--light-text);
+            font-size: 1.4rem;
+            margin-bottom: 1rem;
+        }
+
+        .content-section p {
+            color: var(--gray-text);
+            line-height: 1.8;
+            margin-bottom: 1rem;
+        }
+
+        .content-section ul {
+            list-style: none;
+            padding: 0;
+            margin: 1.5rem 0;
+        }
+
+        .content-section ul li {
+            color: var(--gray-text);
+            line-height: 1.8;
+            margin-bottom: 1rem;
+            padding-left: 2rem;
+            position: relative;
+        }
+
+        .content-section ul li::before {
+            content: "→";
+            position: absolute;
+            left: 0;
+            color: var(--primary-gold);
+            font-weight: 700;
+        }
+
+        .content-section ul li strong {
+            color: var(--light-text);
+        }
+
+        /* Fear & Greed Gauge */
+        .gauge-container {
+            background: var(--dark-bg);
+            border: 1px solid rgba(201, 176, 55, 0.2);
+            border-radius: 15px;
+            padding: 2.5rem;
+            margin-bottom: 2rem;
+            text-align: center;
+        }
+
+        .gauge-container h2 {
+            color: var(--primary-gold);
+            font-size: 1.8rem;
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.75rem;
+        }
+
+        #fg-gauge {
+            max-width: 400px;
+            margin: 2rem auto;
+            display: block;
+        }
+
+        .gauge-description {
+            color: var(--gray-text);
+            font-size: 0.9rem;
+            margin-top: 1.5rem;
+        }
+
+        /* VIX Levels */
+        .vix-levels-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+            margin: 2rem 0;
+        }
+
+        .vix-level-card {
+            background: rgba(201, 176, 55, 0.05);
+            border: 1px solid rgba(201, 176, 55, 0.2);
+            border-radius: 12px;
+            padding: 1.5rem;
+            text-align: center;
+        }
+
+        .vix-level-card .range {
+            color: var(--primary-gold);
+            font-size: 1.5rem;
+            font-weight: 800;
+            margin-bottom: 0.5rem;
+        }
+
+        .vix-level-card .label {
+            color: var(--light-text);
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .vix-level-card .description {
+            color: var(--gray-text);
+            font-size: 0.85rem;
+        }
+
+        .login-btn {
+            background: linear-gradient(135deg, var(--primary-gold), var(--secondary-gold)) !important;
+            color: var(--darker-bg) !important;
+            padding: 0.5rem 1.2rem;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 0.95rem;
+            transition: transform 0.3s, box-shadow 0.3s;
+            display: inline-block;
+        }
+
+        .login-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(201, 176, 55, 0.3);
+            color: var(--darker-bg) !important;
+        }
+
+        .back-button {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--primary-gold);
+            text-decoration: none;
+            font-weight: 600;
+            margin-bottom: 2rem;
+            transition: all 0.3s ease;
+        }
+
+        .back-button:hover {
+            transform: translateX(-5px);
+        }
+
+        @media (max-width: 768px) {
+            .guide-title {
+                font-size: 2rem;
+            }
+
+            .guide-subtitle {
+                font-size: 1rem;
+            }
+
+            .content-section {
+                padding: 1.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav>
+        <div class="nav-container">
+            <div class="logo">
+                <a href="../../index.html"><img src="../../assets/images/logo.png" alt="BlueChip Signals Logo"></a>
+            </div>
+            <div class="hamburger-menu">
+                <div class="bar"></div>
+                <div class="bar"></div>
+                <div class="bar"></div>
+            </div>
+            <ul class="nav-links">
+                <li><a href="../../index.html#features">Features</a></li>
+                <li><a href="../../index.html#bots">Supported Stocks</a></li>
+                <li><a href="../../book-demo.html">Book a Demo</a></li>
+                <li><a href="../../faq.html">FAQ</a></li>
+                <li><a href="../../legal.html">Legal Disclaimer</a></li>
+                <li><a href="../../about.html">About Us</a></li>
+                <li><a href="../../login.html" class="login-btn"><i class="fas fa-sign-in-alt"></i> Login</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="guide-hero">
+        <div class="guide-hero-content">
+            <div class="guide-badge">SPY Trading Guide</div>
+            <h1 class="guide-title">VIX & Fear Greed Index</h1>
+            <p class="guide-subtitle">Use the market's fear gauge and sentiment indicators to time perfect SPY entries and exits.</p>
+        </div>
+    </section>
+
+    <!-- Guide Content -->
+    <div class="guide-content">
+        <a href="../bots/spy-bot.html" class="back-button">
+            <i class="fas fa-arrow-left"></i> Back to SPY Signals
+        </a>
+
+        <!-- Fear & Greed Gauge -->
+        <div class="gauge-container">
+            <h2><i class="fas fa-tachometer-alt"></i> Fear & Greed Index</h2>
+            <svg id="fg-gauge" viewBox="0 0 200 130" width="100%" height="130">
+                <!-- grey background arc -->
+                <path d="M10 110 A90 90 0 0 1 190 110" fill="none" stroke="#333" stroke-opacity="0.3" stroke-width="18"/>
+                <!-- coloured arc (dynamic) -->
+                <path id="fg-arc" d="M10 110 A90 90 0 0 1 190 110" fill="none" stroke="var(--primary-gold)" stroke-width="18" stroke-linecap="round" stroke-dasharray="65 283" stroke-dashoffset="0"/>
+                <!-- needle -->
+                <line id="fg-needle" x1="100" y1="110" x2="100" y2="35" stroke="var(--primary-gold)" stroke-width="4" stroke-linecap="round" transform-origin="100 110" transform="rotate(-49)" />
+                <!-- numeric label -->
+                <text id="fg-value" x="100" y="85" text-anchor="middle" font-size="26" font-weight="bold" fill="var(--primary-gold)">23</text>
+                <!-- classification label -->
+                <text id="fg-class" x="100" y="105" text-anchor="middle" font-size="12" fill="var(--gray-text)">Extreme Fear</text>
+                <!-- Fear/Greed Labels -->
+                <text x="35" y="125" text-anchor="middle" font-size="14" fill="var(--gray-text)">Fear</text>
+                <text x="165" y="125" text-anchor="middle" font-size="14" fill="var(--gray-text)">Greed</text>
+            </svg>
+            <p class="gauge-description">
+                <i class="fas fa-info-circle"></i> Live sentiment data from CNN Business Fear & Greed Index
+            </p>
+        </div>
+
+        <!-- Why VIX Matters -->
+        <section class="content-section">
+            <h2><i class="fas fa-heart-pulse"></i> Why the VIX Matters</h2>
+            <p>The CBOE Volatility Index (VIX) tracks 30-day implied volatility on S&P 500 options. When fear spikes, VIX soars and SPY typically falls. A calm VIX signals risk-on sentiment and supports higher SPY prices.</p>
+            
+            <ul>
+                <li><strong>Inverse Correlation:</strong> VIX up → SPY down (and vice versa) roughly 80% of the time during trending markets.</li>
+                <li><strong>Volatility Regimes:</strong> Understanding VIX levels helps you position appropriately for market conditions.</li>
+                <li><strong>Mean Reversion:</strong> Extreme VIX readings (above 30 or below 12) tend to revert to the mean, presenting contrarian opportunities.</li>
+                <li><strong>Options Premium:</strong> High VIX means expensive options—better for selling premium. Low VIX favors buying directional positions.</li>
+            </ul>
+        </section>
+
+        <!-- VIX Levels -->
+        <section class="content-section">
+            <h2><i class="fas fa-layer-group"></i> VIX Regime Levels</h2>
+            <p>Different VIX levels signal different market environments:</p>
+            
+            <div class="vix-levels-grid">
+                <div class="vix-level-card">
+                    <div class="range">< 14</div>
+                    <div class="label">Complacency</div>
+                    <div class="description">Low fear, potential for surprises</div>
+                </div>
+                <div class="vix-level-card">
+                    <div class="range">14-20</div>
+                    <div class="label">Normal</div>
+                    <div class="description">Typical market conditions</div>
+                </div>
+                <div class="vix-level-card">
+                    <div class="range">20-30</div>
+                    <div class="label">Elevated</div>
+                    <div class="description">Risk-off sentiment rising</div>
+                </div>
+                <div class="vix-level-card">
+                    <div class="range">30-40</div>
+                    <div class="label">High Fear</div>
+                    <div class="description">Significant market stress</div>
+                </div>
+                <div class="vix-level-card">
+                    <div class="range">> 40</div>
+                    <div class="label">Panic</div>
+                    <div class="description">Extreme fear, potential bottom</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- VIX Trading Playbook -->
+        <section class="content-section">
+            <h2><i class="fas fa-book"></i> VIX-Driven Trading Playbook</h2>
+            <p>Combine our SPY signals with VIX context for higher-probability trades:</p>
+            
+            <ul>
+                <li><strong>VIX Breakdown Strategy:</strong> When VIX loses a prior support level (e.g., 20 → 18) and our system flags a long signal, consider increasing position size on SPY calls.</li>
+                <li><strong>VIX Spike Fade:</strong> Intraday VIX jumps > 10% with SPY at daily support → look for reversal longs once VIX momentum stalls.</li>
+                <li><strong>VIX Contango vs. Backwardation:</strong> Check VIX futures term structure; backwardation confirms sustained stress—consider SPY puts or stay flat.</li>
+                <li><strong>VIX Extremes:</strong> VIX > 35 historically signals capitulation—prepare for mean reversion bounce trades in SPY.</li>
+                <li><strong>Low VIX Complacency:</strong> VIX < 12 suggests market is vulnerable to surprise—tighten stops and reduce size before major catalysts.</li>
+            </ul>
+        </section>
+
+        <!-- Tools & Dashboards -->
+        <section class="content-section">
+            <h2><i class="fas fa-tools"></i> Essential VIX Tools</h2>
+            <p>Monitor these indicators alongside the VIX:</p>
+            
+            <ul>
+                <li><strong>TradingView VIX/SPY Overlay:</strong> Overlay VIX (inverted) on SPY chart to visualize divergences and identify reversal points.</li>
+                <li><strong>CBOE VIX Futures Term Structure:</strong> Monitor contango (normal) vs. backwardation (stress) for market risk tone.</li>
+                <li><strong>VVIX (Vol of VIX):</strong> Volatility of VIX itself. Rising VVIX ahead of VIX suggests a volatility event is brewing.</li>
+                <li><strong>10-Day VIX SMA:</strong> Simple moving average helps identify VIX regime shifts and filter out noise.</li>
+                <li><strong>VIX Call/Put Ratio:</strong> Measures hedging demand—extreme readings signal potential reversals.</li>
+            </ul>
+        </section>
+
+        <!-- Fear & Greed Components -->
+        <section class="content-section">
+            <h2><i class="fas fa-puzzle-piece"></i> Fear & Greed Index Components</h2>
+            <p>The CNN Fear & Greed Index aggregates seven market sentiment indicators:</p>
+            
+            <ul>
+                <li><strong>Stock Price Momentum:</strong> S&P 500 vs. 125-day moving average</li>
+                <li><strong>Stock Price Strength:</strong> Number of stocks hitting 52-week highs vs. lows</li>
+                <li><strong>Stock Price Breadth:</strong> Trading volume in advancing vs. declining stocks</li>
+                <li><strong>Put/Call Options:</strong> Put option volume relative to call option volume</li>
+                <li><strong>Junk Bond Demand:</strong> Spread between junk bonds and investment-grade bonds</li>
+                <li><strong>Market Volatility (VIX):</strong> CBOE Volatility Index level</li>
+                <li><strong>Safe Haven Demand:</strong> Difference in returns between stocks and Treasuries</li>
+            </ul>
+        </section>
+    </div>
+
+    <!-- Floating CTA -->
+    <div class="floating-cta">
+        <a href="../../book-demo.html" class="cta-button">
+            <i class="fas fa-rocket"></i> Get SPY Signals
+        </a>
+    </div>
+
+    <!-- Footer -->
+    <footer>
+        <p>&copy; 2025 BlueChip Signals. All rights reserved. | <a href="../../legal.html" style="color: var(--primary-gold); text-decoration: none;">Legal Disclaimer</a></p>
+        <div class="social-media">
+            <a href="https://www.tiktok.com/@bluechip.signals" target="_blank"><i class="fab fa-tiktok"></i></a>
+            <a href="https://www.instagram.com/bluechip.signals/" target="_blank"><i class="fab fa-instagram"></i></a>
+        </div>
+    </footer>
+
+    <script>
+        const hamburgerMenu = document.querySelector('.hamburger-menu');
+        const mobileNav = document.querySelector('.nav-links');
+
+        hamburgerMenu.addEventListener('click', () => {
+            mobileNav.classList.toggle('active');
+        });
+    </script>
+    <script src="../../assets/js/fear-greed.js" defer></script>
+</body>
+</html>

@@ -1,0 +1,1042 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>META Signals - Trade Meta Platforms | BlueChip Signals</title>
+    <link rel="icon" type="image/png" href="../../assets/images/logo.png">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="../../assets/css/bot-style.css?v=1751139967">
+    <style>
+        /* On-Brand Styling */
+        :root {
+            --primary-gold: #b3a17d;
+            --secondary-gold: #E2CFB5;
+            --dark-bg: #080B0F;
+            --darker-bg: #050810;
+            --light-text: #FFFFFF;
+            --gray-text: #A0A0A0;
+            --meta-blue: #1877F2;
+        }
+
+        .meta-hero-section {
+            margin-top: 100px;
+            padding: 4rem 2rem;
+            text-align: center;
+            background: radial-gradient(circle at 50% 50%, rgba(24, 119, 242, 0.08), transparent 70%);
+            position: relative;
+        }
+
+        .meta-hero-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: radial-gradient(circle at 70% 30%, rgba(201, 176, 55, 0.06), transparent 50%);
+            z-index: 0;
+        }
+
+        .meta-hero-content {
+            position: relative;
+            z-index: 1;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .meta-badge {
+            display: inline-block;
+            background: linear-gradient(135deg, var(--primary-gold), var(--secondary-gold));
+            color: var(--darker-bg);
+            padding: 0.5rem 1.5rem;
+            border-radius: 25px;
+            font-weight: 700;
+            font-size: 0.85rem;
+            letter-spacing: 1px;
+            margin-bottom: 1.5rem;
+            text-transform: uppercase;
+        }
+
+        .meta-hero-title {
+            font-size: 3.5rem;
+            font-weight: 800;
+            margin: 0 0 1rem 0;
+            line-height: 1.2;
+            background: linear-gradient(135deg, var(--primary-gold), var(--secondary-gold));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .meta-hero-subtitle {
+            font-size: 1.3rem;
+            color: var(--primary-gold);
+            margin-bottom: 1rem;
+            font-weight: 600;
+        }
+
+        .meta-hero-description {
+            font-size: 1.1rem;
+            color: var(--gray-text);
+            max-width: 800px;
+            margin: 0 auto 1rem;
+            line-height: 1.7;
+        }
+
+        /* Key Metrics Grid */
+        .meta-metrics {
+            max-width: 1200px;
+            margin: -2rem auto 3rem;
+            padding: 0 2rem;
+            position: relative;
+            z-index: 2;
+        }
+
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .metric-card {
+            background: var(--dark-bg);
+            border: 1px solid rgba(201, 176, 55, 0.2);
+            border-radius: 15px;
+            padding: 2rem;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+
+        .metric-card:hover {
+            transform: translateY(-5px);
+            border-color: var(--primary-gold);
+            box-shadow: 0 10px 30px rgba(201, 176, 55, 0.2);
+        }
+
+        .metric-card .icon {
+            font-size: 2.5rem;
+            color: var(--primary-gold);
+            margin-bottom: 1rem;
+        }
+
+        .metric-card .value {
+            font-size: 2.2rem;
+            font-weight: 800;
+            color: var(--light-text);
+            margin-bottom: 0.5rem;
+        }
+
+        .metric-card .label {
+            font-size: 0.95rem;
+            color: var(--gray-text);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        /* Why META Section */
+        .why-meta-section {
+            max-width: 1200px;
+            margin: 0 auto 4rem;
+            padding: 0 2rem;
+        }
+
+        .why-meta-content {
+            background: var(--dark-bg);
+            border: 1px solid rgba(201, 176, 55, 0.2);
+            border-radius: 15px;
+            padding: 3rem;
+        }
+
+        .why-meta-content h2 {
+            color: var(--primary-gold);
+            font-size: 2.2rem;
+            margin-bottom: 1.5rem;
+            text-align: center;
+        }
+
+        .why-meta-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 2rem;
+            margin-top: 2rem;
+        }
+
+        .why-meta-item {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .why-meta-item .icon {
+            flex-shrink: 0;
+            width: 50px;
+            height: 50px;
+            background: rgba(201, 176, 55, 0.1);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--primary-gold);
+            font-size: 1.5rem;
+        }
+
+        .why-meta-item .content h3 {
+            color: var(--light-text);
+            font-size: 1.2rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .why-meta-item .content p {
+            color: var(--gray-text);
+            line-height: 1.6;
+            font-size: 0.95rem;
+        }
+
+        /* Signal Example Section */
+        .signal-example-section {
+            max-width: 1200px;
+            margin: 0 auto 4rem;
+            padding: 0 2rem;
+        }
+
+        .signal-example-section h2 {
+            color: var(--primary-gold);
+            font-size: 2.2rem;
+            margin-bottom: 1rem;
+            text-align: center;
+        }
+
+        .signal-example-section .subtitle {
+            text-align: center;
+            color: var(--gray-text);
+            font-size: 1.1rem;
+            margin-bottom: 3rem;
+        }
+
+        .signal-mockup-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 3rem;
+            flex-wrap: wrap;
+        }
+
+        .phone-mockup-meta {
+            position: relative;
+            width: 340px;
+            height: 680px;
+            background: linear-gradient(135deg, #1a1f2e 0%, #0a0e1a 100%);
+            border-radius: 40px;
+            padding: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5),
+                        0 0 0 12px #0a0e1a,
+                        0 0 0 14px rgba(201, 176, 55, 0.3);
+        }
+
+        .phone-screen {
+            width: 100%;
+            height: 100%;
+            background: #0f1419;
+            border-radius: 30px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .telegram-header {
+            background: #1c2533;
+            padding: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            border-bottom: 1px solid rgba(201, 176, 55, 0.2);
+        }
+
+        .telegram-header img {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+        }
+
+        .telegram-header .channel-info h3 {
+            color: #fff;
+            font-size: 1rem;
+            margin: 0;
+        }
+
+        .telegram-header .channel-info p {
+            color: var(--gray-text);
+            font-size: 0.85rem;
+            margin: 0;
+        }
+
+        .telegram-message {
+            padding: 1.5rem;
+        }
+
+        .meta-signal-card {
+            background: var(--dark-bg);
+            border: 1px solid rgba(201, 176, 55, 0.3);
+            border-radius: 15px;
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .signal-header-mock {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid rgba(201, 176, 55, 0.2);
+        }
+
+        .signal-icon-mock {
+            width: 50px;
+            height: 50px;
+            background: rgba(24, 119, 242, 0.15);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            color: var(--meta-blue);
+        }
+
+        .signal-title-mock h4 {
+            color: var(--primary-gold);
+            font-size: 1.3rem;
+            margin: 0 0 0.25rem 0;
+            font-weight: 700;
+        }
+
+        .signal-title-mock p {
+            color: var(--gray-text);
+            font-size: 0.9rem;
+            margin: 0;
+        }
+
+        .signal-data-mock {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .data-item-mock {
+            background: rgba(201, 176, 55, 0.05);
+            padding: 0.75rem;
+            border-radius: 8px;
+        }
+
+        .data-item-mock label {
+            color: var(--gray-text);
+            font-size: 0.7rem;
+            display: block;
+            margin-bottom: 0.25rem;
+        }
+
+        .data-item-mock strong {
+            color: #fff;
+            font-size: 0.95rem;
+        }
+
+        .contract-info-mock {
+            background: rgba(179, 161, 125, 0.1);
+            border: 1px solid rgba(201, 176, 55, 0.2);
+            border-radius: 10px;
+            padding: 1rem;
+            margin-top: 1rem;
+        }
+
+        .contract-info-mock h5 {
+            color: var(--primary-gold);
+            font-size: 0.95rem;
+            margin: 0 0 0.75rem 0;
+            font-weight: 600;
+        }
+
+        .contract-details-mock {
+            display: flex;
+            justify-content: space-between;
+            gap: 1rem;
+        }
+
+        .contract-details-mock div {
+            flex: 1;
+        }
+
+        .contract-details-mock label {
+            color: var(--gray-text);
+            font-size: 0.65rem;
+            display: block;
+            margin-bottom: 0.25rem;
+        }
+
+        .contract-details-mock strong {
+            color: #fff;
+            font-size: 0.85rem;
+        }
+
+        .telegram-footer {
+            text-align: center;
+            padding: 1rem;
+            color: var(--gray-text);
+            font-size: 0.85rem;
+        }
+
+        .signal-features {
+            flex: 1;
+            min-width: 300px;
+        }
+
+        .feature-list-mock {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .feature-list-mock li {
+            padding: 1rem 0;
+            border-bottom: 1px solid rgba(201, 176, 55, 0.1);
+            display: flex;
+            gap: 1rem;
+            align-items: flex-start;
+        }
+
+        .feature-list-mock li:last-child {
+            border-bottom: none;
+        }
+
+        .feature-list-mock .icon {
+            flex-shrink: 0;
+            width: 40px;
+            height: 40px;
+            background: rgba(201, 176, 55, 0.1);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--primary-gold);
+            font-size: 1.2rem;
+        }
+
+        .feature-list-mock .content h4 {
+            color: var(--light-text);
+            font-size: 1.1rem;
+            margin: 0 0 0.5rem 0;
+        }
+
+        .feature-list-mock .content p {
+            color: var(--gray-text);
+            margin: 0;
+            font-size: 0.95rem;
+            line-height: 1.5;
+        }
+
+        /* Strategy Section */
+        .strategy-section {
+            max-width: 1200px;
+            margin: 0 auto 4rem;
+            padding: 0 2rem;
+        }
+
+        .strategy-section h2 {
+            color: var(--primary-gold);
+            font-size: 2.2rem;
+            margin-bottom: 2rem;
+            text-align: center;
+        }
+
+        .strategy-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+        }
+
+        .strategy-card-pro {
+            background: var(--dark-bg);
+            border: 1px solid rgba(201, 176, 55, 0.2);
+            border-radius: 15px;
+            padding: 2.5rem;
+            transition: all 0.3s ease;
+        }
+
+        .strategy-card-pro:hover {
+            transform: translateY(-5px);
+            border-color: var(--primary-gold);
+            box-shadow: 0 10px 30px rgba(201, 176, 55, 0.2);
+        }
+
+        .strategy-card-pro .icon-header {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .strategy-card-pro .icon-header i {
+            font-size: 2rem;
+            color: var(--primary-gold);
+        }
+
+        .strategy-card-pro .icon-header h3 {
+            color: var(--light-text);
+            font-size: 1.4rem;
+            margin: 0;
+        }
+
+        .strategy-card-pro ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .strategy-card-pro ul li {
+            padding: 0.75rem 0;
+            color: var(--gray-text);
+            border-bottom: 1px solid rgba(201, 176, 55, 0.1);
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .strategy-card-pro ul li:last-child {
+            border-bottom: none;
+        }
+
+        .strategy-card-pro ul li i {
+            color: var(--primary-gold);
+            font-size: 0.9rem;
+        }
+
+        /* Trading Tools Section */
+        .trading-tools-section {
+            max-width: 1200px;
+            margin: 0 auto 4rem;
+            padding: 0 2rem;
+        }
+
+        .trading-tools-section h2 {
+            color: var(--primary-gold);
+            font-size: 2.2rem;
+            margin-bottom: 2.5rem;
+            text-align: center;
+        }
+
+        .tools-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 2rem;
+        }
+
+        .tool-card {
+            background: var(--dark-bg);
+            border: 1px solid rgba(201, 176, 55, 0.2);
+            border-radius: 15px;
+            padding: 2.5rem;
+            transition: all 0.3s ease;
+        }
+
+        .tool-card:hover {
+            transform: translateY(-8px);
+            border-color: var(--primary-gold);
+            box-shadow: 0 15px 40px rgba(201, 176, 55, 0.25);
+        }
+
+        .tool-card h3 {
+            color: var(--light-text);
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .tool-card h3 i {
+            color: var(--primary-gold);
+        }
+
+        .tool-card p {
+            color: var(--gray-text);
+            line-height: 1.7;
+            margin-bottom: 1.5rem;
+        }
+
+        .tool-card .tool-button {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.75rem;
+            background: linear-gradient(135deg, rgba(201, 176, 55, 0.15) 0%, rgba(201, 176, 55, 0.05) 100%);
+            color: var(--primary-gold);
+            padding: 0.9rem 1.8rem;
+            border-radius: 10px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 0.95rem;
+            border: 1px solid rgba(201, 176, 55, 0.2);
+            transition: all 0.3s ease;
+        }
+
+        .tool-card .tool-button:hover {
+            background: linear-gradient(135deg, var(--primary-gold), var(--secondary-gold));
+            color: var(--darker-bg);
+            border-color: var(--primary-gold);
+            transform: translateX(5px);
+        }
+
+        /* Login Button */
+        .login-btn {
+            background: linear-gradient(135deg, var(--primary-gold), var(--secondary-gold)) !important;
+            color: var(--darker-bg) !important;
+            padding: 0.5rem 1.2rem;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 0.95rem;
+            transition: transform 0.3s, box-shadow 0.3s;
+            display: inline-block;
+        }
+
+        .login-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(201, 176, 55, 0.3);
+            color: var(--darker-bg) !important;
+        }
+
+        @media (max-width: 768px) {
+            .meta-hero-title {
+                font-size: 2.5rem;
+            }
+
+            .meta-hero-subtitle {
+                font-size: 1.1rem;
+            }
+
+            .meta-hero-description {
+                font-size: 1rem;
+            }
+
+            .metrics-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .phone-mockup-meta {
+                width: 300px;
+                height: 600px;
+            }
+
+            .signal-mockup-container {
+                flex-direction: column;
+            }
+
+            .signal-example-section h2 {
+                font-size: 1.8rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav>
+        <div class="nav-container">
+            <div class="logo">
+                <a href="../../index.html"><img src="../../assets/images/logo.png" alt="BlueChip Signals Logo"></a>
+            </div>
+            <div class="hamburger-menu">
+                <div class="bar"></div>
+                <div class="bar"></div>
+                <div class="bar"></div>
+            </div>
+            <ul class="nav-links">
+                <li><a href="../../dashboard.html"><i class="fas fa-home"></i> Dashboard</a></li>
+                <li><a href="../../trading-journal.html"><i class="fas fa-book"></i> Journal</a></li>
+                <li><a href="../../index.html#bots">Supported Stocks</a></li>
+                <li><a href="../../book-demo.html">Book a Demo</a></li>
+                <li><a href="../../faq.html">FAQ</a></li>
+                <li><a href="../../legal.html">Legal Disclaimer</a></li>
+                <li><a href="../../about.html">About Us</a></li>
+                <li><a href="../../login.html" class="login-btn" id="authButton"><i class="fas fa-sign-in-alt"></i> Login</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <main>
+        <!-- Hero Section -->
+        <section class="meta-hero-section">
+            <div class="meta-hero-content">
+                <div class="meta-badge">Meta Platforms Signals</div>
+                <h1 class="meta-hero-title">META Trading Signals</h1>
+                <p class="meta-hero-subtitle">Trade the Social Media Giant</p>
+                <p class="meta-hero-description">
+                    Get precision momentum signals for META, the company shaping the future of digital connection. 
+                    Capture volatile earnings moves and event-driven momentum with data-driven entries optimized for high-impact trading.
+                </p>
+                <div style="display: flex; gap: 2rem; justify-content: center; align-items: center; flex-wrap: wrap; margin-top: 2rem;">
+                    <div style="text-align: center;">
+                        <div style="font-size: 0.9rem; color: var(--gray-text); margin-bottom: 0.5rem;">Trading Style</div>
+                        <div style="font-size: 1.3rem; font-weight: 700; color: var(--primary-gold);">Event-Driven</div>
+                    </div>
+                    <div style="width: 1px; height: 40px; background: rgba(201, 176, 55, 0.2);"></div>
+                    <div style="text-align: center;">
+                        <div style="font-size: 0.9rem; color: var(--gray-text); margin-bottom: 0.5rem;">Volatility</div>
+                        <div style="font-size: 1.3rem; font-weight: 700; color: var(--primary-gold);">High</div>
+                    </div>
+                    <div style="width: 1px; height: 40px; background: rgba(201, 176, 55, 0.2);"></div>
+                    <div style="text-align: center;">
+                        <div style="font-size: 0.9rem; color: var(--gray-text); margin-bottom: 0.5rem;">Best For</div>
+                        <div style="font-size: 1.3rem; font-weight: 700; color: var(--primary-gold);">Earnings Plays</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Key Metrics -->
+        <section class="meta-metrics">
+            <div class="metrics-grid">
+                <div class="metric-card">
+                    <div class="icon"><i class="fas fa-chart-line"></i></div>
+                    <div class="value">1-3</div>
+                    <div class="label">Daily Signals</div>
+                </div>
+                <div class="metric-card">
+                    <div class="icon"><i class="fas fa-clock"></i></div>
+                    <div class="value">Weekly</div>
+                    <div class="label">Contract Duration</div>
+                </div>
+                <div class="metric-card">
+                    <div class="icon"><i class="fas fa-bolt"></i></div>
+                    <div class="value">Gap Plays</div>
+                    <div class="label">Primary Strategy</div>
+                </div>
+                <div class="metric-card">
+                    <div class="icon"><i class="fas fa-fire"></i></div>
+                    <div class="value">High</div>
+                    <div class="label">Profit Potential</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Why META -->
+        <section class="why-meta-section">
+            <div class="why-meta-content">
+                <h2><i class="fas fa-star"></i> Why Trade META?</h2>
+                <div class="why-meta-grid">
+                    <div class="why-meta-item">
+                        <div class="icon"><i class="fas fa-rocket"></i></div>
+                        <div class="content">
+                            <h3>Massive Earnings Moves</h3>
+                            <p>META consistently delivers 5-15% gaps after earnings reports, creating exceptional options trading opportunities with predefined risk.</p>
+                        </div>
+                    </div>
+                    <div class="why-meta-item">
+                        <div class="icon"><i class="fas fa-newspaper"></i></div>
+                        <div class="content">
+                            <h3>High News Sensitivity</h3>
+                            <p>Regulatory updates, ad revenue reports, and user growth metrics create frequent volatility spikes perfect for momentum trading.</p>
+                        </div>
+                    </div>
+                    <div class="why-meta-item">
+                        <div class="icon"><i class="fas fa-chart-bar"></i></div>
+                        <div class="content">
+                            <h3>Strong Technical Levels</h3>
+                            <p>META respects key support and resistance levels exceptionally well, making gap-and-go or gap-fill strategies highly predictable.</p>
+                        </div>
+                    </div>
+                    <div class="why-meta-item">
+                        <div class="icon"><i class="fas fa-water"></i></div>
+                        <div class="content">
+                            <h3>Excellent Liquidity</h3>
+                            <p>As a mega-cap tech stock, META options have tight spreads and massive volume, ensuring clean entry and exit fills.</p>
+                        </div>
+                    </div>
+                    <div class="why-meta-item">
+                        <div class="icon"><i class="fas fa-dollar-sign"></i></div>
+                        <div class="content">
+                            <h3>Ad Revenue Cycles</h3>
+                            <p>Quarterly ad spending trends and digital marketing shifts create predictable momentum patterns throughout the year.</p>
+                        </div>
+                    </div>
+                    <div class="why-meta-item">
+                        <div class="icon"><i class="fas fa-users"></i></div>
+                        <div class="content">
+                            <h3>Family of Apps</h3>
+                            <p>Facebook, Instagram, WhatsApp, and Threads each drive separate catalysts, providing multiple trading opportunities monthly.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Signal Example Section -->
+        <section class="signal-example-section">
+            <h2><i class="fas fa-mobile-alt"></i> What You'll Receive</h2>
+            <p class="subtitle">Every META signal delivered instantly to your phone via Telegram</p>
+            
+            <div class="signal-mockup-container">
+                <!-- Phone Mockup -->
+                <div class="phone-mockup-meta">
+                    <div class="phone-screen">
+                        <!-- Telegram Header -->
+                        <div class="telegram-header">
+                            <img src="../../assets/images/telegramlogo.png" alt="Telegram">
+                            <div class="channel-info">
+                                <h3>BlueChip Signals</h3>
+                                <p>META Alert • Just now</p>
+                            </div>
+                        </div>
+
+                        <!-- Signal Message -->
+                        <div class="telegram-message">
+                            <div class="meta-signal-card">
+                                <div class="signal-header-mock">
+                                    <div class="signal-icon-mock">
+                                        <i class="fab fa-meta"></i>
+                                    </div>
+                                    <div class="signal-title-mock">
+                                        <h4>META BUY SIGNAL</h4>
+                                        <p>Post-Earnings Gap & Go</p>
+                                    </div>
+                                </div>
+
+                                <div class="signal-data-mock">
+                                    <div class="data-item-mock">
+                                        <label>Current Price</label>
+                                        <strong>$642.85</strong>
+                                    </div>
+                                    <div class="data-item-mock">
+                                        <label>VWAP</label>
+                                        <strong>$639.20</strong>
+                                    </div>
+                                    <div class="data-item-mock">
+                                        <label>MFI</label>
+                                        <strong>72.1</strong>
+                                    </div>
+                                    <div class="data-item-mock">
+                                        <label>Volume</label>
+                                        <strong>Elevated</strong>
+                                    </div>
+                                </div>
+
+                                <div class="contract-info-mock">
+                                    <h5><i class="fas fa-file-contract"></i> Recommended Contract</h5>
+                                    <div class="contract-details-mock">
+                                        <div>
+                                            <label>Type</label>
+                                            <strong>Call</strong>
+                                        </div>
+                                        <div>
+                                            <label>Strike</label>
+                                            <strong>$645</strong>
+                                        </div>
+                                        <div>
+                                            <label>Expiry</label>
+                                            <strong>7 DTE</strong>
+                                        </div>
+                                        <div>
+                                            <label>Premium</label>
+                                            <strong>$4.20</strong>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="telegram-footer">
+                                <i class="fab fa-telegram"></i> Delivered via Telegram
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Features List -->
+                <div class="signal-features">
+                    <ul class="feature-list-mock">
+                        <li>
+                            <div class="icon"><i class="fas fa-calendar-check"></i></div>
+                            <div class="content">
+                                <h4>Earnings Alerts</h4>
+                                <p>Get notified before META earnings with pre-planned strategies for gap-and-go or gap-fill scenarios based on market structure.</p>
+                            </div>
+                </li>
+                <li>
+                            <div class="icon"><i class="fas fa-newspaper"></i></div>
+                            <div class="content">
+                                <h4>News-Driven Signals</h4>
+                                <p>Instant alerts on regulatory updates, ad revenue changes, or major product announcements that trigger momentum moves.</p>
+                            </div>
+                </li>
+                <li>
+                            <div class="icon"><i class="fas fa-chart-line"></i></div>
+                            <div class="content">
+                                <h4>Volume Confirmation</h4>
+                                <p>Every signal includes volume and MFI analysis to confirm institutional participation and reduce false breakouts.</p>
+                            </div>
+                </li>
+                <li>
+                            <div class="icon"><i class="fas fa-shield-alt"></i></div>
+                            <div class="content">
+                                <h4>Risk-Defined Setups</h4>
+                                <p>Weekly options with clear entry points and defined risk - perfect for managing the volatility META is known for.</p>
+                            </div>
+                </li>
+            </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- Strategy Overview -->
+        <section class="strategy-section">
+            <h2><i class="fas fa-bullseye"></i> Our META Signal Strategy</h2>
+            <div class="strategy-cards">
+                <div class="strategy-card-pro">
+                    <div class="icon-header">
+                        <i class="fas fa-wave-square"></i>
+                        <h3>Technical Indicators</h3>
+                    </div>
+                    <ul>
+                        <li><i class="fas fa-check-circle"></i> <strong>VWAP Analysis:</strong> Institutional price confirmation</li>
+                        <li><i class="fas fa-check-circle"></i> <strong>MFI Momentum:</strong> Money flow for breakout validation</li>
+                        <li><i class="fas fa-check-circle"></i> <strong>Volume Profile:</strong> Support/resistance at value areas</li>
+                        <li><i class="fas fa-check-circle"></i> <strong>MACD Divergence:</strong> Trend reversal detection</li>
+                    </ul>
+                </div>
+                <div class="strategy-card-pro">
+                    <div class="icon-header">
+                        <i class="fas fa-bolt"></i>
+                        <h3>Entry Methodology</h3>
+                    </div>
+                    <ul>
+                        <li><i class="fas fa-check-circle"></i> <strong>Gap & Go:</strong> Continuation after earnings gaps</li>
+                        <li><i class="fas fa-check-circle"></i> <strong>Gap Fill:</strong> Mean reversion to previous close</li>
+                        <li><i class="fas fa-check-circle"></i> <strong>News Breakouts:</strong> Regulatory or product catalysts</li>
+                        <li><i class="fas fa-check-circle"></i> <strong>Key Level Breaks:</strong> Support/resistance flips</li>
+                    </ul>
+                </div>
+                <div class="strategy-card-pro">
+                    <div class="icon-header">
+                        <i class="fas fa-sliders-h"></i>
+                        <h3>Risk Management</h3>
+                    </div>
+                    <ul>
+                        <li><i class="fas fa-check-circle"></i> <strong>Weekly Options:</strong> 7-14 DTE for earnings plays</li>
+                        <li><i class="fas fa-check-circle"></i> <strong>Smaller Position Size:</strong> Due to higher volatility</li>
+                        <li><i class="fas fa-check-circle"></i> <strong>Tight Stops:</strong> Protect against whipsaw moves</li>
+                        <li><i class="fas fa-check-circle"></i> <strong>Volume Gating:</strong> Only trade with volume confirmation</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- Trading Tools -->
+        <section class="trading-tools-section">
+            <h2><i class="fas fa-tools"></i> META Trading Tools & Resources</h2>
+            <div class="tools-grid">
+                <div class="tool-card">
+                    <h3><i class="fas fa-ad"></i> Ad Revenue Tracker</h3>
+                    <p>Track digital ad spending trends, Q/Q growth rates, and user engagement metrics that directly impact META's stock price and options volatility.</p>
+                    <a href="../guides/meta-ad-revenue-growth.html" class="tool-button">
+                        View Metrics <i class="fas fa-arrow-right"></i>
+                    </a>
+                </div>
+                <div class="tool-card">
+                    <h3><i class="fas fa-chart-bar"></i> Earnings Trading Guide</h3>
+                    <p>Master gap-and-go and gap-fill strategies specifically designed for META's quarterly earnings reports with historical playbook analysis.</p>
+                    <a href="../guides/meta-earnings-trading.html" class="tool-button">
+                        Read Guide <i class="fas fa-arrow-right"></i>
+                        </a>
+                    </div>
+                <div class="tool-card">
+                    <h3><i class="fas fa-gavel"></i> Regulatory News Monitor</h3>
+                    <p>Stay informed on data privacy regulations, antitrust investigations, and content moderation policies that create sudden volatility spikes.</p>
+                    <a href="../guides/meta-regulatory-news.html" class="tool-button">
+                        Check Updates <i class="fas fa-arrow-right"></i>
+                    </a>
+                </div>
+                <div class="tool-card">
+                    <h3><i class="fas fa-crosshairs"></i> Key Price Levels</h3>
+                    <p>Identify critical support and resistance zones post-gap using pre-market levels and previous day's high/low for precise entry timing.</p>
+                    <a href="../guides/meta-key-price-levels.html" class="tool-button">
+                        Find Levels <i class="fas fa-arrow-right"></i>
+                    </a>
+                </div>
+                <div class="tool-card">
+                    <h3><i class="fas fa-shield-alt"></i> Volatility Risk Guide</h3>
+                    <p>Learn proper position sizing and stop-loss placement for high-volatility META plays to maximize returns while protecting capital.</p>
+                    <a href="../guides/meta-tight-stops-volatility.html" class="tool-button">
+                        Risk Management <i class="fas fa-arrow-right"></i>
+                    </a>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Floating CTA -->
+    <div class="floating-cta">
+        <a href="../../book-demo.html" class="cta-button">
+            <i class="fas fa-rocket"></i> Get META Signals
+        </a>
+    </div>
+
+    <!-- Footer -->
+    <footer>
+        <p>&copy; 2025 BlueChip Signals. All rights reserved. | <a href="../../legal.html" style="color: var(--primary-gold); text-decoration: none;">Legal Disclaimer</a></p>
+        <div class="social-media">
+            <a href="https://www.tiktok.com/@bluechip.signals" target="_blank"><i class="fab fa-tiktok"></i></a>
+            <a href="https://www.instagram.com/bluechip.signals/" target="_blank"><i class="fab fa-instagram"></i></a>
+        </div>
+    </footer>
+
+    <script>
+        const hamburgerMenu = document.querySelector('.hamburger-menu');
+        const mobileNav = document.querySelector('.nav-links');
+
+        hamburgerMenu.addEventListener('click', () => {
+            mobileNav.classList.toggle('active');
+        });
+
+        // Smooth scroll for internal links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
+            });
+        });
+    </script>
+
+    <script>
+        // Check if user is logged in and update the navigation button immediately
+        (function() {
+            const isLoggedIn = localStorage.getItem('bluechip_logged_in') || sessionStorage.getItem('bluechip_logged_in');
+            
+            if (isLoggedIn) {
+                // Wait for DOM to be ready
+                if (document.readyState === 'loading') {
+                    document.addEventListener('DOMContentLoaded', updateAuthButton);
+                } else {
+                    updateAuthButton();
+                }
+            }
+            
+            function updateAuthButton() {
+                const authButton = document.getElementById('authButton');
+                
+                if (authButton) {
+                    authButton.removeAttribute('href');
+                    authButton.innerHTML = '<i class="fas fa-sign-out-alt"></i> Logout';
+                    authButton.style.cursor = 'pointer';
+                    
+                authButton.onclick = function(e) {
+                    e.preventDefault();
+                    localStorage.clear();
+                    sessionStorage.clear();
+                    window.location.href = '../../login.html';
+                    return false;
+                };
+                }
+            }
+        })();
+    </script>
+</body>
+</html>

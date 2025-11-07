@@ -1,0 +1,1001 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>META High-Volatility Risk Management | BlueChip Signals</title>
+    <meta name="description" content="Learn how to manage risk with tighter stops and smaller position sizes during META's high-volatility events and earnings-driven moves.">
+    <link rel="icon" type="image/png" href="../../assets/images/logo.png">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="../../assets/css/bot-style.css?v=1751139967">
+    <style>
+        :root {
+            --primary-gold: #b3a17d;
+            --secondary-gold: #E2CFB5;
+            --dark-bg: #080B0F;
+            --darker-bg: #050810;
+            --light-text: #FFFFFF;
+            --gray-text: #A0A0A0;
+        }
+
+        body {
+            background: var(--darker-bg);
+            color: var(--light-text);
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        }
+
+        .guide-hero {
+            margin-top: 100px;
+            padding: 4rem 2rem 3rem;
+            text-align: center;
+            background: radial-gradient(circle at 50% 50%, rgba(201, 176, 55, 0.15), transparent 70%);
+            position: relative;
+        }
+
+        .guide-hero::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: radial-gradient(circle at 30% 40%, rgba(201, 176, 55, 0.08), transparent 50%);
+            z-index: 0;
+        }
+
+        .guide-hero-content {
+            max-width: 900px;
+            margin: 0 auto;
+            position: relative;
+            z-index: 1;
+        }
+
+        .guide-badge {
+            display: inline-block;
+            background: linear-gradient(135deg, var(--primary-gold), var(--secondary-gold));
+            color: var(--darker-bg);
+            padding: 0.4rem 1.2rem;
+            border-radius: 20px;
+            font-weight: 700;
+            font-size: 0.8rem;
+            letter-spacing: 1px;
+            margin-bottom: 1.5rem;
+            text-transform: uppercase;
+        }
+
+        .guide-title {
+            font-size: 2.8rem;
+            font-weight: 800;
+            margin: 0 0 1rem 0;
+            line-height: 1.2;
+            color: var(--light-text);
+        }
+
+        .guide-subtitle {
+            font-size: 1.2rem;
+            color: var(--gray-text);
+            line-height: 1.6;
+            margin: 0;
+        }
+
+        .guide-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 3rem 2rem;
+        }
+
+        .content-section {
+            background: var(--dark-bg);
+            border: 1px solid rgba(201, 176, 55, 0.2);
+            border-radius: 15px;
+            padding: 2.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .content-section h2 {
+            color: var(--primary-gold);
+            font-size: 1.8rem;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .content-section h2 i {
+            font-size: 1.5rem;
+        }
+
+        .content-section h3 {
+            color: var(--light-text);
+            font-size: 1.4rem;
+            margin-bottom: 1rem;
+        }
+
+        .content-section h4 {
+            color: var(--primary-gold);
+            font-size: 1.2rem;
+            margin-bottom: 1rem;
+        }
+
+        .content-section h5 {
+            color: var(--secondary-gold);
+            font-size: 1rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .content-section p {
+            color: var(--gray-text);
+            line-height: 1.8;
+            margin-bottom: 1rem;
+        }
+
+        .content-section ul {
+            color: var(--light-text);
+            line-height: 1.8;
+            margin: 1rem 0;
+            padding-left: 1.5rem;
+        }
+
+        .content-section ul li {
+            margin-bottom: 0.75rem;
+        }
+
+        .content-section strong {
+            color: var(--light-text);
+        }
+
+        .login-btn {
+            background: linear-gradient(135deg, var(--primary-gold), var(--secondary-gold)) !important;
+            color: var(--darker-bg) !important;
+            padding: 0.5rem 1.2rem;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 0.95rem;
+            transition: transform 0.3s, box-shadow 0.3s;
+            display: inline-block;
+        }
+
+        .login-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(201, 176, 55, 0.3);
+            color: var(--darker-bg) !important;
+        }
+
+        .back-button {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--primary-gold);
+            text-decoration: none;
+            font-weight: 600;
+            margin-bottom: 2rem;
+            transition: all 0.3s ease;
+        }
+
+        .back-button:hover {
+            transform: translateX(-5px);
+        }
+
+        @media (max-width: 768px) {
+            .guide-title {
+                font-size: 2rem;
+            }
+
+            .guide-subtitle {
+                font-size: 1rem;
+            }
+
+            .content-section {
+                padding: 1.5rem;
+            }
+        }
+    </style>
+    <script>
+        // Redirect non-logged-in users to book demo page
+        (function() {
+            const isLoggedIn = localStorage.getItem('bluechip_logged_in') || sessionStorage.getItem('bluechip_logged_in');
+            if (!isLoggedIn) {
+                window.location.href = '../../book-demo.html';
+            }
+        })();
+    </script>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav>
+        <div class="nav-container">
+            <div class="logo">
+                <a href="../../index.html"><img src="../../assets/images/logo.png" alt="BlueChip Signals Logo"></a>
+            </div>
+            <div class="hamburger-menu">
+                <div class="bar"></div>
+                <div class="bar"></div>
+                <div class="bar"></div>
+            </div>
+            <ul class="nav-links">
+                <li><a href="../../index.html#features">Features</a></li>
+                <li><a href="../../index.html#bots">Supported Stocks</a></li>
+                <li><a href="../../book-demo.html">Book a Demo</a></li>
+                <li><a href="../../faq.html">FAQ</a></li>
+                <li><a href="../../legal.html">Legal Disclaimer</a></li>
+                <li><a href="../../about.html">About Us</a></li>
+                <li><a href="../../login.html" class="login-btn"><i class="fas fa-sign-in-alt"></i> Login</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="guide-hero">
+        <div class="guide-hero-content">
+            <div class="guide-badge">META Trading Guide</div>
+            <h1 class="guide-title">Tight Stops on High-Volatility Days</h1>
+            <p class="guide-subtitle">Event-driven moves can be chaotic. Learn to use smaller position sizes and tighter stop-losses to manage increased risk during volatile trading sessions.</p>
+        </div>
+    </section>
+
+    <!-- Guide Content -->
+    <div class="guide-content">
+        <a href="../bots/meta-bot.html" class="back-button">
+            <i class="fas fa-arrow-left"></i> Back to META Signals
+        </a>
+
+        <section class="content-section">
+            <h2><i class="fas fa-sliders-h"></i> Interactive Stop-Loss Strategy Selector</h2>
+            <p>Answer a few questions about current market conditions to get a personalized stop-loss recommendation:</p>
+            
+            <div id="strategy-selector" style="background: rgba(26, 31, 46, 0.3); padding: 2.5rem; border-radius: 12px; margin: 2.5rem 0; border: 1px solid rgba(255, 193, 7, 0.2);">
+                <div id="question-container">
+                    <div class="question active" data-question="1">
+                        <h4 style="color: var(--primary-gold); margin-bottom: 2rem; text-align: center;"><i class="fas fa-question-circle"></i> What's the current market volatility level?</h4>
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.5rem;">
+                            <button class="selector-btn" data-answer="low" data-next="2a">
+                                <i class="fas fa-chart-line" style="color: #00ff88;"></i>
+                                <strong>Low Volatility</strong>
+                                <small>Normal trading conditions, VIX < 20</small>
+                            </button>
+                            <button class="selector-btn" data-answer="moderate" data-next="2b">
+                                <i class="fas fa-chart-bar" style="color: var(--primary-gold);"></i>
+                                <strong>Moderate Volatility</strong>
+                                <small>Some uncertainty, VIX 20-30</small>
+                            </button>
+                            <button class="selector-btn" data-answer="high" data-next="2c">
+                                <i class="fas fa-exclamation-triangle" style="color: #ff4444;"></i>
+                                <strong>High Volatility</strong>
+                                <small>Major events, VIX > 30</small>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="question" data-question="2a">
+                        <h4 style="color: var(--primary-gold); margin-bottom: 2rem; text-align: center;"><i class="fas fa-chart-area"></i> Are there clear technical levels nearby?</h4>
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem;">
+                            <button class="selector-btn" data-answer="yes-tech" data-next="result-tech-low">
+                                <i class="fas fa-crosshairs" style="color: #00ff88;"></i>
+                                <strong>Yes, Clear Levels</strong>
+                                <small>Support/resistance, moving averages</small>
+                            </button>
+                            <button class="selector-btn" data-answer="no-tech" data-next="result-percent-low">
+                                <i class="fas fa-percentage" style="color: var(--primary-gold);"></i>
+                                <strong>No Clear Levels</strong>
+                                <small>Price action is choppy</small>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="question" data-question="2b">
+                        <h4 style="color: var(--primary-gold); margin-bottom: 2rem; text-align: center;"><i class="fas fa-clock"></i> Is this an event-driven move?</h4>
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem;">
+                            <button class="selector-btn" data-answer="event" data-next="3a">
+                                <i class="fas fa-newspaper" style="color: #ff4444;"></i>
+                                <strong>Yes, Event-Driven</strong>
+                                <small>Earnings, news, announcements</small>
+                            </button>
+                            <button class="selector-btn" data-answer="no-event" data-next="result-tech-mod">
+                                <i class="fas fa-chart-line" style="color: var(--primary-gold);"></i>
+                                <strong>No, Technical Move</strong>
+                                <small>Normal price action</small>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="question" data-question="2c">
+                        <h4 style="color: var(--primary-gold); margin-bottom: 2rem; text-align: center;"><i class="fas fa-bolt"></i> What type of high volatility?</h4>
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem;">
+                            <button class="selector-btn" data-answer="earnings" data-next="result-time-earnings">
+                                <i class="fas fa-chart-bar" style="color: #ff4444;"></i>
+                                <strong>Earnings/Events</strong>
+                                <small>Specific catalyst with time limit</small>
+                            </button>
+                            <button class="selector-btn" data-answer="market-wide" data-next="result-volatility-market">
+                                <i class="fas fa-globe" style="color: #8a2be2;"></i>
+                                <strong>Market-Wide Panic</strong>
+                                <small>VIX spike, broad selling</small>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="question" data-question="3a">
+                        <h4 style="color: var(--primary-gold); margin-bottom: 2rem; text-align: center;"><i class="fas fa-clock"></i> How long until the event concludes?</h4>
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.5rem;">
+                            <button class="selector-btn" data-answer="soon" data-next="result-time-short">
+                                <i class="fas fa-stopwatch" style="color: #ff4444;"></i>
+                                <strong>< 2 Hours</strong>
+                                <small>Event concluding soon</small>
+                            </button>
+                            <button class="selector-btn" data-answer="medium" data-next="result-time-medium">
+                                <i class="fas fa-hourglass-half" style="color: var(--primary-gold);"></i>
+                                <strong>2-8 Hours</strong>
+                                <small>Moderate time frame</small>
+                            </button>
+                            <button class="selector-btn" data-answer="long" data-next="result-percent-event">
+                                <i class="fas fa-calendar" style="color: #00ff88;"></i>
+                                <strong>> 8 Hours</strong>
+                                <small>Extended event period</small>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <div id="results-container" style="display: none;">
+                    <div class="result" data-result="result-tech-low">
+                        <div style="text-align: center; margin-bottom: 2rem;">
+                            <h4 style="color: #00ff88; margin-bottom: 1rem;"><i class="fas fa-crosshairs"></i> Recommended: Technical Level Stops</h4>
+                            <div style="background: rgba(0, 255, 136, 0.1); padding: 1.5rem; border-radius: 8px; border: 1px solid rgba(0, 255, 136, 0.2);">
+                                <p style="margin: 0; color: var(--light-text); line-height: 1.6;"><strong>Best Choice:</strong> Place stops just below support or above resistance levels. Use 2-3% buffer for stocks, 20-25% for options.</p>
+                            </div>
+                        </div>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;">
+                            <div style="background: rgba(26, 31, 46, 0.2); padding: 1.5rem; border-radius: 8px;">
+                                <h5 style="color: var(--secondary-gold); margin-bottom: 1rem;">Why This Works</h5>
+                                <ul style="color: var(--light-text); font-size: 0.9rem; line-height: 1.6; margin: 0; padding-left: 1rem;">
+                                    <li>Clear, respected levels</li>
+                                    <li>Low volatility won't cause whipsaws</li>
+                                    <li>Good risk/reward ratios</li>
+                                </ul>
+                            </div>
+                            <div style="background: rgba(26, 31, 46, 0.2); padding: 1.5rem; border-radius: 8px;">
+                                <h5 style="color: var(--secondary-gold); margin-bottom: 1rem;">Implementation</h5>
+                                <ul style="color: var(--light-text); font-size: 0.9rem; line-height: 1.6; margin: 0; padding-left: 1rem;">
+                                    <li>Use stop-loss orders</li>
+                                    <li>Monitor level breaks</li>
+                                    <li>Normal position sizing</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="result" data-result="result-percent-low">
+                        <div style="text-align: center; margin-bottom: 2rem;">
+                            <h4 style="color: var(--primary-gold); margin-bottom: 1rem;"><i class="fas fa-percentage"></i> Recommended: Percentage-Based Stops</h4>
+                            <div style="background: rgba(255, 193, 7, 0.1); padding: 1.5rem; border-radius: 8px; border: 1px solid rgba(255, 193, 7, 0.2);">
+                                <p style="margin: 0; color: var(--light-text); line-height: 1.6;"><strong>Best Choice:</strong> Use 2-3% stops for stocks, 25-30% for options. Simple and effective in low volatility.</p>
+                            </div>
+                        </div>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;">
+                            <div style="background: rgba(26, 31, 46, 0.2); padding: 1.5rem; border-radius: 8px;">
+                                <h5 style="color: var(--secondary-gold); margin-bottom: 1rem;">Why This Works</h5>
+                                <ul style="color: var(--light-text); font-size: 0.9rem; line-height: 1.6; margin: 0; padding-left: 1rem;">
+                                    <li>Consistent risk management</li>
+                                    <li>Easy to calculate</li>
+                                    <li>Works in all conditions</li>
+                                </ul>
+                            </div>
+                            <div style="background: rgba(26, 31, 46, 0.2); padding: 1.5rem; border-radius: 8px;">
+                                <h5 style="color: var(--secondary-gold); margin-bottom: 1rem;">Implementation</h5>
+                                <ul style="color: var(--light-text); font-size: 0.9rem; line-height: 1.6; margin: 0; padding-left: 1rem;">
+                                    <li>Set stops at entry</li>
+                                    <li>Don't move against you</li>
+                                    <li>Standard position sizing</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="result" data-result="result-tech-mod">
+                        <div style="text-align: center; margin-bottom: 2rem;">
+                            <h4 style="color: var(--primary-gold); margin-bottom: 1rem;"><i class="fas fa-chart-line"></i> Recommended: Technical Stops (Tighter)</h4>
+                            <div style="background: rgba(255, 193, 7, 0.1); padding: 1.5rem; border-radius: 8px; border: 1px solid rgba(255, 193, 7, 0.2);">
+                                <p style="margin: 0; color: var(--light-text); line-height: 1.6;"><strong>Best Choice:</strong> Use technical levels but with 50% reduced position size. 1.5-2% buffer for stocks.</p>
+                            </div>
+                        </div>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;">
+                            <div style="background: rgba(26, 31, 46, 0.2); padding: 1.5rem; border-radius: 8px;">
+                                <h5 style="color: var(--secondary-gold); margin-bottom: 1rem;">Why This Works</h5>
+                                <ul style="color: var(--light-text); font-size: 0.9rem; line-height: 1.6; margin: 0; padding-left: 1rem;">
+                                    <li>Respects market structure</li>
+                                    <li>Reduced risk exposure</li>
+                                    <li>Better risk/reward</li>
+                                </ul>
+                            </div>
+                            <div style="background: rgba(26, 31, 46, 0.2); padding: 1.5rem; border-radius: 8px;">
+                                <h5 style="color: var(--secondary-gold); margin-bottom: 1rem;">Implementation</h5>
+                                <ul style="color: var(--light-text); font-size: 0.9rem; line-height: 1.6; margin: 0; padding-left: 1rem;">
+                                    <li>Smaller position sizes</li>
+                                    <li>Watch for false breaks</li>
+                                    <li>Quick exit if wrong</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="result" data-result="result-time-short">
+                        <div style="text-align: center; margin-bottom: 2rem;">
+                            <h4 style="color: #ff4444; margin-bottom: 1rem;"><i class="fas fa-stopwatch"></i> Recommended: Time-Based Stops</h4>
+                            <div style="background: rgba(255, 68, 68, 0.1); padding: 1.5rem; border-radius: 8px; border: 1px solid rgba(255, 68, 68, 0.2);">
+                                <p style="margin: 0; color: var(--light-text); line-height: 1.6;"><strong>Best Choice:</strong> Exit within 30-60 minutes regardless of price action. Use 25% normal position size.</p>
+                            </div>
+                        </div>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;">
+                            <div style="background: rgba(26, 31, 46, 0.2); padding: 1.5rem; border-radius: 8px;">
+                                <h5 style="color: var(--secondary-gold); margin-bottom: 1rem;">Why This Works</h5>
+                                <ul style="color: var(--light-text); font-size: 0.9rem; line-height: 1.6; margin: 0; padding-left: 1rem;">
+                                    <li>Event conclusion is near</li>
+                                    <li>Volatility will decrease</li>
+                                    <li>Limits exposure time</li>
+                                </ul>
+                            </div>
+                            <div style="background: rgba(26, 31, 46, 0.2); padding: 1.5rem; border-radius: 8px;">
+                                <h5 style="color: var(--secondary-gold); margin-bottom: 1rem;">Implementation</h5>
+                                <ul style="color: var(--light-text); font-size: 0.9rem; line-height: 1.6; margin: 0; padding-left: 1rem;">
+                                    <li>Set timer alerts</li>
+                                    <li>Very small positions</li>
+                                    <li>Take quick profits</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="result" data-result="result-time-medium">
+                        <div style="text-align: center; margin-bottom: 2rem;">
+                            <h4 style="color: var(--primary-gold); margin-bottom: 1rem;"><i class="fas fa-hourglass-half"></i> Recommended: Hybrid Approach</h4>
+                            <div style="background: rgba(255, 193, 7, 0.1); padding: 1.5rem; border-radius: 8px; border: 1px solid rgba(255, 193, 7, 0.2);">
+                                <p style="margin: 0; color: var(--light-text); line-height: 1.6;"><strong>Best Choice:</strong> Combine 1.5% price stops with 4-hour time limit. Use 40% normal position size.</p>
+                            </div>
+                        </div>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;">
+                            <div style="background: rgba(26, 31, 46, 0.2); padding: 1.5rem; border-radius: 8px;">
+                                <h5 style="color: var(--secondary-gold); margin-bottom: 1rem;">Why This Works</h5>
+                                <ul style="color: var(--light-text); font-size: 0.9rem; line-height: 1.6; margin: 0; padding-left: 1rem;">
+                                    <li>Balances price and time risk</li>
+                                    <li>Moderate time exposure</li>
+                                    <li>Flexible exit strategy</li>
+                                </ul>
+                            </div>
+                            <div style="background: rgba(26, 31, 46, 0.2); padding: 1.5rem; border-radius: 8px;">
+                                <h5 style="color: var(--secondary-gold); margin-bottom: 1rem;">Implementation</h5>
+                                <ul style="color: var(--light-text); font-size: 0.9rem; line-height: 1.6; margin: 0; padding-left: 1rem;">
+                                    <li>Monitor both conditions</li>
+                                    <li>Exit on first trigger</li>
+                                    <li>Reduced position size</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="result" data-result="result-percent-event">
+                        <div style="text-align: center; margin-bottom: 2rem;">
+                            <h4 style="color: #00ff88; margin-bottom: 1rem;"><i class="fas fa-percentage"></i> Recommended: Tight Percentage Stops</h4>
+                            <div style="background: rgba(0, 255, 136, 0.1); padding: 1.5rem; border-radius: 8px; border: 1px solid rgba(0, 255, 136, 0.2);">
+                                <p style="margin: 0; color: var(--light-text); line-height: 1.6;"><strong>Best Choice:</strong> Use 1-1.5% stops for stocks, 15-20% for options. Normal position sizing with extended timeline.</p>
+                            </div>
+                        </div>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;">
+                            <div style="background: rgba(26, 31, 46, 0.2); padding: 1.5rem; border-radius: 8px;">
+                                <h5 style="color: var(--secondary-gold); margin-bottom: 1rem;">Why This Works</h5>
+                                <ul style="color: var(--light-text); font-size: 0.9rem; line-height: 1.6; margin: 0; padding-left: 1rem;">
+                                    <li>Long event duration</li>
+                                    <li>Consistent risk control</li>
+                                    <li>Room for volatility</li>
+                                </ul>
+                            </div>
+                            <div style="background: rgba(26, 31, 46, 0.2); padding: 1.5rem; border-radius: 8px;">
+                                <h5 style="color: var(--secondary-gold); margin-bottom: 1rem;">Implementation</h5>
+                                <ul style="color: var(--light-text); font-size: 0.9rem; line-height: 1.6; margin: 0; padding-left: 1rem;">
+                                    <li>Tight stops, normal size</li>
+                                    <li>Monitor event progress</li>
+                                    <li>Be ready to adjust</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="result" data-result="result-time-earnings">
+                        <div style="text-align: center; margin-bottom: 2rem;">
+                            <h4 style="color: #ff4444; margin-bottom: 1rem;"><i class="fas fa-chart-bar"></i> Recommended: Time-Based (Earnings)</h4>
+                            <div style="background: rgba(255, 68, 68, 0.1); padding: 1.5rem; border-radius: 8px; border: 1px solid rgba(255, 68, 68, 0.2);">
+                                <p style="margin: 0; color: var(--light-text); line-height: 1.6;"><strong>Best Choice:</strong> Exit 2-4 hours after earnings release. Use 25-30% of normal position size maximum.</p>
+                            </div>
+                        </div>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;">
+                            <div style="background: rgba(26, 31, 46, 0.2); padding: 1.5rem; border-radius: 8px;">
+                                <h5 style="color: var(--secondary-gold); margin-bottom: 1rem;">Why This Works</h5>
+                                <ul style="color: var(--light-text); font-size: 0.9rem; line-height: 1.6; margin: 0; padding-left: 1rem;">
+                                    <li>Earnings volatility fades</li>
+                                    <li>Gap risk is extreme</li>
+                                    <li>Time decay on options</li>
+                                </ul>
+                            </div>
+                            <div style="background: rgba(26, 31, 46, 0.2); padding: 1.5rem; border-radius: 8px;">
+                                <h5 style="color: var(--secondary-gold); margin-bottom: 1rem;">Implementation</h5>
+                                <ul style="color: var(--light-text); font-size: 0.9rem; line-height: 1.6; margin: 0; padding-left: 1rem;">
+                                    <li>Very small positions</li>
+                                    <li>Set exit alarms</li>
+                                    <li>No overnight holds</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="result" data-result="result-volatility-market">
+                        <div style="text-align: center; margin-bottom: 2rem;">
+                            <h4 style="color: #8a2be2; margin-bottom: 1rem;"><i class="fas fa-shield-alt"></i> Recommended: Volatility-Adjusted Stops</h4>
+                            <div style="background: rgba(138, 43, 226, 0.1); padding: 1.5rem; border-radius: 8px; border: 1px solid rgba(138, 43, 226, 0.2);">
+                                <p style="margin: 0; color: var(--light-text); line-height: 1.6;"><strong>Best Choice:</strong> Use ATR-based stops (0.5-1.0x ATR). Reduce position size by 70%. Expect wild swings.</p>
+                            </div>
+                        </div>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;">
+                            <div style="background: rgba(26, 31, 46, 0.2); padding: 1.5rem; border-radius: 8px;">
+                                <h5 style="color: var(--secondary-gold); margin-bottom: 1rem;">Why This Works</h5>
+                                <ul style="color: var(--light-text); font-size: 0.9rem; line-height: 1.6; margin: 0; padding-left: 1rem;">
+                                    <li>Adapts to volatility</li>
+                                    <li>Avoids whipsaws</li>
+                                    <li>Market-appropriate distance</li>
+                                </ul>
+                            </div>
+                            <div style="background: rgba(26, 31, 46, 0.2); padding: 1.5rem; border-radius: 8px;">
+                                <h5 style="color: var(--secondary-gold); margin-bottom: 1rem;">Implementation</h5>
+                                <ul style="color: var(--light-text); font-size: 0.9rem; line-height: 1.6; margin: 0; padding-left: 1rem;">
+                                    <li>Calculate current ATR</li>
+                                    <li>Tiny position sizes</li>
+                                    <li>Stay very nimble</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div style="text-align: center; margin-top: 2rem;">
+                        <button id="restart-selector" style="background: rgba(255, 193, 7, 0.2); color: var(--primary-gold); border: 1px solid var(--primary-gold); padding: 1rem 2rem; border-radius: 8px; cursor: pointer; font-size: 1rem;">
+                            <i class="fas fa-redo"></i> Try Different Scenario
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="content-section">
+            <h2><i class="fas fa-exclamation-triangle"></i> Understanding High-Volatility Events</h2>
+            <p>META experiences extreme volatility during specific events that can create massive opportunities—but also significant risks. Smart traders adjust their risk management accordingly.</p>
+            
+            <div style="background: rgba(255, 68, 68, 0.1); padding: 2rem; border-radius: 12px; border-left: 4px solid #ff4444; margin: 2rem 0;">
+                <h4 style="color: #ff4444; margin-bottom: 1rem;"><i class="fas fa-exclamation-triangle"></i> Why Volatility Requires Different Risk Management</h4>
+                <p style="margin: 0; color: var(--light-text); line-height: 1.8;">During high-volatility periods, normal stop-loss distances and position sizes can lead to outsized losses. Price can gap past stops, move in violent swings, and create false signals that trap traders using standard risk parameters.</p>
+            </div>
+        </section>
+
+        <section class="content-section">
+            <h2><i class="fas fa-calendar-check"></i> High-Volatility Events to Watch</h2>
+            <p>These events typically trigger META's most volatile trading sessions:</p>
+            
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 2rem; margin: 2rem 0;">
+                <div style="background: rgba(26, 31, 46, 0.3); padding: 2rem; border-radius: 12px; border: 1px solid rgba(255, 68, 68, 0.2);">
+                    <h4 style="color: #ff4444; margin-bottom: 1.5rem; font-size: 1.2rem;"><i class="fas fa-chart-bar"></i> Earnings Releases</h4>
+                    <div style="margin-bottom: 1.5rem;">
+                        <p style="color: var(--light-text); line-height: 1.8; margin-bottom: 1rem;"><strong>Volatility Level:</strong> Extreme (±8-15% moves common)</p>
+                        <p style="color: var(--light-text); line-height: 1.8; margin-bottom: 1rem;"><strong>Duration:</strong> 24-48 hours of elevated volatility</p>
+                        <p style="color: var(--light-text); line-height: 1.8; margin: 0;"><strong>Risk Factor:</strong> Gap risk and overnight exposure</p>
+                    </div>
+                    <div style="padding: 1rem; background: rgba(255, 68, 68, 0.1); border-radius: 8px;">
+                        <small style="color: #ff4444; font-size: 0.9rem;"><strong>Recommended:</strong> Reduce position size by 50-70%</small>
+                    </div>
+                </div>
+                
+                <div style="background: rgba(26, 31, 46, 0.3); padding: 2rem; border-radius: 12px; border: 1px solid rgba(255, 193, 7, 0.2);">
+                    <h4 style="color: var(--primary-gold); margin-bottom: 1.5rem; font-size: 1.2rem;"><i class="fas fa-gavel"></i> Regulatory News</h4>
+                    <div style="margin-bottom: 1.5rem;">
+                        <p style="color: var(--light-text); line-height: 1.8; margin-bottom: 1rem;"><strong>Volatility Level:</strong> High (±3-8% moves)</p>
+                        <p style="color: var(--light-text); line-height: 1.8; margin-bottom: 1rem;"><strong>Duration:</strong> Intraday spikes with follow-through</p>
+                        <p style="color: var(--light-text); line-height: 1.8; margin: 0;"><strong>Risk Factor:</strong> Sudden directional changes</p>
+                    </div>
+                    <div style="padding: 1rem; background: rgba(255, 193, 7, 0.1); border-radius: 8px;">
+                        <small style="color: var(--primary-gold); font-size: 0.9rem;"><strong>Recommended:</strong> Reduce position size by 30-50%</small>
+                    </div>
+                </div>
+                
+                <div style="background: rgba(26, 31, 46, 0.3); padding: 2rem; border-radius: 12px; border: 1px solid rgba(138, 43, 226, 0.2);">
+                    <h4 style="color: #8a2be2; margin-bottom: 1.5rem; font-size: 1.2rem;"><i class="fas fa-newspaper"></i> Major Product Announcements</h4>
+                    <div style="margin-bottom: 1.5rem;">
+                        <p style="color: var(--light-text); line-height: 1.8; margin-bottom: 1rem;"><strong>Volatility Level:</strong> Moderate-High (±2-6% moves)</p>
+                        <p style="color: var(--light-text); line-height: 1.8; margin-bottom: 1rem;"><strong>Duration:</strong> Initial spike then stabilization</p>
+                        <p style="color: var(--light-text); line-height: 1.8; margin: 0;"><strong>Risk Factor:</strong> Market interpretation uncertainty</p>
+                    </div>
+                    <div style="padding: 1rem; background: rgba(138, 43, 226, 0.1); border-radius: 8px;">
+                        <small style="color: #8a2be2; font-size: 0.9rem;"><strong>Recommended:</strong> Reduce position size by 25-40%</small>
+                    </div>
+                </div>
+                
+                <div style="background: rgba(26, 31, 46, 0.3); padding: 2rem; border-radius: 12px; border: 1px solid rgba(0, 255, 136, 0.2);">
+                    <h4 style="color: #00ff88; margin-bottom: 1.5rem; font-size: 1.2rem;"><i class="fas fa-globe"></i> Market-Wide Events</h4>
+                    <div style="margin-bottom: 1.5rem;">
+                        <p style="color: var(--light-text); line-height: 1.8; margin-bottom: 1rem;"><strong>Volatility Level:</strong> Variable (±1-10% depending on event)</p>
+                        <p style="color: var(--light-text); line-height: 1.8; margin-bottom: 1rem;"><strong>Duration:</strong> Hours to days</p>
+                        <p style="color: var(--light-text); line-height: 1.8; margin: 0;"><strong>Risk Factor:</strong> Correlation with broader tech sector</p>
+                    </div>
+                    <div style="padding: 1rem; background: rgba(0, 255, 136, 0.1); border-radius: 8px;">
+                        <small style="color: #00ff88; font-size: 0.9rem;"><strong>Recommended:</strong> Adjust based on broader market volatility</small>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="content-section">
+            <h2><i class="fas fa-calculator"></i> Position Sizing Framework</h2>
+            <p>Adjust your position sizes based on expected volatility and event type:</p>
+            
+            <div style="background: rgba(26, 31, 46, 0.3); padding: 2.5rem; border-radius: 12px; margin: 2.5rem 0; border: 1px solid rgba(255, 193, 7, 0.2);">
+                <h4 style="color: var(--secondary-gold); margin-bottom: 2rem; text-align: center;"><i class="fas fa-calculator"></i> Position Size Calculation Matrix</h4>
+                
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 2rem;">
+                    <div style="background: rgba(26, 31, 46, 0.2); padding: 1.5rem; border-radius: 8px; border: 1px solid rgba(0, 255, 136, 0.2);">
+                        <h5 style="color: #00ff88; margin-bottom: 1rem;">Normal Trading Days</h5>
+                        <ul style="color: var(--light-text); line-height: 1.8; margin: 0; padding-left: 1rem; font-size: 0.9rem;">
+                            <li style="margin-bottom: 0.8rem;"><strong>Risk per Trade:</strong> 1-2% of account</li>
+                            <li style="margin-bottom: 0.8rem;"><strong>Position Size:</strong> Standard calculation</li>
+                            <li style="margin-bottom: 0.8rem;"><strong>Stop Distance:</strong> 2-3% for stocks, 20-30% for options</li>
+                            <li><strong>Max Positions:</strong> 3-5 concurrent trades</li>
+                        </ul>
+                    </div>
+                    
+                    <div style="background: rgba(26, 31, 46, 0.2); padding: 1.5rem; border-radius: 8px; border: 1px solid rgba(255, 193, 7, 0.2);">
+                        <h5 style="color: var(--primary-gold); margin-bottom: 1rem;">Moderate Volatility Events</h5>
+                        <ul style="color: var(--light-text); line-height: 1.8; margin: 0; padding-left: 1rem; font-size: 0.9rem;">
+                            <li style="margin-bottom: 0.8rem;"><strong>Risk per Trade:</strong> 0.5-1% of account</li>
+                            <li style="margin-bottom: 0.8rem;"><strong>Position Size:</strong> 50-75% of normal</li>
+                            <li style="margin-bottom: 0.8rem;"><strong>Stop Distance:</strong> 1.5-2% for stocks, 15-25% for options</li>
+                            <li><strong>Max Positions:</strong> 2-3 concurrent trades</li>
+                        </ul>
+                    </div>
+                    
+                    <div style="background: rgba(26, 31, 46, 0.2); padding: 1.5rem; border-radius: 8px; border: 1px solid rgba(255, 68, 68, 0.2);">
+                        <h5 style="color: #ff4444; margin-bottom: 1rem;">High Volatility Events</h5>
+                        <ul style="color: var(--light-text); line-height: 1.8; margin: 0; padding-left: 1rem; font-size: 0.9rem;">
+                            <li style="margin-bottom: 0.8rem;"><strong>Risk per Trade:</strong> 0.25-0.5% of account</li>
+                            <li style="margin-bottom: 0.8rem;"><strong>Position Size:</strong> 25-50% of normal</li>
+                            <li style="margin-bottom: 0.8rem;"><strong>Stop Distance:</strong> 1-1.5% for stocks, 10-20% for options</li>
+                            <li><strong>Max Positions:</strong> 1-2 concurrent trades</li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <div style="margin-top: 2rem; padding: 1.5rem; background: rgba(26, 31, 46, 0.1); border-radius: 8px; text-align: center;">
+                    <p style="margin: 0; color: var(--gray-text); font-size: 1rem; line-height: 1.6;"><i class="fas fa-info-circle"></i> <strong>Key Rule:</strong> Never risk more than 2% of your account on any single trade, regardless of confidence level. During high-volatility periods, this should be reduced to 0.5% or less.</p>
+                </div>
+            </div>
+        </section>
+
+        <section class="content-section">
+            <h2><i class="fas fa-shield-alt"></i> Stop-Loss Strategies for Volatile Markets</h2>
+            <p>Different stop-loss approaches work better during high-volatility periods:</p>
+            
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 2rem; margin: 2rem 0;">
+                <div style="background: rgba(26, 31, 46, 0.3); padding: 2rem; border-radius: 12px; border: 1px solid rgba(0, 255, 136, 0.2);">
+                    <h4 style="color: #00ff88; margin-bottom: 1.5rem; font-size: 1.1rem;"><i class="fas fa-shield-alt"></i> Percentage-Based Stops</h4>
+                    <div style="margin-bottom: 2rem;">
+                        <h5 style="color: var(--secondary-gold); margin-bottom: 1rem;">When to Use</h5>
+                        <ul style="color: var(--light-text); line-height: 1.8; margin: 0; padding-left: 1.2rem;">
+                            <li style="margin-bottom: 0.8rem;">High volatility with no clear technical levels</li>
+                            <li style="margin-bottom: 0.8rem;">Options trades where time decay is a factor</li>
+                            <li style="margin-bottom: 0.8rem;">When price action is erratic and unpredictable</li>
+                            <li style="margin-bottom: 0.8rem;">Earnings day and immediate aftermath</li>
+                        </ul>
+                    </div>
+                    
+                    <div style="padding: 1.5rem; background: rgba(0, 255, 136, 0.1); border-radius: 8px;">
+                        <strong style="color: #00ff88;">Recommended Levels:</strong>
+                        <p style="margin: 1rem 0 0 0; font-size: 0.95rem; line-height: 1.6;">Stocks: 1-2% loss max | Options: 15-25% loss max | Earnings Day: 0.5-1% loss max</p>
+                    </div>
+                </div>
+                
+                <div style="background: rgba(26, 31, 46, 0.3); padding: 2rem; border-radius: 12px; border: 1px solid rgba(255, 193, 7, 0.2);">
+                    <h4 style="color: var(--primary-gold); margin-bottom: 1.5rem; font-size: 1.1rem;"><i class="fas fa-chart-line"></i> Technical Level Stops</h4>
+                    <div style="margin-bottom: 2rem;">
+                        <h5 style="color: var(--secondary-gold); margin-bottom: 1rem;">When to Use</h5>
+                        <ul style="color: var(--light-text); line-height: 1.8; margin: 0; padding-left: 1.2rem;">
+                            <li style="margin-bottom: 0.8rem;">Clear support/resistance levels exist</li>
+                            <li style="margin-bottom: 0.8rem;">Post-gap trading with defined ranges</li>
+                            <li style="margin-bottom: 0.8rem;">Trend-following trades in volatile conditions</li>
+                            <li style="margin-bottom: 0.8rem;">When levels are respected by algorithms</li>
+                        </ul>
+                    </div>
+                    
+                    <div style="padding: 1.5rem; background: rgba(255, 193, 7, 0.1); border-radius: 8px;">
+                        <strong style="color: var(--primary-gold);">Key Levels:</strong>
+                        <p style="margin: 1rem 0 0 0; font-size: 0.95rem; line-height: 1.6;">Pre-market highs/lows, previous day extremes, major moving averages, and volume-weighted levels</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 2rem; margin: 2rem 0;">
+                <div style="background: rgba(26, 31, 46, 0.3); padding: 2rem; border-radius: 12px; border: 1px solid rgba(138, 43, 226, 0.2);">
+                    <h4 style="color: #8a2be2; margin-bottom: 1.5rem; font-size: 1.1rem;"><i class="fas fa-clock"></i> Time-Based Stops</h4>
+                    <div style="margin-bottom: 2rem;">
+                        <h5 style="color: var(--secondary-gold); margin-bottom: 1rem;">When to Use</h5>
+                        <ul style="color: var(--light-text); line-height: 1.8; margin: 0; padding-left: 1.2rem;">
+                            <li style="margin-bottom: 0.8rem;">Options with time decay concerns</li>
+                            <li style="margin-bottom: 0.8rem;">Event-driven trades with specific catalysts</li>
+                            <li style="margin-bottom: 0.8rem;">When volatility is expected to decrease</li>
+                            <li style="margin-bottom: 0.8rem;">Intraday scalping during news events</li>
+                        </ul>
+                    </div>
+                    
+                    <div style="padding: 1.5rem; background: rgba(138, 43, 226, 0.1); border-radius: 8px;">
+                        <strong style="color: #8a2be2;">Time Frames:</strong>
+                        <p style="margin: 1rem 0 0 0; font-size: 0.95rem; line-height: 1.6;">Earnings: 2-4 hours max | News Events: 30-60 minutes | Options: Based on theta decay</p>
+                    </div>
+                </div>
+                
+                <div style="background: rgba(26, 31, 46, 0.3); padding: 2rem; border-radius: 12px; border: 1px solid rgba(255, 68, 68, 0.2);">
+                    <h4 style="color: #ff4444; margin-bottom: 1.5rem; font-size: 1.1rem;"><i class="fas fa-bolt"></i> Volatility-Adjusted Stops</h4>
+                    <div style="margin-bottom: 2rem;">
+                        <h5 style="color: var(--secondary-gold); margin-bottom: 1rem;">When to Use</h5>
+                        <ul style="color: var(--light-text); line-height: 1.8; margin: 0; padding-left: 1.2rem;">
+                            <li style="margin-bottom: 0.8rem;">ATR (Average True Range) is elevated</li>
+                            <li style="margin-bottom: 0.8rem;">VIX is spiking above normal levels</li>
+                            <li style="margin-bottom: 0.8rem;">Implied volatility is extremely high</li>
+                            <li style="margin-bottom: 0.8rem;">Market is in panic or euphoria mode</li>
+                        </ul>
+                    </div>
+                    
+                    <div style="padding: 1.5rem; background: rgba(255, 68, 68, 0.1); border-radius: 8px;">
+                        <strong style="color: #ff4444;">Calculation:</strong>
+                        <p style="margin: 1rem 0 0 0; font-size: 0.95rem; line-height: 1.6;">Stop = Entry ± (Current ATR × 0.5-1.0) | Adjust multiplier based on volatility level</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="content-section">
+            <h2><i class="fas fa-moon"></i> Pre-Market & After-Hours Risk Management</h2>
+            <p>Extended hours trading during volatile periods requires special consideration:</p>
+            
+            <div style="background: rgba(26, 31, 46, 0.3); padding: 2.5rem; border-radius: 12px; margin: 2.5rem 0; border: 1px solid rgba(255, 68, 68, 0.2);">
+                <h4 style="color: #ff4444; margin-bottom: 2rem; text-align: center;"><i class="fas fa-moon"></i> Extended Hours Trading Risks</h4>
+                
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 2rem;">
+                    <div style="background: rgba(26, 31, 46, 0.2); padding: 1.5rem; border-radius: 8px;">
+                        <h5 style="color: var(--secondary-gold); margin-bottom: 1rem;"><i class="fas fa-tint"></i> Liquidity Issues</h5>
+                        <ul style="color: var(--light-text); line-height: 1.6; margin: 0; padding-left: 1rem; font-size: 0.9rem;">
+                            <li style="margin-bottom: 0.8rem;">Wider bid-ask spreads</li>
+                            <li style="margin-bottom: 0.8rem;">Reduced volume and participation</li>
+                            <li style="margin-bottom: 0.8rem;">Slippage on market orders</li>
+                            <li>Difficulty executing at desired prices</li>
+                        </ul>
+                    </div>
+                    
+                    <div style="background: rgba(26, 31, 46, 0.2); padding: 1.5rem; border-radius: 8px;">
+                        <h5 style="color: var(--secondary-gold); margin-bottom: 1rem;"><i class="fas fa-gap"></i> Gap Risk</h5>
+                        <ul style="color: var(--light-text); line-height: 1.6; margin: 0; padding-left: 1rem; font-size: 0.9rem;">
+                            <li style="margin-bottom: 0.8rem;">Price gaps past stop levels</li>
+                            <li style="margin-bottom: 0.8rem;">Overnight news can cause large moves</li>
+                            <li style="margin-bottom: 0.8rem;">Stop-loss orders may not execute at expected prices</li>
+                            <li>Limited ability to react to sudden changes</li>
+                        </ul>
+                    </div>
+                    
+                    <div style="background: rgba(26, 31, 46, 0.2); padding: 1.5rem; border-radius: 8px;">
+                        <h5 style="color: var(--secondary-gold); margin-bottom: 1rem;"><i class="fas fa-shield-alt"></i> Risk Mitigation</h5>
+                        <ul style="color: var(--light-text); line-height: 1.6; margin: 0; padding-left: 1rem; font-size: 0.9rem;">
+                            <li style="margin-bottom: 0.8rem;">Use limit orders instead of market orders</li>
+                            <li style="margin-bottom: 0.8rem;">Reduce position sizes by 50-75%</li>
+                            <li style="margin-bottom: 0.8rem;">Set alerts instead of holding overnight</li>
+                            <li>Consider options strategies for defined risk</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="content-section">
+            <h2><i class="fas fa-book-open"></i> Practical Examples & Case Studies</h2>
+            <p>Real-world examples of how proper risk management saves accounts during volatile periods:</p>
+            
+            <div style="background: rgba(26, 31, 46, 0.3); padding: 2.5rem; border-radius: 12px; border: 1px solid rgba(255, 193, 7, 0.2);">
+                <h4 style="color: var(--secondary-gold); margin-bottom: 2rem; font-size: 1.2rem;">Case Study: META Earnings Volatility</h4>
+                <div style="display: grid; grid-template-columns: 1fr; gap: 1.5rem;">
+                    <div style="background: rgba(26, 31, 46, 0.2); padding: 1.5rem; border-radius: 8px; border-left: 4px solid #00ff88;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                            <h5 style="color: #00ff88; margin: 0;">Proper Risk Management Example</h5>
+                            <span style="color: var(--gray-text); font-size: 0.9rem;">Q1 2024 Earnings</span>
+                        </div>
+                        <p style="color: var(--light-text); margin-bottom: 1rem; line-height: 1.6;"><strong>Setup:</strong> Trader A reduced position size to 0.5% risk, used 1% stop-loss on stock position, and set time-based exit after 2 hours.</p>
+                        <p style="color: var(--light-text); margin-bottom: 1rem; line-height: 1.6;"><strong>Result:</strong> META gapped down 4% then recovered +6%. Small loss on initial position, profitable re-entry on reversal.</p>
+                        <div style="color: var(--gray-text); font-size: 0.9rem;"><strong>Outcome:</strong> +2.3% gain overall due to controlled risk and quick adaptation.</div>
+                    </div>
+                    
+                    <div style="background: rgba(26, 31, 46, 0.2); padding: 1.5rem; border-radius: 8px; border-left: 4px solid #ff4444;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                            <h5 style="color: #ff4444; margin: 0;">Poor Risk Management Example</h5>
+                            <span style="color: var(--gray-text); font-size: 0.9rem;">Q1 2024 Earnings</span>
+                        </div>
+                        <p style="color: var(--light-text); margin-bottom: 1rem; line-height: 1.6;"><strong>Setup:</strong> Trader B used normal 2% risk, 3% stop-loss, and held position overnight hoping for gap-up.</p>
+                        <p style="color: var(--light-text); margin-bottom: 1rem; line-height: 1.6;"><strong>Result:</strong> Same META earnings move but wider stops and larger position meant bigger initial loss, missed reversal opportunity.</p>
+                        <div style="color: var(--gray-text); font-size: 0.9rem;"><strong>Outcome:</strong> -2.8% loss due to oversized position and inflexible risk management.</div>
+                    </div>
+                </div>
+                
+                <div style="margin-top: 2rem; padding: 1.5rem; background: rgba(26, 31, 46, 0.1); border-radius: 8px; text-align: center;">
+                    <p style="margin: 0; color: var(--gray-text); font-size: 1rem; line-height: 1.6;"><i class="fas fa-chart-bar"></i> <strong>Key Takeaway:</strong> The difference between success and failure during volatile periods often comes down to position sizing and stop placement, not market timing or stock picking ability.</p>
+                </div>
+            </div>
+        </section>
+
+
+
+    </div>
+
+    <!-- Floating CTA -->
+    <div class="floating-cta">
+        <a href="../../book-demo.html" class="cta-button">
+            <i class="fas fa-rocket"></i> Get META Signals
+        </a>
+    </div>
+
+    <!-- Footer -->
+    <footer>
+        <p>&copy; 2025 BlueChip Signals. All rights reserved. | <a href="../../legal.html" style="color: var(--primary-gold); text-decoration: none;">Legal Disclaimer</a></p>
+        <div class="social-media">
+            <a href="https://www.tiktok.com/@bluechip.signals" target="_blank"><i class="fab fa-tiktok"></i></a>
+            <a href="https://www.instagram.com/bluechip.signals/" target="_blank"><i class="fab fa-instagram"></i></a>
+        </div>
+    </footer>
+    <script>
+        const hamburgerMenu = document.querySelector('.hamburger-menu');
+        const mobileNav = document.querySelector('.nav-links');
+
+        hamburgerMenu.addEventListener('click', () => {
+            mobileNav.classList.toggle('active');
+        });
+
+        // Stop-Loss Strategy Selector Logic
+        document.addEventListener('DOMContentLoaded', function() {
+            const questions = document.querySelectorAll('.question');
+            const results = document.querySelectorAll('.result');
+            const questionContainer = document.getElementById('question-container');
+            const resultsContainer = document.getElementById('results-container');
+            const restartButton = document.getElementById('restart-selector');
+
+            // Add CSS styles for the selector
+            const style = document.createElement('style');
+            style.textContent = `
+                .selector-btn {
+                    background: rgba(26, 31, 46, 0.3);
+                    border: 1px solid rgba(255, 193, 7, 0.3);
+                    color: var(--light-text);
+                    padding: 1.5rem;
+                    border-radius: 12px;
+                    cursor: pointer;
+                    transition: all 0.3s ease;
+                    text-align: center;
+                    display: flex;
+                    flex-direction: column;
+                    align-items: center;
+                    gap: 0.8rem;
+                    min-height: 120px;
+                    justify-content: center;
+                }
+
+                .selector-btn:hover {
+                    background: rgba(255, 193, 7, 0.1);
+                    border-color: var(--primary-gold);
+                    transform: translateY(-2px);
+                    box-shadow: 0 8px 25px rgba(255, 193, 7, 0.2);
+                }
+
+                .selector-btn i {
+                    font-size: 1.8rem;
+                    margin-bottom: 0.5rem;
+                }
+
+                .selector-btn strong {
+                    font-size: 1.1rem;
+                    color: var(--primary-gold);
+                    margin-bottom: 0.3rem;
+                }
+
+                .selector-btn small {
+                    font-size: 0.85rem;
+                    color: var(--gray-text);
+                    line-height: 1.4;
+                }
+
+                .question {
+                    display: none;
+                    animation: fadeIn 0.5s ease-in-out;
+                }
+
+                .question.active {
+                    display: block;
+                }
+
+                .result {
+                    display: none;
+                    animation: slideIn 0.6s ease-out;
+                }
+
+                .result.active {
+                    display: block;
+                }
+
+                @keyframes fadeIn {
+                    from { opacity: 0; transform: translateY(20px); }
+                    to { opacity: 1; transform: translateY(0); }
+                }
+
+                @keyframes slideIn {
+                    from { opacity: 0; transform: translateX(-30px); }
+                    to { opacity: 1; transform: translateX(0); }
+                }
+
+                #restart-selector:hover {
+                    background: rgba(255, 193, 7, 0.3);
+                    transform: translateY(-2px);
+                    box-shadow: 0 5px 15px rgba(255, 193, 7, 0.3);
+                }
+            `;
+            document.head.appendChild(style);
+
+            // Handle button clicks
+            document.addEventListener('click', function(e) {
+                if (e.target.classList.contains('selector-btn') || e.target.closest('.selector-btn')) {
+                    const button = e.target.classList.contains('selector-btn') ? e.target : e.target.closest('.selector-btn');
+                    const nextStep = button.getAttribute('data-next');
+                    
+                    // Hide current question
+                    const currentQuestion = document.querySelector('.question.active');
+                    if (currentQuestion) {
+                        currentQuestion.classList.remove('active');
+                    }
+                    
+                    // Show next question or result
+                    if (nextStep.startsWith('result-')) {
+                        // Show result
+                        questionContainer.style.display = 'none';
+                        resultsContainer.style.display = 'block';
+                        
+                        // Hide all results first
+                        results.forEach(result => result.classList.remove('active'));
+                        
+                        // Show specific result
+                        const targetResult = document.querySelector(`[data-result="${nextStep}"]`);
+                        if (targetResult) {
+                            targetResult.classList.add('active');
+                        }
+                    } else {
+                        // Show next question
+                        const nextQuestion = document.querySelector(`[data-question="${nextStep}"]`);
+                        if (nextQuestion) {
+                            nextQuestion.classList.add('active');
+                        }
+                    }
+                }
+            });
+
+            // Handle restart button
+            restartButton.addEventListener('click', function() {
+                // Hide results and show questions
+                resultsContainer.style.display = 'none';
+                questionContainer.style.display = 'block';
+                
+                // Hide all questions
+                questions.forEach(q => q.classList.remove('active'));
+                results.forEach(r => r.classList.remove('active'));
+                
+                // Show first question
+                const firstQuestion = document.querySelector('[data-question="1"]');
+                if (firstQuestion) {
+                    firstQuestion.classList.add('active');
+                }
+            });
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,553 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SPY Support & Resistance Calculator | BlueChip Signals</title>
+    <link rel="icon" type="image/png" href="../../assets/images/logo.png">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="../../assets/css/bot-style.css?v=1751139967">
+    <script>
+        // Redirect non-logged-in users to book demo page
+        (function() {
+            const isLoggedIn = localStorage.getItem('bluechip_logged_in') || sessionStorage.getItem('bluechip_logged_in');
+            if (!isLoggedIn) {
+                window.location.href = '../../book-demo.html';
+            }
+        })();
+    </script>
+    <style>
+        :root {
+            --primary-gold: #b3a17d;
+            --secondary-gold: #E2CFB5;
+            --dark-bg: #080B0F;
+            --darker-bg: #050810;
+            --light-text: #FFFFFF;
+            --gray-text: #A0A0A0;
+            --field-bg: #0a0e1a;
+        }
+
+        body {
+            background: var(--darker-bg);
+            color: var(--light-text);
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        }
+
+        .guide-hero {
+            margin-top: 100px;
+            padding: 4rem 2rem 3rem;
+            text-align: center;
+            background: radial-gradient(circle at 50% 50%, rgba(201, 176, 55, 0.15), transparent 70%);
+            position: relative;
+        }
+
+        .guide-hero::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: radial-gradient(circle at 30% 40%, rgba(201, 176, 55, 0.08), transparent 50%);
+            z-index: 0;
+        }
+
+        .guide-hero-content {
+            max-width: 900px;
+            margin: 0 auto;
+            position: relative;
+            z-index: 1;
+        }
+
+        .guide-badge {
+            display: inline-block;
+            background: linear-gradient(135deg, var(--primary-gold), var(--secondary-gold));
+            color: var(--darker-bg);
+            padding: 0.4rem 1.2rem;
+            border-radius: 20px;
+            font-weight: 700;
+            font-size: 0.8rem;
+            letter-spacing: 1px;
+            margin-bottom: 1.5rem;
+            text-transform: uppercase;
+        }
+
+        .guide-title {
+            font-size: 2.8rem;
+            font-weight: 800;
+            margin: 0 0 1rem 0;
+            line-height: 1.2;
+            color: var(--light-text);
+        }
+
+        .guide-subtitle {
+            font-size: 1.2rem;
+            color: var(--gray-text);
+            line-height: 1.6;
+            margin: 0;
+        }
+
+        .guide-content {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 3rem 2rem;
+        }
+
+        .content-section {
+            background: var(--dark-bg);
+            border: 1px solid rgba(201, 176, 55, 0.2);
+            border-radius: 15px;
+            padding: 2.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .content-section h2 {
+            color: var(--primary-gold);
+            font-size: 1.8rem;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .content-section h2 i {
+            font-size: 1.5rem;
+        }
+
+        .content-section h3 {
+            color: var(--light-text);
+            font-size: 1.4rem;
+            margin-bottom: 1rem;
+        }
+
+        .content-section p {
+            color: var(--gray-text);
+            line-height: 1.8;
+            margin-bottom: 1rem;
+        }
+
+        .content-section ul {
+            list-style: none;
+            padding: 0;
+            margin: 1.5rem 0;
+        }
+
+        .content-section ul li {
+            color: var(--gray-text);
+            line-height: 1.8;
+            margin-bottom: 1rem;
+            padding-left: 2rem;
+            position: relative;
+        }
+
+        .content-section ul li::before {
+            content: "→";
+            position: absolute;
+            left: 0;
+            color: var(--primary-gold);
+            font-weight: 700;
+        }
+
+        .content-section ul li strong {
+            color: var(--light-text);
+        }
+
+        /* Calculator Styling */
+        .calculator-section {
+            background: var(--dark-bg);
+            border: 1px solid rgba(201, 176, 55, 0.2);
+            border-radius: 15px;
+            padding: 2.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .calculator-section h2 {
+            color: var(--primary-gold);
+            font-size: 1.8rem;
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .calculator-inputs {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
+            margin: 1.5rem 0;
+        }
+
+        .calculator-single {
+            max-width: 300px;
+            margin: 0 auto;
+        }
+
+        .input-group {
+            width: 100%;
+        }
+
+        .input-group label {
+            display: block;
+            color: var(--gray-text);
+            margin-bottom: 0.5rem;
+            font-size: 0.95rem;
+            font-weight: 500;
+        }
+
+        .input-group input {
+            width: 100%;
+            padding: 1rem;
+            background: var(--field-bg);
+            border: 1px solid rgba(201, 176, 55, 0.3);
+            border-radius: 8px;
+            color: var(--light-text);
+            font-size: 1.1rem;
+            box-sizing: border-box;
+            transition: all 0.3s ease;
+        }
+
+        .input-group input:focus {
+            outline: none;
+            border-color: var(--primary-gold);
+            box-shadow: 0 0 0 3px rgba(201, 176, 55, 0.1);
+        }
+
+        .calculate-btn {
+            background: linear-gradient(135deg, var(--primary-gold), var(--secondary-gold));
+            color: var(--darker-bg);
+            border: none;
+            padding: 0.9rem 2.5rem;
+            border-radius: 8px;
+            font-weight: 700;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin: 1.5rem 0;
+        }
+
+        .calculate-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(201, 176, 55, 0.3);
+        }
+
+        .results-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
+            margin-top: 2rem;
+        }
+
+        .results-column h4 {
+            color: var(--primary-gold);
+            margin-bottom: 1rem;
+            font-size: 1.2rem;
+        }
+
+        .results-box {
+            background: rgba(26, 31, 46, 0.5);
+            padding: 1.25rem;
+            border-radius: 8px;
+            border: 1px solid rgba(201, 176, 55, 0.15);
+        }
+
+        .level-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 0.75rem;
+            color: var(--gray-text);
+        }
+
+        .level-row:last-child {
+            margin-bottom: 0;
+        }
+
+        .level-value {
+            color: var(--primary-gold);
+            font-weight: 700;
+        }
+
+        .pivot-box {
+            text-align: center;
+            margin-top: 1.5rem;
+            padding: 1.25rem;
+            background: rgba(26, 31, 46, 0.3);
+            border-radius: 8px;
+            border: 1px solid rgba(201, 176, 55, 0.2);
+        }
+
+        .pivot-box span:first-child {
+            color: var(--gray-text);
+            margin-right: 0.75rem;
+        }
+
+        .pivot-value {
+            color: var(--primary-gold);
+            font-weight: 700;
+            font-size: 1.2rem;
+        }
+
+        .login-btn {
+            background: linear-gradient(135deg, var(--primary-gold), var(--secondary-gold)) !important;
+            color: var(--darker-bg) !important;
+            padding: 0.5rem 1.2rem;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 0.95rem;
+            transition: transform 0.3s, box-shadow 0.3s;
+            display: inline-block;
+        }
+
+        .login-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(201, 176, 55, 0.3);
+            color: var(--darker-bg) !important;
+        }
+
+        .back-button {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--primary-gold);
+            text-decoration: none;
+            font-weight: 600;
+            margin-bottom: 2rem;
+            transition: all 0.3s ease;
+        }
+
+        .back-button:hover {
+            transform: translateX(-5px);
+        }
+
+        @media (max-width: 768px) {
+            .guide-title {
+                font-size: 2rem;
+            }
+
+            .guide-subtitle {
+                font-size: 1rem;
+            }
+
+            .content-section {
+                padding: 1.5rem;
+            }
+
+            .calculator-inputs {
+                grid-template-columns: 1fr;
+            }
+
+            .results-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav>
+        <div class="nav-container">
+            <div class="logo">
+                <a href="../../index.html"><img src="../../assets/images/logo.png" alt="BlueChip Signals Logo"></a>
+            </div>
+            <div class="hamburger-menu">
+                <div class="bar"></div>
+                <div class="bar"></div>
+                <div class="bar"></div>
+            </div>
+            <ul class="nav-links">
+                <li><a href="../../index.html#features">Features</a></li>
+                <li><a href="../../index.html#bots">Supported Stocks</a></li>
+                <li><a href="../../book-demo.html">Book a Demo</a></li>
+                <li><a href="../../faq.html">FAQ</a></li>
+                <li><a href="../../legal.html">Legal Disclaimer</a></li>
+                <li><a href="../../about.html">About Us</a></li>
+                <li><a href="../../login.html" class="login-btn"><i class="fas fa-sign-in-alt"></i> Login</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="guide-hero">
+        <div class="guide-hero-content">
+            <div class="guide-badge">SPY Trading Guide</div>
+            <h1 class="guide-title">Support & Resistance Calculator</h1>
+            <p class="guide-subtitle">Master the art of identifying critical price zones where SPY reverses or breaks through.</p>
+        </div>
+    </section>
+
+    <!-- Guide Content -->
+    <div class="guide-content">
+        <a href="../bots/spy-bot.html" class="back-button">
+            <i class="fas fa-arrow-left"></i> Back to SPY Signals
+        </a>
+
+        <!-- Calculator -->
+        <div class="calculator-section">
+            <h2><i class="fas fa-calculator"></i> S/R Level Calculator</h2>
+            <p style="color: var(--gray-text); margin-bottom: 1.5rem;">Enter recent price data to calculate pivot points and key support/resistance levels:</p>
+            
+            <div class="calculator-inputs">
+                <div class="input-group">
+                    <label for="high-input">Previous High</label>
+                    <input type="number" id="high-input" step="0.01" placeholder="e.g. 425.50">
+                </div>
+                <div class="input-group">
+                    <label for="low-input">Previous Low</label>
+                    <input type="number" id="low-input" step="0.01" placeholder="e.g. 420.25">
+                </div>
+            </div>
+            
+            <div class="calculator-single">
+                <div class="input-group">
+                    <label for="close-input">Previous Close</label>
+                    <input type="number" id="close-input" step="0.01" placeholder="e.g. 423.75">
+                </div>
+            </div>
+            
+            <div style="text-align: center;">
+                <button id="calculate-btn" class="calculate-btn">
+                    <i class="fas fa-chart-line"></i> Calculate Levels
+                </button>
+            </div>
+            
+            <div id="sr-results" style="display: none;">
+                <div class="results-grid">
+                    <div class="results-column">
+                        <h4><i class="fas fa-arrow-down"></i> Support Levels</h4>
+                        <div class="results-box">
+                            <div class="level-row">
+                                <span>Support 1:</span>
+                                <span id="s1-value" class="level-value">--</span>
+                            </div>
+                            <div class="level-row">
+                                <span>Support 2:</span>
+                                <span id="s2-value" class="level-value">--</span>
+                            </div>
+                            <div class="level-row">
+                                <span>Support 3:</span>
+                                <span id="s3-value" class="level-value">--</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="results-column">
+                        <h4><i class="fas fa-arrow-up"></i> Resistance Levels</h4>
+                        <div class="results-box">
+                            <div class="level-row">
+                                <span>Resistance 1:</span>
+                                <span id="r1-value" class="level-value">--</span>
+                            </div>
+                            <div class="level-row">
+                                <span>Resistance 2:</span>
+                                <span id="r2-value" class="level-value">--</span>
+                            </div>
+                            <div class="level-row">
+                                <span>Resistance 3:</span>
+                                <span id="r3-value" class="level-value">--</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="pivot-box">
+                    <span>Pivot Point:</span>
+                    <span id="pivot-value" class="pivot-value">--</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Why Levels Matter -->
+        <section class="content-section">
+            <h2><i class="fas fa-bullseye"></i> What Makes Levels Matter</h2>
+            <p>Support and resistance aren't just lines on a chart—they're psychological battlegrounds where buyers and sellers clash. Our signals target flips of key daily and weekly support/resistance levels. When a previous support level breaks, it often becomes new resistance, and vice versa.</p>
+            
+            <ul>
+                <li><strong>Volume Confirmation:</strong> High-volume breaks are more reliable than low-volume fakeouts. Look for 50%+ above average volume on breakouts.</li>
+                <li><strong>Multiple Touches:</strong> Levels tested 3+ times gain significance and attract more trader attention—making the eventual break or bounce more powerful.</li>
+                <li><strong>Round Numbers:</strong> SPY 400, 420, 450—psychological levels where algorithms and retail traders cluster orders, creating strong support/resistance.</li>
+                <li><strong>Time Spent at Levels:</strong> The longer price consolidates at a level, the more significant the eventual breakout or breakdown becomes.</li>
+            </ul>
+        </section>
+
+        <!-- Daily vs Weekly -->
+        <section class="content-section">
+            <h2><i class="fas fa-calendar-alt"></i> Daily vs. Weekly Levels</h2>
+            <p>Different timeframes reveal different opportunities and require different trading approaches:</p>
+            
+            <ul>
+                <li><strong>Daily Support/Resistance:</strong> Previous day's high/low, pivot points, and intraday swing levels. Best for 0DTE scalps and same-day momentum reversals.</li>
+                <li><strong>Weekly Levels:</strong> Prior week's range, monthly opens, quarterly levels. These hold more weight for multi-day swings and position trades.</li>
+                <li><strong>Gap Fills:</strong> SPY has a strong tendency to fill overnight gaps. Mark gap levels as potential price magnets within 1-5 trading sessions.</li>
+                <li><strong>Moving Averages:</strong> 20-day, 50-day, and 200-day MAs act as dynamic support/resistance, especially effective during pullbacks in trends.</li>
+                <li><strong>VWAP Levels:</strong> Volume-weighted average price serves as intraday support/resistance—price above VWAP is bullish, below is bearish.</li>
+            </ul>
+        </section>
+
+        <!-- Role Reversal -->
+        <section class="content-section">
+            <h2><i class="fas fa-exchange-alt"></i> Role Reversal Strategy</h2>
+            <p>The bread and butter of support/resistance trading—when levels flip roles and create high-probability setups:</p>
+            
+            <ul>
+                <li><strong>Broken Support → New Resistance:</strong> SPY breaks below 420 support on volume? Watch for bounces back to 420 to fail as new resistance—perfect short entry.</li>
+                <li><strong>Cleared Resistance → New Support:</strong> SPY powers through 430 resistance? Look for dips back to 430 to hold as new support—ideal long entry on retest.</li>
+                <li><strong>Retest Timing:</strong> Most role reversals happen within 1-3 trading sessions. After that, the level loses potency and becomes less reliable.</li>
+                <li><strong>Volume Pattern:</strong> Strong breakouts should see declining volume on retests—this shows conviction in the new direction and validates the role reversal.</li>
+                <li><strong>Confirmation Candle:</strong> Wait for a strong rejection candle (long wick) at the retested level before entering—confirms the level is holding its new role.</li>
+            </ul>
+        </section>
+
+        <!-- Tools & Setup -->
+        <section class="content-section">
+            <h2><i class="fas fa-tools"></i> Essential S/R Tools</h2>
+            <p>Mark these critical levels on your SPY charts every trading day:</p>
+            
+            <ul>
+                <li><strong>Previous Day High/Low:</strong> Most watched intraday levels by institutional traders. Clean breaks often signal strong continuation moves.</li>
+                <li><strong>Weekly Pivot Points:</strong> Calculated as (H+L+C)/3 from prior week. Classic institutional reference points used by market makers.</li>
+                <li><strong>Gap Levels:</strong> Mark any overnight gaps >0.5%. SPY has a 70%+ gap fill rate within 5 sessions—high-probability mean reversion trades.</li>
+                <li><strong>Volume Profile:</strong> Identify high-volume nodes (HVN) and low-volume nodes (LVN) for stronger support/resistance zones where institutions accumulated.</li>
+                <li><strong>Options Strikes:</strong> Check max pain levels and high open interest strikes—these act as price magnets near monthly expiration (OpEx).</li>
+                <li><strong>Fibonacci Retracements:</strong> 38.2%, 50%, and 61.8% retracements of major moves often coincide with strong support/resistance levels.</li>
+            </ul>
+        </section>
+
+        <!-- Pro Tips -->
+        <section class="content-section">
+            <h2><i class="fas fa-lightbulb"></i> Pro Trading Tips</h2>
+            <ul>
+                <li><strong>Confluence Zones:</strong> The most powerful levels have multiple factors aligning—pivot point + 50 MA + round number = high-probability zone.</li>
+                <li><strong>False Breakouts:</strong> 30% of breakouts fail. Wait for a retest or second breakout attempt before committing large size.</li>
+                <li><strong>Premarket Levels:</strong> Watch how SPY reacts to key levels in premarket—acceptance above/below often predicts regular session direction.</li>
+                <li><strong>Options Flow:</strong> Large call walls create resistance, large put walls create support. Track unusual options activity at key strikes.</li>
+                <li><strong>Market Structure:</strong> Higher highs + higher lows = uptrend (buy support). Lower highs + lower lows = downtrend (sell resistance).</li>
+            </ul>
+        </section>
+    </div>
+
+    <!-- Floating CTA -->
+    <div class="floating-cta">
+        <a href="../../book-demo.html" class="cta-button">
+            <i class="fas fa-rocket"></i> Get SPY Signals
+        </a>
+    </div>
+
+    <!-- Footer -->
+    <footer>
+        <p>&copy; 2025 BlueChip Signals. All rights reserved. | <a href="../../legal.html" style="color: var(--primary-gold); text-decoration: none;">Legal Disclaimer</a></p>
+        <div class="social-media">
+            <a href="https://www.tiktok.com/@bluechip.signals" target="_blank"><i class="fab fa-tiktok"></i></a>
+            <a href="https://www.instagram.com/bluechip.signals/" target="_blank"><i class="fab fa-instagram"></i></a>
+        </div>
+    </footer>
+
+    <script>
+        const hamburgerMenu = document.querySelector('.hamburger-menu');
+        const mobileNav = document.querySelector('.nav-links');
+
+        hamburgerMenu.addEventListener('click', () => {
+            mobileNav.classList.toggle('active');
+        });
+    </script>
+    <script src="../../assets/js/sr-calculator.js" defer></script>
+</body>
+</html>
+
+</html> 

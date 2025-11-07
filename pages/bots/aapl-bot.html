@@ -1,0 +1,1042 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AAPL Signals - Trade Apple Stock | BlueChip Signals</title>
+    <link rel="icon" type="image/png" href="../../assets/images/logo.png">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="../../assets/css/bot-style.css?v=1751139967">
+    <style>
+        /* On-Brand Styling */
+        :root {
+            --primary-gold: #b3a17d;
+            --secondary-gold: #E2CFB5;
+            --dark-bg: #080B0F;
+            --darker-bg: #050810;
+            --light-text: #FFFFFF;
+            --gray-text: #A0A0A0;
+        }
+
+        .aapl-hero-section {
+            margin-top: 100px;
+            padding: 4rem 2rem;
+            text-align: center;
+            background: radial-gradient(circle at 50% 50%, rgba(201, 176, 55, 0.15), transparent 70%);
+            position: relative;
+        }
+
+        .aapl-hero-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: radial-gradient(circle at 30% 40%, rgba(201, 176, 55, 0.08), transparent 50%);
+            z-index: 0;
+        }
+
+        .aapl-hero-content {
+            position: relative;
+            z-index: 1;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .aapl-badge {
+            display: inline-block;
+            background: linear-gradient(135deg, var(--primary-gold), var(--secondary-gold));
+            color: var(--darker-bg);
+            padding: 0.5rem 1.5rem;
+            border-radius: 25px;
+            font-weight: 700;
+            font-size: 0.85rem;
+            letter-spacing: 1px;
+            margin-bottom: 1.5rem;
+            text-transform: uppercase;
+        }
+
+        .aapl-hero-title {
+            font-size: 3.5rem;
+            font-weight: 800;
+            margin: 0 0 1rem 0;
+            line-height: 1.2;
+            background: linear-gradient(135deg, var(--primary-gold), var(--secondary-gold));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .aapl-hero-subtitle {
+            font-size: 1.3rem;
+            color: var(--primary-gold);
+            margin-bottom: 1rem;
+            font-weight: 600;
+        }
+
+        .aapl-hero-description {
+            font-size: 1.1rem;
+            color: var(--gray-text);
+            max-width: 800px;
+            margin: 0 auto 1rem;
+            line-height: 1.7;
+        }
+
+        /* Key Metrics Grid */
+        .aapl-metrics {
+            max-width: 1200px;
+            margin: -2rem auto 3rem;
+            padding: 0 2rem;
+            position: relative;
+            z-index: 2;
+        }
+
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .metric-card {
+            background: var(--dark-bg);
+            border: 1px solid rgba(201, 176, 55, 0.2);
+            border-radius: 15px;
+            padding: 2rem;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+
+        .metric-card:hover {
+            transform: translateY(-5px);
+            border-color: var(--primary-gold);
+            box-shadow: 0 10px 30px rgba(201, 176, 55, 0.2);
+        }
+
+        .metric-card .icon {
+            font-size: 2.5rem;
+            color: var(--primary-gold);
+            margin-bottom: 1rem;
+        }
+
+        .metric-card .value {
+            font-size: 2.2rem;
+            font-weight: 800;
+            color: var(--light-text);
+            margin-bottom: 0.5rem;
+        }
+
+        .metric-card .label {
+            font-size: 0.95rem;
+            color: var(--gray-text);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        /* Why AAPL Section */
+        .why-aapl-section {
+            max-width: 1200px;
+            margin: 0 auto 4rem;
+            padding: 0 2rem;
+        }
+
+        .why-aapl-content {
+            background: var(--dark-bg);
+            border: 1px solid rgba(201, 176, 55, 0.2);
+            border-radius: 15px;
+            padding: 3rem;
+        }
+
+        .why-aapl-content h2 {
+            color: var(--primary-gold);
+            font-size: 2.2rem;
+            margin-bottom: 1.5rem;
+            text-align: center;
+        }
+
+        .why-aapl-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 2rem;
+            margin-top: 2rem;
+        }
+
+        .why-aapl-item {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .why-aapl-item .icon {
+            flex-shrink: 0;
+            width: 50px;
+            height: 50px;
+            background: rgba(201, 176, 55, 0.1);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--primary-gold);
+            font-size: 1.5rem;
+        }
+
+        .why-aapl-item .content h3 {
+            color: var(--light-text);
+            font-size: 1.2rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .why-aapl-item .content p {
+            color: var(--gray-text);
+            line-height: 1.6;
+            font-size: 0.95rem;
+        }
+
+        /* Signal Example Section */
+        .signal-example-section {
+            max-width: 1200px;
+            margin: 0 auto 4rem;
+            padding: 0 2rem;
+        }
+
+        .signal-example-section h2 {
+            color: var(--primary-gold);
+            font-size: 2.2rem;
+            margin-bottom: 1rem;
+            text-align: center;
+        }
+
+        .signal-example-section .subtitle {
+            text-align: center;
+            color: var(--gray-text);
+            font-size: 1.1rem;
+            margin-bottom: 3rem;
+        }
+
+        .signal-mockup-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 3rem;
+            flex-wrap: wrap;
+        }
+
+        .phone-mockup-aapl {
+            position: relative;
+            width: 340px;
+            height: 680px;
+            background: linear-gradient(135deg, #1a1f2e 0%, #0a0e1a 100%);
+            border-radius: 40px;
+            padding: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5),
+                        0 0 0 12px #0a0e1a,
+                        0 0 0 14px rgba(201, 176, 55, 0.3);
+        }
+
+        .phone-screen {
+            width: 100%;
+            height: 100%;
+            background: #0f1419;
+            border-radius: 30px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .telegram-header {
+            background: #1c2533;
+            padding: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            border-bottom: 1px solid rgba(201, 176, 55, 0.2);
+        }
+
+        .telegram-header img {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+        }
+
+        .telegram-header .channel-info h3 {
+            color: #fff;
+            font-size: 1rem;
+            margin: 0;
+        }
+
+        .telegram-header .channel-info p {
+            color: var(--gray-text);
+            font-size: 0.85rem;
+            margin: 0;
+        }
+
+        .telegram-message {
+            padding: 1.5rem;
+        }
+
+        .aapl-signal-card {
+            background: var(--dark-bg);
+            border: 1px solid rgba(201, 176, 55, 0.3);
+            border-radius: 15px;
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .signal-header-mock {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid rgba(201, 176, 55, 0.2);
+        }
+
+        .signal-icon-mock {
+            width: 50px;
+            height: 50px;
+            background: rgba(179, 161, 125, 0.15);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            color: var(--primary-gold);
+        }
+
+        .signal-title-mock h4 {
+            color: var(--primary-gold);
+            font-size: 1.3rem;
+            margin: 0 0 0.25rem 0;
+            font-weight: 700;
+        }
+
+        .signal-title-mock p {
+            color: var(--gray-text);
+            font-size: 0.9rem;
+            margin: 0;
+        }
+
+        .signal-data-mock {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .data-item-mock {
+            background: rgba(201, 176, 55, 0.05);
+            padding: 0.75rem;
+            border-radius: 8px;
+        }
+
+        .data-item-mock label {
+            color: var(--gray-text);
+            font-size: 0.7rem;
+            display: block;
+            margin-bottom: 0.25rem;
+        }
+
+        .data-item-mock strong {
+            color: #fff;
+            font-size: 0.95rem;
+        }
+
+        .contract-info-mock {
+            background: rgba(179, 161, 125, 0.1);
+            border: 1px solid rgba(201, 176, 55, 0.2);
+            border-radius: 10px;
+            padding: 1rem;
+            margin-top: 1rem;
+        }
+
+        .contract-info-mock h5 {
+            color: var(--primary-gold);
+            font-size: 0.95rem;
+            margin: 0 0 0.75rem 0;
+            font-weight: 600;
+        }
+
+        .contract-details-mock {
+            display: flex;
+            justify-content: space-between;
+            gap: 1rem;
+        }
+
+        .contract-details-mock div {
+            flex: 1;
+        }
+
+        .contract-details-mock label {
+            color: var(--gray-text);
+            font-size: 0.65rem;
+            display: block;
+            margin-bottom: 0.25rem;
+        }
+
+        .contract-details-mock strong {
+            color: #fff;
+            font-size: 0.85rem;
+            white-space: nowrap;
+        }
+
+        .telegram-footer {
+            text-align: center;
+            padding: 1rem;
+            color: var(--gray-text);
+            font-size: 0.85rem;
+        }
+
+        .signal-features {
+            flex: 1;
+            min-width: 300px;
+        }
+
+        .feature-list-mock {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .feature-list-mock li {
+            padding: 1rem 0;
+            border-bottom: 1px solid rgba(201, 176, 55, 0.1);
+            display: flex;
+            gap: 1rem;
+            align-items: flex-start;
+        }
+
+        .feature-list-mock li:last-child {
+            border-bottom: none;
+        }
+
+        .feature-list-mock .icon {
+            flex-shrink: 0;
+            width: 40px;
+            height: 40px;
+            background: rgba(201, 176, 55, 0.1);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--primary-gold);
+            font-size: 1.2rem;
+        }
+
+        .feature-list-mock .content h4 {
+            color: var(--light-text);
+            font-size: 1.1rem;
+            margin: 0 0 0.5rem 0;
+        }
+
+        .feature-list-mock .content p {
+            color: var(--gray-text);
+            margin: 0;
+            font-size: 0.95rem;
+            line-height: 1.5;
+        }
+
+        /* Strategy Section */
+        .strategy-section {
+            max-width: 1200px;
+            margin: 0 auto 4rem;
+            padding: 0 2rem;
+        }
+
+        .strategy-section h2 {
+            color: var(--primary-gold);
+            font-size: 2.2rem;
+            margin-bottom: 2rem;
+            text-align: center;
+        }
+
+        .strategy-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+        }
+
+        .strategy-card-pro {
+            background: var(--dark-bg);
+            border: 1px solid rgba(201, 176, 55, 0.2);
+            border-radius: 15px;
+            padding: 2.5rem;
+            transition: all 0.3s ease;
+        }
+
+        .strategy-card-pro:hover {
+            transform: translateY(-5px);
+            border-color: var(--primary-gold);
+            box-shadow: 0 10px 30px rgba(201, 176, 55, 0.2);
+        }
+
+        .strategy-card-pro .icon-header {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .strategy-card-pro .icon-header i {
+            font-size: 2rem;
+            color: var(--primary-gold);
+        }
+
+        .strategy-card-pro .icon-header h3 {
+            color: var(--light-text);
+            font-size: 1.4rem;
+            margin: 0;
+        }
+
+        .strategy-card-pro ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .strategy-card-pro ul li {
+            padding: 0.75rem 0;
+            color: var(--gray-text);
+            border-bottom: 1px solid rgba(201, 176, 55, 0.1);
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .strategy-card-pro ul li:last-child {
+            border-bottom: none;
+        }
+
+        .strategy-card-pro ul li i {
+            color: var(--primary-gold);
+            font-size: 0.9rem;
+        }
+
+        /* Trading Tools Section */
+        .trading-tools-section {
+            max-width: 1200px;
+            margin: 0 auto 4rem;
+            padding: 0 2rem;
+        }
+
+        .trading-tools-section h2 {
+            color: var(--primary-gold);
+            font-size: 2.2rem;
+            margin-bottom: 2.5rem;
+            text-align: center;
+        }
+
+        .tools-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 2rem;
+        }
+
+        .tool-card {
+            background: var(--dark-bg);
+            border: 1px solid rgba(201, 176, 55, 0.2);
+            border-radius: 15px;
+            padding: 2.5rem;
+            transition: all 0.3s ease;
+        }
+
+        .tool-card:hover {
+            transform: translateY(-8px);
+            border-color: var(--primary-gold);
+            box-shadow: 0 15px 40px rgba(201, 176, 55, 0.25);
+        }
+
+        .tool-card h3 {
+            color: var(--light-text);
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .tool-card h3 i {
+            color: var(--primary-gold);
+        }
+
+        .tool-card p {
+            color: var(--gray-text);
+            line-height: 1.7;
+            margin-bottom: 1.5rem;
+        }
+
+        .tool-card .tool-button {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.75rem;
+            background: linear-gradient(135deg, rgba(201, 176, 55, 0.15) 0%, rgba(201, 176, 55, 0.05) 100%);
+            color: var(--primary-gold);
+            padding: 0.9rem 1.8rem;
+            border-radius: 10px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 0.95rem;
+            border: 1px solid rgba(201, 176, 55, 0.2);
+            transition: all 0.3s ease;
+        }
+
+        .tool-card .tool-button:hover {
+            background: linear-gradient(135deg, var(--primary-gold), var(--secondary-gold));
+            color: var(--darker-bg);
+            border-color: var(--primary-gold);
+            transform: translateX(5px);
+        }
+
+        /* Login Button */
+        .login-btn {
+            background: linear-gradient(135deg, var(--primary-gold), var(--secondary-gold)) !important;
+            color: var(--darker-bg) !important;
+            padding: 0.5rem 1.2rem;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 0.95rem;
+            transition: transform 0.3s, box-shadow 0.3s;
+            display: inline-block;
+        }
+
+        .login-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(201, 176, 55, 0.3);
+            color: var(--darker-bg) !important;
+        }
+
+        @media (max-width: 768px) {
+            .aapl-hero-title {
+                font-size: 2.5rem;
+            }
+
+            .aapl-hero-subtitle {
+                font-size: 1.1rem;
+            }
+
+            .aapl-hero-description {
+                font-size: 1rem;
+            }
+
+            .metrics-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .phone-mockup-aapl {
+                width: 300px;
+                height: 600px;
+            }
+
+            .signal-mockup-container {
+                flex-direction: column;
+            }
+
+            .signal-example-section h2 {
+                font-size: 1.8rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav>
+        <div class="nav-container">
+            <div class="logo">
+                <a href="../../index.html"><img src="../../assets/images/logo.png" alt="BlueChip Signals Logo"></a>
+            </div>
+            <div class="hamburger-menu">
+                <div class="bar"></div>
+                <div class="bar"></div>
+                <div class="bar"></div>
+            </div>
+            <ul class="nav-links">
+                <li><a href="../../dashboard.html"><i class="fas fa-home"></i> Dashboard</a></li>
+                <li><a href="../../trading-journal.html"><i class="fas fa-book"></i> Journal</a></li>
+                <li><a href="../../index.html#bots">Supported Stocks</a></li>
+                <li><a href="../../book-demo.html">Book a Demo</a></li>
+                <li><a href="../../faq.html">FAQ</a></li>
+                <li><a href="../../legal.html">Legal Disclaimer</a></li>
+                <li><a href="../../about.html">About Us</a></li>
+                <li><a href="../../login.html" class="login-btn" id="authButton"><i class="fas fa-sign-in-alt"></i> Login</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <main>
+        <!-- Hero Section -->
+        <section class="aapl-hero-section">
+            <div class="aapl-hero-content">
+                <div class="aapl-badge">Apple Inc. Signals</div>
+                <h1 class="aapl-hero-title">AAPL Trading Signals</h1>
+                <p class="aapl-hero-subtitle">Trade the World's Most Valuable Company</p>
+                <p class="aapl-hero-description">
+                    Get precision momentum signals for AAPL, the market leader with unmatched liquidity and institutional flow. 
+                    Capture structured trends and product cycle moves with data-driven entries optimized for consistent profits.
+                </p>
+                <div style="display: flex; gap: 2rem; justify-content: center; align-items: center; flex-wrap: wrap; margin-top: 2rem;">
+                    <div style="text-align: center;">
+                        <div style="font-size: 0.9rem; color: var(--gray-text); margin-bottom: 0.5rem;">Market Cap</div>
+                        <div style="font-size: 1.3rem; font-weight: 700; color: var(--primary-gold);">$3T+</div>
+                    </div>
+                    <div style="width: 1px; height: 40px; background: rgba(201, 176, 55, 0.2);"></div>
+                    <div style="text-align: center;">
+                        <div style="font-size: 0.9rem; color: var(--gray-text); margin-bottom: 0.5rem;">Daily Volume</div>
+                        <div style="font-size: 1.3rem; font-weight: 700; color: var(--primary-gold);">50M+ Shares</div>
+                    </div>
+                    <div style="width: 1px; height: 40px; background: rgba(201, 176, 55, 0.2);"></div>
+                    <div style="text-align: center;">
+                        <div style="font-size: 0.9rem; color: var(--gray-text); margin-bottom: 0.5rem;">Trading Style</div>
+                        <div style="font-size: 1.3rem; font-weight: 700; color: var(--primary-gold);">Day Trading</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Key Metrics -->
+        <section class="aapl-metrics">
+            <div class="metrics-grid">
+                <div class="metric-card">
+                    <div class="icon"><i class="fas fa-chart-line"></i></div>
+                    <div class="value">1-3</div>
+                    <div class="label">Daily Signals</div>
+                </div>
+                <div class="metric-card">
+                    <div class="icon"><i class="fas fa-bullseye"></i></div>
+                    <div class="value">VWAP/MFI</div>
+                    <div class="label">Core Strategy</div>
+                </div>
+                <div class="metric-card">
+                    <div class="icon"><i class="fas fa-rocket"></i></div>
+                    <div class="value">Momentum</div>
+                    <div class="label">Signal Type</div>
+                </div>
+                <div class="metric-card">
+                    <div class="icon"><i class="fas fa-water"></i></div>
+                    <div class="value">Highest</div>
+                    <div class="label">Liquidity</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Why AAPL -->
+        <section class="why-aapl-section">
+            <div class="why-aapl-content">
+                <h2><i class="fas fa-star"></i> Why Trade AAPL?</h2>
+                <div class="why-aapl-grid">
+                    <div class="why-aapl-item">
+                        <div class="icon"><i class="fas fa-chart-line"></i></div>
+                        <div class="content">
+                            <h3>Structured Trends</h3>
+                            <p>AAPL trends in an orderly fashion, respecting support and resistance levels exceptionally well, making technical analysis highly reliable.</p>
+                        </div>
+                    </div>
+                    <div class="why-aapl-item">
+                        <div class="icon"><i class="fas fa-building"></i></div>
+                        <div class="content">
+                            <h3>Institutional Favorite</h3>
+                            <p>Heavy institutional ownership creates consistent order flow and predictable price action around key technical levels.</p>
+                        </div>
+                    </div>
+                    <div class="why-aapl-item">
+                        <div class="icon"><i class="fas fa-mobile-alt"></i></div>
+                        <div class="content">
+                            <h3>Product Cycle Catalysts</h3>
+                            <p>iPhone launches and product events create predictable volatility patterns, offering clear trading opportunities around announcements.</p>
+                        </div>
+                    </div>
+                    <div class="why-aapl-item">
+                        <div class="icon"><i class="fas fa-globe"></i></div>
+                        <div class="content">
+                            <h3>Market Bellwether</h3>
+                            <p>As the largest company by market cap, AAPL often leads market direction, providing early signals for broader market moves.</p>
+                        </div>
+                    </div>
+                    <div class="why-aapl-item">
+                        <div class="icon"><i class="fas fa-tachometer-alt"></i></div>
+                        <div class="content">
+                            <h3>Tight Spreads</h3>
+                            <p>Massive liquidity ensures penny-wide spreads on options, minimizing slippage and maximizing profit potential on every trade.</p>
+                        </div>
+                    </div>
+                    <div class="why-aapl-item">
+                        <div class="icon"><i class="fas fa-shield-alt"></i></div>
+                        <div class="content">
+                            <h3>Lower Risk Profile</h3>
+                            <p>Blue-chip stability combined with growth potential offers excellent risk/reward compared to volatile small-cap stocks.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Signal Example Section -->
+        <section class="signal-example-section">
+            <h2><i class="fas fa-mobile-alt"></i> What You'll Receive</h2>
+            <p class="subtitle">Every AAPL signal delivered instantly to your phone via Telegram</p>
+            
+            <div class="signal-mockup-container">
+                <!-- Phone Mockup -->
+                <div class="phone-mockup-aapl">
+                    <div class="phone-screen">
+                        <!-- Telegram Header -->
+                        <div class="telegram-header">
+                            <img src="../../assets/images/telegramlogo.png" alt="Telegram">
+                            <div class="channel-info">
+                                <h3>BlueChip Signals</h3>
+                                <p>AAPL Alert • Just now</p>
+                            </div>
+                        </div>
+
+                        <!-- Signal Message -->
+                        <div class="telegram-message">
+                            <div class="aapl-signal-card">
+                                <div class="signal-header-mock">
+                                    <div class="signal-icon-mock">
+                                        <i class="fab fa-apple"></i>
+                                    </div>
+                                    <div class="signal-title-mock">
+                                        <h4>AAPL BUY SIGNAL</h4>
+                                        <p>Momentum Breakout</p>
+                                    </div>
+                                </div>
+
+                                <div class="signal-data-mock">
+                                    <div class="data-item-mock">
+                                        <label>Current Price</label>
+                                        <strong>$235.80</strong>
+                                    </div>
+                                    <div class="data-item-mock">
+                                        <label>VWAP</label>
+                                        <strong>$234.50</strong>
+                                    </div>
+                                    <div class="data-item-mock">
+                                        <label>MFI</label>
+                                        <strong>67.3</strong>
+                                    </div>
+                                    <div class="data-item-mock">
+                                        <label>Volume</label>
+                                        <strong>Elevated</strong>
+                                    </div>
+                                </div>
+
+                                <div class="contract-info-mock">
+                                    <h5><i class="fas fa-file-contract"></i> Recommended Contract</h5>
+                                    <div class="contract-details-mock">
+                                        <div>
+                                            <label>Type</label>
+                                            <strong>Call</strong>
+                                        </div>
+                                        <div>
+                                            <label>Strike</label>
+                                            <strong>$236</strong>
+                                        </div>
+                                        <div>
+                                            <label>Expiry</label>
+                                            <strong>7 DTE</strong>
+                                        </div>
+                                        <div>
+                                            <label>Premium</label>
+                                            <strong>$2.15</strong>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="telegram-footer">
+                                <i class="fab fa-telegram"></i> Delivered via Telegram
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Features List -->
+                <div class="signal-features">
+                    <ul class="feature-list-mock">
+                        <li>
+                            <div class="icon"><i class="fas fa-chart-bar"></i></div>
+                            <div class="content">
+                                <h4>Institutional Flow</h4>
+                                <p>Track large order blocks and VWAP alignment to trade alongside institutional investors rather than against them.</p>
+                            </div>
+                </li>
+                <li>
+                            <div class="icon"><i class="fas fa-mobile-alt"></i></div>
+                            <div class="content">
+                                <h4>Product Event Alerts</h4>
+                                <p>Get notified before major product launches with optimal entry strategies for pre-event and post-event momentum.</p>
+                            </div>
+                </li>
+                <li>
+                            <div class="icon"><i class="fas fa-layer-group"></i></div>
+                            <div class="content">
+                                <h4>Support Level Bounces</h4>
+                                <p>Identify high-probability entries when AAPL pulls back to key support within established uptrends.</p>
+                            </div>
+                </li>
+                <li>
+                            <div class="icon"><i class="fas fa-clock"></i></div>
+                            <div class="content">
+                                <h4>Weekly Precision</h4>
+                                <p>7-day duration contracts provide optimal balance between capturing momentum moves and managing time decay risk.</p>
+                            </div>
+                </li>
+            </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- Strategy Overview -->
+        <section class="strategy-section">
+            <h2><i class="fas fa-bullseye"></i> Our AAPL Signal Strategy</h2>
+            <div class="strategy-cards">
+                <div class="strategy-card-pro">
+                    <div class="icon-header">
+                        <i class="fas fa-wave-square"></i>
+                        <h3>Technical Indicators</h3>
+                    </div>
+                    <ul>
+                        <li><i class="fas fa-check-circle"></i> <strong>VWAP Analysis:</strong> Institutional price levels</li>
+                        <li><i class="fas fa-check-circle"></i> <strong>MFI Momentum:</strong> Money flow confirmation</li>
+                        <li><i class="fas fa-check-circle"></i> <strong>Volume Profile:</strong> Institutional zones</li>
+                        <li><i class="fas fa-check-circle"></i> <strong>Support/Resistance:</strong> Key technical levels</li>
+                    </ul>
+                </div>
+                <div class="strategy-card-pro">
+                    <div class="icon-header">
+                        <i class="fas fa-rocket"></i>
+                        <h3>Entry Methodology</h3>
+                    </div>
+                    <ul>
+                        <li><i class="fas fa-check-circle"></i> <strong>Momentum Breakouts:</strong> VWAP reclaims with volume</li>
+                        <li><i class="fas fa-check-circle"></i> <strong>Support Bounces:</strong> Pullback entries in trends</li>
+                        <li><i class="fas fa-check-circle"></i> <strong>Product Catalysts:</strong> Launch event strategies</li>
+                        <li><i class="fas fa-check-circle"></i> <strong>Opening Range:</strong> First hour breakouts</li>
+                    </ul>
+                </div>
+                <div class="strategy-card-pro">
+                    <div class="icon-header">
+                        <i class="fas fa-sliders-h"></i>
+                        <h3>Risk Management</h3>
+                    </div>
+                    <ul>
+                        <li><i class="fas fa-check-circle"></i> <strong>Weekly Duration:</strong> 7 DTE contracts</li>
+                        <li><i class="fas fa-check-circle"></i> <strong>High Volume:</strong> Only liquid strikes</li>
+                        <li><i class="fas fa-check-circle"></i> <strong>Tight Stops:</strong> Quick invalidation levels</li>
+                        <li><i class="fas fa-check-circle"></i> <strong>Position Sizing:</strong> 2-3% account risk max</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- Trading Tools -->
+        <section class="trading-tools-section">
+            <h2><i class="fas fa-tools"></i> AAPL Trading Tools & Resources</h2>
+            <div class="tools-grid">
+                <div class="tool-card">
+                    <h3><i class="fas fa-play-circle"></i> Product Launch Calendar</h3>
+                    <p>Track upcoming iPhone launches, product events, and earnings dates that create major volatility opportunities in AAPL options.</p>
+                    <a href="../guides/aapl-product-cycles.html" class="tool-button">
+                        View Calendar <i class="fas fa-arrow-right"></i>
+                    </a>
+                </div>
+                <div class="tool-card">
+                    <h3><i class="fas fa-industry"></i> Supplier News Monitor</h3>
+                    <p>Monitor TSMC, Foxconn, and other key suppliers for production insights that can signal AAPL price movements before official announcements.</p>
+                    <a href="../guides/aapl-supplier-news.html" class="tool-button">
+                        Check Suppliers <i class="fas fa-arrow-right"></i>
+                        </a>
+                    </div>
+                <div class="tool-card">
+                    <h3><i class="fas fa-chart-area"></i> Market Influence Tracker</h3>
+                    <p>Understand AAPL's correlation with SPY and QQQ to identify when it's leading or following broader market trends.</p>
+                    <a href="../guides/aapl-market-bellwether.html" class="tool-button">
+                        View Impact <i class="fas fa-arrow-right"></i>
+                    </a>
+                </div>
+                <div class="tool-card">
+                    <h3><i class="fas fa-chart-line"></i> Pullback Analyzer</h3>
+                    <p>Identify orderly pullbacks to support levels within uptrends for high-probability continuation entries with defined risk.</p>
+                    <a href="../guides/aapl-orderly-pullbacks.html" class="tool-button">
+                        Analyze Levels <i class="fas fa-arrow-right"></i>
+                    </a>
+                </div>
+                <div class="tool-card">
+                    <h3><i class="fas fa-chart-bar"></i> Options Flow Tracker</h3>
+                    <p>Monitor unusual options activity and large block trades that signal institutional positioning ahead of major moves.</p>
+                    <a href="../guides/aapl-options-volume.html" class="tool-button">
+                        Track Flow <i class="fas fa-arrow-right"></i>
+                    </a>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Floating CTA -->
+    <div class="floating-cta">
+        <a href="../../book-demo.html" class="cta-button">
+            <i class="fas fa-rocket"></i> Get AAPL Signals
+        </a>
+    </div>
+
+    <!-- Footer -->
+    <footer>
+        <p>&copy; 2025 BlueChip Signals. All rights reserved. | <a href="../../legal.html" style="color: var(--primary-gold); text-decoration: none;">Legal Disclaimer</a></p>
+        <div class="social-media">
+            <a href="https://www.tiktok.com/@bluechip.signals" target="_blank"><i class="fab fa-tiktok"></i></a>
+            <a href="https://www.instagram.com/bluechip.signals/" target="_blank"><i class="fab fa-instagram"></i></a>
+        </div>
+    </footer>
+
+    <script>
+        const hamburgerMenu = document.querySelector('.hamburger-menu');
+        const mobileNav = document.querySelector('.nav-links');
+
+        hamburgerMenu.addEventListener('click', () => {
+            mobileNav.classList.toggle('active');
+        });
+
+        // Smooth scroll for internal links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
+            });
+        });
+    </script>
+
+    <script>
+        // Check if user is logged in and update the navigation button immediately
+        (function() {
+            const isLoggedIn = localStorage.getItem('bluechip_logged_in') || sessionStorage.getItem('bluechip_logged_in');
+            
+            if (isLoggedIn) {
+                // Wait for DOM to be ready
+                if (document.readyState === 'loading') {
+                    document.addEventListener('DOMContentLoaded', updateAuthButton);
+                } else {
+                    updateAuthButton();
+                }
+            }
+            
+            function updateAuthButton() {
+                const authButton = document.getElementById('authButton');
+                
+                if (authButton) {
+                    authButton.removeAttribute('href');
+                    authButton.innerHTML = '<i class="fas fa-sign-out-alt"></i> Logout';
+                    authButton.style.cursor = 'pointer';
+                    
+                authButton.onclick = function(e) {
+                    e.preventDefault();
+                    localStorage.clear();
+                    sessionStorage.clear();
+                    window.location.href = '../../login.html';
+                    return false;
+                };
+                }
+            }
+        })();
+    </script>
+</body>
+</html>

@@ -1,0 +1,877 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NVDA Parabolic Move Guide - BlueChip Signals</title>
+    <link rel="icon" type="image/png" href="../../assets/images/logo.png">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="../../assets/css/bot-style.css?v=1751139967">
+    <script>
+        // Redirect non-logged-in users to book demo page
+        (function() {
+            const isLoggedIn = localStorage.getItem('bluechip_logged_in') || sessionStorage.getItem('bluechip_logged_in');
+            if (!isLoggedIn) {
+                window.location.href = '../../book-demo.html';
+            }
+        })();
+    </script>
+    <style>
+        :root {
+            --primary-gold: #b3a17d;
+            --secondary-gold: #E2CFB5;
+            --dark-bg: #080B0F;
+            --darker-bg: #050810;
+            --light-text: #FFFFFF;
+            --gray-text: #A0A0A0;
+            --success-green: #4CAF50;
+            --danger-red: #f44336;
+            --nvda-green: #76B900;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: var(--darker-bg);
+            color: var(--light-text);
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        }
+
+        .guide-hero {
+            margin-top: 100px;
+            padding: 4rem 2rem 3rem;
+            text-align: center;
+            background: radial-gradient(circle at 50% 50%, rgba(118, 185, 0, 0.15), transparent 70%);
+            position: relative;
+        }
+
+        .guide-hero::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: radial-gradient(circle at 30% 40%, rgba(118, 185, 0, 0.08), transparent 50%);
+            z-index: 0;
+        }
+
+        .guide-hero-content {
+            max-width: 900px;
+            margin: 0 auto;
+            position: relative;
+            z-index: 1;
+        }
+
+        .guide-badge {
+            display: inline-block;
+            background: linear-gradient(135deg, var(--primary-gold), var(--secondary-gold));
+            color: var(--darker-bg);
+            padding: 0.4rem 1.2rem;
+            border-radius: 20px;
+            font-weight: 700;
+            font-size: 0.8rem;
+            letter-spacing: 1px;
+            margin-bottom: 1.5rem;
+            text-transform: uppercase;
+        }
+
+        .guide-title {
+            font-size: 2.8rem;
+            font-weight: 800;
+            margin: 0 0 1rem 0;
+            line-height: 1.2;
+            color: var(--light-text);
+        }
+
+        .guide-subtitle {
+            font-size: 1.2rem;
+            color: var(--gray-text);
+            line-height: 1.6;
+            margin: 0;
+        }
+
+        .guide-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 3rem 2rem;
+        }
+
+        .content-section {
+            background: var(--dark-bg);
+            border: 1px solid rgba(201, 176, 55, 0.2);
+            border-radius: 15px;
+            padding: 2.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .content-section h2 {
+            color: var(--primary-gold);
+            font-size: 1.8rem;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .content-section h2 i {
+            font-size: 1.5rem;
+        }
+
+        .content-section h3 {
+            color: var(--light-text);
+            font-size: 1.4rem;
+            margin-bottom: 1rem;
+        }
+
+        .content-section h4 {
+            color: var(--primary-gold);
+            font-size: 1.2rem;
+            margin-bottom: 1rem;
+        }
+
+        .content-section p {
+            color: var(--gray-text);
+            line-height: 1.8;
+            margin-bottom: 1rem;
+        }
+
+        .back-button {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--primary-gold);
+            text-decoration: none;
+            font-weight: 600;
+            margin-bottom: 2rem;
+            transition: all 0.3s ease;
+        }
+
+        .back-button:hover {
+            transform: translateX(-5px);
+        }
+
+        /* Parabolic Calculator */
+        .parabolic-calculator {
+            background: var(--dark-bg);
+            border: 1px solid rgba(118, 185, 0, 0.3);
+            border-radius: 12px;
+            padding: 2rem;
+            margin: 2rem 0;
+        }
+
+        .calculator-input-group {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .input-field {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .input-field label {
+            color: var(--light-text);
+            font-weight: 500;
+            margin-bottom: 0.5rem;
+            font-size: 0.9rem;
+        }
+
+        .input-field input, .input-field select {
+            background: var(--dark-bg);
+            border: 1px solid rgba(179, 161, 125, 0.3);
+            border-radius: 6px;
+            padding: 0.8rem;
+            color: var(--light-text);
+            font-size: 1rem;
+        }
+
+        .input-field input:focus, .input-field select:focus {
+            outline: none;
+            border-color: var(--nvda-green);
+            box-shadow: 0 0 0 2px rgba(118, 185, 0, 0.2);
+        }
+
+        .calculator-button {
+            background: linear-gradient(135deg, var(--nvda-green), #5a9600);
+            color: white;
+            border: none;
+            padding: 1rem 2rem;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 1rem;
+            width: 100%;
+        }
+
+        .calculator-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(118, 185, 0, 0.3);
+        }
+
+        .calculation-result {
+            margin-top: 2rem;
+            padding: 1.5rem;
+            background: var(--dark-bg);
+            border-radius: 8px;
+            border: 1px solid rgba(179, 161, 125, 0.2);
+            display: none;
+        }
+
+        .result-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .result-icon {
+            font-size: 1.5rem;
+            margin-right: 0.5rem;
+        }
+
+        .result-bullish { color: #4CAF50; }
+        .result-bearish { color: #f44336; }
+        .result-neutral { color: var(--primary-gold); }
+
+        /* Strategy Cards */
+        .strategy-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin: 2rem 0;
+        }
+
+        .strategy-card {
+            background: var(--dark-bg);
+            border: 1px solid rgba(201, 176, 55, 0.2);
+            border-radius: 12px;
+            padding: 2rem;
+            position: relative;
+        }
+
+        .strategy-badge {
+            position: absolute;
+            top: -10px;
+            left: 1.5rem;
+            background: var(--nvda-green);
+            color: white;
+            padding: 0.4rem 1rem;
+            border-radius: 15px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        .strategy-title {
+            color: var(--primary-gold);
+            font-size: 1.3rem;
+            font-weight: 600;
+            margin: 1rem 0;
+        }
+
+        .strategy-description {
+            color: var(--light-text);
+            line-height: 1.6;
+            margin-bottom: 1.5rem;
+        }
+
+        .strategy-steps {
+            list-style: none;
+            padding: 0;
+        }
+
+        .strategy-steps li {
+            padding: 0.5rem 0;
+            color: var(--light-text);
+            font-size: 0.9rem;
+            position: relative;
+            padding-left: 2rem;
+        }
+
+        .strategy-steps li:before {
+            content: "→";
+            position: absolute;
+            left: 0;
+            color: var(--nvda-green);
+            font-weight: bold;
+        }
+
+        /* Checklist Items */
+        .checklist-items {
+            list-style: none;
+            padding: 0;
+        }
+
+        .checklist-items li {
+            padding: 0.8rem 0;
+            color: var(--light-text);
+            border-bottom: 1px solid rgba(201, 176, 55, 0.1);
+            position: relative;
+            padding-left: 2rem;
+        }
+
+        .checklist-items li:before {
+            content: "✓";
+            position: absolute;
+            left: 0;
+            color: var(--success-green);
+            font-weight: bold;
+        }
+
+        .checklist-items li:last-child {
+            border-bottom: none;
+        }
+
+        .login-btn {
+            background: linear-gradient(135deg, var(--primary-gold), var(--secondary-gold)) !important;
+            color: var(--darker-bg) !important;
+            padding: 0.5rem 1.2rem;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 0.95rem;
+            transition: transform 0.3s, box-shadow 0.3s;
+            display: inline-block;
+        }
+
+        .login-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(201, 176, 55, 0.3);
+            color: var(--darker-bg) !important;
+        }
+
+        /* Alert Box */
+        .alert-box {
+            background: rgba(118, 185, 0, 0.1);
+            border: 1px solid rgba(118, 185, 0, 0.3);
+            border-left: 4px solid var(--nvda-green);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin: 2rem 0;
+        }
+
+        .alert-box h4 {
+            color: var(--nvda-green);
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .alert-box h4 i {
+            font-size: 1.5rem;
+        }
+
+        /* Warning Box */
+        .warning-box {
+            background: rgba(255, 152, 0, 0.1);
+            border: 1px solid rgba(255, 152, 0, 0.3);
+            border-left: 4px solid #ff9800;
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin: 2rem 0;
+        }
+
+        .warning-box h4 {
+            color: #ff9800;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .warning-box h4 i {
+            font-size: 1.5rem;
+        }
+
+        @media (max-width: 768px) {
+            .guide-title {
+                font-size: 2rem;
+            }
+
+            .guide-subtitle {
+                font-size: 1rem;
+            }
+
+            .content-section {
+                padding: 1.5rem;
+            }
+
+            .calculator-input-group,
+            .strategy-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav>
+        <div class="nav-container">
+            <div class="logo">
+                <a href="../../index.html"><img src="../../assets/images/logo.png" alt="BlueChip Signals Logo"></a>
+            </div>
+            <div class="hamburger-menu">
+                <div class="bar"></div>
+                <div class="bar"></div>
+                <div class="bar"></div>
+            </div>
+            <ul class="nav-links">
+                <li><a href="../../index.html#features">Features</a></li>
+                <li><a href="../../index.html#bots">Supported Stocks</a></li>
+                <li><a href="../../book-demo.html">Book a Demo</a></li>
+                <li><a href="../../faq.html">FAQ</a></li>
+                <li><a href="../../legal.html">Legal Disclaimer</a></li>
+                <li><a href="../../about.html">About Us</a></li>
+                <li><a href="../../login.html" class="login-btn"><i class="fas fa-sign-in-alt"></i> Login</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="guide-hero">
+        <div class="guide-hero-content">
+            <div class="guide-badge">NVDA Trading Guide</div>
+            <h1 class="guide-title">Parabolic Move Guide</h1>
+            <p class="guide-subtitle">Learn to identify and ride NVDA's characteristic parabolic runs that can generate explosive gains in days</p>
+        </div>
+    </section>
+
+    <!-- Guide Content -->
+    <div class="guide-content">
+        <a href="../bots/nvda-bot.html" class="back-button">
+            <i class="fas fa-arrow-left"></i> Back to NVDA Bot
+        </a>
+
+        <!-- Parabolic Move Analyzer -->
+        <section class="content-section">
+            <h2><i class="fas fa-rocket"></i> Parabolic Move Analyzer</h2>
+            <p>Assess whether NVDA is entering a parabolic phase based on key momentum indicators:</p>
+            
+            <div class="parabolic-calculator">
+                <div class="calculator-input-group">
+                    <div class="input-field">
+                        <label for="price-change-5d">5-Day Price Change (%)</label>
+                        <input type="number" id="price-change-5d" placeholder="e.g., 12.5" step="0.1">
+                    </div>
+                    <div class="input-field">
+                        <label for="volume-trend">Volume Trend</label>
+                        <select id="volume-trend">
+                            <option value="">Select Volume Trend</option>
+                            <option value="accelerating">Accelerating (Strong)</option>
+                            <option value="increasing">Increasing (Moderate)</option>
+                            <option value="stable">Stable (Neutral)</option>
+                            <option value="declining">Declining (Weak)</option>
+                        </select>
+                    </div>
+                    <div class="input-field">
+                        <label for="consecutive-green">Consecutive Green Days</label>
+                        <input type="number" id="consecutive-green" placeholder="e.g., 4" min="0" step="1">
+                    </div>
+                    <div class="input-field">
+                        <label for="ma-distance">Distance from 20-Day MA (%)</label>
+                        <input type="number" id="ma-distance" placeholder="e.g., 8.5" step="0.1">
+                    </div>
+                    <div class="input-field">
+                        <label for="sector-momentum">Semiconductor Sector</label>
+                        <select id="sector-momentum">
+                            <option value="">Select Sector Status</option>
+                            <option value="leading">Leading Market (Strong)</option>
+                            <option value="inline">In-Line (Moderate)</option>
+                            <option value="lagging">Lagging (Weak)</option>
+                        </select>
+                    </div>
+                    <div class="input-field">
+                        <label for="catalyst">Recent Catalyst</label>
+                        <select id="catalyst">
+                            <option value="">Select Catalyst Type</option>
+                            <option value="major">Major (Earnings, Product Launch)</option>
+                            <option value="moderate">Moderate (Partnership, Upgrade)</option>
+                            <option value="none">None</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <button class="calculator-button" onclick="analyzeParabolic()">
+                    <i class="fas fa-chart-line" style="margin-right: 0.5rem;"></i>
+                    Analyze Parabolic Probability
+                </button>
+
+                <div class="calculation-result" id="calculation-result">
+                    <div class="result-header">
+                        <div class="result-icon" id="result-icon"></div>
+                        <h4 id="result-title" style="margin: 0; color: var(--light-text);"></h4>
+                    </div>
+                    <div id="result-content"></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Understanding Parabolic Moves -->
+        <section class="content-section">
+            <h2><i class="fas fa-lightbulb"></i> What is a Parabolic Move?</h2>
+            <p>A parabolic move occurs when a stock's price accelerates exponentially upward, forming a curve that resembles a parabola. These moves are characterized by rapid price appreciation, increasing volume, and extreme momentum that attracts both institutional and retail traders.</p>
+            
+            <div class="alert-box">
+                <h4><i class="fas fa-chart-line"></i> NVDA's Parabolic Pattern</h4>
+                <p>NVIDIA has a history of explosive parabolic moves, particularly following earnings beats, major product announcements, or shifts in AI adoption trends. These moves typically last 3-15 trading days and can produce 20-50% gains in the underlying stock and 100-500% returns in near-the-money call options.</p>
+            </div>
+
+            <div class="strategy-grid">
+                <div class="strategy-card">
+                    <div class="strategy-badge">PHASE 1</div>
+                    <h4 class="strategy-title">The Setup Phase</h4>
+                    <p class="strategy-description">Price consolidates or slowly trends higher while volume contracts. Momentum indicators reset from overbought levels.</p>
+                    <ul class="strategy-steps">
+                        <li>Tight consolidation range (2-4% for 5+ days)</li>
+                        <li>Volume below average and declining</li>
+                        <li>RSI resets to 40-60 range</li>
+                        <li>Price holds above key moving averages</li>
+                    </ul>
+                </div>
+
+                <div class="strategy-card">
+                    <div class="strategy-badge">PHASE 2</div>
+                    <h4 class="strategy-title">The Ignition Phase</h4>
+                    <p class="strategy-description">A catalyst triggers the initial breakout. Volume surges as price breaks resistance with strong momentum.</p>
+                    <ul class="strategy-steps">
+                        <li>Breakout occurs on 150%+ average volume</li>
+                        <li>Price gaps up or breaks key resistance cleanly</li>
+                        <li>Momentum shifts with 3+ consecutive green days</li>
+                        <li>RSI crosses above 60-70 range</li>
+                    </ul>
+                </div>
+
+                <div class="strategy-card">
+                    <div class="strategy-badge">PHASE 3</div>
+                    <h4 class="strategy-title">The Parabolic Phase</h4>
+                    <p class="strategy-description">Price acceleration increases dramatically. Each day's gains are larger than the previous. Volume explodes.</p>
+                    <ul class="strategy-steps">
+                        <li>Daily gains increasing (2%, 3%, 5%, 8%)</li>
+                        <li>Volume consistently above 150% average</li>
+                        <li>Price extends 10%+ above 20-day MA</li>
+                        <li>RSI pushes into 75-85+ territory</li>
+                    </ul>
+                </div>
+
+                <div class="strategy-card">
+                    <div class="strategy-badge">PHASE 4</div>
+                    <h4 class="strategy-title">The Exhaustion Phase</h4>
+                    <p class="strategy-description">Momentum peaks and begins to slow. First signs of distribution appear. Smart money begins to exit.</p>
+                    <ul class="strategy-steps">
+                        <li>First red day or large intraday reversal</li>
+                        <li>Volume remains high but price stalls</li>
+                        <li>RSI divergence (price higher, RSI lower)</li>
+                        <li>Long upper wicks indicating rejection</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- How to Trade Parabolic Moves -->
+        <section class="content-section">
+            <h2><i class="fas fa-chess-knight"></i> How to Trade NVDA's Parabolic Moves</h2>
+            <p>Trading parabolic moves requires precise timing and strict discipline. Here are the three primary strategies for different risk profiles:</p>
+            
+            <div class="strategy-grid">
+                <div class="strategy-card">
+                    <div class="strategy-badge">CONSERVATIVE</div>
+                    <h4 class="strategy-title">The Breakout Entry</h4>
+                    <p class="strategy-description">Enter at the ignition phase when the parabolic move is just beginning. Lower risk but requires patience.</p>
+                    <ul class="strategy-steps">
+                        <li>Wait for confirmed breakout above consolidation</li>
+                        <li>Require 150%+ volume on breakout day</li>
+                        <li>Enter on first green day following breakout</li>
+                        <li>Stop loss below breakout level (typically 3-5%)</li>
+                        <li>Take 50% profits at 10-15% gain, let rest run</li>
+                    </ul>
+                </div>
+
+                <div class="strategy-card">
+                    <div class="strategy-badge">MODERATE</div>
+                    <h4 class="strategy-title">The Pullback Entry</h4>
+                    <p class="strategy-description">Wait for a brief pullback during the parabolic phase to enter at a better price with lower risk.</p>
+                    <ul class="strategy-steps">
+                        <li>Identify parabolic move already in progress</li>
+                        <li>Wait for first 1-2 day pullback (2-4%)</li>
+                        <li>Enter when price bounces off 10-day MA</li>
+                        <li>Stop loss below recent swing low</li>
+                        <li>Exit on signs of momentum exhaustion</li>
+                    </ul>
+                </div>
+
+                <div class="strategy-card">
+                    <div class="strategy-badge">AGGRESSIVE</div>
+                    <h4 class="strategy-title">The Momentum Chase</h4>
+                    <p class="strategy-description">Enter during the parabolic phase itself. Highest risk but can catch the largest gains.</p>
+                    <ul class="strategy-steps">
+                        <li>Only enter if momentum is extremely strong</li>
+                        <li>Buy on morning strength in first 30 minutes</li>
+                        <li>Use tight stop loss (2-3% max)</li>
+                        <li>Take profits aggressively (20-30%)</li>
+                        <li>Exit immediately on any sign of reversal</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- Warning Signs of Exhaustion -->
+        <section class="content-section">
+            <h2><i class="fas fa-exclamation-triangle"></i> Critical Warning Signs of Exhaustion</h2>
+            <p>Parabolic moves end violently. Recognizing exhaustion signals early is critical to protecting profits:</p>
+            
+            <div class="warning-box">
+                <h4><i class="fas fa-bell"></i> The Parabolic Move ALWAYS Ends</h4>
+                <p>This is the most important rule: every parabolic move ends, and when it does, the decline is often just as fast as the rise. Never fall in love with a parabolic position. Always have a clear exit plan before entering the trade.</p>
+            </div>
+
+            <div class="checklist-items">
+                <li><strong>RSI Divergence:</strong> Price makes new highs but RSI fails to make new highs. This indicates weakening momentum despite higher prices - a classic exhaustion signal.</li>
+                <li><strong>Volume Climax:</strong> Massive volume spike (200-300%+ of average) on a single day often marks the final push before reversal. Smart money is distributing to late buyers.</li>
+                <li><strong>Parabolic Angle Steepens:</strong> When the angle of ascent becomes nearly vertical (30%+ in 5 days), the move is likely in its final stages and extremely dangerous.</li>
+                <li><strong>First Red Day After 5+ Green:</strong> The first down day after a string of consecutive green days often signals the beginning of profit-taking and potential reversal.</li>
+                <li><strong>Gap Up Then Reversal:</strong> If NVDA gaps up strongly at the open but then reverses and closes below the open, this is a powerful exhaustion signal.</li>
+                <li><strong>Long Upper Wicks:</strong> Multiple days with long upper wicks (rejections at highs) show sellers are starting to overpower buyers at higher prices.</li>
+                <li><strong>Negative News Ignored:</strong> When NVDA stops rallying on positive news or fails to decline on minor negative news, momentum is fading and traders are exhausted.</li>
+                <li><strong>Sector Divergence:</strong> If SMH (semiconductor ETF) starts declining while NVDA is still rallying, the sector leadership is breaking down - major warning sign.</li>
+            </div>
+        </section>
+
+        <!-- Position Sizing & Risk Management -->
+        <section class="content-section">
+            <h2><i class="fas fa-shield-alt"></i> Position Sizing for Parabolic Trades</h2>
+            <p>Parabolic moves offer the highest profit potential but also carry extreme risk. Proper position sizing is essential:</p>
+            
+            <div class="strategy-grid">
+                <div class="strategy-card">
+                    <div class="strategy-badge">RULE #1</div>
+                    <h4 class="strategy-title">Never Risk More Than 2%</h4>
+                    <p class="strategy-description">Even on the best parabolic setups, never risk more than 2% of your total account on a single trade. Parabolic moves are unpredictable and reversals are violent.</p>
+                    <ul class="strategy-steps">
+                        <li>Calculate position size based on stop loss distance</li>
+                        <li>If stop is 5% away, position size = 40% of account (2% / 5%)</li>
+                        <li>If stop is 10% away, position size = 20% of account (2% / 10%)</li>
+                        <li>Tighter stops allow for larger position sizes</li>
+                    </ul>
+                </div>
+
+                <div class="strategy-card">
+                    <div class="strategy-badge">RULE #2</div>
+                    <h4 class="strategy-title">Scale Out on the Way Up</h4>
+                    <p class="strategy-description">Lock in profits systematically rather than trying to sell the exact top. This ensures you capture gains even if the move reverses suddenly.</p>
+                    <ul class="strategy-steps">
+                        <li>Take 25% profits at 10% gain</li>
+                        <li>Take another 25% at 20% gain</li>
+                        <li>Take another 25% at 30% gain</li>
+                        <li>Let final 25% run with trailing stop</li>
+                    </ul>
+                </div>
+
+                <div class="strategy-card">
+                    <div class="strategy-badge">RULE #3</div>
+                    <h4 class="strategy-title">Move Stop to Breakeven Fast</h4>
+                    <p class="strategy-description">Once the trade is profitable, move your stop loss to breakeven (or small profit) as quickly as possible to eliminate risk of loss.</p>
+                    <ul class="strategy-steps">
+                        <li>After 5-7% profit, move stop to breakeven</li>
+                        <li>After 10% profit, move stop to +3%</li>
+                        <li>After 15% profit, move stop to +7%</li>
+                        <li>Always trail stop but never lower it</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- Common Mistakes -->
+        <section class="content-section">
+            <h2><i class="fas fa-times-circle"></i> Common Parabolic Trading Mistakes</h2>
+            <p>Learn from others' mistakes. These are the most common errors that cause traders to lose money on parabolic moves:</p>
+            
+            <div class="checklist-items">
+                <li><strong>Chasing Too Late:</strong> Entering after NVDA is already 20%+ above its moving averages. At this point, risk/reward is terrible and exhaustion is near.</li>
+                <li><strong>Ignoring Warning Signs:</strong> Holding through clear exhaustion signals (RSI divergence, volume climax) hoping for "just a bit more." Greed destroys parabolic profits.</li>
+                <li><strong>No Stop Loss:</strong> Entering a parabolic trade without a predetermined stop loss. When it reverses, you'll watch your gains evaporate in hours.</li>
+                <li><strong>Over-Positioning:</strong> Putting too much capital into a single parabolic trade because "it can't stop going up." Yes, it can, and it will.</li>
+                <li><strong>Not Taking Profits:</strong> Watching a 30% gain turn into a 5% loss because you refused to sell. Parabolic profits evaporate faster than they appear.</li>
+                <li><strong>Fighting the Reversal:</strong> Buying more as NVDA falls from parabolic levels, thinking it's a "dip." It's not a dip - it's exhaustion and often continues 10-20% down.</li>
+                <li><strong>No Pre-Trade Plan:</strong> Entering without defined profit targets and exit rules. When emotions take over mid-trade, you'll make terrible decisions.</li>
+            </div>
+        </section>
+    </div>
+
+    <!-- Floating CTA -->
+    <div class="floating-cta">
+        <a href="../../book-demo.html" class="cta-button">
+            <i class="fas fa-rocket"></i> Get NVDA Signals
+        </a>
+    </div>
+
+    <!-- Footer -->
+    <footer>
+        <p>&copy; 2025 BlueChip Signals. All rights reserved. | <a href="../../legal.html" style="color: var(--primary-gold); text-decoration: none;">Legal Disclaimer</a></p>
+        <div class="social-media">
+            <a href="https://www.tiktok.com/@bluechip.signals" target="_blank"><i class="fab fa-tiktok"></i></a>
+            <a href="https://www.instagram.com/bluechip.signals/" target="_blank"><i class="fab fa-instagram"></i></a>
+        </div>
+    </footer>
+
+    <script>
+        // Mobile Navigation Toggle
+        const hamburgerMenu = document.querySelector('.hamburger-menu');
+        const navLinks = document.querySelector('.nav-links');
+
+        hamburgerMenu.addEventListener('click', () => {
+            navLinks.classList.toggle('active');
+        });
+
+        // Parabolic Move Analyzer
+        function analyzeParabolic() {
+            const priceChange5d = parseFloat(document.getElementById('price-change-5d').value);
+            const volumeTrend = document.getElementById('volume-trend').value;
+            const consecutiveGreen = parseInt(document.getElementById('consecutive-green').value);
+            const maDistance = parseFloat(document.getElementById('ma-distance').value);
+            const sectorMomentum = document.getElementById('sector-momentum').value;
+            const catalyst = document.getElementById('catalyst').value;
+            
+            if (!priceChange5d || !volumeTrend || !consecutiveGreen || !maDistance || !sectorMomentum || !catalyst) {
+                alert('Please fill in all fields');
+                return;
+            }
+            
+            let parabolicScore = 0;
+            let analysis = [];
+            
+            // 5-Day Price Change Analysis
+            if (priceChange5d >= 15) {
+                parabolicScore += 25;
+                analysis.push("✓ Extremely strong 5-day momentum (" + priceChange5d.toFixed(1) + "%)");
+            } else if (priceChange5d >= 10) {
+                parabolicScore += 20;
+                analysis.push("✓ Strong 5-day momentum (" + priceChange5d.toFixed(1) + "%)");
+            } else if (priceChange5d >= 5) {
+                parabolicScore += 10;
+                analysis.push("⚠ Moderate momentum (" + priceChange5d.toFixed(1) + "%)");
+            } else {
+                parabolicScore += 0;
+                analysis.push("⚠ Weak momentum - not parabolic (" + priceChange5d.toFixed(1) + "%)");
+            }
+            
+            // Volume Trend
+            if (volumeTrend === 'accelerating') {
+                parabolicScore += 25;
+                analysis.push("✓ Volume accelerating - strong institutional participation");
+            } else if (volumeTrend === 'increasing') {
+                parabolicScore += 15;
+                analysis.push("✓ Volume increasing - good support");
+            } else if (volumeTrend === 'stable') {
+                parabolicScore += 5;
+                analysis.push("⚠ Stable volume - needs more conviction");
+            } else {
+                parabolicScore += 0;
+                analysis.push("⚠ Declining volume - weak setup");
+            }
+            
+            // Consecutive Green Days
+            if (consecutiveGreen >= 5) {
+                parabolicScore += 20;
+                analysis.push("✓ " + consecutiveGreen + " consecutive green days - strong trend");
+            } else if (consecutiveGreen >= 3) {
+                parabolicScore += 15;
+                analysis.push("✓ " + consecutiveGreen + " green days - building momentum");
+            } else {
+                parabolicScore += 5;
+                analysis.push("⚠ Only " + consecutiveGreen + " green days - trend not established");
+            }
+            
+            // Distance from MA
+            if (maDistance >= 10 && maDistance <= 15) {
+                parabolicScore += 15;
+                analysis.push("✓ Extended from MA (" + maDistance.toFixed(1) + "%) - parabolic zone");
+            } else if (maDistance > 15) {
+                parabolicScore += 5;
+                analysis.push("⚠ Very extended (" + maDistance.toFixed(1) + "%) - exhaustion risk high");
+            } else if (maDistance >= 5) {
+                parabolicScore += 10;
+                analysis.push("⚠ Moderately extended (" + maDistance.toFixed(1) + "%)");
+            } else {
+                parabolicScore += 5;
+                analysis.push("⚠ Close to MA (" + maDistance.toFixed(1) + "%) - not extended yet");
+            }
+            
+            // Sector Momentum
+            if (sectorMomentum === 'leading') {
+                parabolicScore += 10;
+                analysis.push("✓ Semiconductors leading - sector tailwind");
+            } else if (sectorMomentum === 'inline') {
+                parabolicScore += 5;
+                analysis.push("⚠ Sector in-line with market");
+            } else {
+                parabolicScore += 0;
+                analysis.push("⚠ Sector lagging - no support");
+            }
+            
+            // Catalyst
+            if (catalyst === 'major') {
+                parabolicScore += 5;
+                analysis.push("✓ Major catalyst present");
+            } else if (catalyst === 'moderate') {
+                parabolicScore += 3;
+                analysis.push("✓ Moderate catalyst");
+            } else {
+                parabolicScore += 0;
+                analysis.push("⚠ No clear catalyst");
+            }
+            
+            let resultClass, resultIcon, resultTitle, recommendation;
+            
+            if (parabolicScore >= 80) {
+                resultClass = 'result-bullish';
+                resultIcon = '🚀';
+                resultTitle = 'HIGH PROBABILITY PARABOLIC MOVE';
+                recommendation = 'Strong parabolic characteristics present. Consider position with tight stop loss. Use aggressive profit-taking strategy (scale out 25% every 10% gain). Watch for exhaustion signals daily.';
+            } else if (parabolicScore >= 60) {
+                resultClass = 'result-neutral';
+                resultIcon = '📊';
+                resultTitle = 'POTENTIAL PARABOLIC SETUP';
+                recommendation = 'Some parabolic indicators present but not all confirmed. Wait for additional confirmation before entering. If entering, use smaller position size and very tight stops.';
+            } else {
+                resultClass = 'result-bearish';
+                resultIcon = '⚠️';
+                resultTitle = 'NOT A PARABOLIC MOVE';
+                recommendation = 'Insufficient momentum for parabolic classification. This looks like normal trend movement. Better to wait for clearer parabolic setup or consider different strategy entirely.';
+            }
+            
+            const resultDiv = document.getElementById('calculation-result');
+            const resultIcon_el = document.getElementById('result-icon');
+            const resultTitle_el = document.getElementById('result-title');
+            const resultContent = document.getElementById('result-content');
+            
+            resultIcon_el.className = `result-icon ${resultClass}`;
+            resultIcon_el.innerHTML = resultIcon;
+            resultTitle_el.textContent = resultTitle;
+            
+            resultContent.innerHTML = `
+                <div style="margin-bottom: 1rem;">
+                    <strong>Parabolic Score: ${parabolicScore}/100</strong>
+                </div>
+                <div style="margin-bottom: 1rem;">
+                    <strong>Recommendation:</strong> ${recommendation}
+                </div>
+                <div>
+                    <strong>Analysis:</strong>
+                    <ul style="margin: 0.5rem 0; padding-left: 1.5rem;">
+                        ${analysis.map(item => `<li>${item}</li>`).join('')}
+                    </ul>
+                </div>
+            `;
+            
+            resultDiv.style.display = 'block';
+        }
+    </script>
+</body>
+</html>
+

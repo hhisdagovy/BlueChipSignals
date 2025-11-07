@@ -1,0 +1,519 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>META Earnings Trading Strategy | BlueChip Signals</title>
+    <link rel="icon" type="image/png" href="../../assets/images/logo.png">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="../../assets/css/bot-style.css?v=1751139967">
+    <style>
+        :root {
+            --primary-gold: #b3a17d;
+            --secondary-gold: #E2CFB5;
+            --dark-bg: #080B0F;
+            --darker-bg: #050810;
+            --light-text: #FFFFFF;
+            --gray-text: #A0A0A0;
+        }
+
+        body {
+            background: var(--darker-bg);
+            color: var(--light-text);
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        }
+
+        .guide-hero {
+            margin-top: 100px;
+            padding: 4rem 2rem 3rem;
+            text-align: center;
+            background: radial-gradient(circle at 50% 50%, rgba(201, 176, 55, 0.15), transparent 70%);
+            position: relative;
+        }
+
+        .guide-hero::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: radial-gradient(circle at 30% 40%, rgba(201, 176, 55, 0.08), transparent 50%);
+            z-index: 0;
+        }
+
+        .guide-hero-content {
+            max-width: 900px;
+            margin: 0 auto;
+            position: relative;
+            z-index: 1;
+        }
+
+        .guide-badge {
+            display: inline-block;
+            background: linear-gradient(135deg, var(--primary-gold), var(--secondary-gold));
+            color: var(--darker-bg);
+            padding: 0.4rem 1.2rem;
+            border-radius: 20px;
+            font-weight: 700;
+            font-size: 0.8rem;
+            letter-spacing: 1px;
+            margin-bottom: 1.5rem;
+            text-transform: uppercase;
+        }
+
+        .guide-title {
+            font-size: 2.8rem;
+            font-weight: 800;
+            margin: 0 0 1rem 0;
+            line-height: 1.2;
+            color: var(--light-text);
+        }
+
+        .guide-subtitle {
+            font-size: 1.2rem;
+            color: var(--gray-text);
+            line-height: 1.6;
+            margin: 0;
+        }
+
+        .guide-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 3rem 2rem;
+        }
+
+        .content-section {
+            background: var(--dark-bg);
+            border: 1px solid rgba(201, 176, 55, 0.2);
+            border-radius: 15px;
+            padding: 2.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .content-section h2 {
+            color: var(--primary-gold);
+            font-size: 1.8rem;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .content-section h2 i {
+            font-size: 1.5rem;
+        }
+
+        .content-section h3 {
+            color: var(--light-text);
+            font-size: 1.4rem;
+            margin-bottom: 1rem;
+        }
+
+        .content-section p {
+            color: var(--gray-text);
+            line-height: 1.8;
+            margin-bottom: 1rem;
+        }
+
+        .content-section ul, .content-section ol {
+            color: var(--gray-text);
+            line-height: 1.8;
+            margin: 1.5rem 0;
+            padding-left: 1.5rem;
+        }
+
+        .content-section ul li, .content-section ol li {
+            margin-bottom: 0.75rem;
+        }
+
+        .content-section strong {
+            color: var(--light-text);
+        }
+
+        .login-btn {
+            background: linear-gradient(135deg, var(--primary-gold), var(--secondary-gold)) !important;
+            color: var(--darker-bg) !important;
+            padding: 0.5rem 1.2rem;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 0.95rem;
+            transition: transform 0.3s, box-shadow 0.3s;
+            display: inline-block;
+        }
+
+        .login-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(201, 176, 55, 0.3);
+            color: var(--darker-bg) !important;
+        }
+
+        .back-button {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--primary-gold);
+            text-decoration: none;
+            font-weight: 600;
+            margin-bottom: 2rem;
+            transition: all 0.3s ease;
+        }
+
+        .back-button:hover {
+            transform: translateX(-5px);
+        }
+
+        @media (max-width: 768px) {
+            .guide-title {
+                font-size: 2rem;
+            }
+
+            .guide-subtitle {
+                font-size: 1rem;
+            }
+
+            .content-section {
+                padding: 1.5rem;
+            }
+        }
+    </style>
+    <script>
+        // Redirect non-logged-in users to book demo page
+        (function() {
+            const isLoggedIn = localStorage.getItem('bluechip_logged_in') || sessionStorage.getItem('bluechip_logged_in');
+            if (!isLoggedIn) {
+                window.location.href = '../../book-demo.html';
+            }
+        })();
+    </script>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav>
+        <div class="nav-container">
+            <div class="logo">
+                <a href="../../index.html"><img src="../../assets/images/logo.png" alt="BlueChip Signals Logo"></a>
+            </div>
+            <div class="hamburger-menu">
+                <div class="bar"></div>
+                <div class="bar"></div>
+                <div class="bar"></div>
+            </div>
+            <ul class="nav-links">
+                <li><a href="../../index.html#features">Features</a></li>
+                <li><a href="../../index.html#bots">Supported Stocks</a></li>
+                <li><a href="../../book-demo.html">Book a Demo</a></li>
+                <li><a href="../../faq.html">FAQ</a></li>
+                <li><a href="../../legal.html">Legal Disclaimer</a></li>
+                <li><a href="../../about.html">About Us</a></li>
+                <li><a href="../../login.html" class="login-btn"><i class="fas fa-sign-in-alt"></i> Login</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="guide-hero">
+        <div class="guide-hero-content">
+            <div class="guide-badge">META Trading Guide</div>
+            <h1 class="guide-title">Earnings Trading Strategy</h1>
+            <p class="guide-subtitle">Master META's explosive post-earnings moves with Gap & Go and Gap Fill strategies.</p>
+        </div>
+    </section>
+
+    <!-- Guide Content -->
+    <div class="guide-content">
+        <a href="../bots/meta-bot.html" class="back-button">
+            <i class="fas fa-arrow-left"></i> Back to META Signals
+        </a>
+
+        <!-- Next Earnings -->
+        <section class="content-section">
+            <h2><i class="fas fa-calendar-alt"></i> 2025 Earnings Calendar</h2>
+            <p>Mark your calendar for high-volatility opportunities throughout the year:</p>
+            
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.5rem; margin: 2rem 0;">
+                <div style="padding: 2rem; background: rgba(26, 31, 46, 0.5); border-radius: 12px; text-align: center; border: 1px solid rgba(201, 176, 55, 0.2);">
+                    <h4 style="color: var(--primary-gold); margin-bottom: 1rem; font-size: 1.1rem;"><i class="fas fa-calendar-check"></i> Q1 2025</h4>
+                    <div style="font-size: 1.8rem; font-weight: 700; color: var(--primary-gold); margin-bottom: 0.5rem;">April 24, 2025</div>
+                    <div style="color: var(--gray-text); font-size: 0.95rem; margin-bottom: 1rem;">After Market Close</div>
+                    <div style="padding: 1rem; background: rgba(201, 176, 55, 0.1); border-radius: 8px;">
+                        <small style="color: var(--secondary-gold); font-size: 0.9rem;"><strong>Expected Move:</strong> ±8-12%</small>
+                    </div>
+                </div>
+                
+                <div style="padding: 2rem; background: rgba(26, 31, 46, 0.5); border-radius: 12px; text-align: center; border: 1px solid rgba(0, 255, 136, 0.2);">
+                    <h4 style="color: var(--primary-gold); margin-bottom: 1rem; font-size: 1.1rem;"><i class="fas fa-calendar-check"></i> Q2 2025</h4>
+                    <div style="font-size: 1.8rem; font-weight: 700; color: var(--primary-gold); margin-bottom: 0.5rem;">July 24, 2025</div>
+                    <div style="color: var(--gray-text); font-size: 0.95rem; margin-bottom: 1rem;">After Market Close</div>
+                    <div style="padding: 1rem; background: rgba(0, 255, 136, 0.1); border-radius: 8px;">
+                        <small style="color: #00ff88; font-size: 0.9rem;"><strong>Expected Move:</strong> ±9-14%</small>
+                    </div>
+                </div>
+                
+                <div style="padding: 2rem; background: rgba(26, 31, 46, 0.5); border-radius: 12px; text-align: center; border: 1px solid rgba(255, 68, 68, 0.2);">
+                    <h4 style="color: var(--primary-gold); margin-bottom: 1rem; font-size: 1.1rem;"><i class="fas fa-calendar-check"></i> Q3 2025</h4>
+                    <div style="font-size: 1.8rem; font-weight: 700; color: var(--primary-gold); margin-bottom: 0.5rem;">October 23, 2025</div>
+                    <div style="color: var(--gray-text); font-size: 0.95rem; margin-bottom: 1rem;">After Market Close</div>
+                    <div style="padding: 1rem; background: rgba(255, 68, 68, 0.1); border-radius: 8px;">
+                        <small style="color: #ff4444; font-size: 0.9rem;"><strong>Expected Move:</strong> ±10-15%</small>
+                    </div>
+                </div>
+            </div>
+
+            <div style="background: rgba(26, 31, 46, 0.3); border: 1px solid rgba(201, 176, 55, 0.2); border-radius: 12px; padding: 2rem; margin-top: 1.5rem;">
+                <h3 style="color: var(--primary-gold); margin-bottom: 1.5rem; text-align: center;">Trading Window</h3>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 2rem; text-align: center;">
+                    <div>
+                        <div style="font-size: 1.5rem; font-weight: 700; color: var(--primary-gold); margin-bottom: 0.5rem;">4:00 PM - 8:00 PM ET</div>
+                        <div style="color: var(--gray-text);">After-Hours Trading</div>
+                    </div>
+                    <div>
+                        <div style="font-size: 1.5rem; font-weight: 700; color: var(--primary-gold); margin-bottom: 0.5rem;">4:00 AM - 9:30 AM ET</div>
+                        <div style="color: var(--gray-text);">Pre-Market Trading</div>
+                    </div>
+                    <div>
+                        <div style="font-size: 1.5rem; font-weight: 700; color: var(--primary-gold); margin-bottom: 0.5rem;">±10.2%</div>
+                        <div style="color: var(--gray-text);">Historical Avg Move</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Gap & Go Strategy -->
+        <section class="content-section">
+            <h2><i class="fas fa-rocket"></i> Gap & Go Strategy</h2>
+            <p>When META gaps strongly on earnings, momentum often continues into the trading session:</p>
+            
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 2rem; margin: 2rem 0;">
+                <div style="padding: 2rem; background: rgba(0, 255, 136, 0.1); border-left: 4px solid #00ff88; border-radius: 12px; border: 1px solid rgba(0, 255, 136, 0.2);">
+                    <h3 style="color: #00ff88; margin-bottom: 1.5rem;"><i class="fas fa-arrow-up"></i> Bullish Gap & Go Setup</h3>
+                    <ul style="margin: 0 0 1.5rem 0; padding-left: 1.2rem; color: var(--light-text); line-height: 1.8;">
+                        <li><strong>Gap Size:</strong> >5% above previous close</li>
+                        <li><strong>Volume Confirmation:</strong> Pre-market volume >2x average</li>
+                        <li><strong>Entry Signal:</strong> Break above pre-market high with volume</li>
+                        <li><strong>Target:</strong> Previous all-time high or key resistance</li>
+                        <li><strong>Stop Loss:</strong> Below pre-market low or gap fill level</li>
+                    </ul>
+                    
+                    <div style="padding: 1.5rem; background: rgba(26, 31, 46, 0.5); border-radius: 8px;">
+                        <strong style="color: var(--primary-gold);">Example Trade:</strong>
+                        <p style="margin: 0.75rem 0 0 0; font-size: 0.95rem; line-height: 1.6; color: var(--gray-text);">META gaps up 8% to $585 on strong earnings. Wait for break above $590 pre-market high, target $610 resistance, stop at $575 gap support.</p>
+                    </div>
+                </div>
+                
+                <div style="padding: 2rem; background: rgba(255, 68, 68, 0.1); border-left: 4px solid #ff4444; border-radius: 12px; border: 1px solid rgba(255, 68, 68, 0.2);">
+                    <h3 style="color: #ff4444; margin-bottom: 1.5rem;"><i class="fas fa-arrow-down"></i> Bearish Gap & Go Setup</h3>
+                    <ul style="margin: 0 0 1.5rem 0; padding-left: 1.2rem; color: var(--light-text); line-height: 1.8;">
+                        <li><strong>Gap Size:</strong> >5% below previous close</li>
+                        <li><strong>Volume Confirmation:</strong> Heavy selling pressure evident</li>
+                        <li><strong>Entry Signal:</strong> Break below pre-market low with volume</li>
+                        <li><strong>Target:</strong> Next major support level or oversold bounce</li>
+                        <li><strong>Stop Loss:</strong> Above pre-market high or gap resistance</li>
+                    </ul>
+                    
+                    <div style="padding: 1.5rem; background: rgba(26, 31, 46, 0.5); border-radius: 8px;">
+                        <strong style="color: var(--primary-gold);">Example Trade:</strong>
+                        <p style="margin: 0.75rem 0 0 0; font-size: 0.95rem; line-height: 1.6; color: var(--gray-text);">META gaps down 7% to $510 on weak guidance. Wait for break below $505 pre-market low, target $485 support, stop at $520 gap resistance.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Gap Fill Strategy -->
+        <section class="content-section">
+            <h2><i class="fas fa-exchange-alt"></i> Gap Fill Strategy</h2>
+            <p>Sometimes the market overreacts to earnings, creating gap fill opportunities as price returns to pre-earnings levels:</p>
+            
+            <div style="background: rgba(26, 31, 46, 0.3); border: 1px solid rgba(201, 176, 55, 0.2); border-radius: 12px; padding: 2.5rem; margin: 2rem 0;">
+                <h3 style="color: var(--primary-gold); margin-bottom: 2rem; text-align: center;">When Gaps Typically Fill</h3>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 2rem;">
+                    <ul style="color: var(--light-text); line-height: 1.8; margin: 0; padding-left: 1.5rem;">
+                        <li><strong>Weak Volume:</strong> Gap not supported by strong volume</li>
+                        <li><strong>Overbought/Oversold:</strong> RSI >70 or <30 after gap</li>
+                        <li><strong>Conflicting Signals:</strong> Mixed earnings results (beat/miss)</li>
+                        <li><strong>Market Conditions:</strong> Broader market weakness/strength</li>
+                    </ul>
+                    <ul style="color: var(--light-text); line-height: 1.8; margin: 0; padding-left: 1.5rem;">
+                        <li><strong>Time Decay:</strong> Options expiration approaching</li>
+                        <li><strong>Profit Taking:</strong> Early buyers taking gains</li>
+                        <li><strong>Value Buyers:</strong> Institutions stepping in on dips</li>
+                        <li><strong>Technical Levels:</strong> Key support/resistance nearby</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div style="padding: 2rem; background: rgba(201, 176, 55, 0.1); border-left: 4px solid var(--primary-gold); border-radius: 12px; border: 1px solid rgba(201, 176, 55, 0.3); margin-top: 2rem;">
+                <h3 style="color: var(--primary-gold); margin-bottom: 1.5rem;"><i class="fas fa-list-ol"></i> Gap Fill Entry Strategy</h3>
+                <ol style="color: var(--light-text); line-height: 1.8; margin: 0; padding-left: 1.5rem;">
+                    <li><strong>Identify the Gap:</strong> Note exact price levels of the gap (high and low)</li>
+                    <li><strong>Wait for Reversal Signs:</strong> Doji candles, volume divergence, or momentum loss</li>
+                    <li><strong>Enter on Confirmation:</strong> Break of trend line or key level toward gap</li>
+                    <li><strong>Target Gap Fill:</strong> Price returning to pre-earnings close level</li>
+                    <li><strong>Risk Management:</strong> Stop beyond recent high/low with 2:1 reward ratio</li>
+                </ol>
+            </div>
+        </section>
+
+        <!-- Pre-Earnings Positioning -->
+        <section class="content-section">
+            <h2><i class="fas fa-chess-knight"></i> Pre-Earnings Positioning</h2>
+            <p>How to prepare for META's earnings volatility before the announcement:</p>
+            
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 1.5rem; margin: 2rem 0;">
+                <div style="padding: 2rem; background: rgba(26, 31, 46, 0.3); border: 1px solid rgba(201, 176, 55, 0.2); border-radius: 12px;">
+                    <h3 style="color: var(--primary-gold); margin-bottom: 1.5rem;">Options Strategies</h3>
+                    <ul style="color: var(--light-text); line-height: 1.8; margin: 0; padding-left: 1.2rem;">
+                        <li><strong>Long Straddle:</strong> Profit from big moves in either direction</li>
+                        <li><strong>Iron Condor:</strong> Sell volatility if expecting smaller moves</li>
+                        <li><strong>Call/Put Spreads:</strong> Directional bets with limited risk</li>
+                        <li><strong>Avoid:</strong> Naked options due to IV crush risk</li>
+                    </ul>
+                </div>
+                
+                <div style="padding: 2rem; background: rgba(26, 31, 46, 0.3); border: 1px solid rgba(0, 255, 136, 0.2); border-radius: 12px;">
+                    <h3 style="color: var(--primary-gold); margin-bottom: 1.5rem;">Stock Positioning</h3>
+                    <ul style="color: var(--light-text); line-height: 1.8; margin: 0; padding-left: 1.2rem;">
+                        <li><strong>Reduce Size:</strong> Cut normal position size by 50%</li>
+                        <li><strong>Set Alerts:</strong> Pre-market and after-hours price levels</li>
+                        <li><strong>Plan Scenarios:</strong> Know your actions for each outcome</li>
+                        <li><strong>Stay Liquid:</strong> Keep cash ready for opportunities</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- Key Levels -->
+        <section class="content-section">
+            <h2><i class="fas fa-layer-group"></i> Identifying Key Support & Resistance</h2>
+            <p>Learn to identify critical price levels that become important during earnings volatility:</p>
+            
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 2rem; margin: 2rem 0;">
+                <div style="background: rgba(255, 68, 68, 0.1); border: 1px solid rgba(255, 68, 68, 0.2); border-left: 4px solid #ff4444; padding: 2rem; border-radius: 12px;">
+                    <h3 style="color: #ff4444; margin-bottom: 1.5rem;"><i class="fas fa-arrow-down"></i> Support Levels to Watch</h3>
+                    <ul style="color: var(--light-text); line-height: 1.8; margin: 0; padding-left: 1.2rem;">
+                        <li><strong>200-day Moving Average:</strong> Long-term trend support</li>
+                        <li><strong>Previous Swing Lows:</strong> Historical support zones</li>
+                        <li><strong>Round Numbers:</strong> Psychological support ($500, $550, etc.)</li>
+                        <li><strong>Volume Support:</strong> High-volume reversal areas</li>
+                    </ul>
+                </div>
+                
+                <div style="background: rgba(0, 255, 136, 0.1); border: 1px solid rgba(0, 255, 136, 0.2); border-left: 4px solid #00ff88; padding: 2rem; border-radius: 12px;">
+                    <h3 style="color: #00ff88; margin-bottom: 1.5rem;"><i class="fas fa-arrow-up"></i> Resistance Levels to Watch</h3>
+                    <ul style="color: var(--light-text); line-height: 1.8; margin: 0; padding-left: 1.2rem;">
+                        <li><strong>Previous Swing Highs:</strong> Historical resistance zones</li>
+                        <li><strong>All-Time Highs:</strong> Maximum price levels</li>
+                        <li><strong>Fibonacci Retracements:</strong> Technical resistance levels</li>
+                        <li><strong>Options Strike Prices:</strong> Heavy open interest levels</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div style="background: rgba(26, 31, 46, 0.3); border: 1px solid rgba(201, 176, 55, 0.2); padding: 2rem; border-radius: 12px; margin-top: 2rem;">
+                <h3 style="color: var(--primary-gold); margin-bottom: 1.5rem; text-align: center;">Tools for Real-Time Level Identification</h3>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem;">
+                    <ul style="color: var(--light-text); line-height: 1.8; margin: 0; padding-left: 1.2rem;">
+                        <li><strong>TradingView:</strong> Free charting with technical indicators</li>
+                        <li><strong>Yahoo Finance:</strong> Basic price levels and moving averages</li>
+                        <li><strong>MarketWatch:</strong> Current support/resistance data</li>
+                    </ul>
+                    <ul style="color: var(--light-text); line-height: 1.8; margin: 0; padding-left: 1.2rem;">
+                        <li><strong>Broker Platforms:</strong> Real-time technical analysis</li>
+                        <li><strong>Options Flow:</strong> High open interest strikes</li>
+                        <li><strong>Volume Profile:</strong> Price levels with high activity</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- Risk Management -->
+        <section class="content-section">
+            <h2><i class="fas fa-shield-alt"></i> Risk Management Rules</h2>
+            <p>Essential rules for trading META's high-volatility earnings events:</p>
+            
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 2rem; margin: 2rem 0;">
+                <div style="padding: 2rem; background: rgba(255, 68, 68, 0.1); border-left: 4px solid #ff4444; border-radius: 12px; border: 1px solid rgba(255, 68, 68, 0.2);">
+                    <h3 style="color: #ff4444; margin-bottom: 1.5rem;"><i class="fas fa-exclamation-triangle"></i> What NOT to Do</h3>
+                    <ul style="margin: 0; padding-left: 1.2rem; color: var(--light-text); line-height: 1.8;">
+                        <li><strong>Hold Through Earnings:</strong> Avoid overnight risk unless hedged</li>
+                        <li><strong>Chase Gaps:</strong> Don't FOMO into moves without confirmation</li>
+                        <li><strong>Ignore Volume:</strong> Low volume moves often reverse quickly</li>
+                        <li><strong>Oversized Positions:</strong> Volatility can cause massive losses</li>
+                    </ul>
+                </div>
+                
+                <div style="padding: 2rem; background: rgba(0, 255, 136, 0.1); border-left: 4px solid #00ff88; border-radius: 12px; border: 1px solid rgba(0, 255, 136, 0.2);">
+                    <h3 style="color: #00ff88; margin-bottom: 1.5rem;"><i class="fas fa-check-circle"></i> Best Practices</h3>
+                    <ul style="margin: 0; padding-left: 1.2rem; color: var(--light-text); line-height: 1.8;">
+                        <li><strong>Size Appropriately:</strong> Use 25-50% of normal position size</li>
+                        <li><strong>Wait for Confirmation:</strong> Let price action confirm direction</li>
+                        <li><strong>Use Wide Stops:</strong> Account for increased volatility</li>
+                        <li><strong>Take Profits Early:</strong> Don't get greedy on big moves</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- Historical Performance -->
+        <section class="content-section">
+            <h2><i class="fas fa-history"></i> Historical Earnings Performance</h2>
+            <p>Learn from META's past earnings reactions to improve future trading decisions:</p>
+            
+            <div style="background: rgba(26, 31, 46, 0.3); border: 1px solid rgba(201, 176, 55, 0.2); padding: 2.5rem; border-radius: 12px; margin-top: 2rem;">
+                <h3 style="color: var(--primary-gold); margin-bottom: 2rem; text-align: center;">Recent Quarters Analysis</h3>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1.5rem; text-align: center;">
+                    <div style="padding: 1.5rem; background: rgba(26, 31, 46, 0.5); border-radius: 10px; border: 1px solid rgba(0, 255, 136, 0.2);">
+                        <div style="font-size: 1rem; color: var(--gray-text); margin-bottom: 1rem;">Q4 2024</div>
+                        <div style="font-size: 2rem; font-weight: 700; color: #00ff88; margin-bottom: 0.75rem;">+12.1%</div>
+                        <div style="font-size: 0.9rem; color: var(--gray-text);">AI infrastructure investment surge</div>
+                    </div>
+                    <div style="padding: 1.5rem; background: rgba(26, 31, 46, 0.5); border-radius: 10px; border: 1px solid rgba(0, 255, 136, 0.2);">
+                        <div style="font-size: 1rem; color: var(--gray-text); margin-bottom: 1rem;">Q3 2024</div>
+                        <div style="font-size: 2rem; font-weight: 700; color: #00ff88; margin-bottom: 0.75rem;">+6.7%</div>
+                        <div style="font-size: 0.9rem; color: var(--gray-text);">Revenue beat expectations</div>
+                    </div>
+                    <div style="padding: 1.5rem; background: rgba(26, 31, 46, 0.5); border-radius: 10px; border: 1px solid rgba(255, 68, 68, 0.2);">
+                        <div style="font-size: 1rem; color: var(--gray-text); margin-bottom: 1rem;">Q2 2024</div>
+                        <div style="font-size: 2rem; font-weight: 700; color: #ff4444; margin-bottom: 0.75rem;">-3.4%</div>
+                        <div style="font-size: 0.9rem; color: var(--gray-text);">Metaverse capex concerns</div>
+                    </div>
+                    <div style="padding: 1.5rem; background: rgba(26, 31, 46, 0.5); border-radius: 10px; border: 1px solid rgba(0, 255, 136, 0.2);">
+                        <div style="font-size: 1rem; color: var(--gray-text); margin-bottom: 1rem;">Q1 2024</div>
+                        <div style="font-size: 2rem; font-weight: 700; color: #00ff88; margin-bottom: 0.75rem;">+8.9%</div>
+                        <div style="font-size: 0.9rem; color: var(--gray-text);">Strong ad revenue growth</div>
+                    </div>
+                </div>
+                
+                <div style="margin-top: 2rem; padding: 1.5rem; background: rgba(179, 161, 125, 0.1); border: 1px solid rgba(179, 161, 125, 0.3); border-radius: 10px; text-align: center;">
+                    <p style="margin: 0; color: var(--light-text);"><strong>Pattern Recognition:</strong> <span style="color: var(--gray-text);">META tends to have larger moves on guidance revisions than on current quarter beats/misses. Pay close attention to forward-looking statements and AI capex commentary during earnings calls.</span></p>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <!-- Floating CTA -->
+    <div class="floating-cta">
+        <a href="../../book-demo.html" class="cta-button">
+            <i class="fas fa-rocket"></i> Get META Signals
+        </a>
+    </div>
+
+    <!-- Footer -->
+    <footer>
+        <p>&copy; 2025 BlueChip Signals. All rights reserved. | <a href="../../legal.html" style="color: var(--primary-gold); text-decoration: none;">Legal Disclaimer</a></p>
+        <div class="social-media">
+            <a href="https://www.tiktok.com/@bluechip.signals" target="_blank"><i class="fab fa-tiktok"></i></a>
+            <a href="https://www.instagram.com/bluechip.signals/" target="_blank"><i class="fab fa-instagram"></i></a>
+        </div>
+    </footer>
+
+    <script>
+        const hamburgerMenu = document.querySelector('.hamburger-menu');
+        const mobileNav = document.querySelector('.nav-links');
+
+        hamburgerMenu.addEventListener('click', () => {
+            mobileNav.classList.toggle('active');
+        });
+    </script>
+</body>
+</html>

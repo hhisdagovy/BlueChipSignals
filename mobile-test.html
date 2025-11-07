@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mobile Responsiveness Test</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #0a0a0a;
+            color: white;
+            margin: 0;
+            padding: 20px;
+        }
+        
+        h1 {
+            color: #b3a17d;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .test-section {
+            margin-bottom: 40px;
+            border: 1px solid #333;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+        
+        .test-header {
+            background: #1a1a1a;
+            padding: 15px;
+            font-weight: 600;
+            border-bottom: 1px solid #333;
+        }
+        
+        .device-simulator {
+            width: 413px; /* 393px + 20px padding */
+            height: 872px; /* 852px + 20px padding */
+            margin: 20px auto;
+            background: #000;
+            border-radius: 25px;
+            padding: 10px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            position: relative;
+        }
+        
+        .device-simulator::before {
+            content: '';
+            position: absolute;
+            top: 8px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 120px;
+            height: 25px;
+            background: #000;
+            border-radius: 15px;
+            z-index: 10;
+        }
+        
+        .screen {
+            width: 100%;
+            height: 100%;
+            border-radius: 20px;
+            overflow: hidden;
+            border: none;
+            background: #fff;
+        }
+        
+        .device-label {
+            position: absolute;
+            bottom: -35px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: #b3a17d;
+            font-size: 0.8rem;
+            font-weight: 600;
+            text-align: center;
+            white-space: nowrap;
+        }
+        
+        .test-links {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 10px;
+            padding: 20px;
+            background: #0a0a0a;
+        }
+        
+        .test-link {
+            background: #b3a17d;
+            color: #0a0a0a;
+            padding: 10px 15px;
+            text-decoration: none;
+            border-radius: 5px;
+            text-align: center;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        
+        .test-link:hover {
+            background: #c9b037;
+            transform: translateY(-2px);
+        }
+        
+        .instructions {
+            background: #1a1a1a;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            line-height: 1.6;
+        }
+        
+        .status {
+            margin-top: 10px;
+            padding: 10px;
+            border-radius: 5px;
+            text-align: center;
+        }
+        
+        .status.good {
+            background: rgba(42, 87, 31, 0.3);
+            color: #4ade80;
+        }
+        
+        .status.warning {
+            background: rgba(245, 158, 11, 0.3);
+            color: #fbbf24;
+        }
+        
+        .status.error {
+            background: rgba(239, 68, 68, 0.3);
+            color: #f87171;
+        }
+        
+        @media (max-width: 768px) {
+            .device-simulator {
+                width: 100%;
+                max-width: 400px;
+                height: 600px;
+            }
+            
+            .test-links {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        @media (max-width: 450px) {
+            .device-simulator {
+                width: 95%;
+                max-width: 350px;
+                height: 550px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <h1>📱 Mobile Responsiveness Test Dashboard</h1>
+    
+    <div class="instructions">
+        <h3>How to Test:</h3>
+        <ol>
+            <li>Click on any link below to load that page in the mobile simulator</li>
+            <li>Check if content fits properly without horizontal scrolling</li>
+            <li>Verify that buttons and interactive elements are touchable</li>
+            <li>Test that grids stack properly on mobile</li>
+            <li>Ensure text is readable without zooming</li>
+        </ol>
+    </div>
+    
+    <div class="test-section">
+        <div class="test-header">
+            📄 Guide Pages - Mobile Testing
+        </div>
+        <div class="test-links">
+            <a href="#" class="test-link" onclick="loadPage('pages/guides/aapl-options-volume.html')">AAPL Options Volume</a>
+            <a href="#" class="test-link" onclick="loadPage('pages/guides/aapl-orderly-pullbacks.html')">AAPL Pullbacks</a>
+            <a href="#" class="test-link" onclick="loadPage('pages/guides/aapl-product-cycles.html')">AAPL Product Cycles</a>
+            <a href="#" class="test-link" onclick="loadPage('pages/guides/aapl-supplier-news.html')">AAPL Supplier News</a>
+            <a href="#" class="test-link" onclick="loadPage('pages/guides/aapl-market-bellwether.html')">AAPL Market Bellwether</a>
+            <a href="#" class="test-link" onclick="loadPage('book-demo.html')">Book a Demo</a>
+        </div>
+        <div id="status1" class="status good">
+            ✅ Mobile optimizations applied: Responsive grids, proper padding, stacked layouts, Stripe buttons
+        </div>
+    </div>
+    
+    <div class="test-section">
+        <div class="test-header">
+            🤖 Bot Pages - Mobile Testing
+        </div>
+        <div class="test-links">
+            <a href="#" class="test-link" onclick="loadPage('pages/bots/aapl-bot.html')">AAPL Bot</a>
+            <a href="#" class="test-link" onclick="loadPage('pages/bots/meta-bot.html')">META Bot</a>
+            <a href="#" class="test-link" onclick="loadPage('pages/bots/spy-bot.html')">SPY Bot</a>
+            <a href="#" class="test-link" onclick="loadPage('pages/bots/tsla-bot.html')">TSLA Bot</a>
+            <a href="#" class="test-link" onclick="loadPage('pages/bots/nvda-bot.html')">NVDA Bot</a>
+            <a href="#" class="test-link" onclick="loadPage('pages/bots/amzn-bot.html')">AMZN Bot</a>
+        </div>
+        <div id="status2" class="status good">
+            ✅ Bot pages optimized: Improved navigation, content cards, CTA buttons
+        </div>
+    </div>
+    
+    <div class="device-simulator">
+        <iframe id="mobile-frame" class="screen" src="index.html"></iframe>
+        <div class="device-label">📱 iPhone 16 Pro (393×852)</div>
+    </div>
+    
+    <div class="test-section">
+        <div class="test-header">
+            📊 Mobile Optimization Summary
+        </div>
+        <div style="padding: 20px; background: #0a0a0a;">
+            <h4 style="color: #b3a17d; margin-top: 0;">✅ Fixed Issues:</h4>
+            <ul style="line-height: 1.8;">
+                <li><strong>Navigation:</strong> Improved mobile menu with better spacing and hover effects</li>
+                <li><strong>Grid Layouts:</strong> All grids now stack to single column on mobile (768px and below)</li>
+                <li><strong>Interactive Elements:</strong> Forms, calculators, and analyzers optimized for touch</li>
+                <li><strong>Typography:</strong> Scaled font sizes for better mobile readability</li>
+                <li><strong>Spacing:</strong> Reduced padding and margins for mobile screens</li>
+                <li><strong>Buttons:</strong> Full-width buttons with proper touch targets</li>
+                <li><strong>Content Cards:</strong> Proper padding and margins for mobile viewing</li>
+                <li><strong>Charts & Visuals:</strong> Responsive SVG charts with horizontal scrolling when needed</li>
+                <li><strong>Stripe Buttons:</strong> Subscribe buttons scaled and optimized for mobile touch</li>
+                <li><strong>Pricing Cards:</strong> Single column layout with proper spacing on mobile</li>
+                <li><strong>Ultra-small screens:</strong> Additional optimizations for 375px and below</li>
+            </ul>
+            
+            <h4 style="color: #b3a17d;">📱 Breakpoints:</h4>
+            <ul style="line-height: 1.8;">
+                <li><strong>768px and below:</strong> Main mobile optimizations</li>
+                <li><strong>600px and below:</strong> Small mobile devices</li>
+                <li><strong>375px and below:</strong> Ultra-small screens (iPhone SE, etc.)</li>
+            </ul>
+        </div>
+    </div>
+    
+    <script>
+        function loadPage(url) {
+            const frame = document.getElementById('mobile-frame');
+            frame.src = url;
+            
+            // Update status
+            setTimeout(() => {
+                const iframe = document.getElementById('mobile-frame');
+                try {
+                    // Check if page loaded successfully
+                    console.log('Loaded:', url);
+                } catch (e) {
+                    console.log('Cross-origin restrictions prevent direct access');
+                }
+            }, 1000);
+        }
+        
+        // Simulate device rotation
+        function rotateDevice() {
+            const simulator = document.querySelector('.device-simulator');
+            const currentWidth = simulator.style.width;
+            
+            if (currentWidth === '872px') {
+                // Portrait mode (default)
+                simulator.style.width = '413px';
+                simulator.style.height = '872px';
+            } else {
+                // Landscape mode
+                simulator.style.width = '872px';
+                simulator.style.height = '413px';
+            }
+        }
+        
+        // Add rotation button
+        document.addEventListener('DOMContentLoaded', function() {
+            const simulator = document.querySelector('.device-simulator');
+            const rotateBtn = document.createElement('button');
+            rotateBtn.innerHTML = '🔄 Rotate';
+            rotateBtn.style.cssText = `
+                position: absolute;
+                top: -40px;
+                right: 10px;
+                background: #b3a17d;
+                color: #0a0a0a;
+                border: none;
+                padding: 8px 15px;
+                border-radius: 5px;
+                cursor: pointer;
+                font-weight: 600;
+            `;
+            rotateBtn.onclick = rotateDevice;
+            simulator.style.position = 'relative';
+            simulator.appendChild(rotateBtn);
+        });
+    </script>
+</body>
+</html> 

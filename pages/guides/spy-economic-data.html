@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SPY Economic Data Monitor | BlueChip Signals</title>
+    <link rel="icon" type="image/png" href="../../assets/images/logo.png">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="../../assets/css/bot-style.css?v=1751139967">
+    <script>
+        // Redirect non-logged-in users to book demo page
+        (function() {
+            const isLoggedIn = localStorage.getItem('bluechip_logged_in') || sessionStorage.getItem('bluechip_logged_in');
+            if (!isLoggedIn) {
+                window.location.href = '../../book-demo.html';
+            }
+        })();
+    </script>
+    <style>
+        :root {
+            --primary-gold: #b3a17d;
+            --secondary-gold: #E2CFB5;
+            --dark-bg: #080B0F;
+            --darker-bg: #050810;
+            --light-text: #FFFFFF;
+            --gray-text: #A0A0A0;
+        }
+
+        body {
+            background: var(--darker-bg);
+            color: var(--light-text);
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        }
+
+        .guide-hero {
+            margin-top: 100px;
+            padding: 4rem 2rem 3rem;
+            text-align: center;
+            background: radial-gradient(circle at 50% 50%, rgba(201, 176, 55, 0.15), transparent 70%);
+            position: relative;
+        }
+
+        .guide-hero::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: radial-gradient(circle at 30% 40%, rgba(201, 176, 55, 0.08), transparent 50%);
+            z-index: 0;
+        }
+
+        .guide-hero-content {
+            max-width: 900px;
+            margin: 0 auto;
+            position: relative;
+            z-index: 1;
+        }
+
+        .guide-badge {
+            display: inline-block;
+            background: linear-gradient(135deg, var(--primary-gold), var(--secondary-gold));
+            color: var(--darker-bg);
+            padding: 0.4rem 1.2rem;
+            border-radius: 20px;
+            font-weight: 700;
+            font-size: 0.8rem;
+            letter-spacing: 1px;
+            margin-bottom: 1.5rem;
+            text-transform: uppercase;
+        }
+
+        .guide-title {
+            font-size: 2.8rem;
+            font-weight: 800;
+            margin: 0 0 1rem 0;
+            line-height: 1.2;
+            color: var(--light-text);
+        }
+
+        .guide-subtitle {
+            font-size: 1.2rem;
+            color: var(--gray-text);
+            line-height: 1.6;
+            margin: 0;
+        }
+
+        .guide-content {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 3rem 2rem;
+        }
+
+        .content-section {
+            background: var(--dark-bg);
+            border: 1px solid rgba(201, 176, 55, 0.2);
+            border-radius: 15px;
+            padding: 2.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .content-section h2 {
+            color: var(--primary-gold);
+            font-size: 1.8rem;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .content-section h2 i {
+            font-size: 1.5rem;
+        }
+
+        .content-section h3 {
+            color: var(--light-text);
+            font-size: 1.4rem;
+            margin-bottom: 1rem;
+        }
+
+        .content-section p {
+            color: var(--gray-text);
+            line-height: 1.8;
+            margin-bottom: 1rem;
+        }
+
+        .content-section ul {
+            list-style: none;
+            padding: 0;
+            margin: 1.5rem 0;
+        }
+
+        .content-section ul li {
+            color: var(--gray-text);
+            line-height: 1.8;
+            margin-bottom: 1rem;
+            padding-left: 2rem;
+            position: relative;
+        }
+
+        .content-section ul li::before {
+            content: "→";
+            position: absolute;
+            left: 0;
+            color: var(--primary-gold);
+            font-weight: 700;
+        }
+
+        .content-section ul li strong {
+            color: var(--light-text);
+        }
+
+        .data-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+            margin: 2rem 0;
+        }
+
+        .data-card {
+            background: rgba(201, 176, 55, 0.05);
+            border: 1px solid rgba(201, 176, 55, 0.2);
+            border-radius: 12px;
+            padding: 1.5rem;
+            text-align: center;
+        }
+
+        .data-card .label {
+            color: var(--gray-text);
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 0.5rem;
+        }
+
+        .data-card .value {
+            color: var(--primary-gold);
+            font-size: 2rem;
+            font-weight: 800;
+        }
+
+        .data-card .date {
+            color: var(--gray-text);
+            font-size: 0.8rem;
+            margin-top: 0.5rem;
+        }
+
+        .resources-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-top: 1.5rem;
+        }
+
+        .resource-card {
+            background: rgba(201, 176, 55, 0.05);
+            border: 1px solid rgba(201, 176, 55, 0.2);
+            border-radius: 12px;
+            padding: 1.5rem;
+            transition: all 0.3s ease;
+        }
+
+        .resource-card:hover {
+            transform: translateY(-3px);
+            border-color: var(--primary-gold);
+            box-shadow: 0 8px 20px rgba(201, 176, 55, 0.2);
+        }
+
+        .resource-card h4 {
+            color: var(--light-text);
+            font-size: 1.1rem;
+            margin-bottom: 0.75rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .resource-card h4 i {
+            color: var(--primary-gold);
+        }
+
+        .resource-card p {
+            color: var(--gray-text);
+            font-size: 0.9rem;
+            margin: 0;
+        }
+
+        .login-btn {
+            background: linear-gradient(135deg, var(--primary-gold), var(--secondary-gold)) !important;
+            color: var(--darker-bg) !important;
+            padding: 0.5rem 1.2rem;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 0.95rem;
+            transition: transform 0.3s, box-shadow 0.3s;
+            display: inline-block;
+        }
+
+        .login-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(201, 176, 55, 0.3);
+            color: var(--darker-bg) !important;
+        }
+
+        .back-button {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--primary-gold);
+            text-decoration: none;
+            font-weight: 600;
+            margin-bottom: 2rem;
+            transition: all 0.3s ease;
+        }
+
+        .back-button:hover {
+            transform: translateX(-5px);
+        }
+
+        @media (max-width: 768px) {
+            .guide-title {
+                font-size: 2rem;
+            }
+
+            .guide-subtitle {
+                font-size: 1rem;
+            }
+
+            .content-section {
+                padding: 1.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav>
+        <div class="nav-container">
+            <div class="logo">
+                <a href="../../index.html"><img src="../../assets/images/logo.png" alt="BlueChip Signals Logo"></a>
+            </div>
+            <div class="hamburger-menu">
+                <div class="bar"></div>
+                <div class="bar"></div>
+                <div class="bar"></div>
+            </div>
+            <ul class="nav-links">
+                <li><a href="../../index.html#features">Features</a></li>
+                <li><a href="../../index.html#bots">Supported Stocks</a></li>
+                <li><a href="../../book-demo.html">Book a Demo</a></li>
+                <li><a href="../../faq.html">FAQ</a></li>
+                <li><a href="../../legal.html">Legal Disclaimer</a></li>
+                <li><a href="../../about.html">About Us</a></li>
+                <li><a href="../../login.html" class="login-btn"><i class="fas fa-sign-in-alt"></i> Login</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="guide-hero">
+        <div class="guide-hero-content">
+            <div class="guide-badge">SPY Trading Guide</div>
+            <h1 class="guide-title">Economic Data Monitor</h1>
+            <p class="guide-subtitle">Stay ahead of CPI, PPI, and FOMC announcements to trade SPY volatility like a professional trader.</p>
+        </div>
+    </section>
+
+    <!-- Guide Content -->
+    <div class="guide-content">
+        <a href="../bots/spy-bot.html" class="back-button">
+            <i class="fas fa-arrow-left"></i> Back to SPY Signals
+        </a>
+
+        <!-- Latest Economic Data -->
+        <section class="content-section">
+            <h2><i class="fas fa-chart-line"></i> Key Economic Indicators</h2>
+            <p>Monitor these critical releases that move SPY:</p>
+            
+            <div class="data-grid">
+                <div class="data-card">
+                    <div class="label">CPI (Y/Y)</div>
+                    <div class="value">2.6%</div>
+                    <div class="date">Last Updated: Oct 2025</div>
+                </div>
+                <div class="data-card">
+                    <div class="label">Core CPI (Y/Y)</div>
+                    <div class="value">3.3%</div>
+                    <div class="date">Last Updated: Oct 2025</div>
+                </div>
+                <div class="data-card">
+                    <div class="label">PPI (Y/Y)</div>
+                    <div class="value">2.4%</div>
+                    <div class="date">Last Updated: Oct 2025</div>
+                </div>
+                <div class="data-card">
+                    <div class="label">Fed Funds Rate</div>
+                    <div class="value">4.25-4.50%</div>
+                    <div class="date">Current Target Range</div>
+                </div>
+            </div>
+            
+            <p style="font-size: 0.85rem; color: var(--gray-text); margin-top: 1rem;">
+                <i class="fas fa-info-circle"></i> Data sourced from U.S. Bureau of Labor Statistics and Federal Reserve
+            </p>
+        </section>
+
+        <!-- High-Impact Releases -->
+        <section class="content-section">
+            <h2><i class="fas fa-bolt"></i> High-Impact Releases</h2>
+            <p>The S&P 500 moves aggressively on macro data. Know the schedule and understand the mechanics:</p>
+            
+            <ul>
+                <li><strong>CPI & Core CPI:</strong> Inflation beats or misses reshape Federal Reserve expectations and shift equity risk premium. Watch for 0.3%+ surprises.</li>
+                <li><strong>PPI (Producer Price Index):</strong> Upstream price pressure often foreshadows future CPI moves. Pay attention to revisions.</li>
+                <li><strong>FOMC Rate Decision & Powell Press Conference:</strong> The dot plot, statement language, and Q&A can re-price terminal rate odds instantly.</li>
+                <li><strong>NFP & Unemployment Rate:</strong> Labor market surprises swing growth outlook and yield curve dynamics—indices follow immediately.</li>
+                <li><strong>GDP Reports:</strong> Quarterly growth revisions impact forward earnings estimates and market sentiment.</li>
+            </ul>
+        </section>
+
+        <!-- Trading Framework -->
+        <section class="content-section">
+            <h2><i class="fas fa-bullseye"></i> Pre-Release Trading Framework</h2>
+            <p>Plan your trades before the data drops:</p>
+            
+            <ul>
+                <li><strong>Check Implied Move:</strong> Review weekly SPY straddle pricing to gauge expected volatility range.</li>
+                <li><strong>Reduce Position Size:</strong> Cut exposure by 50-70% ahead of binary events—liquidity can vanish during extreme moves.</li>
+                <li><strong>First Reaction vs. Real Move:</strong> Fade knee-jerk spikes that stall at key VWAP or previous day's levels.</li>
+                <li><strong>Volatility Crush Strategy:</strong> Post-release implied volatility collapses—consider taking profits quickly or selling premium if direction aligns.</li>
+                <li><strong>Wait for Confirmation:</strong> Let the initial 15-minute candle close before entering—avoid getting whipsawed by algorithmic reactions.</li>
+            </ul>
+        </section>
+
+        <!-- Key Resources -->
+        <section class="content-section">
+            <h2><i class="fas fa-tools"></i> Essential Economic Calendars</h2>
+            <p>Keep these resources readily available for real-time data:</p>
+            
+            <div class="resources-grid">
+                <div class="resource-card">
+                    <h4><i class="fas fa-calendar-alt"></i> Trading Economics</h4>
+                    <p>Real-time economic releases with consensus vs. actual, plus historical charts and forecasts.</p>
+                </div>
+                <div class="resource-card">
+                    <h4><i class="fas fa-chart-bar"></i> CME FedWatch Tool</h4>
+                    <p>Live probability tracking of Federal Reserve interest rate decisions based on futures pricing.</p>
+                </div>
+                <div class="resource-card">
+                    <h4><i class="fas fa-newspaper"></i> Bureau of Labor Statistics</h4>
+                    <p>Official source for CPI, PPI, employment data, and wage growth statistics.</p>
+                </div>
+                <div class="resource-card">
+                    <h4><i class="fas fa-clock"></i> ForexFactory Calendar</h4>
+                    <p>Color-coded impact levels showing which releases historically move markets the most.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Trading Tips -->
+        <section class="content-section">
+            <h2><i class="fas fa-lightbulb"></i> Pro Trading Tips</h2>
+            <ul>
+                <li><strong>Set Price Alerts:</strong> Place alerts at key technical levels BEFORE data releases so you're ready to act.</li>
+                <li><strong>Know the Consensus:</strong> Market moves on surprises, not the absolute number. A "good" CPI that misses expectations can still sell off.</li>
+                <li><strong>Watch the Bond Market:</strong> 10-year Treasury yields often lead SPY movement after economic data—monitor TLT for clues.</li>
+                <li><strong>Track Revisions:</strong> Previous month's data revisions can be just as impactful as the headline number.</li>
+                <li><strong>Fed Speak Matters:</strong> Powell's commentary and voting member speeches can override data—stay plugged into central bank communications.</li>
+            </ul>
+        </section>
+    </div>
+
+    <!-- Floating CTA -->
+    <div class="floating-cta">
+        <a href="../../book-demo.html" class="cta-button">
+            <i class="fas fa-rocket"></i> Get SPY Signals
+        </a>
+    </div>
+
+    <!-- Footer -->
+    <footer>
+        <p>&copy; 2025 BlueChip Signals. All rights reserved. | <a href="../../legal.html" style="color: var(--primary-gold); text-decoration: none;">Legal Disclaimer</a></p>
+        <div class="social-media">
+            <a href="https://www.tiktok.com/@bluechip.signals" target="_blank"><i class="fab fa-tiktok"></i></a>
+            <a href="https://www.instagram.com/bluechip.signals/" target="_blank"><i class="fab fa-instagram"></i></a>
+        </div>
+    </footer>
+
+    <script>
+        const hamburgerMenu = document.querySelector('.hamburger-menu');
+        const mobileNav = document.querySelector('.nav-links');
+
+        hamburgerMenu.addEventListener('click', () => {
+            mobileNav.classList.toggle('active');
+        });
+    </script>
+</body>
+</html>

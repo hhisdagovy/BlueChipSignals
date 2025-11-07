@@ -1,0 +1,980 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AAPL Product Cycle Trading | BlueChip Signals</title>
+    <meta name="description" content="Master the key events and news flow that drive AAPL's stock price. Learn to anticipate, not just react to Apple's product cycle for profitable trading.">
+    <link rel="icon" type="image/png" href="../../assets/images/logo.png">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="../../assets/css/bot-style.css?v=1751139967">
+    <script>
+        // Redirect non-logged-in users to book demo page
+        (function() {
+            const isLoggedIn = localStorage.getItem('bluechip_logged_in') || sessionStorage.getItem('bluechip_logged_in');
+            if (!isLoggedIn) {
+                window.location.href = '../../book-demo.html';
+            }
+        })();
+    </script>
+    <style>
+        :root {
+            --primary-gold: #b3a17d;
+            --secondary-gold: #E2CFB5;
+            --dark-bg: #080B0F;
+            --darker-bg: #050810;
+            --light-text: #FFFFFF;
+            --gray-text: #A0A0A0;
+        }
+
+        body {
+            background: var(--darker-bg);
+            color: var(--light-text);
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        }
+
+        .guide-hero {
+            margin-top: 100px;
+            padding: 4rem 2rem 3rem;
+            text-align: center;
+            background: radial-gradient(circle at 50% 50%, rgba(201, 176, 55, 0.15), transparent 70%);
+            position: relative;
+        }
+
+        .guide-hero::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: radial-gradient(circle at 30% 40%, rgba(201, 176, 55, 0.08), transparent 50%);
+            z-index: 0;
+        }
+
+        .guide-hero-content {
+            max-width: 900px;
+            margin: 0 auto;
+            position: relative;
+            z-index: 1;
+        }
+
+        .guide-badge {
+            display: inline-block;
+            background: linear-gradient(135deg, var(--primary-gold), var(--secondary-gold));
+            color: var(--darker-bg);
+            padding: 0.4rem 1.2rem;
+            border-radius: 20px;
+            font-weight: 700;
+            font-size: 0.8rem;
+            letter-spacing: 1px;
+            margin-bottom: 1.5rem;
+            text-transform: uppercase;
+        }
+
+        .guide-title {
+            font-size: 2.8rem;
+            font-weight: 800;
+            margin: 0 0 1rem 0;
+            line-height: 1.2;
+            color: var(--light-text);
+        }
+
+        .guide-subtitle {
+            font-size: 1.2rem;
+            color: var(--gray-text);
+            line-height: 1.6;
+            margin: 0;
+        }
+
+        .guide-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 3rem 2rem;
+        }
+
+        .content-section {
+            background: var(--dark-bg);
+            border: 1px solid rgba(201, 176, 55, 0.2);
+            border-radius: 15px;
+            padding: 2.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .content-section h2 {
+            color: var(--primary-gold);
+            font-size: 1.8rem;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .content-section h2 i {
+            font-size: 1.5rem;
+        }
+
+        .content-section h3 {
+            color: var(--light-text);
+            font-size: 1.4rem;
+            margin-bottom: 1rem;
+        }
+
+        .content-section h4 {
+            color: var(--primary-gold);
+            font-size: 1.2rem;
+            margin-bottom: 1rem;
+        }
+
+        .content-section h5 {
+            color: var(--secondary-gold);
+            font-size: 1rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .content-section p {
+            color: var(--gray-text);
+            line-height: 1.8;
+            margin-bottom: 1rem;
+        }
+
+        .content-section ul {
+            color: var(--light-text);
+            line-height: 1.8;
+            margin: 1rem 0;
+            padding-left: 1.5rem;
+        }
+
+        .content-section ul li {
+            margin-bottom: 0.75rem;
+        }
+
+        .content-section strong {
+            color: var(--light-text);
+        }
+
+        .login-btn {
+            background: linear-gradient(135deg, var(--primary-gold), var(--secondary-gold)) !important;
+            color: var(--darker-bg) !important;
+            padding: 0.5rem 1.2rem;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 0.95rem;
+            transition: transform 0.3s, box-shadow 0.3s;
+            display: inline-block;
+        }
+
+        .login-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(201, 176, 55, 0.3);
+            color: var(--darker-bg) !important;
+        }
+
+        .back-button {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--primary-gold);
+            text-decoration: none;
+            font-weight: 600;
+            margin-bottom: 2rem;
+            transition: all 0.3s ease;
+        }
+
+        .back-button:hover {
+            transform: translateX(-5px);
+        }
+
+        @media (max-width: 768px) {
+            .guide-title {
+                font-size: 2rem;
+            }
+
+            .guide-subtitle {
+                font-size: 1rem;
+            }
+
+            .content-section {
+                padding: 1.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav>
+        <div class="nav-container">
+            <div class="logo">
+                <a href="../../index.html"><img src="../../assets/images/logo.png" alt="BlueChip Signals Logo"></a>
+            </div>
+            <div class="hamburger-menu">
+                <div class="bar"></div>
+                <div class="bar"></div>
+                <div class="bar"></div>
+            </div>
+            <ul class="nav-links">
+                <li><a href="../../index.html#features">Features</a></li>
+                <li><a href="../../index.html#bots">Supported Stocks</a></li>
+                <li><a href="../../book-demo.html">Book a Demo</a></li>
+                <li><a href="../../faq.html">FAQ</a></li>
+                <li><a href="../../legal.html">Legal Disclaimer</a></li>
+                <li><a href="../../about.html">About Us</a></li>
+                <li><a href="../../login.html" class="login-btn"><i class="fas fa-sign-in-alt"></i> Login</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="guide-hero">
+        <div class="guide-hero-content">
+            <div class="guide-badge">AAPL Trading Guide</div>
+            <h1 class="guide-title">Trading The Apple Product Cycle</h1>
+            <p class="guide-subtitle">Master the key events and news flow that drive AAPL's stock price. Learn to anticipate, not just react.</p>
+        </div>
+    </section>
+
+    <!-- Guide Content -->
+    <div class="guide-content">
+        <a href="../bots/aapl-bot.html" class="back-button">
+            <i class="fas fa-arrow-left"></i> Back to AAPL Signals
+        </a>
+
+        <section class="content-section">
+            <h2><i class="fas fa-compass"></i> Product Cycle Phase Detector</h2>
+            <p>Answer a few questions about the current market situation to identify which phase of Apple's product cycle we're in and get personalized trading strategies:</p>
+            
+            <div id="phase-detector" style="background: rgba(26, 31, 46, 0.3); padding: 2.5rem; border-radius: 12px; margin: 2.5rem 0; border: 1px solid rgba(255, 193, 7, 0.2);">
+                <div id="detector-question-container">
+                    <div class="detector-question active" data-question="1">
+                        <h4 style="color: var(--primary-gold); margin-bottom: 2rem; text-align: center;"><i class="fas fa-calendar-alt"></i> What's the current time of year?</h4>
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.5rem;">
+                            <button class="detector-btn" data-answer="spring" data-next="2a">
+                                <i class="fas fa-seedling" style="color: #00ff88;"></i>
+                                <strong>Spring (Mar-May)</strong>
+                                <small>Early rumors typically emerge</small>
+                            </button>
+                            <button class="detector-btn" data-answer="summer" data-next="2b">
+                                <i class="fas fa-sun" style="color: #ffa500;"></i>
+                                <strong>Summer (Jun-Aug)</strong>
+                                <small>WWDC and build-up period</small>
+                            </button>
+                            <button class="detector-btn" data-answer="fall" data-next="2c">
+                                <i class="fas fa-leaf" style="color: var(--primary-gold);"></i>
+                                <strong>Fall (Sep-Nov)</strong>
+                                <small>Event season and launches</small>
+                            </button>
+                            <button class="detector-btn" data-answer="winter" data-next="2d">
+                                <i class="fas fa-snowflake" style="color: #87ceeb;"></i>
+                                <strong>Winter (Dec-Feb)</strong>
+                                <small>Earnings and sales data</small>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="detector-question" data-question="2a">
+                        <h4 style="color: var(--primary-gold); margin-bottom: 2rem; text-align: center;"><i class="fas fa-newspaper"></i> Are there any iPhone rumors circulating?</h4>
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem;">
+                            <button class="detector-btn" data-answer="early-rumors" data-next="result-spring-rumors">
+                                <i class="fas fa-search" style="color: #00ff88;"></i>
+                                <strong>Yes, Early Leaks</strong>
+                                <small>Supply chain reports emerging</small>
+                            </button>
+                            <button class="detector-btn" data-answer="no-rumors" data-next="result-spring-quiet">
+                                <i class="fas fa-pause" style="color: #ffa500;"></i>
+                                <strong>Quiet Period</strong>
+                                <small>No major rumors yet</small>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="detector-question" data-question="2b">
+                        <h4 style="color: var(--primary-gold); margin-bottom: 2rem; text-align: center;"><i class="fas fa-microphone"></i> Has WWDC happened yet?</h4>
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem;">
+                            <button class="detector-btn" data-answer="pre-wwdc" data-next="3a">
+                                <i class="fas fa-clock" style="color: #ffa500;"></i>
+                                <strong>Before WWDC</strong>
+                                <small>June event approaching</small>
+                            </button>
+                            <button class="detector-btn" data-answer="post-wwdc" data-next="3b">
+                                <i class="fas fa-check-circle" style="color: #00ff88;"></i>
+                                <strong>After WWDC</strong>
+                                <small>Software revealed, hardware rumors building</small>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="detector-question" data-question="2c">
+                        <h4 style="color: var(--primary-gold); margin-bottom: 2rem; text-align: center;"><i class="fas fa-calendar-day"></i> What's the September event status?</h4>
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.5rem;">
+                            <button class="detector-btn" data-answer="pre-event" data-next="result-fall-pre-event">
+                                <i class="fas fa-hourglass-half" style="color: #ffa500;"></i>
+                                <strong>Before Event</strong>
+                                <small>Anticipation building</small>
+                            </button>
+                            <button class="detector-btn" data-answer="event-week" data-next="result-fall-event-week">
+                                <i class="fas fa-fire" style="color: #ff4444;"></i>
+                                <strong>Event Week</strong>
+                                <small>High volatility period</small>
+                            </button>
+                            <button class="detector-btn" data-answer="post-event" data-next="3c">
+                                <i class="fas fa-rocket" style="color: var(--primary-gold);"></i>
+                                <strong>After Event</strong>
+                                <small>Launch phase beginning</small>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="detector-question" data-question="2d">
+                        <h4 style="color: var(--primary-gold); margin-bottom: 2rem; text-align: center;"><i class="fas fa-chart-bar"></i> What's the earnings situation?</h4>
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem;">
+                            <button class="detector-btn" data-answer="pre-earnings" data-next="result-winter-pre-earnings">
+                                <i class="fas fa-hourglass" style="color: #ffa500;"></i>
+                                <strong>Before Q1 Earnings</strong>
+                                <small>Awaiting iPhone sales data</small>
+                            </button>
+                            <button class="detector-btn" data-answer="post-earnings" data-next="result-winter-post-earnings">
+                                <i class="fas fa-chart-line" style="color: #00ff88;"></i>
+                                <strong>After Q1 Earnings</strong>
+                                <small>Results are in, planning next cycle</small>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="detector-question" data-question="3a">
+                        <h4 style="color: var(--primary-gold); margin-bottom: 2rem; text-align: center;"><i class="fas fa-volume-up"></i> How strong are the iPhone rumors?</h4>
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem;">
+                            <button class="detector-btn" data-answer="strong-rumors" data-next="result-summer-strong-rumors">
+                                <i class="fas fa-bullhorn" style="color: #00ff88;"></i>
+                                <strong>Very Strong</strong>
+                                <small>Detailed leaks and analyst reports</small>
+                            </button>
+                            <button class="detector-btn" data-answer="weak-rumors" data-next="result-summer-weak-rumors">
+                                <i class="fas fa-question" style="color: #ffa500;"></i>
+                                <strong>Moderate/Weak</strong>
+                                <small>Limited information available</small>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="detector-question" data-question="3b">
+                        <h4 style="color: var(--primary-gold); margin-bottom: 2rem; text-align: center;"><i class="fas fa-tachometer-alt"></i> How's AAPL's momentum?</h4>
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem;">
+                            <button class="detector-btn" data-answer="strong-momentum" data-next="result-summer-strong-momentum">
+                                <i class="fas fa-arrow-up" style="color: #00ff88;"></i>
+                                <strong>Strong Uptrend</strong>
+                                <small>Breaking new highs</small>
+                            </button>
+                            <button class="detector-btn" data-answer="weak-momentum" data-next="result-summer-weak-momentum">
+                                <i class="fas fa-minus" style="color: #ff4444;"></i>
+                                <strong>Sideways/Down</strong>
+                                <small>Consolidating or declining</small>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="detector-question" data-question="3c">
+                        <h4 style="color: var(--primary-gold); margin-bottom: 2rem; text-align: center;"><i class="fas fa-shopping-cart"></i> How are early sales reports?</h4>
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem;">
+                            <button class="detector-btn" data-answer="strong-sales" data-next="result-fall-strong-sales">
+                                <i class="fas fa-thumbs-up" style="color: #00ff88;"></i>
+                                <strong>Strong Demand</strong>
+                                <small>Long wait times, positive reviews</small>
+                            </button>
+                            <button class="detector-btn" data-answer="weak-sales" data-next="result-fall-weak-sales">
+                                <i class="fas fa-thumbs-down" style="color: #ff4444;"></i>
+                                <strong>Weak Demand</strong>
+                                <small>Available quickly, mixed reviews</small>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <div id="detector-results-container" style="display: none;">
+                    <!-- Spring Results -->
+                    <div class="detector-result" data-result="result-spring-rumors">
+                        <div style="text-align: center; margin-bottom: 2rem;">
+                            <h4 style="color: #00ff88; margin-bottom: 1rem;"><i class="fas fa-search"></i> Phase 1: Early Rumor Season</h4>
+                            <div style="background: rgba(0, 255, 136, 0.1); padding: 1.5rem; border-radius: 8px; border: 1px solid rgba(0, 255, 136, 0.2);">
+                                <p style="margin: 0; color: var(--light-text); line-height: 1.6;"><strong>Current Phase:</strong> You're in the early stages of the anticipation phase. Rumors are building momentum and creating directional bias.</p>
+                            </div>
+                        </div>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;">
+                            <div style="background: rgba(26, 31, 46, 0.2); padding: 1.5rem; border-radius: 8px;">
+                                <h5 style="color: var(--secondary-gold); margin-bottom: 1rem;">Action Plan</h5>
+                                <ul style="color: var(--light-text); font-size: 0.9rem; line-height: 1.6; margin: 0; padding-left: 1rem;">
+                                    <li>Start monitoring Mark Gurman's reports closely</li>
+                                    <li>Begin building small long positions on dips</li>
+                                    <li>Consider September/October call options</li>
+                                    <li>Track supply chain news from Taiwan</li>
+                                </ul>
+                            </div>
+                            <div style="background: rgba(26, 31, 46, 0.2); padding: 1.5rem; border-radius: 8px;">
+                                <h5 style="color: var(--secondary-gold); margin-bottom: 1rem;">Risk Management</h5>
+                                <ul style="color: var(--light-text); font-size: 0.9rem; line-height: 1.6; margin: 0; padding-left: 1rem;">
+                                    <li>Position size: 2-3% of portfolio</li>
+                                    <li>Stop loss: 5% below entry</li>
+                                    <li>Target: Build to 5% by summer</li>
+                                    <li>Time horizon: 4-6 months</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="detector-result" data-result="result-spring-quiet">
+                        <div style="text-align: center; margin-bottom: 2rem;">
+                            <h4 style="color: #ffa500; margin-bottom: 1rem;"><i class="fas fa-pause"></i> Quiet Pre-Rumor Period</h4>
+                            <div style="background: rgba(255, 165, 0, 0.1); padding: 1.5rem; border-radius: 8px; border: 1px solid rgba(255, 165, 0, 0.2);">
+                                <p style="margin: 0; color: var(--light-text); line-height: 1.6;"><strong>Current Phase:</strong> Too early for major moves. This is the calm before the storm - perfect time for preparation and planning.</p>
+                            </div>
+                        </div>
+                        <div style="text-align: center;">
+                            <p style="color: var(--gray-text); font-size: 0.95rem;"><strong>Strategy:</strong> Wait and watch. Set up alerts for major rumor sources. Consider other trading opportunities until iPhone buzz begins.</p>
+                        </div>
+                    </div>
+                    
+                    <!-- Summer Results -->
+                    <div class="detector-result" data-result="result-summer-strong-rumors">
+                        <div style="text-align: center; margin-bottom: 2rem;">
+                            <h4 style="color: #00ff88; margin-bottom: 1rem;"><i class="fas fa-bullhorn"></i> Phase 1: Peak Rumor Season</h4>
+                            <div style="background: rgba(0, 255, 136, 0.1); padding: 1.5rem; border-radius: 8px; border: 1px solid rgba(0, 255, 136, 0.2);">
+                                <p style="margin: 0; color: var(--light-text); line-height: 1.6;"><strong>Current Phase:</strong> Maximum anticipation building. Strong rumors create bullish momentum leading into September event.</p>
+                            </div>
+                        </div>
+                        <div style="text-align: center;">
+                            <p style="color: var(--gray-text); font-size: 0.95rem;"><strong>Strategy:</strong> Increase position size to 5%. Focus on call options expiring 30-45 days post-event. Watch for any rumor confirmations.</p>
+                        </div>
+                    </div>
+                    
+                    <div class="detector-result" data-result="result-summer-weak-rumors">
+                        <div style="text-align: center; margin-bottom: 2rem;">
+                            <h4 style="color: #ffa500; margin-bottom: 1rem;"><i class="fas fa-question"></i> Uncertain Rumor Environment</h4>
+                            <div style="background: rgba(255, 165, 0, 0.1); padding: 1.5rem; border-radius: 8px; border: 1px solid rgba(255, 165, 0, 0.2);">
+                                <p style="margin: 0; color: var(--light-text); line-height: 1.6;"><strong>Current Phase:</strong> Limited visibility creates uncertainty. Market may lack conviction until clearer signals emerge.</p>
+                            </div>
+                        </div>
+                        <div style="text-align: center;">
+                            <p style="color: var(--gray-text); font-size: 0.95rem;"><strong>Strategy:</strong> Maintain smaller positions (2-3%). Wait for stronger catalysts or more definitive rumors before sizing up.</p>
+                        </div>
+                    </div>
+                    
+                    <div class="detector-result" data-result="result-summer-strong-momentum">
+                        <div style="text-align: center; margin-bottom: 2rem;">
+                            <h4 style="color: #00ff88; margin-bottom: 1rem;"><i class="fas fa-rocket"></i> Strong Pre-Event Momentum</h4>
+                            <div style="background: rgba(0, 255, 136, 0.1); padding: 1.5rem; border-radius: 8px; border: 1px solid rgba(0, 255, 136, 0.2);">
+                                <p style="margin: 0; color: var(--light-text); line-height: 1.6;"><strong>Current Phase:</strong> Bullish momentum + strong rumors = ideal setup. Market pricing in positive expectations for September.</p>
+                            </div>
+                        </div>
+                        <div style="text-align: center;">
+                            <p style="color: var(--gray-text); font-size: 0.95rem;"><strong>Strategy:</strong> Ride the momentum but prepare for potential "sell the news" reaction. Consider taking some profits before the event.</p>
+                        </div>
+                    </div>
+                    
+                    <div class="detector-result" data-result="result-summer-weak-momentum">
+                        <div style="text-align: center; margin-bottom: 2rem;">
+                            <h4 style="color: #ff4444; margin-bottom: 1rem;"><i class="fas fa-chart-line-down"></i> Weak Pre-Event Setup</h4>
+                            <div style="background: rgba(255, 68, 68, 0.1); padding: 1.5rem; border-radius: 8px; border: 1px solid rgba(255, 68, 68, 0.2);">
+                                <p style="margin: 0; color: var(--light-text); line-height: 1.6;"><strong>Current Phase:</strong> Poor momentum despite good rumors suggests broader market headwinds or sector rotation.</p>
+                            </div>
+                        </div>
+                        <div style="text-align: center;">
+                            <p style="color: var(--gray-text); font-size: 0.95rem;"><strong>Strategy:</strong> Reduce position size or wait for technical improvement. Focus on other opportunities until AAPL shows strength.</p>
+                        </div>
+                    </div>
+                    
+                    <!-- Fall Results -->
+                    <div class="detector-result" data-result="result-fall-pre-event">
+                        <div style="text-align: center; margin-bottom: 2rem;">
+                            <h4 style="color: #ffa500; margin-bottom: 1rem;"><i class="fas fa-hourglass-half"></i> Phase 2: Pre-Event Tension</h4>
+                            <div style="background: rgba(255, 165, 0, 0.1); padding: 1.5rem; border-radius: 8px; border: 1px solid rgba(255, 165, 0, 0.2);">
+                                <p style="margin: 0; color: var(--light-text); line-height: 1.6;"><strong>Current Phase:</strong> Maximum anticipation before the September event. High volatility and position adjustments expected.</p>
+                            </div>
+                        </div>
+                        <div style="text-align: center;">
+                            <p style="color: var(--gray-text); font-size: 0.95rem;"><strong>Strategy:</strong> Reduce position size to 1-2%. Consider straddles to capture volatility. Prepare for "sell the news" reaction.</p>
+                        </div>
+                    </div>
+                    
+                    <div class="detector-result" data-result="result-fall-event-week">
+                        <div style="text-align: center; margin-bottom: 2rem;">
+                            <h4 style="color: #ff4444; margin-bottom: 1rem;"><i class="fas fa-fire"></i> Phase 2: Event Week - High Alert</h4>
+                            <div style="background: rgba(255, 68, 68, 0.1); padding: 1.5rem; border-radius: 8px; border: 1px solid rgba(255, 68, 68, 0.2);">
+                                <p style="margin: 0; color: var(--light-text); line-height: 1.6;"><strong>Current Phase:</strong> Extreme volatility period. Immediate reactions often wrong - wait 24-48 hours for dust to settle.</p>
+                            </div>
+                        </div>
+                        <div style="text-align: center;">
+                            <p style="color: var(--gray-text); font-size: 0.95rem;"><strong>Strategy:</strong> Minimal positions. Use straddles if positioned. Focus on capturing volatility rather than direction.</p>
+                        </div>
+                    </div>
+                    
+                    <div class="detector-result" data-result="result-fall-strong-sales">
+                        <div style="text-align: center; margin-bottom: 2rem;">
+                            <h4 style="color: #00ff88; margin-bottom: 1rem;"><i class="fas fa-thumbs-up"></i> Phase 3: Strong Launch Momentum</h4>
+                            <div style="background: rgba(0, 255, 136, 0.1); padding: 1.5rem; border-radius: 8px; border: 1px solid rgba(0, 255, 136, 0.2);">
+                                <p style="margin: 0; color: var(--light-text); line-height: 1.6;"><strong>Current Phase:</strong> Excellent setup for holiday season rally. Strong demand validates bullish thesis.</p>
+                            </div>
+                        </div>
+                        <div style="text-align: center;">
+                            <p style="color: var(--gray-text); font-size: 0.95rem;"><strong>Strategy:</strong> Re-enter long positions aggressively (5-7%). Target holiday season highs. Trail stops as price advances.</p>
+                        </div>
+                    </div>
+                    
+                    <div class="detector-result" data-result="result-fall-weak-sales">
+                        <div style="text-align: center; margin-bottom: 2rem;">
+                            <h4 style="color: #ff4444; margin-bottom: 1rem;"><i class="fas fa-thumbs-down"></i> Phase 3: Disappointing Launch</h4>
+                            <div style="background: rgba(255, 68, 68, 0.1); padding: 1.5rem; border-radius: 8px; border: 1px solid rgba(255, 68, 68, 0.2);">
+                                <p style="margin: 0; color: var(--light-text); line-height: 1.6;"><strong>Current Phase:</strong> Weak demand creates headwinds. Consider gap fill trades or avoid until next cycle.</p>
+                            </div>
+                        </div>
+                        <div style="text-align: center;">
+                            <p style="color: var(--gray-text); font-size: 0.95rem;"><strong>Strategy:</strong> Avoid long positions. Consider shorts on bounces. Focus on January earnings as next major catalyst.</p>
+                        </div>
+                    </div>
+                    
+                    <!-- Winter Results -->
+                    <div class="detector-result" data-result="result-winter-pre-earnings">
+                        <div style="text-align: center; margin-bottom: 2rem;">
+                            <h4 style="color: #ffa500; margin-bottom: 1rem;"><i class="fas fa-hourglass"></i> Phase 4: Pre-Earnings Positioning</h4>
+                            <div style="background: rgba(255, 165, 0, 0.1); padding: 1.5rem; border-radius: 8px; border: 1px solid rgba(255, 165, 0, 0.2);">
+                                <p style="margin: 0; color: var(--light-text); line-height: 1.6;"><strong>Current Phase:</strong> Awaiting Q1 earnings to validate iPhone sales cycle. High binary risk/reward setup.</p>
+                            </div>
+                        </div>
+                        <div style="text-align: center;">
+                            <p style="color: var(--gray-text); font-size: 0.95rem;"><strong>Strategy:</strong> Use earnings straddles or small directional bets. Never risk more than 1% on binary events. Prepare for next cycle.</p>
+                        </div>
+                    </div>
+                    
+                    <div class="detector-result" data-result="result-winter-post-earnings">
+                        <div style="text-align: center; margin-bottom: 2rem;">
+                            <h4 style="color: #87ceeb; margin-bottom: 1rem;"><i class="fas fa-chart-line"></i> Cycle Complete - Planning Phase</h4>
+                            <div style="background: rgba(135, 206, 235, 0.1); padding: 1.5rem; border-radius: 8px; border: 1px solid rgba(135, 206, 235, 0.2);">
+                                <p style="margin: 0; color: var(--light-text); line-height: 1.6;"><strong>Current Phase:</strong> Current cycle complete. Time to analyze results and prepare for next year's product cycle.</p>
+                            </div>
+                        </div>
+                        <div style="text-align: center;">
+                            <p style="color: var(--gray-text); font-size: 0.95rem;"><strong>Strategy:</strong> Review performance, adjust strategy for next cycle. Begin monitoring early rumors for next iPhone generation.</p>
+                        </div>
+                    </div>
+                    
+                    <div style="text-align: center; margin-top: 2rem;">
+                        <button id="restart-detector" style="background: rgba(255, 193, 7, 0.2); color: var(--primary-gold); border: 1px solid var(--primary-gold); padding: 1rem 2rem; border-radius: 8px; cursor: pointer; font-size: 1rem;">
+                            <i class="fas fa-redo"></i> Analyze Different Scenario
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="content-section">
+            <h2><i class="fas fa-chart-line"></i> Understanding Apple's Predictable Patterns</h2>
+            <p>Apple operates on highly predictable product cycles that create recurring trading opportunities throughout the year. Unlike other tech companies with sporadic announcements, Apple's structured approach allows traders to prepare for specific catalysts months in advance.</p>
+            
+            <div style="background: rgba(255, 193, 7, 0.1); padding: 2rem; border-radius: 12px; border-left: 4px solid var(--primary-gold); margin: 2rem 0;">
+                <h4 style="color: var(--primary-gold); margin-bottom: 1rem;"><i class="fas fa-lightbulb"></i> Why Product Cycles Matter</h4>
+                <p style="margin: 0; color: var(--light-text); line-height: 1.8;">Apple generates over 50% of its revenue from iPhone sales. The annual refresh cycle creates predictable periods of anticipation, event-driven volatility, and post-launch momentum that sophisticated traders can exploit.</p>
+            </div>
+        </section>
+
+        <section class="content-section">
+            <h2><i class="fas fa-mobile-alt"></i> The Annual iPhone Cycle: Your Primary Trading Vehicle</h2>
+            <p>The iPhone is Apple's crown jewel and the primary driver of stock performance. Understanding its four distinct phases is crucial for timing your entries and exits:</p>
+            
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 2rem; margin: 2rem 0;">
+                <div style="background: rgba(26, 31, 46, 0.3); padding: 2rem; border-radius: 12px; border: 1px solid rgba(0, 255, 136, 0.2);">
+                    <h4 style="color: #00ff88; margin-bottom: 1.5rem; font-size: 1.2rem;"><i class="fas fa-search"></i> Phase 1: Rumor Season (March-August)</h4>
+                    <div style="margin-bottom: 1.5rem;">
+                        <p style="color: var(--light-text); line-height: 1.8; margin-bottom: 1rem;"><strong>What Happens:</strong> Supply chain leaks, analyst predictions, and feature speculation dominate headlines</p>
+                        <p style="color: var(--light-text); line-height: 1.8; margin-bottom: 1rem;"><strong>Market Behavior:</strong> Gradual buildup of anticipation, often creating a slow uptrend</p>
+                        <p style="color: var(--light-text); line-height: 1.8; margin: 0;"><strong>Trading Strategy:</strong> Build long positions on any significant dips, focusing on call options with September/October expiration</p>
+                    </div>
+                    <div style="padding: 1rem; background: rgba(0, 255, 136, 0.1); border-radius: 8px;">
+                        <small style="color: #00ff88; font-size: 0.9rem;"><strong>Key Indicators:</strong> Monitor Bloomberg's Mark Gurman, supply chain reports from Taiwan, and unusual options activity</small>
+                    </div>
+                </div>
+                
+                <div style="background: rgba(26, 31, 46, 0.3); padding: 2rem; border-radius: 12px; border: 1px solid rgba(255, 193, 7, 0.2);">
+                    <h4 style="color: var(--primary-gold); margin-bottom: 1.5rem; font-size: 1.2rem;"><i class="fas fa-calendar-day"></i> Phase 2: The September Event</h4>
+                    <div style="margin-bottom: 1.5rem;">
+                        <p style="color: var(--light-text); line-height: 1.8; margin-bottom: 1rem;"><strong>What Happens:</strong> Apple officially announces new iPhone features, pricing, and availability</p>
+                        <p style="color: var(--light-text); line-height: 1.8; margin-bottom: 1rem;"><strong>Market Behavior:</strong> Extreme volatility during and after the event, often "sell the news" reaction</p>
+                        <p style="color: var(--light-text); line-height: 1.8; margin: 0;"><strong>Trading Strategy:</strong> Take profits on long positions before the event, or use straddles to capture volatility</p>
+                    </div>
+                    <div style="padding: 1rem; background: rgba(255, 193, 7, 0.1); border-radius: 8px;">
+                        <small style="color: var(--primary-gold); font-size: 0.9rem;"><strong>Pro Tip:</strong> The immediate reaction is often wrong. Wait 24-48 hours for the dust to settle before making major moves</small>
+                    </div>
+                </div>
+                
+                <div style="background: rgba(26, 31, 46, 0.3); padding: 2rem; border-radius: 12px; border: 1px solid rgba(138, 43, 226, 0.2);">
+                    <h4 style="color: #8a2be2; margin-bottom: 1.5rem; font-size: 1.2rem;"><i class="fas fa-rocket"></i> Phase 3: Launch & Early Sales (Late Sept-Nov)</h4>
+                    <div style="margin-bottom: 1.5rem;">
+                        <p style="color: var(--light-text); line-height: 1.8; margin-bottom: 1rem;"><strong>What Happens:</strong> Product goes on sale, initial reviews released, early sales data emerges</p>
+                        <p style="color: var(--light-text); line-height: 1.8; margin-bottom: 1rem;"><strong>Market Behavior:</strong> Strong momentum if reviews are positive and demand exceeds expectations</p>
+                        <p style="color: var(--light-text); line-height: 1.8; margin: 0;"><strong>Trading Strategy:</strong> Re-enter long positions if early indicators are positive, ride the holiday season momentum</p>
+                    </div>
+                    <div style="padding: 1rem; background: rgba(138, 43, 226, 0.1); border-radius: 8px;">
+                        <small style="color: #8a2be2; font-size: 0.9rem;"><strong>Watch For:</strong> Wait times for delivery, carrier reports, consumer reviews on social media</small>
+                    </div>
+                </div>
+                
+                <div style="background: rgba(26, 31, 46, 0.3); padding: 2rem; border-radius: 12px; border: 1px solid rgba(255, 68, 68, 0.2);">
+                    <h4 style="color: #ff4444; margin-bottom: 1.5rem; font-size: 1.2rem;"><i class="fas fa-chart-bar"></i> Phase 4: Earnings Reality Check (January)</h4>
+                    <div style="margin-bottom: 1.5rem;">
+                        <p style="color: var(--light-text); line-height: 1.8; margin-bottom: 1rem;"><strong>What Happens:</strong> Q1 earnings reveal actual iPhone sales numbers and guidance for the year</p>
+                        <p style="color: var(--light-text); line-height: 1.8; margin-bottom: 1rem;"><strong>Market Behavior:</strong> Major directional move based on whether reality met expectations</p>
+                        <p style="color: var(--light-text); line-height: 1.8; margin: 0;"><strong>Trading Strategy:</strong> Use earnings straddles or exit positions before the announcement if you're risk-averse</p>
+                    </div>
+                    <div style="padding: 1rem; background: rgba(255, 68, 68, 0.1); border-radius: 8px;">
+                        <small style="color: #ff4444; font-size: 0.9rem;"><strong>Critical Metrics:</strong> iPhone unit sales, average selling price, and forward guidance for the next cycle</small>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="content-section">
+            <h2><i class="fas fa-gem"></i> Secondary Product Catalysts: Hidden Gem Opportunities</h2>
+            <p>While the iPhone dominates headlines, Apple's other product lines create less crowded but equally profitable trading opportunities:</p>
+            
+            <div style="background: rgba(26, 31, 46, 0.3); padding: 2.5rem; border-radius: 12px; margin: 2.5rem 0; border: 1px solid rgba(0, 255, 136, 0.2);">
+                <h4 style="color: #00ff88; margin-bottom: 2rem; text-align: center;"><i class="fas fa-laptop"></i> Mac & iPad Events: The Chip Revolution</h4>
+                
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 2rem;">
+                    <div style="background: rgba(26, 31, 46, 0.2); padding: 1.5rem; border-radius: 8px;">
+                        <h5 style="color: var(--secondary-gold); margin-bottom: 1rem;"><i class="fas fa-microchip"></i> M-Series Chip Upgrades</h5>
+                        <ul style="color: var(--light-text); line-height: 1.8; margin: 0; padding-left: 1rem; font-size: 0.9rem;">
+                            <li style="margin-bottom: 0.8rem;">Typically announced in spring or fall</li>
+                            <li style="margin-bottom: 0.8rem;">Performance improvements drive upgrade cycles</li>
+                            <li style="margin-bottom: 0.8rem;">Often creates 2-5% stock moves</li>
+                            <li>Less crowded trades than iPhone events</li>
+                        </ul>
+                    </div>
+                    
+                    <div style="background: rgba(26, 31, 46, 0.2); padding: 1.5rem; border-radius: 8px;">
+                        <h5 style="color: var(--secondary-gold); margin-bottom: 1rem;"><i class="fas fa-tablet-alt"></i> iPad Pro Refreshes</h5>
+                        <ul style="color: var(--light-text); line-height: 1.8; margin: 0; padding-left: 1rem; font-size: 0.9rem;">
+                            <li style="margin-bottom: 0.8rem;">Usually coincide with Mac announcements</li>
+                            <li style="margin-bottom: 0.8rem;">Professional features drive enterprise adoption</li>
+                            <li style="margin-bottom: 0.8rem;">Watch for productivity software partnerships</li>
+                            <li>Growing services revenue attachment</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 2rem; margin: 2rem 0;">
+                <div style="background: rgba(26, 31, 46, 0.3); padding: 2rem; border-radius: 12px; border: 1px solid rgba(255, 193, 7, 0.2);">
+                    <h4 style="color: var(--primary-gold); margin-bottom: 1.5rem; font-size: 1.1rem;"><i class="fas fa-code"></i> WWDC: The Services Story</h4>
+                    <div style="margin-bottom: 1.5rem;">
+                        <h5 style="color: var(--secondary-gold); margin-bottom: 1rem;">Why It Matters for Traders</h5>
+                        <ul style="color: var(--light-text); line-height: 1.8; margin: 0; padding-left: 1.2rem;">
+                            <li style="margin-bottom: 0.8rem;"><strong>AI Announcements:</strong> Apple's AI strategy directly impacts long-term valuation</li>
+                            <li style="margin-bottom: 0.8rem;"><strong>Services Growth:</strong> New revenue streams beyond hardware</li>
+                            <li style="margin-bottom: 0.8rem;"><strong>Developer Relations:</strong> App Store changes affect ecosystem value</li>
+                            <li style="margin-bottom: 0.8rem;"><strong>Health & Privacy:</strong> Emerging moats that justify premium valuations</li>
+                        </ul>
+                    </div>
+                    
+                    <div style="padding: 1.5rem; background: rgba(255, 193, 7, 0.1); border-radius: 8px;">
+                        <strong style="color: var(--primary-gold);">Trading Approach:</strong>
+                        <p style="margin: 1rem 0 0 0; font-size: 0.95rem; line-height: 1.6;">WWDC moves are often delayed. Buy call options 30-45 days out to capture the slow realization of new capabilities.</p>
+                    </div>
+                </div>
+                
+                <div style="background: rgba(26, 31, 46, 0.3); padding: 2rem; border-radius: 12px; border: 1px solid rgba(138, 43, 226, 0.2);">
+                    <h4 style="color: #8a2be2; margin-bottom: 1.5rem; font-size: 1.1rem;"><i class="fas fa-star"></i> New Product Categories</h4>
+                    <div style="margin-bottom: 1.5rem;">
+                        <h5 style="color: var(--secondary-gold); margin-bottom: 1rem;">Paradigm Shift Opportunities</h5>
+                        <ul style="color: var(--light-text); line-height: 1.8; margin: 0; padding-left: 1.2rem;">
+                            <li style="margin-bottom: 0.8rem;"><strong>Apple Vision Pro:</strong> Mixed reality market entry</li>
+                            <li style="margin-bottom: 0.8rem;"><strong>Apple Car (Future):</strong> Autonomous vehicle speculation</li>
+                            <li style="margin-bottom: 0.8rem;"><strong>Health Devices:</strong> Beyond the Apple Watch</li>
+                            <li style="margin-bottom: 0.8rem;"><strong>Home Automation:</strong> Smart home ecosystem plays</li>
+                        </ul>
+                    </div>
+                    
+                    <div style="padding: 1.5rem; background: rgba(138, 43, 226, 0.1); border-radius: 8px;">
+                        <strong style="color: #8a2be2;">Long-Term Strategy:</strong>
+                        <p style="margin: 1rem 0 0 0; font-size: 0.95rem; line-height: 1.6;">These are multi-year themes. Start building positions on early rumors, but size appropriately for high uncertainty.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="content-section">
+            <h2><i class="fas fa-satellite-dish"></i> Your Intelligence Network: High-Signal Information Sources</h2>
+            <p>In Apple trading, information is your primary weapon. These sources provide the highest signal-to-noise ratio for actionable intelligence:</p>
+            
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 2rem; margin: 2rem 0;">
+                <div style="background: rgba(26, 31, 46, 0.3); padding: 2rem; border-radius: 12px; border: 1px solid rgba(0, 255, 136, 0.2);">
+                    <h4 style="color: #00ff88; margin-bottom: 1.5rem; font-size: 1.1rem;"><i class="fas fa-newspaper"></i> Tier 1: Market-Moving Sources</h4>
+                    <ul style="color: var(--light-text); line-height: 1.8; margin: 0; padding-left: 1.2rem;">
+                        <li style="margin-bottom: 0.8rem;"><strong>Bloomberg (Mark Gurman):</strong> The gold standard for Apple intelligence. His "Power On" newsletter can move markets</li>
+                        <li style="margin-bottom: 0.8rem;"><strong>Ming-Chi Kuo (TF Securities):</strong> Legendary Apple analyst with supply chain connections</li>
+                        <li style="margin-bottom: 0.8rem;"><strong>Apple's Official Channels:</strong> Press releases, SEC filings, and Tim Cook's interviews</li>
+                        <li><strong>Supplier Reports:</strong> TSMC, Foxconn, and other key partners' earnings calls</li>
+                    </ul>
+                </div>
+                
+                <div style="background: rgba(26, 31, 46, 0.3); padding: 2rem; border-radius: 12px; border: 1px solid rgba(255, 193, 7, 0.2);">
+                    <h4 style="color: var(--primary-gold); margin-bottom: 1.5rem; font-size: 1.1rem;"><i class="fas fa-chart-line"></i> Tier 2: Technical & Market Data</h4>
+                    <ul style="color: var(--light-text); line-height: 1.8; margin: 0; padding-left: 1.2rem;">
+                        <li style="margin-bottom: 0.8rem;"><strong>Options Flow:</strong> Unusual activity in AAPL options, especially large block trades</li>
+                        <li style="margin-bottom: 0.8rem;"><strong>Institutional Holdings:</strong> 13F filings from major funds and hedge funds</li>
+                        <li style="margin-bottom: 0.8rem;"><strong>Analyst Upgrades/Downgrades:</strong> Particularly from Goldman Sachs, Morgan Stanley, and Wedbush</li>
+                        <li><strong>Consumer Surveys:</strong> Piper Sandler teen surveys, Consumer Intelligence Research Partners data</li>
+                    </ul>
+                </div>
+                
+                <div style="background: rgba(26, 31, 46, 0.3); padding: 2rem; border-radius: 12px; border: 1px solid rgba(138, 43, 226, 0.2);">
+                    <h4 style="color: #8a2be2; margin-bottom: 1.5rem; font-size: 1.1rem;"><i class="fas fa-globe"></i> Tier 3: Alternative Data</h4>
+                    <ul style="color: var(--light-text); line-height: 1.8; margin: 0; padding-left: 1.2rem;">
+                        <li style="margin-bottom: 0.8rem;"><strong>Social Media Sentiment:</strong> Twitter/X, Reddit discussions, YouTube reviews</li>
+                        <li style="margin-bottom: 0.8rem;"><strong>Google Trends:</strong> Search volume for new Apple products</li>
+                        <li style="margin-bottom: 0.8rem;"><strong>App Store Data:</strong> App downloads and revenue trends</li>
+                        <li><strong>Shipping Times:</strong> Apple Store delivery estimates indicate demand strength</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <section class="content-section">
+            <h2><i class="fas fa-book-open"></i> Putting It All Together: A Real-World Example</h2>
+            <p>Let's walk through how to trade the Apple product cycle using the iPhone 15 launch as a case study:</p>
+            
+            <div style="background: rgba(26, 31, 46, 0.3); padding: 2.5rem; border-radius: 12px; margin: 2.5rem 0; border: 1px solid rgba(255, 193, 7, 0.2);">
+                <h4 style="color: var(--primary-gold); margin-bottom: 2rem; text-align: center;"><i class="fas fa-play-circle"></i> iPhone 15 Trading Timeline</h4>
+                
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 2rem;">
+                    <div style="background: rgba(26, 31, 46, 0.2); padding: 1.5rem; border-radius: 8px;">
+                        <h5 style="color: var(--secondary-gold); margin-bottom: 1rem;"><i class="fas fa-calendar"></i> March 2023: Early Intelligence</h5>
+                        <ul style="color: var(--light-text); line-height: 1.6; margin: 0; padding-left: 1rem; font-size: 0.9rem;">
+                            <li>Gurman reports USB-C adoption rumors</li>
+                            <li>Supply chain sources suggest new titanium design</li>
+                            <li><strong>Action:</strong> Start building September call positions</li>
+                        </ul>
+                    </div>
+                    
+                    <div style="background: rgba(26, 31, 46, 0.2); padding: 1.5rem; border-radius: 8px;">
+                        <h5 style="color: var(--secondary-gold); margin-bottom: 1rem;"><i class="fas fa-microphone"></i> September 12, 2023: The Event</h5>
+                        <ul style="color: var(--light-text); line-height: 1.6; margin: 0; padding-left: 1rem; font-size: 0.9rem;">
+                            <li>iPhone 15 Pro with titanium design confirmed</li>
+                            <li>Higher prices than expected ($999→$1,199)</li>
+                            <li><strong>Action:</strong> Stock initially fell 1.7% on price concerns</li>
+                        </ul>
+                    </div>
+                    
+                    <div style="background: rgba(26, 31, 46, 0.2); padding: 1.5rem; border-radius: 8px;">
+                        <h5 style="color: var(--secondary-gold); margin-bottom: 1rem;"><i class="fas fa-shopping-cart"></i> September 22, 2023: Launch Day</h5>
+                        <ul style="color: var(--light-text); line-height: 1.6; margin: 0; padding-left: 1rem; font-size: 0.9rem;">
+                            <li>Strong early sales reports from carriers</li>
+                            <li>Pro models showing 2-3 week wait times</li>
+                            <li><strong>Action:</strong> Re-entered long positions, stock rallied 5% in October</li>
+                        </ul>
+                    </div>
+                    
+                    <div style="background: rgba(26, 31, 46, 0.2); padding: 1.5rem; border-radius: 8px;">
+                        <h5 style="color: var(--secondary-gold); margin-bottom: 1rem;"><i class="fas fa-chart-bar"></i> November 2, 2023: Q4 Earnings</h5>
+                        <ul style="color: var(--light-text); line-height: 1.6; margin: 0; padding-left: 1rem; font-size: 0.9rem;">
+                            <li>iPhone revenue beat expectations by $2B</li>
+                            <li>Strong guidance for holiday quarter</li>
+                            <li><strong>Result:</strong> Stock gained another 8% through year-end</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="content-section">
+            <h2><i class="fas fa-shield-alt"></i> Risk Management in Product Cycle Trading</h2>
+            <p>Apple's product cycles create both opportunity and risk. Here's how to protect your capital while maximizing returns:</p>
+            
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 2rem; margin: 2rem 0;">
+                <div style="background: rgba(26, 31, 46, 0.3); padding: 2rem; border-radius: 12px; border: 1px solid rgba(0, 255, 136, 0.2);">
+                    <h4 style="color: #00ff88; margin-bottom: 1.5rem; font-size: 1.1rem;"><i class="fas fa-shield-alt"></i> Position Sizing Guidelines</h4>
+                    <ul style="color: var(--light-text); line-height: 1.8; margin: 0; padding-left: 1.2rem;">
+                        <li style="margin-bottom: 0.8rem;"><strong>Rumor Phase:</strong> Start with 2-3% position size, build gradually</li>
+                        <li style="margin-bottom: 0.8rem;"><strong>Pre-Event:</strong> Reduce to 1-2% before major announcements</li>
+                        <li style="margin-bottom: 0.8rem;"><strong>Post-Event:</strong> Size up to 5% if thesis is confirmed</li>
+                        <li><strong>Earnings:</strong> Never risk more than 1% on binary events</li>
+                    </ul>
+                </div>
+                
+                <div style="background: rgba(26, 31, 46, 0.3); padding: 2rem; border-radius: 12px; border: 1px solid rgba(255, 68, 68, 0.2);">
+                    <h4 style="color: #ff4444; margin-bottom: 1.5rem; font-size: 1.1rem;"><i class="fas fa-exclamation-triangle"></i> Common Mistakes to Avoid</h4>
+                    <ul style="color: var(--light-text); line-height: 1.8; margin: 0; padding-left: 1.2rem;">
+                        <li style="margin-bottom: 0.8rem;"><strong>FOMO Buying:</strong> Don't chase after major events</li>
+                        <li style="margin-bottom: 0.8rem;"><strong>Over-Leveraging:</strong> Options can expire worthless quickly</li>
+                        <li style="margin-bottom: 0.8rem;"><strong>Ignoring Macro:</strong> Apple isn't immune to market conditions</li>
+                        <li><strong>Single Event Focus:</strong> Think in terms of multi-month cycles</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+    </div>
+
+    <!-- Floating CTA -->
+    <div class="floating-cta">
+        <a href="../../book-demo.html" class="cta-button">
+            <i class="fas fa-rocket"></i> Get AAPL Signals
+        </a>
+    </div>
+
+    <!-- Footer -->
+    <footer>
+        <p>&copy; 2025 BlueChip Signals. All rights reserved. | <a href="../../legal.html" style="color: var(--primary-gold); text-decoration: none;">Legal Disclaimer</a></p>
+        <div class="social-media">
+            <a href="https://www.tiktok.com/@bluechip.signals" target="_blank"><i class="fab fa-tiktok"></i></a>
+            <a href="https://www.instagram.com/bluechip.signals/" target="_blank"><i class="fab fa-instagram"></i></a>
+        </div>
+    </footer>
+    <script>
+        const hamburgerMenu = document.querySelector('.hamburger-menu');
+        const mobileNav = document.querySelector('.nav-links');
+
+        hamburgerMenu.addEventListener('click', () => {
+            mobileNav.classList.toggle('active');
+        });
+
+        // Product Cycle Phase Detector Logic
+        document.addEventListener('DOMContentLoaded', function() {
+            const detectorQuestions = document.querySelectorAll('.detector-question');
+            const detectorResults = document.querySelectorAll('.detector-result');
+            const detectorQuestionContainer = document.getElementById('detector-question-container');
+            const detectorResultsContainer = document.getElementById('detector-results-container');
+            const restartDetectorButton = document.getElementById('restart-detector');
+
+            // Add CSS styles for the phase detector
+            const detectorStyle = document.createElement('style');
+            detectorStyle.textContent = `
+                .detector-btn {
+                    background: rgba(26, 31, 46, 0.3);
+                    border: 1px solid rgba(255, 193, 7, 0.3);
+                    color: var(--light-text);
+                    padding: 1.5rem;
+                    border-radius: 12px;
+                    cursor: pointer;
+                    transition: all 0.3s ease;
+                    text-align: center;
+                    display: flex;
+                    flex-direction: column;
+                    align-items: center;
+                    gap: 0.8rem;
+                    min-height: 120px;
+                    justify-content: center;
+                }
+
+                .detector-btn:hover {
+                    background: rgba(255, 193, 7, 0.1);
+                    border-color: var(--primary-gold);
+                    transform: translateY(-2px);
+                    box-shadow: 0 8px 25px rgba(255, 193, 7, 0.2);
+                }
+
+                .detector-btn i {
+                    font-size: 1.8rem;
+                    margin-bottom: 0.5rem;
+                }
+
+                .detector-btn strong {
+                    font-size: 1.1rem;
+                    color: var(--primary-gold);
+                    margin-bottom: 0.3rem;
+                }
+
+                .detector-btn small {
+                    font-size: 0.85rem;
+                    color: var(--gray-text);
+                    line-height: 1.4;
+                }
+
+                .detector-question {
+                    display: none;
+                    animation: fadeInDetector 0.5s ease-in-out;
+                }
+
+                .detector-question.active {
+                    display: block;
+                }
+
+                .detector-result {
+                    display: none;
+                    animation: slideInDetector 0.6s ease-out;
+                }
+
+                .detector-result.active {
+                    display: block;
+                }
+
+                @keyframes fadeInDetector {
+                    from { opacity: 0; transform: translateY(20px); }
+                    to { opacity: 1; transform: translateY(0); }
+                }
+
+                @keyframes slideInDetector {
+                    from { opacity: 0; transform: translateX(-30px); }
+                    to { opacity: 1; transform: translateX(0); }
+                }
+
+                #restart-detector:hover {
+                    background: rgba(255, 193, 7, 0.3);
+                    transform: translateY(-2px);
+                    box-shadow: 0 5px 15px rgba(255, 193, 7, 0.3);
+                }
+            `;
+            document.head.appendChild(detectorStyle);
+
+            // Handle button clicks for phase detector
+            document.addEventListener('click', function(e) {
+                if (e.target.classList.contains('detector-btn') || e.target.closest('.detector-btn')) {
+                    const button = e.target.classList.contains('detector-btn') ? e.target : e.target.closest('.detector-btn');
+                    const nextStep = button.getAttribute('data-next');
+                    
+                    // Hide current question
+                    const currentQuestion = document.querySelector('.detector-question.active');
+                    if (currentQuestion) {
+                        currentQuestion.classList.remove('active');
+                    }
+                    
+                    // Show next question or result
+                    if (nextStep.startsWith('result-')) {
+                        // Show result
+                        detectorQuestionContainer.style.display = 'none';
+                        detectorResultsContainer.style.display = 'block';
+                        
+                        // Hide all results first
+                        detectorResults.forEach(result => result.classList.remove('active'));
+                        
+                        // Show specific result
+                        const targetResult = document.querySelector(`[data-result="${nextStep}"]`);
+                        if (targetResult) {
+                            targetResult.classList.add('active');
+                        }
+                    } else {
+                        // Show next question
+                        const nextQuestion = document.querySelector(`[data-question="${nextStep}"]`);
+                        if (nextQuestion) {
+                            nextQuestion.classList.add('active');
+                        }
+                    }
+                }
+            });
+
+            // Handle restart button for phase detector
+            restartDetectorButton.addEventListener('click', function() {
+                // Hide results and show questions
+                detectorResultsContainer.style.display = 'none';
+                detectorQuestionContainer.style.display = 'block';
+                
+                // Hide all questions and results
+                detectorQuestions.forEach(q => q.classList.remove('active'));
+                detectorResults.forEach(r => r.classList.remove('active'));
+                
+                // Show first question
+                const firstQuestion = document.querySelector('[data-question="1"]');
+                if (firstQuestion) {
+                    firstQuestion.classList.add('active');
+                }
+            });
+        });
+    </script>
+</body>
+</html>

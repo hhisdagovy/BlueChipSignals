@@ -1,0 +1,1170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AAPL Options Volume Analysis | BlueChip Signals</title>
+    <link rel="icon" type="image/png" href="../../assets/images/logo.png">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="../../assets/css/bot-style.css?v=1751139967">
+    <script>
+        // Redirect non-logged-in users to book demo page
+        (function() {
+            const isLoggedIn = localStorage.getItem('bluechip_logged_in') || sessionStorage.getItem('bluechip_logged_in');
+            if (!isLoggedIn) {
+                window.location.href = '../../book-demo.html';
+            }
+        })();
+    </script>
+    <style>
+        :root {
+            --primary-gold: #b3a17d;
+            --secondary-gold: #E2CFB5;
+            --dark-bg: #080B0F;
+            --darker-bg: #050810;
+            --light-text: #FFFFFF;
+            --gray-text: #A0A0A0;
+        }
+
+        body {
+            background: var(--darker-bg);
+            color: var(--light-text);
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        }
+
+        .guide-hero {
+            margin-top: 100px;
+            padding: 4rem 2rem 3rem;
+            text-align: center;
+            background: radial-gradient(circle at 50% 50%, rgba(201, 176, 55, 0.15), transparent 70%);
+            position: relative;
+        }
+
+        .guide-hero::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: radial-gradient(circle at 30% 40%, rgba(201, 176, 55, 0.08), transparent 50%);
+            z-index: 0;
+        }
+
+        .guide-hero-content {
+            max-width: 900px;
+            margin: 0 auto;
+            position: relative;
+            z-index: 1;
+        }
+
+        .guide-badge {
+            display: inline-block;
+            background: linear-gradient(135deg, var(--primary-gold), var(--secondary-gold));
+            color: var(--darker-bg);
+            padding: 0.4rem 1.2rem;
+            border-radius: 20px;
+            font-weight: 700;
+            font-size: 0.8rem;
+            letter-spacing: 1px;
+            margin-bottom: 1.5rem;
+            text-transform: uppercase;
+        }
+
+        .guide-title {
+            font-size: 2.8rem;
+            font-weight: 800;
+            margin: 0 0 1rem 0;
+            line-height: 1.2;
+            color: var(--light-text);
+        }
+
+        .guide-subtitle {
+            font-size: 1.2rem;
+            color: var(--gray-text);
+            line-height: 1.6;
+            margin: 0;
+        }
+
+        .guide-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 3rem 2rem;
+        }
+
+        .content-section {
+            background: var(--dark-bg);
+            border: 1px solid rgba(201, 176, 55, 0.2);
+            border-radius: 15px;
+            padding: 2.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .content-section h2 {
+            color: var(--primary-gold);
+            font-size: 1.8rem;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .content-section h2 i {
+            font-size: 1.5rem;
+        }
+
+        .content-section h3 {
+            color: var(--light-text);
+            font-size: 1.4rem;
+            margin-bottom: 1rem;
+        }
+
+        .content-section h4 {
+            color: var(--primary-gold);
+            font-size: 1.2rem;
+            margin-bottom: 1rem;
+        }
+
+        .content-section h5 {
+            color: var(--light-text);
+            font-size: 1.1rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .content-section p {
+            color: var(--gray-text);
+            line-height: 1.8;
+            margin-bottom: 1rem;
+        }
+
+        .content-section ul {
+            color: var(--light-text);
+            line-height: 1.8;
+            margin: 1rem 0;
+            padding-left: 1.5rem;
+        }
+
+        .content-section ul li {
+            margin-bottom: 0.75rem;
+        }
+
+        .content-section strong {
+            color: var(--light-text);
+        }
+
+        .login-btn {
+            background: linear-gradient(135deg, var(--primary-gold), var(--secondary-gold)) !important;
+            color: var(--darker-bg) !important;
+            padding: 0.5rem 1.2rem;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 0.95rem;
+            transition: transform 0.3s, box-shadow 0.3s;
+            display: inline-block;
+        }
+
+        .login-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(201, 176, 55, 0.3);
+            color: var(--darker-bg) !important;
+        }
+
+        .back-button {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--primary-gold);
+            text-decoration: none;
+            font-weight: 600;
+            margin-bottom: 2rem;
+            transition: all 0.3s ease;
+        }
+
+        .back-button:hover {
+            transform: translateX(-5px);
+        }
+
+        /* Enhanced styles for options volume guide */
+        .flow-analysis {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin: 2rem 0;
+        }
+
+        .flow-card {
+            background: linear-gradient(135deg, rgba(179, 161, 125, 0.1), rgba(179, 161, 125, 0.05));
+            border: 1px solid rgba(179, 161, 125, 0.2);
+            border-radius: 12px;
+            padding: 1.5rem;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .flow-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, var(--primary-gold), var(--secondary-gold));
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .flow-card:hover {
+            transform: translateY(-5px);
+            border-color: var(--primary-gold);
+            box-shadow: 0 10px 30px rgba(179, 161, 125, 0.2);
+        }
+
+        .flow-card:hover::before {
+            opacity: 1;
+        }
+
+        .flow-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .flow-icon {
+            font-size: 2rem;
+            margin-right: 0.75rem;
+            width: 40px;
+            text-align: center;
+        }
+
+        .bullish-icon { color: var(--success-green); }
+        .bearish-icon { color: #FF3B3B; }
+        .neutral-icon { color: var(--primary-gold); }
+
+        .flow-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: var(--light-text);
+            margin: 0;
+        }
+
+        .flow-description {
+            color: var(--gray-text);
+            margin-bottom: 1rem;
+            line-height: 1.6;
+        }
+
+        .flow-indicators {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .flow-indicators li {
+            padding: 0.5rem 0;
+            border-bottom: 1px solid rgba(179, 161, 125, 0.1);
+            color: var(--light-text);
+            font-size: 0.9rem;
+        }
+
+        .flow-indicators li:last-child {
+            border-bottom: none;
+        }
+
+        .volume-analyzer {
+            background: rgba(42, 87, 31, 0.1);
+            border: 1px solid rgba(42, 87, 31, 0.3);
+            border-radius: 12px;
+            padding: 2rem;
+            margin: 2rem 0;
+        }
+
+        .analyzer-input-group {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .input-field {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .input-field label {
+            color: var(--light-text);
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            font-size: 0.9rem;
+        }
+
+        .input-field input, .input-field select {
+            background: var(--dark-bg);
+            border: 1px solid rgba(179, 161, 125, 0.3);
+            border-radius: 6px;
+            padding: 0.8rem;
+            color: var(--light-text);
+            font-size: 1rem;
+        }
+
+        .input-field input:focus, .input-field select:focus {
+            outline: none;
+            border-color: var(--primary-gold);
+            box-shadow: 0 0 0 2px rgba(179, 161, 125, 0.2);
+        }
+
+        .analyzer-button {
+            background: linear-gradient(135deg, var(--success-green), #2a571f);
+            color: white;
+            border: none;
+            padding: 1rem 2rem;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 1rem;
+            width: 100%;
+        }
+
+        .analyzer-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(42, 87, 31, 0.3);
+        }
+
+        .analysis-result {
+            margin-top: 2rem;
+            padding: 1.5rem;
+            background: var(--dark-bg);
+            border-radius: 8px;
+            border: 1px solid rgba(179, 161, 125, 0.2);
+            display: none;
+        }
+
+        .result-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .result-icon {
+            font-size: 1.5rem;
+            margin-right: 0.5rem;
+        }
+
+        .result-strong { color: var(--success-green); }
+        .result-moderate { color: var(--primary-gold); }
+        .result-weak { color: #FF3B3B; }
+
+        .scanner-tools {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.5rem;
+            margin: 2rem 0;
+        }
+
+        .tool-card {
+            background: var(--dark-bg);
+            border: 1px solid rgba(179, 161, 125, 0.2);
+            border-radius: 12px;
+            padding: 1.5rem;
+            transition: all 0.3s ease;
+        }
+
+        .tool-card:hover {
+            border-color: var(--primary-gold);
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(179, 161, 125, 0.2);
+        }
+
+        .tool-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .tool-logo {
+            width: 40px;
+            height: 40px;
+            background: var(--primary-gold);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 1rem;
+            font-weight: 700;
+            color: var(--dark-bg);
+        }
+
+        .tool-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--light-text);
+            margin: 0;
+        }
+
+        .tool-description {
+            color: var(--gray-text);
+            margin-bottom: 1rem;
+            line-height: 1.6;
+        }
+
+        .tool-features {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .tool-features li {
+            padding: 0.3rem 0;
+            color: var(--light-text);
+            font-size: 0.9rem;
+        }
+
+        .tool-features li::before {
+            content: '✓';
+            color: var(--success-green);
+            font-weight: bold;
+            margin-right: 0.5rem;
+        }
+
+        .signal-types {
+            background: rgba(179, 161, 125, 0.1);
+            border: 1px solid rgba(179, 161, 125, 0.2);
+            border-radius: 12px;
+            padding: 2rem;
+            margin: 2rem 0;
+        }
+
+        .signal-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-top: 1.5rem;
+        }
+
+        .signal-card {
+            background: var(--dark-bg);
+            border-radius: 8px;
+            padding: 1.5rem;
+            transition: all 0.3s ease;
+            border: 2px solid;
+        }
+
+        .signal-bullish {
+            border-color: var(--success-green);
+        }
+
+        .signal-bearish {
+            border-color: #FF3B3B;
+        }
+
+        .signal-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .signal-label {
+            font-size: 0.8rem;
+            font-weight: 700;
+            padding: 0.3rem 0.8rem;
+            border-radius: 20px;
+            margin-bottom: 1rem;
+            display: inline-block;
+        }
+
+        .bullish-label {
+            background: rgba(42, 87, 31, 0.2);
+            color: var(--success-green);
+            border: 1px solid rgba(42, 87, 31, 0.3);
+        }
+
+        .bearish-label {
+            background: rgba(255, 59, 59, 0.2);
+            color: #FF3B3B;
+            border: 1px solid rgba(255, 59, 59, 0.3);
+        }
+
+        .signal-name {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--light-text);
+            margin-bottom: 0.5rem;
+        }
+
+        .trade-checklist {
+            background: rgba(255, 59, 59, 0.1);
+            border: 1px solid rgba(255, 59, 59, 0.3);
+            border-radius: 12px;
+            padding: 2rem;
+            margin: 2rem 0;
+        }
+
+        .warning-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 1rem;
+            color: #FF3B3B;
+        }
+
+        .warning-header i {
+            font-size: 1.5rem;
+            margin-right: 0.5rem;
+        }
+
+        .checklist-items {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .checklist-items li {
+            padding: 0.8rem 0;
+            border-bottom: 1px solid rgba(255, 59, 59, 0.2);
+            color: var(--light-text);
+            display: flex;
+            align-items: flex-start;
+        }
+
+        .checklist-items li:last-child {
+            border-bottom: none;
+        }
+
+        .checklist-items li::before {
+            content: '⚠️';
+            margin-right: 0.8rem;
+            margin-top: 0.1rem;
+        }
+
+        @media (max-width: 768px) {
+            .guide-title {
+                font-size: 2rem;
+            }
+
+            .guide-subtitle {
+                font-size: 1rem;
+            }
+
+            .content-section {
+                padding: 1.5rem;
+            }
+
+            .analyzer-input-group {
+                grid-template-columns: 1fr;
+            }
+
+            .flow-analysis {
+                grid-template-columns: 1fr;
+            }
+
+            .scanner-tools {
+                grid-template-columns: 1fr;
+            }
+
+            .signal-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav>
+        <div class="nav-container">
+            <div class="logo">
+                <a href="../../index.html"><img src="../../assets/images/logo.png" alt="BlueChip Signals Logo"></a>
+            </div>
+            <div class="hamburger-menu">
+                <div class="bar"></div>
+                <div class="bar"></div>
+                <div class="bar"></div>
+            </div>
+            <ul class="nav-links">
+                <li><a href="../../index.html#features">Features</a></li>
+                <li><a href="../../index.html#bots">Supported Stocks</a></li>
+                <li><a href="../../book-demo.html">Book a Demo</a></li>
+                <li><a href="../../faq.html">FAQ</a></li>
+                <li><a href="../../legal.html">Legal Disclaimer</a></li>
+                <li><a href="../../about.html">About Us</a></li>
+                <li><a href="../../login.html" class="login-btn"><i class="fas fa-sign-in-alt"></i> Login</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="guide-hero">
+        <div class="guide-hero-content">
+            <div class="guide-badge">AAPL Trading Guide</div>
+            <h1 class="guide-title">Pay Attention to Options Volume</h1>
+            <p class="guide-subtitle">Large, unusual options activity can foreshadow a significant move. Look for high call or put volume as confirmation of the direction indicated by our signal.</p>
+        </div>
+    </section>
+
+    <!-- Guide Content -->
+    <div class="guide-content">
+        <a href="../bots/aapl-bot.html" class="back-button">
+            <i class="fas fa-arrow-left"></i> Back to AAPL Signals
+        </a>
+
+        <!-- Options Flow Analysis Types -->
+        <section class="content-section">
+            <h2><i class="fas fa-chart-bar"></i> Understanding Options Flow</h2>
+            <p>Professional traders watch unusual options activity because big money often positions in options before major moves. Here's how to read the signals:</p>
+            
+            <div class="flow-analysis">
+                <div class="flow-card">
+                    <div class="flow-header">
+                        <div class="flow-icon bullish-icon"><i class="fas fa-arrow-up"></i></div>
+                        <div>
+                            <h4 class="flow-title">Call Sweeps</h4>
+                        </div>
+                    </div>
+                    <div class="flow-description">
+                        Aggressive buying of call options across multiple strikes, indicating bullish sentiment from institutional players.
+                    </div>
+                    <ul class="flow-indicators">
+                        <li><strong>Size:</strong> 1,000+ contracts in single transaction</li>
+                        <li><strong>Timing:</strong> Often precedes breakouts by 1-3 days</li>
+                        <li><strong>Premium:</strong> Buyers pay market price (urgency)</li>
+                        <li><strong>OI Impact:</strong> Creates significant open interest</li>
+                    </ul>
+                </div>
+
+                <div class="flow-card">
+                    <div class="flow-header">
+                        <div class="flow-icon bearish-icon"><i class="fas fa-arrow-down"></i></div>
+                        <div>
+                            <h4 class="flow-title">Put Blocks</h4>
+                        </div>
+                    </div>
+                    <div class="flow-description">
+                        Large put purchases often signal hedging or directional bets. When institutions buy protection, markets often follow.
+                    </div>
+                    <ul class="flow-indicators">
+                        <li><strong>Size:</strong> 5,000+ contracts at market</li>
+                        <li><strong>Timing:</strong> Can be hedging or directional</li>
+                        <li><strong>Strike Selection:</strong> ATM/ITM = directional, OTM = hedge</li>
+                        <li><strong>Volume Spike:</strong> 3x+ average daily volume</li>
+                    </ul>
+                </div>
+
+                <div class="flow-card">
+                    <div class="flow-header">
+                        <div class="flow-icon neutral-icon"><i class="fas fa-exchange-alt"></i></div>
+                        <div>
+                            <h4 class="flow-title">Gamma Positioning</h4>
+                        </div>
+                    </div>
+                    <div class="flow-description">
+                        Market makers' delta hedging activity can amplify moves. Heavy call selling near resistance creates "gamma walls."
+                    </div>
+                    <ul class="flow-indicators">
+                        <li><strong>Call Walls:</strong> Heavy call selling caps upside</li>
+                        <li><strong>Put Walls:</strong> Heavy put selling supports downside</li>
+                        <li><strong>Gamma Squeeze:</strong> Rapid delta hedging accelerates moves</li>
+                        <li><strong>Zero Gamma:</strong> Transition point between regimes</li>
+                    </ul>
+                </div>
+
+                <div class="flow-card">
+                    <div class="flow-header">
+                        <div class="flow-icon bullish-icon"><i class="fas fa-fire"></i></div>
+                        <div>
+                            <h4 class="flow-title">0DTE Flow</h4>
+                        </div>
+                    </div>
+                    <div class="flow-description">
+                        Same-day expiration options create maximum gamma exposure. Popular for momentum plays but extremely risky.
+                    </div>
+                    <ul class="flow-indicators">
+                        <li><strong>High Leverage:</strong> Maximum gamma exposure</li>
+                        <li><strong>Time Decay:</strong> Rapid theta burn throughout day</li>
+                        <li><strong>Market Impact:</strong> Forces aggressive delta hedging</li>
+                        <li><strong>Risk Level:</strong> Binary outcomes - 100% or $0</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- Interactive Volume Analyzer -->
+        <section class="content-section">
+            <h2><i class="fas fa-calculator"></i> Options Flow Analyzer</h2>
+            <p>Input unusual options activity to assess the directional signal strength:</p>
+            
+            <div class="volume-analyzer">
+                <div class="analyzer-input-group">
+                    <div class="input-field">
+                        <label for="contract-volume">Contract Volume</label>
+                        <input type="number" id="contract-volume" placeholder="e.g., 5000" min="1">
+                    </div>
+                    <div class="input-field">
+                        <label for="option-type">Option Type</label>
+                        <select id="option-type">
+                            <option value="">Select Type</option>
+                            <option value="calls">Calls</option>
+                            <option value="puts">Puts</option>
+                        </select>
+                    </div>
+                    <div class="input-field">
+                        <label for="execution-style">Execution Style</label>
+                        <select id="execution-style">
+                            <option value="">Select Style</option>
+                            <option value="sweep">Sweep (Market)</option>
+                            <option value="block">Block (Negotiated)</option>
+                            <option value="split">Split (Multiple)</option>
+                        </select>
+                    </div>
+                    <div class="input-field">
+                        <label for="moneyness">Moneyness</label>
+                        <select id="moneyness">
+                            <option value="">Select Position</option>
+                            <option value="itm">In-The-Money</option>
+                            <option value="atm">At-The-Money</option>
+                            <option value="otm">Out-Of-The-Money</option>
+                        </select>
+                    </div>
+                    <div class="input-field">
+                        <label for="expiration">Days to Expiration</label>
+                        <input type="number" id="expiration" placeholder="e.g., 7" min="0" max="365">
+                    </div>
+                    <div class="input-field">
+                        <label for="premium-paid">Total Premium ($)</label>
+                        <input type="number" id="premium-paid" placeholder="e.g., 250000" min="1000">
+                    </div>
+                </div>
+                
+                <button class="analyzer-button" onclick="analyzeFlow()">
+                    <i class="fas fa-chart-line" style="margin-right: 0.5rem;"></i>
+                    Analyze Flow Signal
+                </button>
+
+                <div class="analysis-result" id="analysis-result">
+                    <div class="result-header">
+                        <div class="result-icon" id="result-icon"></div>
+                        <h4 id="result-title" style="margin: 0; color: var(--light-text);"></h4>
+                    </div>
+                    <div id="result-content"></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Professional Signal Types -->
+        <section class="content-section">
+            <h2><i class="fas fa-crosshairs"></i> Professional Flow Signals</h2>
+            <p>Recognize these institutional flow patterns that often precede significant AAPL moves:</p>
+            
+            <div class="signal-types">
+                <div class="signal-grid">
+                    <div class="signal-card signal-bullish">
+                        <div class="signal-label bullish-label">BULLISH</div>
+                        <div class="signal-name">Call Sweep Above Resistance</div>
+                        <p><strong>Setup:</strong> Large call sweep 1-2 strikes above key resistance level</p>
+                        <p><strong>Signal:</strong> Institutional bet on breakout within 1-5 days</p>
+                        <p><strong>Confirmation:</strong> Volume >5x daily average, premium >$500K</p>
+                    </div>
+
+                    <div class="signal-card signal-bullish">
+                        <div class="signal-label bullish-label">BULLISH</div>
+                        <div class="signal-name">Put Wall Breakdown</div>
+                        <p><strong>Setup:</strong> Heavy put selling at support level gets absorbed</p>
+                        <p><strong>Signal:</strong> Support level likely to hold, bounce expected</p>
+                        <p><strong>Confirmation:</strong> Put/call ratio drops below 0.8</p>
+                    </div>
+
+                    <div class="signal-card signal-bearish">
+                        <div class="signal-label bearish-label">BEARISH</div>
+                        <div class="signal-name">Dark Pool Put Accumulation</div>
+                        <p><strong>Setup:</strong> Large put blocks executed in dark pools</p>
+                        <p><strong>Signal:</strong> Institutional positioning for decline</p>
+                        <p><strong>Confirmation:</strong> Block size >10K contracts, ITM/ATM strikes</p>
+                    </div>
+
+                    <div class="signal-card signal-bearish">
+                        <div class="signal-label bearish-label">BEARISH</div>
+                        <div class="signal-name">Call Wall Defense</div>
+                        <p><strong>Setup:</strong> Heavy call selling at resistance creates gamma wall</p>
+                        <p><strong>Signal:</strong> Price likely capped until call sellers cover</p>
+                        <p><strong>Confirmation:</strong> Multiple strikes, short-dated expiration</p>
+                    </div>
+
+                    <div class="signal-card signal-bullish">
+                        <div class="signal-label bullish-label">BULLISH</div>
+                        <div class="signal-name">Gamma Squeeze Setup</div>
+                        <p><strong>Setup:</strong> Heavy call buying forces market maker hedging</p>
+                        <p><strong>Signal:</strong> Accelerated upside momentum as dealers buy stock</p>
+                        <p><strong>Confirmation:</strong> 0DTE calls, high gamma strikes active</p>
+                    </div>
+
+                    <div class="signal-card signal-bearish">
+                        <div class="signal-label bearish-label">BEARISH</div>
+                        <div class="signal-name">Collar Strategy Detection</div>
+                        <p><strong>Setup:</strong> Simultaneous call selling and put buying</p>
+                        <p><strong>Signal:</strong> Institutional hedging suggests upcoming volatility</p>
+                        <p><strong>Confirmation:</strong> Equal volume, similar expiration dates</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Professional Tools -->
+        <section class="content-section">
+            <h2><i class="fas fa-tools"></i> Professional Flow Scanners</h2>
+            <p>These platforms provide real-time unusual options activity detection for AAPL:</p>
+            
+            <div class="scanner-tools">
+                <div class="tool-card">
+                    <div class="tool-header">
+                        <div class="tool-logo">UW</div>
+                        <div>
+                            <h4 class="tool-title">Unusual Whales</h4>
+                        </div>
+                    </div>
+                    <div class="tool-description">
+                        Real-time unusual options activity scanner with social sentiment integration.
+                    </div>
+                    <ul class="tool-features">
+                        <li>Live flow alerts with size filters</li>
+                        <li>Sentiment tagging (bullish/bearish)</li>
+                        <li>Historical flow analysis</li>
+                        <li>Social media integration</li>
+                    </ul>
+                </div>
+
+                <div class="tool-card">
+                    <div class="tool-header">
+                        <div class="tool-logo">SG</div>
+                        <div>
+                            <h4 class="tool-title">SpotGamma</h4>
+                        </div>
+                    </div>
+                    <div class="tool-description">
+                        Advanced gamma exposure analysis and dealer positioning insights.
+                    </div>
+                    <ul class="tool-features">
+                        <li>Gamma exposure levels (GEX)</li>
+                        <li>Dealer hedging flow direction</li>
+                        <li>Support/resistance from options</li>
+                        <li>Volatility regime indicators</li>
+                    </ul>
+                </div>
+
+                <div class="tool-card">
+                    <div class="tool-header">
+                        <div class="tool-logo">CB</div>
+                        <div>
+                            <h4 class="tool-title">CBOE LiveVol</h4>
+                        </div>
+                    </div>
+                    <div class="tool-description">
+                        Professional-grade options analytics from the exchange itself.
+                    </div>
+                    <ul class="tool-features">
+                        <li>Real-time order flow data</li>
+                        <li>Block trade notifications</li>
+                        <li>Volatility surface analysis</li>
+                        <li>Market maker quotes</li>
+                    </ul>
+                </div>
+
+                <div class="tool-card">
+                    <div class="tool-header">
+                        <div class="tool-logo">TW</div>
+                        <div>
+                            <h4 class="tool-title">Trade-Ideas</h4>
+                        </div>
+                    </div>
+                    <div class="tool-description">
+                        AI-powered options flow scanner with pattern recognition.
+                    </div>
+                    <ul class="tool-features">
+                        <li>AI pattern detection</li>
+                        <li>Multi-leg strategy alerts</li>
+                        <li>Backtesting capabilities</li>
+                        <li>Custom flow filters</li>
+                    </ul>
+                </div>
+
+                <div class="tool-card">
+                    <div class="tool-header">
+                        <div class="tool-logo">FF</div>
+                        <div>
+                            <h4 class="tool-title">FlowAlgo</h4>
+                        </div>
+                    </div>
+                    <div class="tool-description">
+                        Institutional-grade flow detection with dark pool integration.
+                    </div>
+                    <ul class="tool-features">
+                        <li>Dark pool options detection</li>
+                        <li>Institutional vs retail classification</li>
+                        <li>Multi-timeframe analysis</li>
+                        <li>Cross-asset flow correlation</li>
+                    </ul>
+                </div>
+
+                <div class="tool-card">
+                    <div class="tool-header">
+                        <div class="tool-logo">TOS</div>
+                        <div>
+                            <h4 class="tool-title">ThinkOrSwim</h4>
+                        </div>
+                    </div>
+                    <div class="tool-description">
+                        Free platform with robust options chain and time & sales data.
+                    </div>
+                    <ul class="tool-features">
+                        <li>Real-time options chain</li>
+                        <li>Time & sales filtering</li>
+                        <li>Volume and OI analysis</li>
+                        <li>Custom study creation</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- Risk Management -->
+        <section class="content-section">
+            <h2><i class="fas fa-shield-alt"></i> Flow Trading Risk Management</h2>
+            
+            <div class="trade-checklist">
+                <div class="warning-header">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <h4 style="margin: 0;">Critical Risk Factors</h4>
+                </div>
+                <ul class="checklist-items">
+                    <li><strong>False Signals:</strong> Large hedging activity can look like directional flow but may be portfolio protection</li>
+                    <li><strong>Liquidity Traps:</strong> Unusual flow in illiquid strikes may not reflect true institutional sentiment</li>
+                    <li><strong>Expiration Risk:</strong> Weekly options decay rapidly - time your entries carefully</li>
+                    <li><strong>Gamma Risk:</strong> 0DTE options can create violent intraday swings in both directions</li>
+                    <li><strong>News Dependency:</strong> Options flow often anticipates news - be aware of upcoming catalysts</li>
+                    <li><strong>Size Relativity:</strong> What's unusual for retail may be normal for institutions - check average volumes</li>
+                    <li><strong>Market Regime:</strong> Flow signals work differently in trending vs. range-bound markets</li>
+                </ul>
+            </div>
+
+            <div style="background: rgba(42, 87, 31, 0.1); border: 1px solid rgba(42, 87, 31, 0.3); border-radius: 12px; padding: 2rem; margin-top: 2rem;">
+                <h4 style="color: var(--success-green); margin-bottom: 1rem;">✅ Best Practices</h4>
+                <ul style="color: var(--light-text); line-height: 1.8;">
+                    <li>Combine flow signals with technical analysis for higher probability setups</li>
+                    <li>Focus on flows that align with overall market trend and AAPL's technical picture</li>
+                    <li>Use position sizing that accounts for the binary nature of options</li>
+                    <li>Set profit targets based on the implied move from options pricing</li>
+                    <li>Monitor dealer gamma positioning to understand potential acceleration points</li>
+                    <li>Track unusual flow patterns 1-3 days before earnings or product announcements</li>
+                </ul>
+            </div>
+        </section>
+
+    </div>
+
+    <!-- Floating CTA -->
+    <div class="floating-cta">
+        <a href="../../book-demo.html" class="cta-button">
+            <i class="fas fa-rocket"></i> Get AAPL Signals
+        </a>
+    </div>
+
+    <!-- Footer -->
+    <footer>
+        <p>&copy; 2025 BlueChip Signals. All rights reserved. | <a href="../../legal.html" style="color: var(--primary-gold); text-decoration: none;">Legal Disclaimer</a></p>
+        <div class="social-media">
+            <a href="https://www.tiktok.com/@bluechip.signals" target="_blank"><i class="fab fa-tiktok"></i></a>
+            <a href="https://www.instagram.com/bluechip.signals/" target="_blank"><i class="fab fa-instagram"></i></a>
+        </div>
+    </footer>
+
+    <script>
+        const hamburgerMenu = document.querySelector('.hamburger-menu');
+        const mobileNav = document.querySelector('.nav-links');
+
+        hamburgerMenu.addEventListener('click', () => {
+            mobileNav.classList.toggle('active');
+        });
+
+        // Options Flow Analyzer
+        function analyzeFlow() {
+            const volume = document.getElementById('contract-volume').value;
+            const optionType = document.getElementById('option-type').value;
+            const executionStyle = document.getElementById('execution-style').value;
+            const moneyness = document.getElementById('moneyness').value;
+            const expiration = document.getElementById('expiration').value;
+            const premium = document.getElementById('premium-paid').value;
+
+            if (!volume || !optionType || !executionStyle || !moneyness || !expiration || !premium) {
+                alert('Please fill in all fields to analyze the flow.');
+                return;
+            }
+
+            const result = calculateFlowSignal(
+                parseInt(volume),
+                optionType,
+                executionStyle,
+                moneyness,
+                parseInt(expiration),
+                parseInt(premium)
+            );
+
+            displayResult(result);
+        }
+
+        function calculateFlowSignal(volume, optionType, executionStyle, moneyness, expiration, premium) {
+            let score = 0;
+            let signals = [];
+
+            // Volume scoring
+            if (volume >= 10000) {
+                score += 30;
+                signals.push("Institutional-size volume detected");
+            } else if (volume >= 5000) {
+                score += 20;
+                signals.push("Large volume activity");
+            } else if (volume >= 1000) {
+                score += 10;
+                signals.push("Above-average volume");
+            } else {
+                signals.push("Volume below institutional threshold");
+            }
+
+            // Execution style scoring
+            if (executionStyle === 'sweep') {
+                score += 25;
+                signals.push("Aggressive sweep execution indicates urgency");
+            } else if (executionStyle === 'block') {
+                score += 15;
+                signals.push("Block trade suggests institutional activity");
+            } else if (executionStyle === 'split') {
+                score += 10;
+                signals.push("Split execution may indicate stealth accumulation");
+            }
+
+            // Moneyness scoring
+            if (moneyness === 'atm') {
+                score += 20;
+                signals.push("At-the-money options have maximum gamma exposure");
+            } else if (moneyness === 'itm') {
+                score += 15;
+                signals.push("In-the-money suggests conviction trade");
+            } else if (moneyness === 'otm') {
+                score += 5;
+                signals.push("Out-of-the-money may be speculative");
+            }
+
+            // Expiration scoring
+            if (expiration <= 7) {
+                score += 20;
+                signals.push("Short-dated options create high gamma impact");
+            } else if (expiration <= 30) {
+                score += 15;
+                signals.push("Monthly expiration provides good risk/reward");
+            } else {
+                score += 5;
+                signals.push("Long-dated options may be hedging activity");
+            }
+
+            // Premium scoring
+            const premiumPerContract = premium / volume;
+            if (premiumPerContract >= 500) {
+                score += 15;
+                signals.push("High premium per contract indicates conviction");
+            } else if (premiumPerContract >= 100) {
+                score += 10;
+                signals.push("Moderate premium suggests directional bet");
+            } else {
+                score += 5;
+                signals.push("Low premium may be lottery ticket play");
+            }
+
+            // Direction assessment
+            const direction = optionType === 'calls' ? 'BULLISH' : 'BEARISH';
+            
+            // Strength assessment
+            let strength, icon, color;
+            if (score >= 80) {
+                strength = 'VERY STRONG';
+                icon = '🔥';
+                color = 'result-strong';
+            } else if (score >= 60) {
+                strength = 'STRONG';
+                icon = '💪';
+                color = 'result-strong';
+            } else if (score >= 40) {
+                strength = 'MODERATE';
+                icon = '⚡';
+                color = 'result-moderate';
+            } else {
+                strength = 'WEAK';
+                icon = '⚠️';
+                color = 'result-weak';
+            }
+
+            return {
+                direction,
+                strength,
+                icon,
+                color,
+                score,
+                signals,
+                volume,
+                premium,
+                optionType,
+                expiration
+            };
+        }
+
+        function displayResult(result) {
+            const resultDiv = document.getElementById('analysis-result');
+            const resultIcon = document.getElementById('result-icon');
+            const resultTitle = document.getElementById('result-title');
+            const resultContent = document.getElementById('result-content');
+
+            resultIcon.textContent = result.icon;
+            resultIcon.className = `result-icon ${result.color}`;
+            resultTitle.textContent = `${result.direction} - ${result.strength} Signal`;
+
+            const avgDaily = 150000; // Approximate AAPL average daily options volume
+            const volumeRatio = (result.volume / avgDaily * 100).toFixed(1);
+
+            let content = `
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 1.5rem;">
+                    <div style="background: rgba(179, 161, 125, 0.1); padding: 1rem; border-radius: 8px;">
+                        <strong>Signal Score:</strong><br>
+                        <span style="font-size: 1.5rem; color: var(--primary-gold);">${result.score}/100</span>
+                    </div>
+                    <div style="background: rgba(179, 161, 125, 0.1); padding: 1rem; border-radius: 8px;">
+                        <strong>Volume vs. Average:</strong><br>
+                        <span style="font-size: 1.2rem; color: var(--light-text);">${volumeRatio}%</span>
+                    </div>
+                    <div style="background: rgba(179, 161, 125, 0.1); padding: 1rem; border-radius: 8px;">
+                        <strong>Premium/Contract:</strong><br>
+                        <span style="font-size: 1.2rem; color: var(--light-text);">$${(result.premium / result.volume).toFixed(0)}</span>
+                    </div>
+                </div>
+                
+                <h5 style="color: var(--primary-gold); margin-bottom: 1rem;">Analysis Details:</h5>
+                <ul style="list-style: none; padding: 0; margin: 0;">
+            `;
+
+            result.signals.forEach(signal => {
+                content += `<li style="padding: 0.5rem 0; border-bottom: 1px solid rgba(179, 161, 125, 0.1); color: var(--light-text);">• ${signal}</li>`;
+            });
+
+            content += `
+                </ul>
+                <div style="margin-top: 1.5rem; padding: 1rem; background: rgba(42, 87, 31, 0.1); border: 1px solid rgba(42, 87, 31, 0.3); border-radius: 8px;">
+                    <strong style="color: var(--success-green);">Trading Recommendation:</strong><br>
+                    <span style="color: var(--light-text);">
+                        ${result.strength === 'VERY STRONG' || result.strength === 'STRONG' 
+                            ? `This ${result.direction.toLowerCase()} flow signal shows institutional conviction. Consider ${result.optionType} positions aligned with this direction, but confirm with technical analysis.`
+                            : result.strength === 'MODERATE'
+                            ? `This ${result.direction.toLowerCase()} signal has moderate strength. Wait for additional confirmation before taking large positions.`
+                            : `This signal is weak and may be noise. Avoid trading based solely on this flow - wait for stronger signals.`
+                        }
+                    </span>
+                </div>
+            `;
+
+            resultContent.innerHTML = content;
+            resultDiv.style.display = 'block';
+        }
+    </script>
+</body>
+</html>

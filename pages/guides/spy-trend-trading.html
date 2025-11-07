@@ -1,0 +1,522 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SPY Trend Trading Strategy | BlueChip Signals</title>
+    <link rel="icon" type="image/png" href="../../assets/images/logo.png">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="../../assets/css/bot-style.css?v=1751139967">
+    <script>
+        // Redirect non-logged-in users to book demo page
+        (function() {
+            const isLoggedIn = localStorage.getItem('bluechip_logged_in') || sessionStorage.getItem('bluechip_logged_in');
+            if (!isLoggedIn) {
+                window.location.href = '../../book-demo.html';
+            }
+        })();
+    </script>
+    <style>
+        :root {
+            --primary-gold: #b3a17d;
+            --secondary-gold: #E2CFB5;
+            --dark-bg: #080B0F;
+            --darker-bg: #050810;
+            --light-text: #FFFFFF;
+            --gray-text: #A0A0A0;
+        }
+
+        body {
+            background: var(--darker-bg);
+            color: var(--light-text);
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        }
+
+        .guide-hero {
+            margin-top: 100px;
+            padding: 4rem 2rem 3rem;
+            text-align: center;
+            background: radial-gradient(circle at 50% 50%, rgba(201, 176, 55, 0.15), transparent 70%);
+            position: relative;
+        }
+
+        .guide-hero::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: radial-gradient(circle at 30% 40%, rgba(201, 176, 55, 0.08), transparent 50%);
+            z-index: 0;
+        }
+
+        .guide-hero-content {
+            max-width: 900px;
+            margin: 0 auto;
+            position: relative;
+            z-index: 1;
+        }
+
+        .guide-badge {
+            display: inline-block;
+            background: linear-gradient(135deg, var(--primary-gold), var(--secondary-gold));
+            color: var(--darker-bg);
+            padding: 0.4rem 1.2rem;
+            border-radius: 20px;
+            font-weight: 700;
+            font-size: 0.8rem;
+            letter-spacing: 1px;
+            margin-bottom: 1.5rem;
+            text-transform: uppercase;
+        }
+
+        .guide-title {
+            font-size: 2.8rem;
+            font-weight: 800;
+            margin: 0 0 1rem 0;
+            line-height: 1.2;
+            color: var(--light-text);
+        }
+
+        .guide-subtitle {
+            font-size: 1.2rem;
+            color: var(--gray-text);
+            line-height: 1.6;
+            margin: 0;
+        }
+
+        .guide-content {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 3rem 2rem;
+        }
+
+        .content-section {
+            background: var(--dark-bg);
+            border: 1px solid rgba(201, 176, 55, 0.2);
+            border-radius: 15px;
+            padding: 2.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .content-section h2 {
+            color: var(--primary-gold);
+            font-size: 1.8rem;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .content-section h2 i {
+            font-size: 1.5rem;
+        }
+
+        .content-section h3 {
+            color: var(--light-text);
+            font-size: 1.4rem;
+            margin-bottom: 1rem;
+        }
+
+        .content-section p {
+            color: var(--gray-text);
+            line-height: 1.8;
+            margin-bottom: 1rem;
+        }
+
+        .content-section ul {
+            list-style: none;
+            padding: 0;
+            margin: 1.5rem 0;
+        }
+
+        .content-section ul li {
+            color: var(--gray-text);
+            line-height: 1.8;
+            margin-bottom: 1rem;
+            padding-left: 2rem;
+            position: relative;
+        }
+
+        .content-section ul li::before {
+            content: "→";
+            position: absolute;
+            left: 0;
+            color: var(--primary-gold);
+            font-weight: 700;
+        }
+
+        .content-section ul li strong {
+            color: var(--light-text);
+        }
+
+        /* Trend Gauge */
+        .gauge-container {
+            background: var(--dark-bg);
+            border: 1px solid rgba(201, 176, 55, 0.2);
+            border-radius: 15px;
+            padding: 2.5rem;
+            margin-bottom: 2rem;
+            text-align: center;
+        }
+
+        .gauge-container h2 {
+            color: var(--primary-gold);
+            font-size: 1.8rem;
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.75rem;
+        }
+
+        #trend-gauge {
+            max-width: 400px;
+            margin: 2rem auto;
+            display: block;
+        }
+
+        .ma-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1rem;
+            margin: 1.5rem 0;
+        }
+
+        .ma-card {
+            text-align: center;
+            padding: 1.25rem;
+            background: rgba(26, 31, 46, 0.5);
+            border-radius: 8px;
+            border: 1px solid rgba(201, 176, 55, 0.15);
+        }
+
+        .ma-card .label {
+            font-size: 0.9rem;
+            color: var(--gray-text);
+            margin-bottom: 0.5rem;
+        }
+
+        .ma-card .status {
+            font-weight: 700;
+            font-size: 1.1rem;
+            margin-bottom: 0.25rem;
+        }
+
+        .ma-card .price {
+            font-size: 0.85rem;
+            color: var(--gray-text);
+        }
+
+        .current-price-box {
+            text-align: center;
+            margin-top: 1.5rem;
+            padding: 1.25rem;
+            background: rgba(26, 31, 46, 0.3);
+            border-radius: 8px;
+            border: 1px solid rgba(201, 176, 55, 0.2);
+        }
+
+        .current-price-box span:first-child {
+            color: var(--gray-text);
+            margin-right: 0.75rem;
+        }
+
+        .current-price {
+            color: var(--primary-gold);
+            font-weight: 700;
+            font-size: 1.2rem;
+        }
+
+        .login-btn {
+            background: linear-gradient(135deg, var(--primary-gold), var(--secondary-gold)) !important;
+            color: var(--darker-bg) !important;
+            padding: 0.5rem 1.2rem;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 0.95rem;
+            transition: transform 0.3s, box-shadow 0.3s;
+            display: inline-block;
+        }
+
+        .login-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(201, 176, 55, 0.3);
+            color: var(--darker-bg) !important;
+        }
+
+        .back-button {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--primary-gold);
+            text-decoration: none;
+            font-weight: 600;
+            margin-bottom: 2rem;
+            transition: all 0.3s ease;
+        }
+
+        .back-button:hover {
+            transform: translateX(-5px);
+        }
+
+        @media (max-width: 768px) {
+            .guide-title {
+                font-size: 2rem;
+            }
+
+            .guide-subtitle {
+                font-size: 1rem;
+            }
+
+            .content-section {
+                padding: 1.5rem;
+            }
+
+            .ma-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav>
+        <div class="nav-container">
+            <div class="logo">
+                <a href="../../index.html"><img src="../../assets/images/logo.png" alt="BlueChip Signals Logo"></a>
+            </div>
+            <div class="hamburger-menu">
+                <div class="bar"></div>
+                <div class="bar"></div>
+                <div class="bar"></div>
+            </div>
+            <ul class="nav-links">
+                <li><a href="../../index.html#features">Features</a></li>
+                <li><a href="../../index.html#bots">Supported Stocks</a></li>
+                <li><a href="../../book-demo.html">Book a Demo</a></li>
+                <li><a href="../../faq.html">FAQ</a></li>
+                <li><a href="../../legal.html">Legal Disclaimer</a></li>
+                <li><a href="../../about.html">About Us</a></li>
+                <li><a href="../../login.html" class="login-btn"><i class="fas fa-sign-in-alt"></i> Login</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="guide-hero">
+        <div class="guide-hero-content">
+            <div class="guide-badge">SPY Trading Guide</div>
+            <h1 class="guide-title">Trend Strength Analyzer</h1>
+            <p class="guide-subtitle">Align with the market's primary direction for higher probability trades and better risk/reward.</p>
+        </div>
+    </section>
+
+    <!-- Guide Content -->
+    <div class="guide-content">
+        <a href="../bots/spy-bot.html" class="back-button">
+            <i class="fas fa-arrow-left"></i> Back to SPY Signals
+        </a>
+
+        <!-- Trend Identification Guide -->
+        <div class="gauge-container">
+            <h2><i class="fas fa-tachometer-alt"></i> Trend Identification Quick Guide</h2>
+            <p style="color: var(--gray-text); margin-bottom: 2rem;">Use these key indicators to determine SPY's current trend direction</p>
+            
+            <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem; margin-bottom: 2rem;">
+                <div style="background: rgba(0, 255, 136, 0.1); border: 2px solid #00ff88; border-radius: 12px; padding: 1.5rem; text-align: center;">
+                    <h3 style="color: #00ff88; font-size: 1.2rem; margin-bottom: 1rem;">Strong Bullish</h3>
+                    <ul style="list-style: none; padding: 0; margin: 0; text-align: left;">
+                        <li style="color: var(--gray-text); margin-bottom: 0.75rem; padding-left: 1.5rem; position: relative;">
+                            <span style="position: absolute; left: 0;">✓</span>
+                            Price above all MAs
+                        </li>
+                        <li style="color: var(--gray-text); margin-bottom: 0.75rem; padding-left: 1.5rem; position: relative;">
+                            <span style="position: absolute; left: 0;">✓</span>
+                            20 > 50 > 200 MA
+                        </li>
+                        <li style="color: var(--gray-text); margin-bottom: 0.75rem; padding-left: 1.5rem; position: relative;">
+                            <span style="position: absolute; left: 0;">✓</span>
+                            Higher highs/lows
+                        </li>
+                        <li style="color: var(--gray-text); padding-left: 1.5rem; position: relative;">
+                            <span style="position: absolute; left: 0;">✓</span>
+                            Rising volume
+                        </li>
+                    </ul>
+                </div>
+                
+                <div style="background: rgba(179, 161, 125, 0.1); border: 2px solid var(--primary-gold); border-radius: 12px; padding: 1.5rem; text-align: center;">
+                    <h3 style="color: var(--primary-gold); font-size: 1.2rem; margin-bottom: 1rem;">Neutral/Choppy</h3>
+                    <ul style="list-style: none; padding: 0; margin: 0; text-align: left;">
+                        <li style="color: var(--gray-text); margin-bottom: 0.75rem; padding-left: 1.5rem; position: relative;">
+                            <span style="position: absolute; left: 0;">→</span>
+                            Price around MAs
+                        </li>
+                        <li style="color: var(--gray-text); margin-bottom: 0.75rem; padding-left: 1.5rem; position: relative;">
+                            <span style="position: absolute; left: 0;">→</span>
+                            MAs converging
+                        </li>
+                        <li style="color: var(--gray-text); margin-bottom: 0.75rem; padding-left: 1.5rem; position: relative;">
+                            <span style="position: absolute; left: 0;">→</span>
+                            No clear direction
+                        </li>
+                        <li style="color: var(--gray-text); padding-left: 1.5rem; position: relative;">
+                            <span style="position: absolute; left: 0;">→</span>
+                            Low volume
+                        </li>
+                    </ul>
+                </div>
+                
+                <div style="background: rgba(255, 68, 68, 0.1); border: 2px solid #ff4444; border-radius: 12px; padding: 1.5rem; text-align: center;">
+                    <h3 style="color: #ff4444; font-size: 1.2rem; margin-bottom: 1rem;">Strong Bearish</h3>
+                    <ul style="list-style: none; padding: 0; margin: 0; text-align: left;">
+                        <li style="color: var(--gray-text); margin-bottom: 0.75rem; padding-left: 1.5rem; position: relative;">
+                            <span style="position: absolute; left: 0;">✗</span>
+                            Price below all MAs
+                        </li>
+                        <li style="color: var(--gray-text); margin-bottom: 0.75rem; padding-left: 1.5rem; position: relative;">
+                            <span style="position: absolute; left: 0;">✗</span>
+                            200 > 50 > 20 MA
+                        </li>
+                        <li style="color: var(--gray-text); margin-bottom: 0.75rem; padding-left: 1.5rem; position: relative;">
+                            <span style="position: absolute; left: 0;">✗</span>
+                            Lower highs/lows
+                        </li>
+                        <li style="color: var(--gray-text); padding-left: 1.5rem; position: relative;">
+                            <span style="position: absolute; left: 0;">✗</span>
+                            High volume sells
+                        </li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div style="background: rgba(26, 31, 46, 0.5); border: 1px solid rgba(179, 161, 125, 0.2); border-radius: 12px; padding: 1.5rem;">
+                <h3 style="color: var(--primary-gold); font-size: 1.1rem; margin-bottom: 1rem; text-align: center;">How to Use Moving Averages</h3>
+                <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1.5rem; text-align: center;">
+                    <div>
+                        <div style="font-weight: 700; color: var(--light-text); margin-bottom: 0.5rem;">20-Day MA</div>
+                        <div style="color: var(--gray-text); font-size: 0.9rem;">Short-term trend filter. Price above = bullish momentum.</div>
+                    </div>
+                    <div>
+                        <div style="font-weight: 700; color: var(--light-text); margin-bottom: 0.5rem;">50-Day MA</div>
+                        <div style="color: var(--gray-text); font-size: 0.9rem;">Medium-term trend. Key support/resistance level.</div>
+                    </div>
+                    <div>
+                        <div style="font-weight: 700; color: var(--light-text); margin-bottom: 0.5rem;">200-Day MA</div>
+                        <div style="color: var(--gray-text); font-size: 0.9rem;">Long-term trend. The ultimate bull/bear line.</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Why Trend Matters -->
+        <section class="content-section">
+            <h2><i class="fas fa-chart-line"></i> Why Trend Direction Matters</h2>
+            <p>While our signals can identify reversals, the highest probability trades occur in the direction of the market's primary trend. Don't fight the overall market direction—the trend is your friend until the bend at the end.</p>
+            
+            <ul>
+                <li><strong>Higher Win Rate:</strong> Trend-following trades historically achieve 65-70% success rate compared to 45-50% for counter-trend positions.</li>
+                <li><strong>Better Risk/Reward:</strong> Trends can run further than expected, offering larger profit potential with the same risk capital.</li>
+                <li><strong>Momentum Edge:</strong> Institutional money flows in the trend direction, providing powerful tailwinds for your positions.</li>
+                <li><strong>Easier Psychology:</strong> Trading with the trend reduces stress—you're not constantly fighting market momentum.</li>
+            </ul>
+        </section>
+
+        <!-- Identifying Trend -->
+        <section class="content-section">
+            <h2><i class="fas fa-search"></i> Identifying the Daily Trend</h2>
+            <p>Use multiple timeframes and indicators to confirm trend direction with high confidence:</p>
+            
+            <ul>
+                <li><strong>Higher Highs & Higher Lows:</strong> Classic uptrend pattern. Each pullback holds above the previous low—signs of buyer strength.</li>
+                <li><strong>Moving Average Alignment:</strong> 20 > 50 > 200-day MAs = strong uptrend. Inverse alignment indicates downtrend.</li>
+                <li><strong>Price Above/Below Key MAs:</strong> SPY holding above 20-day MA = bullish bias. Below 20-day MA = bearish bias.</li>
+                <li><strong>Volume Confirmation:</strong> Rising prices on higher volume, falling prices on lower volume = healthy uptrend structure.</li>
+                <li><strong>VWAP Position:</strong> Price consistently above VWAP suggests bullish control; below VWAP suggests bearish control.</li>
+            </ul>
+        </section>
+
+        <!-- Entry Strategies -->
+        <section class="content-section">
+            <h2><i class="fas fa-crosshairs"></i> Trend-Following Entry Strategies</h2>
+            <p>Time your entries within the established trend for optimal risk/reward:</p>
+            
+            <ul>
+                <li><strong>Pullback to Moving Average:</strong> In uptrend, buy dips to 20-day MA. In downtrend, short rallies to 20-day MA—high probability reversions.</li>
+                <li><strong>Breakout Continuation:</strong> New highs in uptrend or new lows in downtrend often continue for several sessions—join the momentum.</li>
+                <li><strong>Flag Patterns:</strong> Brief consolidation after strong directional moves often leads to continuation—low-risk entry with tight stops.</li>
+                <li><strong>Support/Resistance Flips:</strong> Old resistance becomes new support in uptrends (and vice versa)—ideal retest entries.</li>
+                <li><strong>Gap and Go:</strong> Morning gaps in trend direction often continue if accompanied by strong volume—momentum acceleration.</li>
+            </ul>
+        </section>
+
+        <!-- When Not to Counter-Trend -->
+        <section class="content-section">
+            <h2><i class="fas fa-exclamation-triangle"></i> When NOT to Trade Against Trend</h2>
+            <p>Avoid these high-risk counter-trend scenarios that often result in losses:</p>
+            
+            <ul>
+                <li><strong>Strong Momentum Days:</strong> SPY +/-2% days often continue in that direction—momentum begets more momentum.</li>
+                <li><strong>Earnings Week:</strong> Major S&P 500 earnings can override technical levels and extend trends beyond expectations.</li>
+                <li><strong>Fed Decision Days:</strong> FOMC announcements create sustained directional moves—wait for clarity before counter-trending.</li>
+                <li><strong>End of Quarter:</strong> Institutional rebalancing can create multi-day trend extensions regardless of overbought/oversold conditions.</li>
+                <li><strong>VIX Spikes:</strong> Fear events create powerful downtrends—don't try to catch falling knives during panic selling.</li>
+            </ul>
+        </section>
+
+        <!-- Reversal Signals -->
+        <section class="content-section">
+            <h2><i class="fas fa-exchange-alt"></i> Trend Reversal Warning Signs</h2>
+            <p>Watch for these technical signals that the current trend may be exhausting:</p>
+            
+            <ul>
+                <li><strong>Momentum Divergence:</strong> Price makes new highs but RSI or MACD doesn't confirm—warns of weakening momentum.</li>
+                <li><strong>Volume Decline:</strong> Trend continues but on decreasing volume—shows weakening conviction and potential exhaustion.</li>
+                <li><strong>Failed Breakouts:</strong> New highs quickly reverse below prior resistance—classic distribution pattern signaling reversal.</li>
+                <li><strong>Moving Average Breakdown:</strong> Clean break below 20-day MA on volume often signals trend change—respect the signal.</li>
+                <li><strong>VIX Spike:</strong> Sudden fear spikes (VIX +20% intraday) can end uptrends abruptly—prepare for reversal.</li>
+                <li><strong>Key Level Breaks:</strong> Loss of major support or resistance levels often triggers cascade of stops—trend shift underway.</li>
+            </ul>
+        </section>
+
+        <!-- Pro Tips -->
+        <section class="content-section">
+            <h2><i class="fas fa-lightbulb"></i> Pro Trend Trading Tips</h2>
+            <ul>
+                <li><strong>Multiple Timeframes:</strong> Confirm daily trend with weekly trend—when both align, conviction is highest.</li>
+                <li><strong>Trailing Stops:</strong> Let winners run in trending markets—use trailing stops below key MAs to protect profits.</li>
+                <li><strong>Position Sizing:</strong> Increase size when trading with the trend, reduce size for counter-trend plays.</li>
+                <li><strong>Patience Pays:</strong> Wait for pullbacks to key levels in trends—don't chase extended moves without correction.</li>
+                <li><strong>Respect 200-Day MA:</strong> This is the ultimate trend filter—above = long bias, below = short bias.</li>
+            </ul>
+        </section>
+    </div>
+
+    <!-- Floating CTA -->
+    <div class="floating-cta">
+        <a href="../../book-demo.html" class="cta-button">
+            <i class="fas fa-rocket"></i> Get SPY Signals
+        </a>
+    </div>
+
+    <!-- Footer -->
+    <footer>
+        <p>&copy; 2025 BlueChip Signals. All rights reserved. | <a href="../../legal.html" style="color: var(--primary-gold); text-decoration: none;">Legal Disclaimer</a></p>
+        <div class="social-media">
+            <a href="https://www.tiktok.com/@bluechip.signals" target="_blank"><i class="fab fa-tiktok"></i></a>
+            <a href="https://www.instagram.com/bluechip.signals/" target="_blank"><i class="fab fa-instagram"></i></a>
+        </div>
+    </footer>
+
+    <script>
+        const hamburgerMenu = document.querySelector('.hamburger-menu');
+        const mobileNav = document.querySelector('.nav-links');
+
+        hamburgerMenu.addEventListener('click', () => {
+            mobileNav.classList.toggle('active');
+        });
+    </script>
+</body>
+</html> 

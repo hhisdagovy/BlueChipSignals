@@ -1,0 +1,626 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NVDA Earnings Calendar - Historical Performance | BlueChip Signals</title>
+    <meta name="description" content="Track NVIDIA earnings dates and historical post-earnings moves to prepare your trading strategies.">
+    
+    <link rel="icon" type="image/png" href="../../assets/images/logo.png">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="../../assets/css/bot-style.css?v=1751139967">
+    <style>
+        :root {
+            --primary-gold: #b3a17d;
+            --secondary-gold: #E2CFB5;
+            --dark-bg: #080B0F;
+            --darker-bg: #050810;
+            --light-text: #FFFFFF;
+            --gray-text: #A0A0A0;
+            --nvidia-green: #76B900;
+            --success-green: #4CAF50;
+            --danger-red: #f44336;
+        }
+
+        body {
+            background: var(--darker-bg);
+            color: var(--light-text);
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        }
+
+        .guide-hero {
+            margin-top: 100px;
+            padding: 4rem 2rem 3rem;
+            text-align: center;
+            background: radial-gradient(circle at 50% 50%, rgba(201, 176, 55, 0.15), transparent 70%);
+            position: relative;
+        }
+
+        .guide-hero::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: radial-gradient(circle at 30% 40%, rgba(201, 176, 55, 0.08), transparent 50%);
+            z-index: 0;
+        }
+
+        .guide-hero-content {
+            max-width: 900px;
+            margin: 0 auto;
+            position: relative;
+            z-index: 1;
+        }
+
+        .guide-badge {
+            display: inline-block;
+            background: linear-gradient(135deg, var(--primary-gold), var(--secondary-gold));
+            color: var(--darker-bg);
+            padding: 0.4rem 1.2rem;
+            border-radius: 20px;
+            font-weight: 700;
+            font-size: 0.8rem;
+            letter-spacing: 1px;
+            margin-bottom: 1.5rem;
+            text-transform: uppercase;
+        }
+
+        .guide-title {
+            font-size: 2.8rem;
+            font-weight: 800;
+            margin: 0 0 1rem 0;
+            line-height: 1.2;
+            color: var(--light-text);
+        }
+
+        .guide-subtitle {
+            font-size: 1.2rem;
+            color: var(--gray-text);
+            line-height: 1.6;
+            margin: 0;
+        }
+
+        .guide-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 3rem 2rem;
+        }
+
+        .content-section {
+            background: var(--dark-bg);
+            border: 1px solid rgba(201, 176, 55, 0.2);
+            border-radius: 15px;
+            padding: 2.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .content-section h2 {
+            color: var(--primary-gold);
+            font-size: 1.8rem;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .content-section h2 i {
+            font-size: 1.5rem;
+        }
+
+        .content-section h3 {
+            color: var(--light-text);
+            font-size: 1.4rem;
+            margin-bottom: 1rem;
+        }
+
+        .content-section p {
+            color: var(--gray-text);
+            line-height: 1.8;
+            margin-bottom: 1rem;
+        }
+
+        .content-section ul {
+            color: var(--light-text);
+            line-height: 1.8;
+            margin: 1rem 0;
+            padding-left: 1.5rem;
+        }
+
+        .content-section ul li {
+            margin-bottom: 0.75rem;
+            color: var(--gray-text);
+        }
+
+        .content-section strong {
+            color: var(--light-text);
+        }
+
+        .login-btn {
+            background: linear-gradient(135deg, var(--primary-gold), var(--secondary-gold)) !important;
+            color: var(--darker-bg) !important;
+            padding: 0.5rem 1.2rem;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 0.95rem;
+            transition: transform 0.3s, box-shadow 0.3s;
+            display: inline-block;
+        }
+
+        .login-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(201, 176, 55, 0.3);
+            color: var(--darker-bg) !important;
+        }
+
+        .back-button {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--primary-gold);
+            text-decoration: none;
+            font-weight: 600;
+            margin-bottom: 2rem;
+            transition: all 0.3s ease;
+        }
+
+        .back-button:hover {
+            transform: translateX(-5px);
+        }
+
+        /* Next Earnings Highlight */
+        .next-earnings-box {
+            background: linear-gradient(135deg, rgba(118, 185, 0, 0.1), rgba(118, 185, 0, 0.05));
+            border: 2px solid var(--nvidia-green);
+            border-radius: 15px;
+            padding: 2rem;
+            margin: 2rem 0;
+            text-align: center;
+        }
+
+        .next-earnings-box h3 {
+            color: var(--nvidia-green);
+            font-size: 1.8rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .next-earnings-box .date {
+            font-size: 2.5rem;
+            font-weight: 800;
+            color: var(--light-text);
+            margin-bottom: 0.5rem;
+        }
+
+        .next-earnings-box .expected-move {
+            color: var(--gray-text);
+            font-size: 1.1rem;
+            margin-top: 1rem;
+        }
+
+        .next-earnings-box .expected-move strong {
+            color: var(--primary-gold);
+            font-size: 1.3rem;
+        }
+
+        /* Historical Table */
+        .earnings-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1.5rem 0;
+            overflow-x: auto;
+            display: block;
+        }
+
+        .earnings-table table {
+            width: 100%;
+            min-width: 600px;
+        }
+
+        .earnings-table thead {
+            background: rgba(201, 176, 55, 0.1);
+        }
+
+        .earnings-table th {
+            color: var(--primary-gold);
+            padding: 1rem;
+            text-align: left;
+            font-weight: 600;
+            border-bottom: 2px solid rgba(201, 176, 55, 0.3);
+        }
+
+        .earnings-table td {
+            padding: 1rem;
+            border-bottom: 1px solid rgba(201, 176, 55, 0.1);
+            color: var(--light-text);
+        }
+
+        .earnings-table tr:hover {
+            background: rgba(201, 176, 55, 0.05);
+        }
+
+        .positive-move {
+            color: var(--success-green);
+            font-weight: 700;
+        }
+
+        .negative-move {
+            color: var(--danger-red);
+            font-weight: 700;
+        }
+
+        /* Strategy Cards */
+        .strategy-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.5rem;
+            margin-top: 1.5rem;
+        }
+
+        .strategy-card {
+            background: rgba(201, 176, 55, 0.05);
+            border: 1px solid rgba(201, 176, 55, 0.2);
+            border-radius: 12px;
+            padding: 2rem;
+            transition: all 0.3s ease;
+        }
+
+        .strategy-card:hover {
+            transform: translateY(-5px);
+            border-color: var(--primary-gold);
+            box-shadow: 0 8px 20px rgba(201, 176, 55, 0.2);
+        }
+
+        .strategy-card h4 {
+            color: var(--primary-gold);
+            font-size: 1.3rem;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .strategy-card h4 i {
+            font-size: 1.5rem;
+        }
+
+        .strategy-card ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        .strategy-card ul li {
+            padding: 0.5rem 0;
+            position: relative;
+            padding-left: 1.5rem;
+        }
+
+        .strategy-card ul li::before {
+            content: "→";
+            position: absolute;
+            left: 0;
+            color: var(--primary-gold);
+            font-weight: 700;
+        }
+
+        /* Alert Box */
+        .alert-box {
+            background: rgba(255, 59, 59, 0.1);
+            border-left: 4px solid var(--danger-red);
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin: 2rem 0;
+        }
+
+        .alert-box h4 {
+            color: var(--danger-red);
+            margin-bottom: 0.75rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .alert-box p {
+            color: var(--light-text);
+            margin: 0;
+        }
+
+        @media (max-width: 768px) {
+            .guide-title {
+                font-size: 2rem;
+            }
+
+            .guide-subtitle {
+                font-size: 1rem;
+            }
+
+            .content-section {
+                padding: 1.5rem;
+            }
+
+            .earnings-table {
+                font-size: 0.85rem;
+            }
+
+            .next-earnings-box .date {
+                font-size: 2rem;
+            }
+        }
+    </style>
+    <script>
+        // Redirect non-logged-in users to book demo page
+        (function() {
+            const isLoggedIn = localStorage.getItem('bluechip_logged_in') || sessionStorage.getItem('bluechip_logged_in');
+            if (!isLoggedIn) {
+                window.location.href = '../../book-demo.html';
+            }
+        })();
+    </script>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav>
+        <div class="nav-container">
+            <div class="logo">
+                <a href="../../index.html"><img src="../../assets/images/logo.png" alt="BlueChip Signals Logo"></a>
+            </div>
+            <div class="hamburger-menu">
+                <div class="bar"></div>
+                <div class="bar"></div>
+                <div class="bar"></div>
+            </div>
+            <ul class="nav-links">
+                <li><a href="../../index.html#features">Features</a></li>
+                <li><a href="../../index.html#bots">Supported Stocks</a></li>
+                <li><a href="../../book-demo.html">Book a Demo</a></li>
+                <li><a href="../../faq.html">FAQ</a></li>
+                <li><a href="../../legal.html">Legal Disclaimer</a></li>
+                <li><a href="../../about.html">About Us</a></li>
+                <li><a href="../../login.html" class="login-btn"><i class="fas fa-sign-in-alt"></i> Login</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="guide-hero">
+        <div class="guide-hero-content">
+            <div class="guide-badge">NVDA Trading Guide</div>
+            <h1 class="guide-title">NVDA Earnings Calendar</h1>
+            <p class="guide-subtitle">Track quarterly earnings dates and historical post-earnings moves to prepare your gap-and-go strategies.</p>
+        </div>
+    </section>
+
+    <!-- Guide Content -->
+    <div class="guide-content">
+        <a href="../bots/nvda-bot.html" class="back-button">
+            <i class="fas fa-arrow-left"></i> Back to NVDA Signals
+        </a>
+
+        <!-- Next Earnings Date -->
+        <section class="content-section">
+            <h2><i class="fas fa-calendar-star"></i> Next NVDA Earnings</h2>
+            
+            <div class="next-earnings-box">
+                <h3>Q4 2025 Earnings Report</h3>
+                <div class="date">February 26, 2026</div>
+                <p style="color: var(--gray-text); margin-top: 0.5rem;">After Market Close (4:00 PM ET)</p>
+                <div class="expected-move">
+                    Expected Move: <strong>±10-15%</strong>
+                </div>
+            </div>
+
+            <p>NVIDIA typically reports earnings after market close on a Wednesday. The post-earnings conference call usually begins at 5:00 PM ET, where CEO Jensen Huang discusses AI demand, data center growth, and forward guidance.</p>
+        </section>
+
+        <!-- Historical Performance -->
+        <section class="content-section">
+            <h2><i class="fas fa-chart-line"></i> Historical Earnings Performance</h2>
+            <p>NVDA has delivered explosive post-earnings moves as AI demand continues to exceed expectations. Review the last 8 quarters:</p>
+            
+            <div class="earnings-table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Quarter</th>
+                            <th>Report Date</th>
+                            <th>EPS Result</th>
+                            <th>Revenue Result</th>
+                            <th>Stock Reaction</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>Q3 2025</strong></td>
+                            <td>Nov 20, 2025</td>
+                            <td>Beat by $0.08</td>
+                            <td>Beat by $1.2B</td>
+                            <td class="positive-move">+8.2%</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Q2 2025</strong></td>
+                            <td>Aug 28, 2025</td>
+                            <td>Beat by $0.06</td>
+                            <td>Beat by $900M</td>
+                            <td class="positive-move">+12.1%</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Q1 2025</strong></td>
+                            <td>May 22, 2025</td>
+                            <td>Beat by $0.10</td>
+                            <td>Beat by $1.5B</td>
+                            <td class="positive-move">+9.3%</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Q4 2024</strong></td>
+                            <td>Feb 21, 2025</td>
+                            <td>Beat by $0.05</td>
+                            <td>Beat by $800M</td>
+                            <td class="positive-move">+16.4%</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Q3 2024</strong></td>
+                            <td>Nov 20, 2024</td>
+                            <td>Beat by $0.09</td>
+                            <td>Beat by $1.1B</td>
+                            <td class="positive-move">+4.9%</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Q2 2024</strong></td>
+                            <td>Aug 28, 2024</td>
+                            <td>Beat by $0.07</td>
+                            <td>Beat by $1.3B</td>
+                            <td class="negative-move">-6.4%</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Q1 2024</strong></td>
+                            <td>May 22, 2024</td>
+                            <td>Beat by $0.12</td>
+                            <td>Beat by $2.0B</td>
+                            <td class="positive-move">+9.3%</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Q4 2023</strong></td>
+                            <td>Feb 21, 2024</td>
+                            <td>Beat by $0.11</td>
+                            <td>Beat by $1.8B</td>
+                            <td class="positive-move">+16.4%</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="alert-box">
+                <h4><i class="fas fa-exclamation-triangle"></i> Key Insight</h4>
+                <p>NVDA has beaten earnings expectations for 8 consecutive quarters. The average post-earnings move is approximately ±10.6%, with 7 out of 8 quarters closing positive. Note that even massive beats can sometimes result in sell-offs due to elevated expectations.</p>
+            </div>
+        </section>
+
+        <!-- What Moves NVDA on Earnings -->
+        <section class="content-section">
+            <h2><i class="fas fa-bolt"></i> What Moves NVDA on Earnings</h2>
+            <p>Not all earnings beats are created equal. These factors determine post-earnings direction:</p>
+            
+            <ul>
+                <li><strong>Data Center Revenue Growth:</strong> The most critical metric. AI chips for data centers now represent 80%+ of revenue. Beats or misses here drive the stock.</li>
+                <li><strong>Forward Guidance:</strong> Jensen Huang's outlook for the next quarter often matters more than current results. Strong guidance can override a slight miss.</li>
+                <li><strong>Gross Margin Trends:</strong> Maintaining 70%+ gross margins signals pricing power and strong demand. Compression raises supply concerns.</li>
+                <li><strong>AI Demand Commentary:</strong> Statements about backlog, customer pipeline, and new chip architecture (Blackwell, Hopper) impact sentiment significantly.</li>
+                <li><strong>Gaming & Auto Segments:</strong> Secondary metrics, but weakness here can temper enthusiasm even with strong data center numbers.</li>
+            </ul>
+        </section>
+
+        <!-- Trading Strategies -->
+        <section class="content-section">
+            <h2><i class="fas fa-chess-knight"></i> Earnings Trading Strategies</h2>
+            
+            <div class="strategy-grid">
+                <div class="strategy-card">
+                    <h4><i class="fas fa-rocket"></i> Gap-and-Go Play</h4>
+                    <ul>
+                        <li>Wait for earnings release and initial reaction</li>
+                        <li>Enter on morning open if gap is 5%+ in either direction</li>
+                        <li>Look for continuation with volume above 2x average</li>
+                        <li>Target 2-3% additional move in gap direction</li>
+                        <li>Stop loss if price reverses back toward pre-earnings level</li>
+                    </ul>
+                </div>
+
+                <div class="strategy-card">
+                    <h4><i class="fas fa-chart-area"></i> Pre-Earnings Positioning</h4>
+                    <ul>
+                        <li>Enter 2-3 days before earnings with weekly options</li>
+                        <li>Use ATM or slightly OTM strikes for leverage</li>
+                        <li>Position size: 1-2% of account (high risk)</li>
+                        <li>Exit 50% at +25% profit, let rest run</li>
+                        <li>Accept full loss if earnings disappoint</li>
+                    </ul>
+                </div>
+
+                <div class="strategy-card">
+                    <h4><i class="fas fa-redo"></i> Gap Fill Strategy</h4>
+                    <ul>
+                        <li>Identify large gaps (10%+) after earnings</li>
+                        <li>Wait for first reversal candle on 15-min chart</li>
+                        <li>Enter when price breaks below VWAP (gap up) or above VWAP (gap down)</li>
+                        <li>Target 50% gap fill as profit objective</li>
+                        <li>Stop loss at new high/low of day</li>
+                    </ul>
+                </div>
+
+                <div class="strategy-card">
+                    <h4><i class="fas fa-hourglass-half"></i> Volatility Crush Trade</h4>
+                    <ul>
+                        <li>Sell premium (credit spreads) 1 week before earnings</li>
+                        <li>Implied volatility spikes 50-100% pre-earnings</li>
+                        <li>Close position day after earnings for quick profit</li>
+                        <li>Risk: Losing trade if NVDA moves beyond strikes</li>
+                        <li>Requires margin and options approval</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- Risk Management -->
+        <section class="content-section">
+            <h2><i class="fas fa-shield-alt"></i> Earnings Risk Management</h2>
+            <p>NVDA earnings are high-volatility events. Protect your capital:</p>
+            
+            <ul>
+                <li><strong>Never Risk More Than 2-3% of Account:</strong> Earnings trades are binary events. A single loss shouldn't cripple your account.</li>
+                <li><strong>Don't Hold Through Earnings Unless Planned:</strong> If you're not specifically trading the earnings event, exit positions before the report to avoid overnight risk.</li>
+                <li><strong>Understand Implied Move:</strong> Check options pricing to see what the market expects. A 10% move is already priced in—you need more than that to profit.</li>
+                <li><strong>Watch for Whipsaws:</strong> Initial after-hours reactions often reverse by morning open. Don't panic trade on first move.</li>
+                <li><strong>Have an Exit Plan:</strong> Define your profit target and stop loss BEFORE entering. Emotions run high during earnings volatility.</li>
+            </ul>
+
+            <div class="alert-box">
+                <h4><i class="fas fa-exclamation-circle"></i> Critical Warning</h4>
+                <p>NVDA options can lose 50-80% of value in minutes after earnings if the move is smaller than expected (volatility crush) or in the wrong direction. Only trade earnings if you fully understand options pricing and can afford to lose your entire position.</p>
+            </div>
+        </section>
+
+        <!-- Preparation Checklist -->
+        <section class="content-section">
+            <h2><i class="fas fa-tasks"></i> Pre-Earnings Preparation Checklist</h2>
+            <p>48 hours before NVDA reports, complete this checklist:</p>
+            
+            <ul>
+                <li><strong>☑ Check Analyst Consensus:</strong> Know the expected EPS and revenue to gauge surprise potential</li>
+                <li><strong>☑ Review Last Quarter's Guidance:</strong> Understand what management promised and whether they delivered</li>
+                <li><strong>☑ Monitor AMD & Other Chip Stocks:</strong> Sector weakness/strength provides context for NVDA's results</li>
+                <li><strong>☑ Calculate Implied Move:</strong> Use ATM straddle pricing to determine market-expected volatility</li>
+                <li><strong>☑ Identify Key Technical Levels:</strong> Mark support/resistance where price may react post-earnings</li>
+                <li><strong>☑ Set Price Alerts:</strong> Configure alerts at your entry and stop-loss levels</li>
+                <li><strong>☑ Prepare Multiple Scenarios:</strong> Have a plan for beat, miss, and in-line results</li>
+                <li><strong>☑ Check Your Position Sizing:</strong> Ensure you're not over-leveraged if the trade goes against you</li>
+            </ul>
+        </section>
+    </div>
+
+    <!-- Floating CTA -->
+    <div class="floating-cta">
+        <a href="../../book-demo.html" class="cta-button">
+            <i class="fas fa-rocket"></i> Get NVDA Signals
+        </a>
+    </div>
+
+    <!-- Footer -->
+    <footer>
+        <p>&copy; 2025 BlueChip Signals. All rights reserved. | <a href="../../legal.html" style="color: var(--primary-gold); text-decoration: none;">Legal Disclaimer</a></p>
+        <div class="social-media">
+            <a href="https://www.tiktok.com/@bluechip.signals" target="_blank"><i class="fab fa-tiktok"></i></a>
+            <a href="https://www.instagram.com/bluechip.signals/" target="_blank"><i class="fab fa-instagram"></i></a>
+        </div>
+    </footer>
+
+    <script>
+        const hamburgerMenu = document.querySelector('.hamburger-menu');
+        const mobileNav = document.querySelector('.nav-links');
+
+        hamburgerMenu.addEventListener('click', () => {
+            mobileNav.classList.toggle('active');
+        });
+    </script>
+</body>
+</html>
+

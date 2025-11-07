@@ -1,0 +1,880 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Monitor Elon's Communications - TSLA Trading Guide | BlueChip Signals</title>
+    <meta name="description" content="Learn how Elon Musk's tweets and communications impact TSLA stock price. Track key announcements for trading opportunities.">
+    <script>
+        // Redirect non-logged-in users to book demo page
+        (function() {
+            const isLoggedIn = localStorage.getItem('bluechip_logged_in') || sessionStorage.getItem('bluechip_logged_in');
+            if (!isLoggedIn) {
+                window.location.href = '../../book-demo.html';
+            }
+        })();
+    </script>
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <link rel="icon" type="image/png" href="../../assets/images/logo.png">
+    <link rel="stylesheet" href="../../assets/css/bot-style.css?v=1751139967">
+    <style>
+        :root {
+            --primary-gold: #b3a17d;
+            --secondary-gold: #E2CFB5;
+            --dark-bg: #080B0F;
+            --darker-bg: #050810;
+            --light-text: #FFFFFF;
+            --gray-text: #A0A0A0;
+            --success-green: #4CAF50;
+            --danger-red: #f44336;
+            --warning-orange: #ff9800;
+            --tesla-red: #e31e24;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: var(--darker-bg);
+            color: var(--light-text);
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        }
+
+        .guide-hero {
+            margin-top: 100px;
+            padding: 4rem 2rem 3rem;
+            text-align: center;
+            background: radial-gradient(circle at 50% 50%, rgba(201, 176, 55, 0.15), transparent 70%);
+            position: relative;
+        }
+
+        .guide-hero::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: radial-gradient(circle at 30% 40%, rgba(201, 176, 55, 0.08), transparent 50%);
+            z-index: 0;
+        }
+
+        .guide-hero-content {
+            max-width: 900px;
+            margin: 0 auto;
+            position: relative;
+            z-index: 1;
+        }
+
+        .guide-badge {
+            display: inline-block;
+            background: linear-gradient(135deg, var(--primary-gold), var(--secondary-gold));
+            color: var(--darker-bg);
+            padding: 0.4rem 1.2rem;
+            border-radius: 20px;
+            font-weight: 700;
+            font-size: 0.8rem;
+            letter-spacing: 1px;
+            margin-bottom: 1.5rem;
+            text-transform: uppercase;
+        }
+
+        .guide-title {
+            font-size: 2.8rem;
+            font-weight: 800;
+            margin: 0 0 1rem 0;
+            line-height: 1.2;
+            color: var(--light-text);
+        }
+
+        .guide-subtitle {
+            font-size: 1.2rem;
+            color: var(--gray-text);
+            line-height: 1.6;
+            margin: 0;
+        }
+
+        .guide-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 3rem 2rem;
+        }
+
+        .content-section {
+            background: var(--dark-bg);
+            border: 1px solid rgba(201, 176, 55, 0.2);
+            border-radius: 15px;
+            padding: 2.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .content-section h2 {
+            color: var(--primary-gold);
+            font-size: 1.8rem;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .content-section h2 i {
+            font-size: 1.5rem;
+        }
+
+        .content-section h3 {
+            color: var(--light-text);
+            font-size: 1.4rem;
+            margin-bottom: 1rem;
+        }
+
+        .content-section h4 {
+            color: var(--primary-gold);
+            font-size: 1.2rem;
+            margin-bottom: 1rem;
+        }
+
+        .content-section p {
+            color: var(--gray-text);
+            line-height: 1.8;
+            margin-bottom: 1rem;
+        }
+
+        .content-section ul {
+            color: var(--light-text);
+            line-height: 1.8;
+            margin: 1rem 0;
+            padding-left: 1.5rem;
+        }
+
+        .content-section ul li {
+            margin-bottom: 0.75rem;
+        }
+
+        .content-section strong {
+            color: var(--light-text);
+        }
+
+        .login-btn {
+            background: linear-gradient(135deg, var(--primary-gold), var(--secondary-gold)) !important;
+            color: var(--darker-bg) !important;
+            padding: 0.5rem 1.2rem;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 0.95rem;
+            transition: transform 0.3s, box-shadow 0.3s;
+            display: inline-block;
+        }
+
+        .login-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(201, 176, 55, 0.3);
+            color: var(--darker-bg) !important;
+        }
+
+        .back-button {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--primary-gold);
+            text-decoration: none;
+            font-weight: 600;
+            margin-bottom: 2rem;
+            transition: all 0.3s ease;
+        }
+
+        .back-button:hover {
+            transform: translateX(-5px);
+        }
+
+        /* Tesla-specific styling */
+        .tesla-highlight {
+            color: #e31e24;
+        }
+
+        /* Communication Impact Calculator */
+        .trend-calculator {
+            background: var(--dark-bg);
+            border: 1px solid rgba(227, 30, 36, 0.3);
+            border-radius: 12px;
+            padding: 2rem;
+            margin: 2rem 0;
+        }
+
+        .calculator-input-group {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .input-field {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .input-field label {
+            color: var(--light-text);
+            font-weight: 500;
+            margin-bottom: 0.5rem;
+            font-size: 0.9rem;
+        }
+
+        .input-field input, .input-field select {
+            background: var(--dark-bg);
+            border: 1px solid rgba(179, 161, 125, 0.3);
+            border-radius: 6px;
+            padding: 0.8rem;
+            color: var(--light-text);
+            font-size: 1rem;
+        }
+
+        .input-field input:focus, .input-field select:focus {
+            outline: none;
+            border-color: #e31e24;
+            box-shadow: 0 0 0 2px rgba(227, 30, 36, 0.2);
+        }
+
+        .calculator-button {
+            background: linear-gradient(135deg, #e31e24, #b71c1c);
+            color: white;
+            border: none;
+            padding: 1rem 2rem;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 1rem;
+            width: 100%;
+        }
+
+        .calculator-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(227, 30, 36, 0.3);
+        }
+
+        .calculation-result {
+            margin-top: 2rem;
+            padding: 1.5rem;
+            background: var(--dark-bg);
+            border-radius: 8px;
+            border: 1px solid rgba(179, 161, 125, 0.2);
+            display: none;
+        }
+
+        .result-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .result-icon {
+            font-size: 1.5rem;
+            margin-right: 0.5rem;
+        }
+
+        .result-bullish { color: #4CAF50; }
+        .result-bearish { color: #f44336; }
+        .result-neutral { color: var(--primary-gold); }
+
+        /* Trend Metrics */
+        .trend-metrics {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+            margin: 2rem 0;
+        }
+
+        .metric-card {
+            background: var(--dark-bg);
+            border: 1px solid rgba(201, 176, 55, 0.2);
+            border-radius: 8px;
+            padding: 1.5rem;
+            text-align: center;
+        }
+
+        .metric-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--primary-gold);
+            margin-bottom: 0.5rem;
+        }
+
+        .metric-label {
+            color: var(--gray-text);
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            font-weight: 500;
+        }
+
+        .metric-change {
+            font-size: 0.8rem;
+            margin-top: 0.5rem;
+        }
+
+        .positive { color: #4CAF50; }
+        .negative { color: #f44336; }
+
+        /* Trend Strength Indicator */
+        .trend-strength {
+            background: rgba(179, 161, 125, 0.1);
+            border: 1px solid rgba(179, 161, 125, 0.2);
+            border-radius: 12px;
+            padding: 2rem;
+            margin: 2rem 0;
+        }
+
+        .strength-bars {
+            display: flex;
+            gap: 0.5rem;
+            align-items: end;
+            height: 100px;
+            margin: 1.5rem 0;
+        }
+
+        .strength-bar {
+            flex: 1;
+            background: rgba(201, 176, 55, 0.2);
+            border-radius: 4px 4px 0 0;
+            position: relative;
+            transition: all 0.3s ease;
+        }
+
+        .strength-bar.active {
+            background: linear-gradient(to top, var(--tesla-red), #ff4444);
+        }
+
+        .strength-labels {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.8rem;
+            color: var(--gray-text);
+            margin-top: 0.5rem;
+        }
+
+        /* Strategy Cards */
+        .strategy-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin: 2rem 0;
+        }
+
+        .strategy-card {
+            background: var(--dark-bg);
+            border: 1px solid rgba(201, 176, 55, 0.2);
+            border-radius: 12px;
+            padding: 2rem;
+            position: relative;
+        }
+
+        .strategy-badge {
+            position: absolute;
+            top: -10px;
+            left: 1.5rem;
+            background: var(--tesla-red);
+            color: white;
+            padding: 0.4rem 1rem;
+            border-radius: 15px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        .strategy-title {
+            color: var(--primary-gold);
+            font-size: 1.3rem;
+            font-weight: 600;
+            margin: 1rem 0;
+        }
+
+        .strategy-description {
+            color: var(--light-text);
+            line-height: 1.6;
+            margin-bottom: 1.5rem;
+        }
+
+        .strategy-steps {
+            list-style: none;
+            padding: 0;
+        }
+
+        .strategy-steps li {
+            padding: 0.5rem 0;
+            color: var(--light-text);
+            font-size: 0.9rem;
+            position: relative;
+            padding-left: 2rem;
+        }
+
+        .strategy-steps li:before {
+            content: "→";
+            position: absolute;
+            left: 0;
+            color: var(--tesla-red);
+            font-weight: bold;
+        }
+
+        /* Checklist Items */
+        .checklist-items {
+            list-style: none;
+            padding: 0;
+        }
+
+        .checklist-items li {
+            padding: 0.8rem 0;
+            color: var(--light-text);
+            border-bottom: 1px solid rgba(201, 176, 55, 0.1);
+            position: relative;
+            padding-left: 2rem;
+        }
+
+        .checklist-items li:before {
+            content: "✓";
+            position: absolute;
+            left: 0;
+            color: var(--success-green);
+            font-weight: bold;
+        }
+
+        .checklist-items li:last-child {
+            border-bottom: none;
+        }
+
+
+        @media (max-width: 768px) {
+            .guide-title {
+                font-size: 2rem;
+            }
+
+            .guide-subtitle {
+                font-size: 1rem;
+            }
+
+            .content-section {
+                padding: 1.5rem;
+            }
+
+            .calculator-input-group,
+            .trend-metrics,
+            .strategy-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav>
+        <div class="nav-container">
+            <div class="logo">
+                <a href="../../index.html"><img src="../../assets/images/logo.png" alt="BlueChip Signals Logo"></a>
+            </div>
+            <div class="hamburger-menu">
+                <div class="bar"></div>
+                <div class="bar"></div>
+                <div class="bar"></div>
+            </div>
+            <ul class="nav-links">
+                <li><a href="../../index.html#features">Features</a></li>
+                <li><a href="../../index.html#bots">Supported Stocks</a></li>
+                <li><a href="../../book-demo.html">Book a Demo</a></li>
+                <li><a href="../../faq.html">FAQ</a></li>
+                <li><a href="../../legal.html">Legal Disclaimer</a></li>
+                <li><a href="../../about.html">About Us</a></li>
+                <li><a href="../../login.html" class="login-btn"><i class="fas fa-sign-in-alt"></i> Login</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="guide-hero">
+        <div class="guide-hero-content">
+            <div class="guide-badge">TSLA Trading Guide</div>
+            <h1 class="guide-title">Monitor Elon's Communications</h1>
+            <p class="guide-subtitle">Elon Musk's tweets and announcements move TSLA instantly. Track them for trading opportunities.</p>
+        </div>
+    </section>
+
+    <!-- Guide Content -->
+    <div class="guide-content">
+        <a href="../bots/tsla-bot.html" class="back-button">
+            <i class="fas fa-arrow-left"></i> Back to TSLA Signals
+        </a>
+
+        <!-- Communication Impact Analyzer -->
+        <section class="content-section">
+            <h2><i class="fas fa-comments"></i> Communication Impact Analyzer</h2>
+            <p>Assess the potential market impact of Elon's communications:</p>
+            
+            <div class="trend-calculator">
+                <div class="calculator-input-group">
+                    <div class="input-field">
+                        <label for="current-price">Current TSLA Price ($)</label>
+                        <input type="number" id="current-price" placeholder="e.g., 425.50" min="0" step="0.01">
+                    </div>
+                    <div class="input-field">
+                        <label for="ma20">20-Day Moving Average ($)</label>
+                        <input type="number" id="ma20" placeholder="e.g., 415.20" min="0" step="0.01">
+                    </div>
+                    <div class="input-field">
+                        <label for="ma50">50-Day Moving Average ($)</label>
+                        <input type="number" id="ma50" placeholder="e.g., 395.80" min="0" step="0.01">
+                    </div>
+                    <div class="input-field">
+                        <label for="volume-trend">Volume Trend</label>
+                        <select id="volume-trend">
+                            <option value="">Select Volume Trend</option>
+                            <option value="increasing">Increasing (Bullish)</option>
+                            <option value="decreasing">Decreasing (Bearish)</option>
+                            <option value="stable">Stable (Neutral)</option>
+                        </select>
+                    </div>
+                    <div class="input-field">
+                        <label for="rsi">RSI Level</label>
+                        <input type="number" id="rsi" placeholder="e.g., 65" min="0" max="100" step="1">
+                    </div>
+                    <div class="input-field">
+                        <label for="trend-duration">Trend Duration (Days)</label>
+                        <input type="number" id="trend-duration" placeholder="e.g., 12" min="1" step="1">
+                    </div>
+                </div>
+                
+                <button class="calculator-button" onclick="analyzeTrend()">
+                    <i class="fas fa-comments" style="margin-right: 0.5rem;"></i>
+                    Analyze Communication Impact
+                </button>
+
+                <div class="calculation-result" id="calculation-result">
+                    <div class="result-header">
+                        <div class="result-icon" id="result-icon"></div>
+                        <h4 id="result-title" style="margin: 0; color: var(--light-text);"></h4>
+                    </div>
+                    <div id="result-content"></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Communication Impact Metrics -->
+        <section class="content-section">
+            <h2><i class="fas fa-chart-bar"></i> Recent Communication Impact</h2>
+            <p>Historical impact of Elon's communications on TSLA stock:</p>
+            
+            <div class="trend-metrics">
+                <div class="metric-card">
+                    <div class="metric-value" id="price-vs-ma20">+2.4%</div>
+                    <div class="metric-label">Price vs 20-Day MA</div>
+                    <div class="metric-change positive">Above trend line</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-value" id="price-vs-ma50">+7.5%</div>
+                    <div class="metric-label">Price vs 50-Day MA</div>
+                    <div class="metric-change positive">Strong uptrend</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-value" id="trend-strength">78%</div>
+                    <div class="metric-label">Trend Strength</div>
+                    <div class="metric-change positive">High momentum</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-value" id="volume-ratio">1.3x</div>
+                    <div class="metric-label">Volume vs Average</div>
+                    <div class="metric-change positive">Above normal</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Communication Types -->
+        <section class="content-section">
+            <h2><i class="fas fa-layer-group"></i> Types of Impactful Communications</h2>
+            <p>Different communication types and their typical market impact:</p>
+            
+            <div class="trend-strength">
+                <div class="strength-bars">
+                    <div class="strength-bar active" style="height: 20%;"></div>
+                    <div class="strength-bar active" style="height: 35%;"></div>
+                    <div class="strength-bar active" style="height: 55%;"></div>
+                    <div class="strength-bar active" style="height: 78%;"></div>
+                    <div class="strength-bar active" style="height: 85%;"></div>
+                    <div class="strength-bar" style="height: 65%;"></div>
+                    <div class="strength-bar" style="height: 45%;"></div>
+                    <div class="strength-bar" style="height: 25%;"></div>
+                </div>
+                <div class="strength-labels">
+                    <span>1min</span>
+                    <span>5min</span>
+                    <span>15min</span>
+                    <span>1hr</span>
+                    <span>4hr</span>
+                    <span>Daily</span>
+                    <span>Weekly</span>
+                    <span>Monthly</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- Trading Strategies -->
+        <section class="content-section">
+            <h2><i class="fas fa-chess-knight"></i> Communication Trading Strategies</h2>
+            <p>How to trade around Elon's communications and announcements:</p>
+            
+            <div class="strategy-grid">
+                <div class="strategy-card">
+                    <div class="strategy-badge">MOMENTUM ENTRY</div>
+                    <h4 class="strategy-title">Breakout Continuation</h4>
+                    <p class="strategy-description">Enter on strong breakouts above resistance with volume confirmation. Ride the momentum until trend signals weaken.</p>
+                    <ul class="strategy-steps">
+                        <li>Wait for price to break above key resistance level</li>
+                        <li>Confirm with 2x average volume on breakout</li>
+                        <li>Enter within first 30 minutes of breakout</li>
+                        <li>Set stop below breakout level</li>
+                        <li>Trail stop as trend continues</li>
+                    </ul>
+                </div>
+
+                <div class="strategy-card">
+                    <div class="strategy-badge">PULLBACK ENTRY</div>
+                    <h4 class="strategy-title">Trend Retracement</h4>
+                    <p class="strategy-description">Enter on shallow pullbacks to moving averages during strong trends. Use support levels as entry points.</p>
+                    <ul class="strategy-steps">
+                        <li>Identify strong uptrend (price > 20MA > 50MA)</li>
+                        <li>Wait for pullback to 20-day moving average</li>
+                        <li>Look for bounce with volume increase</li>
+                        <li>Enter on first green candle off support</li>
+                        <li>Stop below next major support level</li>
+                    </ul>
+                </div>
+
+                <div class="strategy-card">
+                    <div class="strategy-badge">TREND REVERSAL</div>
+                    <h4 class="strategy-title">Early Trend Change</h4>
+                    <p class="strategy-description">Identify when trends are weakening and prepare for reversal. Exit positions before major trend changes.</p>
+                    <ul class="strategy-steps">
+                        <li>Monitor for decreasing volume on trend moves</li>
+                        <li>Watch for price failing to make new highs</li>
+                        <li>Look for break below key moving averages</li>
+                        <li>Exit on first sign of trend weakness</li>
+                        <li>Consider reversal trade if confirmed</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- Monitoring Guidelines -->
+        <section class="content-section">
+            <h2><i class="fas fa-ruler"></i> Essential Monitoring Guidelines</h2>
+            <div class="checklist-items">
+                <li><strong>Never Fight the Primary Trend:</strong> Always trade in the direction of the dominant trend. Counter-trend trades are high-risk, low-reward.</li>
+                <li><strong>Use Multiple Timeframes:</strong> Confirm trend direction across 3+ timeframes before entering positions.</li>
+                <li><strong>Volume Confirms Trends:</strong> Strong trends require increasing volume. Decreasing volume signals trend weakness.</li>
+                <li><strong>Moving Average Alignment:</strong> In strong uptrends: Price > 20MA > 50MA > 200MA. Reverse for downtrends.</li>
+                <li><strong>Trail Your Stops:</strong> Let winners run by trailing stops. Don't exit profitable trend trades too early.</li>
+                <li><strong>Respect Key Levels:</strong> Major support/resistance levels can pause or reverse trends temporarily.</li>
+                <li><strong>Monitor RSI Divergence:</strong> When price makes new highs but RSI doesn't, trend may be weakening.</li>
+                <li><strong>News Can Accelerate Trends:</strong> Positive news in uptrends and negative news in downtrends amplify moves.</li>
+            </div>
+        </section>
+
+
+    </div>
+
+    <!-- Floating CTA -->
+    <div class="floating-cta">
+        <a href="../../book-demo.html" class="cta-button">
+            <i class="fas fa-rocket"></i> Get TSLA Signals
+        </a>
+    </div>
+
+    <!-- Footer -->
+    <footer>
+        <p>&copy; 2025 BlueChip Signals. All rights reserved. | <a href="../../legal.html" style="color: var(--primary-gold); text-decoration: none;">Legal Disclaimer</a></p>
+        <div class="social-media">
+            <a href="https://www.tiktok.com/@bluechip.signals" target="_blank"><i class="fab fa-tiktok"></i></a>
+            <a href="https://www.instagram.com/bluechip.signals/" target="_blank"><i class="fab fa-instagram"></i></a>
+        </div>
+    </footer>
+
+    <script>
+        let currentTSLAPrice = 0;
+        
+        // Fetch real-time TSLA price from Finnhub API
+        async function fetchTSLAPrice() {
+            try {
+                const response = await fetch('https://finnhub.io/api/v1/quote?symbol=TSLA&token=ctrlh6hr01qhlbactc50ctrlh6hr01qhlbactc5g');
+                const data = await response.json();
+                
+                if (data && data.c) {
+                    currentTSLAPrice = data.c;
+                    updateTrendMetrics(currentTSLAPrice);
+                    
+                    // Update current price in calculator
+                    document.getElementById('current-price').placeholder = `e.g., ${currentTSLAPrice.toFixed(2)}`;
+                    
+                    console.log('TSLA Price updated:', currentTSLAPrice);
+                } else {
+                    console.error('Invalid price data received');
+                    // Fallback to default price
+                    currentTSLAPrice = 425.50;
+                    updateTrendMetrics(currentTSLAPrice);
+                }
+            } catch (error) {
+                console.error('Error fetching TSLA price:', error);
+                // Fallback to default price
+                currentTSLAPrice = 425.50;
+                updateTrendMetrics(currentTSLAPrice);
+            }
+        }
+        
+        // Update trend metrics with live data
+        function updateTrendMetrics(price) {
+            const ma20 = price * 0.976; // Approximate 20-day MA
+            const ma50 = price * 0.930; // Approximate 50-day MA
+            
+            const priceVsMa20 = ((price - ma20) / ma20 * 100);
+            const priceVsMa50 = ((price - ma50) / ma50 * 100);
+            
+            document.getElementById('price-vs-ma20').textContent = `${priceVsMa20 > 0 ? '+' : ''}${priceVsMa20.toFixed(1)}%`;
+            document.getElementById('price-vs-ma50').textContent = `${priceVsMa50 > 0 ? '+' : ''}${priceVsMa50.toFixed(1)}%`;
+            
+            // Update MA placeholders in calculator
+            document.getElementById('ma20').placeholder = `e.g., ${ma20.toFixed(2)}`;
+            document.getElementById('ma50').placeholder = `e.g., ${ma50.toFixed(2)}`;
+        }
+        
+        // Trend Analysis Calculator
+        function analyzeTrend() {
+            const currentPrice = parseFloat(document.getElementById('current-price').value);
+            const ma20 = parseFloat(document.getElementById('ma20').value);
+            const ma50 = parseFloat(document.getElementById('ma50').value);
+            const volumeTrend = document.getElementById('volume-trend').value;
+            const rsi = parseFloat(document.getElementById('rsi').value);
+            const trendDuration = parseFloat(document.getElementById('trend-duration').value);
+            
+            if (!currentPrice || !ma20 || !ma50 || !volumeTrend || !rsi || !trendDuration) {
+                alert('Please fill in all fields');
+                return;
+            }
+            
+            let trendScore = 0;
+            let analysis = [];
+            
+            // Price vs Moving Averages
+            if (currentPrice > ma20 && ma20 > ma50) {
+                trendScore += 30;
+                analysis.push("✓ Strong bullish alignment (Price > 20MA > 50MA)");
+            } else if (currentPrice < ma20 && ma20 < ma50) {
+                trendScore += 30;
+                analysis.push("✓ Strong bearish alignment (Price < 20MA < 50MA)");
+            } else {
+                trendScore += 10;
+                analysis.push("⚠ Mixed moving average signals");
+            }
+            
+            // Volume Trend
+            if (volumeTrend === 'increasing') {
+                trendScore += 25;
+                analysis.push("✓ Volume supporting trend direction");
+            } else if (volumeTrend === 'stable') {
+                trendScore += 15;
+                analysis.push("⚠ Stable volume - trend may be maturing");
+            } else {
+                trendScore += 5;
+                analysis.push("⚠ Decreasing volume - trend weakening");
+            }
+            
+            // RSI Analysis
+            if ((rsi > 50 && currentPrice > ma20) || (rsi < 50 && currentPrice < ma20)) {
+                trendScore += 20;
+                analysis.push("✓ RSI confirms trend direction");
+            } else {
+                trendScore += 5;
+                analysis.push("⚠ RSI showing potential divergence");
+            }
+            
+            // Trend Duration
+            if (trendDuration >= 5 && trendDuration <= 20) {
+                trendScore += 15;
+                analysis.push("✓ Optimal trend duration for continuation");
+            } else if (trendDuration > 20) {
+                trendScore += 5;
+                analysis.push("⚠ Extended trend - watch for reversal signals");
+            } else {
+                trendScore += 10;
+                analysis.push("⚠ Young trend - needs confirmation");
+            }
+            
+            // Distance from MA
+            const ma20Distance = Math.abs((currentPrice - ma20) / ma20 * 100);
+            if (ma20Distance < 5) {
+                trendScore += 10;
+                analysis.push("✓ Price near trend line - good entry opportunity");
+            } else if (ma20Distance > 10) {
+                trendScore -= 5;
+                analysis.push("⚠ Price extended from trend line - wait for pullback");
+            }
+            
+            let resultClass, resultIcon, resultTitle, recommendation;
+            
+            if (trendScore >= 80) {
+                resultClass = 'result-bullish';
+                resultIcon = '🚀';
+                resultTitle = 'HIGH IMPACT COMMUNICATION';
+                recommendation = currentPrice > ma20 ? 
+                    'Major positive catalyst. Expect strong upward movement. Consider bullish positions with tight stops.' :
+                    'Major negative catalyst. Expect strong downward movement. Avoid new positions or consider hedging.';
+            } else if (trendScore >= 60) {
+                resultClass = 'result-neutral';
+                resultIcon = '📊';
+                resultTitle = 'MODERATE IMPACT COMMUNICATION';
+                recommendation = 'Moderate market impact expected. Monitor price action for confirmation before entering positions.';
+            } else {
+                resultClass = 'result-bearish';
+                resultIcon = '💬';
+                resultTitle = 'LOW IMPACT COMMUNICATION';
+                recommendation = 'Minimal market impact expected. Focus on other trading signals and technical analysis.';
+            }
+            
+            const resultDiv = document.getElementById('calculation-result');
+            const resultIcon_el = document.getElementById('result-icon');
+            const resultTitle_el = document.getElementById('result-title');
+            const resultContent = document.getElementById('result-content');
+            
+            resultIcon_el.className = `result-icon ${resultClass}`;
+            resultIcon_el.innerHTML = resultIcon;
+            resultTitle_el.textContent = resultTitle;
+            
+            resultContent.innerHTML = `
+                <div style="margin-bottom: 1rem;">
+                    <strong>Trend Score: ${trendScore}/100</strong>
+                </div>
+                <div style="margin-bottom: 1rem;">
+                    <strong>Recommendation:</strong> ${recommendation}
+                </div>
+                <div>
+                    <strong>Analysis:</strong>
+                    <ul style="margin: 0.5rem 0; padding-left: 1.5rem;">
+                        ${analysis.map(item => `<li>${item}</li>`).join('')}
+                    </ul>
+                </div>
+            `;
+            
+            resultDiv.style.display = 'block';
+        }
+        
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            fetchTSLAPrice();
+            
+            // Update price every 30 seconds
+            setInterval(fetchTSLAPrice, 30000);
+        });
+    </script>
+</body>
+</html> 

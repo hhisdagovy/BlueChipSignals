@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BlueChip Signals - FAQ</title>
+    <link rel="icon" type="image/png" href="assets/images/logo.png">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="assets/css/bot-style.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary-gold: #b3a17d;
+            --secondary-gold: #E2CFB5;
+            --dark-bg: #080B0F;
+            --darker-bg: #080B0F;
+            --light-text: #FFFFFF;
+            --gray-text: #A0A0A0;
+            --success-green: #2a571f;
+            --danger-red: #FF3B3B;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background-color: var(--dark-bg);
+            color: var(--light-text);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        /* Navigation */
+        nav {
+            background: rgba(5, 8, 16, 0.8);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            position: fixed;
+            width: 100%;
+            top: 0;
+            z-index: 1000;
+            padding: 0.5rem 0;
+        }
+
+        .nav-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .logo img {
+            width: 80px;
+            height: 80px;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 2rem;
+            list-style: none;
+        }
+
+        .nav-links a {
+            color: var(--light-text);
+            text-decoration: none;
+            transition: color 0.3s;
+        }
+
+        a {
+            text-decoration: none;
+        }
+
+        .nav-links a:hover {
+            color: var(--primary-gold);
+        }
+
+        .login-btn {
+            background: linear-gradient(135deg, var(--primary-gold), var(--secondary-gold));
+            color: var(--darker-bg);
+            padding: 0.5rem 1.2rem;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 0.95rem;
+            transition: transform 0.3s, box-shadow 0.3s;
+            display: inline-block;
+        }
+
+        .login-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(201, 176, 55, 0.3);
+            color: var(--darker-bg);
+        }
+
+        .hamburger-menu {
+            display: none; /* Hidden by default on larger screens */
+            flex-direction: column;
+            justify-content: space-around;
+            width: 30px;
+            height: 25px;
+            cursor: pointer;
+            z-index: 1100;
+        }
+
+        .hamburger-menu .bar {
+            width: 100%;
+            height: 3px;
+            background-color: var(--primary-gold);
+            transition: all 0.3s ease-in-out;
+        }
+
+        /* FAQ Section */
+        .faq {
+            padding: 8rem 2rem 4rem;
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        .section-title {
+            text-align: center;
+            font-size: 2.5rem;
+            margin-bottom: 3rem;
+            color: var(--primary-gold);
+        }
+
+        .faq-item {
+            background: rgba(26, 31, 46, 0.5);
+            border: 1px solid rgba(201, 176, 55, 0.2);
+            border-radius: 15px;
+            margin-bottom: 1.5rem;
+            overflow: hidden;
+        }
+
+        .faq-question {
+            padding: 1.5rem 2rem;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 1.2rem;
+            font-weight: 600;
+        }
+
+        .faq-question:after {
+            content: '+';
+            font-size: 2rem;
+            color: var(--primary-gold);
+            transition: transform 0.3s;
+        }
+
+        .faq-answer {
+            padding: 0 2rem;
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.5s ease-out, padding 0.5s ease-out;
+        }
+        
+        .faq-answer p {
+            padding-bottom: 1.5rem;
+            color: var(--gray-text);
+        }
+
+        .faq-item.active .faq-answer {
+            max-height: 300px; /* Adjust as needed */
+            padding-top: 1rem;
+        }
+        
+        .faq-item.active .faq-question:after {
+             transform: rotate(45deg);
+        }
+
+        .social-media {
+            margin-top: 1rem;
+        }
+
+        .social-media a {
+            color: var(--primary-gold);
+            font-size: 1.5rem;
+            margin: 0 0.5rem;
+            transition: color 0.3s;
+        }
+
+        .social-media a:hover {
+            color: var(--secondary-gold);
+        }
+
+        /* Footer */
+        footer {
+            background: var(--darker-bg);
+            padding: 2rem;
+            text-align: center;
+            border-top: 1px solid rgba(201, 176, 55, 0.2);
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .nav-links {
+                display: none; /* Hide desktop nav on small screens */
+                flex-direction: column;
+                position: absolute;
+                top: 0;
+                right: 0;
+                width: 250px;
+                height: 100vh;
+                background: rgba(5, 8, 16, 0.95);
+                padding-top: 5rem;
+                box-shadow: -5px 0 15px rgba(0,0,0,0.5);
+                list-style: none;
+                transform: translateX(100%);
+                transition: transform 0.3s ease-in-out;
+            }
+
+            .nav-links.active {
+                transform: translateX(0);
+                display: flex; /* Show mobile nav when active */
+            }
+
+            .nav-links li {
+                padding: 1rem 2rem;
+                border-bottom: 1px solid rgba(201, 176, 55, 0.1);
+            }
+
+            .nav-links a {
+                font-size: 1.1rem;
+                display: block;
+            }
+
+            .hamburger-menu {
+                display: flex; /* Show hamburger on small screens */
+            }
+        }
+
+        @media (min-width: 769px) {
+            .hamburger-menu {
+                display: none; /* Hide hamburger on larger screens */
+            }
+            .nav-links {
+                display: flex; /* Show desktop nav on larger screens */
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav>
+        <div class="nav-container">
+            <div class="logo">
+                <a href="index.html"><img src="assets/images/logo.png" alt="BlueChip Signals Logo"></a>
+            </div>
+            <div class="hamburger-menu">
+                <div class="bar"></div>
+                <div class="bar"></div>
+                <div class="bar"></div>
+            </div>
+            <ul class="nav-links">
+                <li><a href="index.html#features">Features</a></li>
+                <li><a href="index.html#bots">Supported Stocks</a></li>
+                <li><a href="index.html#pricing">Pricing</a></li>
+                <li><a href="index.html#testimonials">Testimonials</a></li>
+                <li><a href="faq.html">FAQ</a></li>
+                <li><a href="legal.html">Legal Disclaimer</a></li>
+                <li><a href="about.html">About Us</a></li>
+                <li><a href="login.html" class="login-btn" id="authButton"><i class="fas fa-sign-in-alt"></i> Login</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- FAQ Section -->
+    <section class="faq">
+        <h1 class="section-title">Frequently Asked Questions</h1>
+
+        <div class="faq-item">
+            <div class="faq-question">What is BlueChip Signals?</div>
+            <div class="faq-answer">
+                <p>BlueChip Signals is a premium service that provides real-time trading signals for blue-chip stocks like SPY, META, AAPL, TSLA, NVDA, and AMZN. We use a proprietary momentum breakout strategy based on VWAP and MFI indicators to identify high-probability trading opportunities.</p>
+            </div>
+        </div>
+
+        <div class="faq-item">
+            <div class="faq-question">How are the signals delivered?</div>
+            <div class="faq-answer">
+                <p>All signals are sent instantly via dedicated Telegram channels. Once you subscribe, you'll get access to the channels for the bots included in your plan.</p>
+            </div>
+        </div>
+
+        <div class="faq-item">
+            <div class="faq-question">How many signals can I expect per day?</div>
+            <div class="faq-answer">
+                <p>Each of our trading bots generates between 4 to 7 high-quality signals per trading day, ensuring you have a steady stream of opportunities.</p>
+            </div>
+        </div>
+
+        <div class="faq-item">
+            <div class="faq-question">Do I need any trading experience?</div>
+            <div class="faq-answer">
+                <p>No, our signals are designed to be easy to follow for everyone, from beginners to experienced traders. We provide all the necessary details, including the exact entry point and suggested options contract.</p>
+            </div>
+        </div>
+        
+        <div class="faq-item">
+            <div class="faq-question">What do the signals include?</div>
+            <div class="faq-answer">
+                <p>Each signal includes the stock ticker, whether it's a buy (call) or sell (put) signal, the strike price for the suggested options contract, the premium, and the expiration date.</p>
+            </div>
+        </div>
+
+        <div class="faq-item">
+            <div class="faq-question">Can I cancel my subscription?</div>
+            <div class="faq-answer">
+                <p>Yes, you can cancel your subscription at any time. You will retain access to the service for the remainder of your billing period.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+        <p>&copy; 2025 BlueChip Signals. All rights reserved. | <a href="legal.html" style="color: var(--primary-gold); text-decoration: none;">Legal Disclaimer</a> | <a href="index.html" style="color: var(--primary-gold); text-decoration: none;">Back to Home</a></p>
+        <div class="social-media">
+            <a href="https://www.tiktok.com/@bluechip.signals" target="_blank"><i class="fab fa-tiktok"></i></a>
+            <a href="https://www.instagram.com/bluechip.signals/" target="_blank"><i class="fab fa-instagram"></i></a>
+        </div>
+    </footer>
+
+    <script>
+        const faqItems = document.querySelectorAll('.faq-item');
+
+        faqItems.forEach(item => {
+            const question = item.querySelector('.faq-question');
+            question.addEventListener('click', () => {
+                const isActive = item.classList.contains('active');
+                faqItems.forEach(i => i.classList.remove('active'));
+                if (!isActive) {
+                    item.classList.add('active');
+                }
+            });
+        });
+    </script>
+    <script>
+        const hamburgerMenu = document.querySelector('.hamburger-menu');
+        const mobileNav = document.querySelector('.nav-links');
+
+        hamburgerMenu.addEventListener('click', () => {
+            mobileNav.classList.toggle('active');
+        });
+    </script>
+
+    <script>
+        // Check if user is logged in and update the navigation button immediately
+        (function() {
+            const isLoggedIn = localStorage.getItem('bluechip_logged_in') || sessionStorage.getItem('bluechip_logged_in');
+            
+            if (isLoggedIn) {
+                if (document.readyState === 'loading') {
+                    document.addEventListener('DOMContentLoaded', updateAuthButton);
+                } else {
+                    updateAuthButton();
+                }
+            }
+            
+            function updateAuthButton() {
+                const authButton = document.getElementById('authButton');
+                
+                if (authButton) {
+                    authButton.removeAttribute('href');
+                    authButton.innerHTML = '<i class="fas fa-sign-out-alt"></i> Logout';
+                    authButton.style.cursor = 'pointer';
+                    
+                authButton.onclick = function(e) {
+                    e.preventDefault();
+                    localStorage.clear();
+                    sessionStorage.clear();
+                    window.location.href = 'login.html';
+                    return false;
+                };
+                }
+            }
+        })();
+    </script>
+</body>
+</html>

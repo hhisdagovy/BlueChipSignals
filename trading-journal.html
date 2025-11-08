@@ -754,6 +754,69 @@
                 padding: 0.5rem;
             }
         }
+
+        /* Dropdown Menu Styles */
+        .dropdown {
+            position: relative;
+        }
+
+        .dropdown > a::after {
+            content: " \25BE";
+            font-size: 0.8rem;
+        }
+
+        .dropdown-menu {
+            display: none;
+            position: absolute;
+            top: 100%;
+            right: 0;
+            background: rgba(5, 8, 16, 0.95);
+            border: 1px solid rgba(201, 176, 55, 0.2);
+            border-radius: 8px;
+            min-width: 220px;
+            padding: 0.5rem 0;
+            z-index: 1200;
+        }
+
+        .dropdown-menu li {
+            list-style: none;
+        }
+
+        .dropdown-menu a {
+            display: block;
+            padding: 0.6rem 1rem;
+            color: var(--light-text);
+            white-space: nowrap;
+        }
+
+        .dropdown-menu a:hover {
+            background: rgba(201, 176, 55, 0.08);
+            color: var(--primary-gold);
+        }
+
+        .dropdown:hover .dropdown-menu {
+            display: block;
+        }
+
+        @media (max-width: 768px) {
+            .dropdown-menu {
+                position: static;
+                display: none;
+                background: rgba(0, 0, 0, 0.3);
+                border: none;
+                border-radius: 0;
+                padding: 0;
+                margin-left: 1rem;
+            }
+
+            .dropdown.active .dropdown-menu {
+                display: block;
+            }
+
+            .dropdown > a::after {
+                float: right;
+            }
+        }
     </style>
 </head>
 <body>
@@ -769,9 +832,21 @@
                 <span></span>
             </div>
             <ul class="nav-links" id="navLinks">
-                <li><a href="dashboard.html"><i class="fas fa-home"></i> Dashboard</a></li>
-                <li><a href="trading-journal.html"><i class="fas fa-book"></i> Journal</a></li>
-                <li><a href="contact.html"><i class="fas fa-headset"></i> Support</a></li>
+                <li id="dashboardLink" style="display: none;"><a href="dashboard.html" style="color: var(--primary-gold); font-weight: 600;"><i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
+                <li><a href="index.html#features">Features</a></li>
+                <li><a href="index.html#bots">Supported Stocks</a></li>
+                <li><a href="book-demo.html">Book a Demo</a></li>
+                <li><a href="contact.html">Contact</a></li>
+                <li class="dropdown"><a href="#">More</a>
+                    <ul class="dropdown-menu">
+                        <li><a href="index.html#testimonials">Testimonials</a></li>
+                        <li><a href="faq.html">FAQ</a></li>
+                        <li><a href="about.html">About Us</a></li>
+                        <li><a href="legal.html">Legal Disclaimer</a></li>
+                        <li><a href="terms.html">Terms of Service</a></li>
+                        <li><a href="privacy.html">Privacy Policy</a></li>
+                    </ul>
+                </li>
                 <li><a href="login.html" class="login-btn" id="authButton"><i class="fas fa-sign-in-alt"></i> Login</a></li>
             </ul>
         </div>
@@ -1036,11 +1111,14 @@
         </div>
     </footer>
 
-    <script>
+    <script type="module">
+        import { auth, db, onAuthStateChanged, doc, getDoc, setDoc, updateDoc } from './assets/js/firebase-config.js';
+
         // Trading Journal Application
-        let trades = JSON.parse(localStorage.getItem('bluechip_trades') || '[]');
+        let trades = [];
         let editingTradeId = null;
         let charts = {};
+        let currentUserId = null;
 
         // Initialize
         document.addEventListener('DOMContentLoaded', function() {
@@ -1054,8 +1132,8 @@
             renderCharts();
         });
 
-        // Toggle trade type fields
-        function toggleTradeTypeFields() {
+        // Toggle trade type fields (make it global)
+        window.toggleTradeTypeFields = function() {
             const tradeType = document.getElementById('tradeType').value;
             const optionFields = document.querySelectorAll('.option-field');
             const stockFields = document.querySelectorAll('.stock-field');
@@ -1091,7 +1169,7 @@
                 document.getElementById('entryPriceLabel').textContent = 'Entry Price ($)';
                 document.getElementById('exitPriceLabel').textContent = 'Exit Price ($)';
             }
-        }
+        };
 
         // Form Submit
         document.getElementById('tradeForm').addEventListener('submit', function(e) {
@@ -1158,9 +1236,65 @@
             renderCharts();
         });
 
-        // Save trades to localStorage
-        function saveTrades() {
-            localStorage.setItem('bluechip_trades', JSON.stringify(trades));
+        // Save trades to Firestore
+        async function saveTrades() {
+            if (!currentUserId) {
+                console.error('No user logged in');
+                return;
+            }
+
+            try {
+                const userTradesRef = doc(db, 'users', currentUserId);
+                await updateDoc(userTradesRef, {
+                    trades: trades,
+                    lastUpdated: new Date().toISOString()
+                });
+                console.log('Trades saved successfully');
+            } catch (error) {
+                console.error('Error saving trades:', error);
+                // Fallback to localStorage if Firestore fails
+                localStorage.setItem('bluechip_trades', JSON.stringify(trades));
+            }
+        }
+
+        // Load trades from Firestore
+        async function loadTrades() {
+            if (!currentUserId) {
+                console.error('No user logged in');
+                return;
+            }
+
+            try {
+                const userTradesRef = doc(db, 'users', currentUserId);
+                const userDoc = await getDoc(userTradesRef);
+                
+                if (userDoc.exists() && userDoc.data().trades) {
+                    trades = userDoc.data().trades;
+                    console.log('Trades loaded successfully');
+                } else {
+                    // No trades yet, initialize empty array
+                    trades = [];
+                    // Try to migrate from localStorage if exists
+                    const localTrades = JSON.parse(localStorage.getItem('bluechip_trades') || '[]');
+                    if (localTrades.length > 0) {
+                        trades = localTrades;
+                        await saveTrades(); // Save to Firestore
+                        localStorage.removeItem('bluechip_trades'); // Clean up localStorage
+                    }
+                }
+                
+                // Update UI
+                renderTradesTable();
+                updateStats();
+                renderCharts();
+            } catch (error) {
+                console.error('Error loading trades:', error);
+                // Fallback to localStorage
+                trades = JSON.parse(localStorage.getItem('bluechip_trades') || '[]');
+                renderTradesTable();
+                updateStats();
+                renderCharts();
+            }
         }
 
         // Reset form
@@ -1176,7 +1310,8 @@
         }
 
         // Edit trade
-        function editTrade(id) {
+        // Edit trade (make it global for onclick handlers)
+        window.editTrade = function(id) {
             const trade = trades.find(t => t.id === id);
             if (!trade) return;
 
@@ -1207,32 +1342,32 @@
             editingTradeId = id;
             document.getElementById('submitBtnText').textContent = 'Update Trade';
             window.scrollTo({ top: 0, behavior: 'smooth' });
-        }
+        };
 
-        // Delete trade
-        function deleteTrade(id) {
+        // Delete trade (make it global for onclick handlers)
+        window.deleteTrade = async function(id) {
             if (confirm('Are you sure you want to delete this trade?')) {
                 trades = trades.filter(t => t.id !== id);
-                saveTrades();
+                await saveTrades();
                 renderTradesTable();
                 updateStats();
                 renderCharts();
             }
-        }
+        };
 
-        // Clear all trades
-        function clearAllTrades() {
+        // Clear all trades (make it global for onclick handlers)
+        window.clearAllTrades = async function() {
             if (confirm('Are you sure you want to delete ALL trades? This cannot be undone!')) {
                 trades = [];
-                saveTrades();
+                await saveTrades();
                 renderTradesTable();
                 updateStats();
                 renderCharts();
             }
-        }
+        };
 
-        // Filter trades
-        function filterTrades() {
+        // Filter trades (make it global)
+        window.filterTrades = function() {
             const tradeType = document.getElementById('filterTradeType').value;
             const ticker = document.getElementById('filterTicker').value;
             const status = document.getElementById('filterStatus').value;
@@ -1246,7 +1381,7 @@
             if (strategy) filtered = filtered.filter(t => t.strategy === strategy);
 
             renderTradesTable(filtered);
-        }
+        };
 
         // Render trades table
         function renderTradesTable(tradesToRender = trades) {
@@ -1626,8 +1761,8 @@
             });
         }
 
-        // Export trades to CSV
-        function exportTrades() {
+        // Export trades to CSV (make it global)
+        window.exportTrades = function() {
             if (trades.length === 0) {
                 alert('No trades to export!');
                 return;
@@ -1666,50 +1801,57 @@
             a.download = `bluechip-trades-${new Date().toISOString().slice(0, 10)}.csv`;
             a.click();
             window.URL.revokeObjectURL(url);
-        }
+        };
 
-        // Toggle mobile menu
-        function toggleMobileMenu() {
+        // Toggle mobile menu (make it global)
+        window.toggleMobileMenu = function() {
             const navLinks = document.getElementById('navLinks');
             navLinks.classList.toggle('active');
-        }
+        };
 
-        // Logout function
-        function logout() {
-            localStorage.clear();
-            sessionStorage.clear();
-            window.location.href = 'login.html';
-        }
-
-        // Auth check and logout functionality
-        (function() {
-            const isLoggedIn = localStorage.getItem('bluechip_logged_in') || sessionStorage.getItem('bluechip_logged_in');
-            
-            if (!isLoggedIn) {
+        // Logout function (make it global)
+        window.logout = async function() {
+            try {
+                await auth.signOut();
+                localStorage.clear();
+                sessionStorage.clear();
                 window.location.href = 'login.html';
-                return;
+            } catch (error) {
+                console.error('Logout error:', error);
             }
-            
-            if (document.readyState === 'loading') {
-                document.addEventListener('DOMContentLoaded', updateAuthButton);
+        };
+
+        // Firebase Auth check and initialization
+        onAuthStateChanged(auth, async (user) => {
+            if (!user) {
+                // User is not logged in, redirect to login page
+                window.location.href = 'login.html';
             } else {
+                // User is logged in
+                currentUserId = user.uid;
+                console.log('User logged in:', user.email);
+                
+                // Load trades from Firestore
+                await loadTrades();
+                
+                // Update auth button
                 updateAuthButton();
             }
+        });
+
+        function updateAuthButton() {
+            const authButton = document.getElementById('authButton');
             
-            function updateAuthButton() {
-                const authButton = document.getElementById('authButton');
+            if (authButton && authButton.parentElement) {
+                // Replace the anchor with a button element
+                const logoutBtn = document.createElement('button');
+                logoutBtn.className = 'logout-btn';
+                logoutBtn.innerHTML = '<i class="fas fa-sign-out-alt"></i> Logout';
+                logoutBtn.onclick = window.logout;
                 
-                if (authButton && authButton.parentElement) {
-                    // Replace the anchor with a button element
-                    const logoutBtn = document.createElement('button');
-                    logoutBtn.className = 'logout-btn';
-                    logoutBtn.innerHTML = '<i class="fas fa-sign-out-alt"></i> Logout';
-                    logoutBtn.onclick = logout;
-                    
-                    authButton.parentElement.replaceChild(logoutBtn, authButton);
-                }
+                authButton.parentElement.replaceChild(logoutBtn, authButton);
             }
-        })();
+        }
     </script>
 </body>
 </html>

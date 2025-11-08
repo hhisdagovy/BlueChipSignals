@@ -143,6 +143,20 @@
             display: block; 
         }
 
+        @media (max-width: 768px) {
+            .dropdown-menu {
+                position: static;
+                display: none;
+                background: rgba(0, 0, 0, 0.3);
+                border: none;
+                border-radius: 0;
+                padding: 0;
+                margin-left: 1rem;
+            }
+            .dropdown.active .dropdown-menu { display: block; }
+            .dropdown > a::after { float: right; }
+        }
+
         .hamburger-menu {
             display: none;
             flex-direction: column;

@@ -2,7 +2,9 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js";
 import { 
     getAuth, 
-    signInWithEmailAndPassword, 
+    signInWithEmailAndPassword,
+    signInWithPopup,
+    GoogleAuthProvider,
     signOut, 
     onAuthStateChanged,
     setPersistence,
@@ -40,7 +42,9 @@ const db = getFirestore(app);
 export { 
     auth,
     db,
-    signInWithEmailAndPassword, 
+    signInWithEmailAndPassword,
+    signInWithPopup,
+    GoogleAuthProvider,
     signOut, 
     onAuthStateChanged,
     setPersistence,

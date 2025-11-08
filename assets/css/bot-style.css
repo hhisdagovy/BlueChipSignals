@@ -1463,3 +1463,68 @@ stripe-buy-button {
         transform: scale(0.8) !important;
     }
 }
+
+/* Dropdown Menu Styles */
+.dropdown {
+    position: relative;
+}
+
+.dropdown > a::after {
+    content: " \25BE";
+    font-size: 0.8rem;
+}
+
+.dropdown-menu {
+    display: none;
+    position: absolute;
+    top: 100%;
+    right: 0;
+    background: rgba(5, 8, 16, 0.95);
+    border: 1px solid rgba(201, 176, 55, 0.2);
+    border-radius: 8px;
+    min-width: 220px;
+    padding: 0.5rem 0;
+    z-index: 1200;
+    list-style: none;
+}
+
+.dropdown-menu li {
+    list-style: none;
+}
+
+.dropdown-menu a {
+    display: block;
+    padding: 0.6rem 1rem;
+    color: var(--light-text);
+    white-space: nowrap;
+    text-decoration: none;
+}
+
+.dropdown-menu a:hover {
+    background: rgba(201, 176, 55, 0.08);
+    color: var(--primary-gold);
+}
+
+.dropdown:hover .dropdown-menu {
+    display: block;
+}
+
+@media (max-width: 768px) {
+    .dropdown-menu {
+        position: static;
+        display: none;
+        background: rgba(0, 0, 0, 0.3);
+        border: none;
+        border-radius: 0;
+        padding: 0;
+        margin-left: 1rem;
+    }
+
+    .dropdown.active .dropdown-menu {
+        display: block;
+    }
+
+    .dropdown > a::after {
+        float: right;
+    }
+}

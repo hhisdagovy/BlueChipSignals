@@ -439,6 +439,40 @@
                 display: flex;
             }
         }
+
+        /* Dropdown (More) */
+        .dropdown { position: relative; }
+        .dropdown > a::after { content: " \25BE"; font-size: 0.8rem; }
+        .dropdown-menu {
+            display: none;
+            position: absolute;
+            top: 100%;
+            right: 0;
+            background: rgba(5, 8, 16, 0.95);
+            border: 1px solid rgba(201, 176, 55, 0.2);
+            border-radius: 8px;
+            min-width: 220px;
+            padding: 0.5rem 0;
+            z-index: 1200;
+        }
+        .dropdown-menu li { list-style: none; }
+        .dropdown-menu a { display: block; padding: 0.6rem 1rem; color: var(--light-text); white-space: nowrap; }
+        .dropdown-menu a:hover { background: rgba(201, 176, 55, 0.08); color: var(--primary-gold); }
+        .dropdown:hover .dropdown-menu { display: block; }
+
+        @media (max-width: 768px) {
+            .dropdown-menu {
+                position: static;
+                display: none;
+                background: rgba(0, 0, 0, 0.3);
+                border: none;
+                border-radius: 0;
+                padding: 0;
+                margin-left: 1rem;
+            }
+            .dropdown.active .dropdown-menu { display: block; }
+            .dropdown > a::after { float: right; }
+        }
     </style>
 </head>
 <body>
@@ -454,6 +488,7 @@
                 <div class="bar"></div>
             </div>
             <ul class="nav-links">
+                <li id="dashboardLink" style="display: none;"><a href="dashboard.html" style="color: var(--primary-gold); font-weight: 600;"><i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
                 <li><a href="index.html#features">Features</a></li>
                 <li><a href="index.html#bots">Supported Stocks</a></li>
                 <li><a href="book-demo.html">Book a Demo</a></li>
@@ -468,6 +503,7 @@
                         <li><a href="privacy.html">Privacy Policy</a></li>
                     </ul>
                 </li>
+                <li><a href="login.html" class="login-btn" id="authButton"><i class="fas fa-sign-in-alt"></i> Login</a></li>
             </ul>
         </div>
     </nav>
@@ -561,11 +597,7 @@
             togglePassword.classList.toggle('fa-eye-slash');
         });
 
-        // Social login buttons (demo - replace with actual OAuth integration)
-        document.getElementById('googleLogin').addEventListener('click', () => {
-            alert('Google login integration coming soon!');
-        });
-
+        // Apple login button (demo)
         document.getElementById('appleLogin').addEventListener('click', () => {
             alert('Apple login integration coming soon!');
         });
@@ -574,11 +606,17 @@
     <!-- Firebase Authentication Script -->
     <script type="module">
         import { 
-            auth, 
-            signInWithEmailAndPassword, 
+            auth,
+            db,
+            signInWithEmailAndPassword,
+            signInWithPopup,
+            GoogleAuthProvider,
             setPersistence,
             browserLocalPersistence,
-            browserSessionPersistence
+            browserSessionPersistence,
+            doc,
+            getDoc,
+            setDoc
         } from './assets/js/firebase-config.js';
 
         // Form submission with Firebase Authentication
@@ -643,6 +681,77 @@
                 errorMessage.textContent = errorMsg;
                 errorMessage.style.display = 'block';
                 console.error('Login error:', error);
+            }
+        });
+
+        // Google Sign-In
+        const googleLoginBtn = document.getElementById('googleLogin');
+        googleLoginBtn.addEventListener('click', async () => {
+            const provider = new GoogleAuthProvider();
+            
+            // Hide any previous messages
+            errorMessage.style.display = 'none';
+            successMessage.style.display = 'none';
+
+            try {
+                // Sign in with Google popup
+                const result = await signInWithPopup(auth, provider);
+                const user = result.user;
+
+                // Check if user exists in Firestore
+                const userRef = doc(db, 'users', user.uid);
+                const userSnap = await getDoc(userRef);
+
+                if (!userSnap.exists()) {
+                    // User does not exist in the system - deny access
+                    await auth.signOut(); // Sign them out immediately
+                    
+                    // Clear any stored login info
+                    localStorage.removeItem('bluechip_logged_in');
+                    localStorage.removeItem('bluechip_user_email');
+                    sessionStorage.removeItem('bluechip_logged_in');
+                    sessionStorage.removeItem('bluechip_user_email');
+                    
+                    // Show error message
+                    errorMessage.textContent = 'No account found. Please contact support to get access.';
+                    errorMessage.style.display = 'block';
+                    console.log('User not found in system:', user.email);
+                    return;
+                }
+
+                // User exists - store login info
+                localStorage.setItem('bluechip_logged_in', 'true');
+                localStorage.setItem('bluechip_user_email', user.email);
+
+                // Check if profile is complete
+                const userData = userSnap.data();
+                
+                successMessage.textContent = 'Welcome back! Redirecting...';
+                successMessage.style.display = 'block';
+
+                setTimeout(() => {
+                    if (userData.profileComplete === false) {
+                        window.location.href = 'welcome-setup.html';
+                    } else {
+                        window.location.href = 'dashboard.html';
+                    }
+                }, 1500);
+
+            } catch (error) {
+                // Handle Google Sign-In errors
+                let errorMsg = 'Google Sign-In failed. Please try again.';
+                
+                if (error.code === 'auth/popup-closed-by-user') {
+                    errorMsg = 'Sign-in cancelled. Please try again.';
+                } else if (error.code === 'auth/popup-blocked') {
+                    errorMsg = 'Popup blocked. Please allow popups for this site.';
+                } else if (error.code === 'auth/cancelled-popup-request') {
+                    errorMsg = 'Sign-in cancelled. Please try again.';
+                }
+
+                errorMessage.textContent = errorMsg;
+                errorMessage.style.display = 'block';
+                console.error('Google Sign-In error:', error);
             }
         });
     </script>

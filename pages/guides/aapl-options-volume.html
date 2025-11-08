@@ -6,7 +6,7 @@
     <title>AAPL Options Volume Analysis | BlueChip Signals</title>
     <link rel="icon" type="image/png" href="../../assets/images/logo.png">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="../../assets/css/bot-style.css?v=1751139967">
+    <link rel="stylesheet" href="../../assets/css/bot-style.css?v=1751140000">
     <script>
         // Redirect non-logged-in users to book demo page
         (function() {
@@ -579,13 +579,22 @@
                 <div class="bar"></div>
             </div>
             <ul class="nav-links">
+                <li id="dashboardLink" style="display: none;"><a href="../../dashboard.html" style="color: var(--primary-gold); font-weight: 600;"><i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
                 <li><a href="../../index.html#features">Features</a></li>
                 <li><a href="../../index.html#bots">Supported Stocks</a></li>
                 <li><a href="../../book-demo.html">Book a Demo</a></li>
-                <li><a href="../../faq.html">FAQ</a></li>
-                <li><a href="../../legal.html">Legal Disclaimer</a></li>
-                <li><a href="../../about.html">About Us</a></li>
-                <li><a href="../../login.html" class="login-btn"><i class="fas fa-sign-in-alt"></i> Login</a></li>
+                <li><a href="../../contact.html">Contact</a></li>
+                <li class="dropdown"><a href="#">More</a>
+                    <ul class="dropdown-menu">
+                        <li><a href="../../index.html#testimonials">Testimonials</a></li>
+                        <li><a href="../../faq.html">FAQ</a></li>
+                        <li><a href="../../about.html">About Us</a></li>
+                        <li><a href="../../legal.html">Legal Disclaimer</a></li>
+                        <li><a href="../../terms.html">Terms of Service</a></li>
+                        <li><a href="../../privacy.html">Privacy Policy</a></li>
+                    </ul>
+                </li>
+                <li><a href="../../login.html" class="login-btn" id="authButton"><i class="fas fa-sign-in-alt"></i> Login</a></li>
             </ul>
         </div>
     </nav>
@@ -980,6 +989,20 @@
             mobileNav.classList.toggle('active');
         });
 
+        // Handle mobile dropdown toggle
+        document.addEventListener('DOMContentLoaded', function() {
+            const dropdown = document.querySelector('.dropdown');
+            const dropdownLink = dropdown.querySelector('a');
+            
+            // For mobile, toggle dropdown on click
+            dropdownLink.addEventListener('click', function(e) {
+                if (window.innerWidth <= 768) {
+                    e.preventDefault();
+                    dropdown.classList.toggle('active');
+                }
+            });
+        });
+
         // Options Flow Analyzer
         function analyzeFlow() {
             const volume = document.getElementById('contract-volume').value;
@@ -1165,6 +1188,35 @@
             resultContent.innerHTML = content;
             resultDiv.style.display = 'block';
         }
+
+        // Check if user is logged in and update the navigation
+        (function() {
+            const isLoggedIn = localStorage.getItem('bluechip_logged_in') || sessionStorage.getItem('bluechip_logged_in');
+            
+            if (isLoggedIn) {
+                // Show dashboard link
+                const dashboardLink = document.getElementById('dashboardLink');
+                if (dashboardLink) {
+                    dashboardLink.style.display = 'block';
+                }
+                
+                // Change login button to logout
+                const authButton = document.getElementById('authButton');
+                if (authButton) {
+                    authButton.removeAttribute('href');
+                    authButton.innerHTML = '<i class="fas fa-sign-out-alt"></i> Logout';
+                    authButton.style.cursor = 'pointer';
+                    
+                    authButton.onclick = function(e) {
+                        e.preventDefault();
+                        localStorage.clear();
+                        sessionStorage.clear();
+                        window.location.href = '../../login.html';
+                        return false;
+                    };
+                }
+            }
+        })();
     </script>
 </body>
 </html>

@@ -1,0 +1,610 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Panel - User Management | BlueChip Signals</title>
+    <link rel="icon" type="image/png" href="assets/images/logo.png">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary-gold: #b3a17d;
+            --secondary-gold: #E2CFB5;
+            --dark-bg: #080B0F;
+            --darker-bg: #050810;
+            --light-text: #FFFFFF;
+            --gray-text: #A0A0A0;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: var(--dark-bg);
+            color: var(--light-text);
+            min-height: 100vh;
+            padding: 2rem;
+        }
+
+        .admin-container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .admin-header {
+            text-align: center;
+            margin-bottom: 3rem;
+            padding: 2rem;
+            background: linear-gradient(135deg, rgba(179, 161, 125, 0.1), rgba(226, 207, 181, 0.05));
+            border-radius: 16px;
+            border: 1px solid rgba(201, 176, 55, 0.2);
+        }
+
+        .admin-header h1 {
+            font-size: 2.5rem;
+            background: linear-gradient(135deg, var(--primary-gold), var(--secondary-gold));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 0.5rem;
+        }
+
+        .admin-header p {
+            color: var(--gray-text);
+            font-size: 1.1rem;
+        }
+
+        .admin-grid {
+            display: grid;
+            grid-template-columns: 1fr 2fr;
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .admin-card {
+            background: var(--darker-bg);
+            border: 1px solid rgba(201, 176, 55, 0.2);
+            border-radius: 16px;
+            padding: 2rem;
+        }
+
+        .admin-card h2 {
+            color: var(--primary-gold);
+            font-size: 1.5rem;
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group label {
+            display: block;
+            color: var(--light-text);
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+        }
+
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 0.875rem;
+            background: var(--dark-bg);
+            border: 1px solid rgba(201, 176, 55, 0.2);
+            border-radius: 8px;
+            color: var(--light-text);
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: var(--primary-gold);
+            box-shadow: 0 0 0 3px rgba(179, 161, 125, 0.1);
+        }
+
+        .btn {
+            padding: 0.875rem 1.75rem;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary-gold), var(--secondary-gold));
+            color: var(--darker-bg);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(179, 161, 125, 0.3);
+        }
+
+        .btn-danger {
+            background: #FF3B3B;
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #d32f2f;
+        }
+
+        .btn-secondary {
+            background: rgba(179, 161, 125, 0.1);
+            color: var(--primary-gold);
+            border: 1px solid rgba(201, 176, 55, 0.3);
+        }
+
+        .btn-secondary:hover {
+            background: rgba(179, 161, 125, 0.2);
+        }
+
+        .message {
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            display: none;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .message.show {
+            display: flex;
+        }
+
+        .message.success {
+            background: rgba(46, 125, 50, 0.2);
+            border: 1px solid rgba(76, 175, 80, 0.3);
+            color: #81c784;
+        }
+
+        .message.error {
+            background: rgba(211, 47, 47, 0.2);
+            border: 1px solid rgba(244, 67, 54, 0.3);
+            color: #e57373;
+        }
+
+        .users-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1rem;
+        }
+
+        .users-table thead {
+            background: rgba(179, 161, 125, 0.1);
+        }
+
+        .users-table th {
+            padding: 1rem;
+            text-align: left;
+            color: var(--primary-gold);
+            font-weight: 600;
+            border-bottom: 2px solid rgba(201, 176, 55, 0.3);
+        }
+
+        .users-table td {
+            padding: 1rem;
+            border-bottom: 1px solid rgba(201, 176, 55, 0.1);
+            color: var(--gray-text);
+        }
+
+        .users-table tbody tr {
+            transition: background 0.2s ease;
+        }
+
+        .users-table tbody tr:hover {
+            background: rgba(179, 161, 125, 0.05);
+        }
+
+        .user-email {
+            color: var(--light-text);
+            font-weight: 500;
+        }
+
+        .status-badge {
+            padding: 0.25rem 0.75rem;
+            border-radius: 12px;
+            font-size: 0.875rem;
+            font-weight: 500;
+        }
+
+        .status-complete {
+            background: rgba(76, 175, 80, 0.2);
+            color: #81c784;
+        }
+
+        .status-incomplete {
+            background: rgba(255, 152, 0, 0.2);
+            color: #ffb74d;
+        }
+
+        .auth-method {
+            padding: 0.25rem 0.75rem;
+            border-radius: 12px;
+            font-size: 0.875rem;
+            background: rgba(33, 150, 243, 0.2);
+            color: #64b5f6;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 2rem;
+            color: var(--gray-text);
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 3rem;
+            color: var(--gray-text);
+        }
+
+        .empty-state i {
+            font-size: 3rem;
+            color: var(--primary-gold);
+            margin-bottom: 1rem;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, rgba(179, 161, 125, 0.1), rgba(226, 207, 181, 0.05));
+            border: 1px solid rgba(201, 176, 55, 0.2);
+            border-radius: 12px;
+            padding: 1.5rem;
+            text-align: center;
+        }
+
+        .stat-card .number {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--primary-gold);
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-card .label {
+            color: var(--gray-text);
+            font-size: 0.875rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        @media (max-width: 968px) {
+            .admin-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .admin-header h1 {
+                font-size: 2rem;
+            }
+
+            body {
+                padding: 1rem;
+            }
+        }
+
+        .logout-btn {
+            position: fixed;
+            top: 2rem;
+            right: 2rem;
+            background: rgba(211, 47, 47, 0.2);
+            color: #e57373;
+            border: 1px solid rgba(244, 67, 54, 0.3);
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .logout-btn:hover {
+            background: rgba(211, 47, 47, 0.3);
+        }
+
+        .user-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .btn-small {
+            padding: 0.5rem 1rem;
+            font-size: 0.875rem;
+        }
+    </style>
+</head>
+<body>
+    <button class="logout-btn" onclick="logoutAdmin()">
+        <i class="fas fa-sign-out-alt"></i> Logout
+    </button>
+
+    <div class="admin-container">
+        <div class="admin-header">
+            <h1><i class="fas fa-shield-halved"></i> Admin Panel</h1>
+            <p>User Management System</p>
+        </div>
+
+        <div class="stats-grid" id="statsGrid">
+            <div class="stat-card">
+                <div class="number" id="totalUsers">-</div>
+                <div class="label">Total Users</div>
+            </div>
+            <div class="stat-card">
+                <div class="number" id="completeProfiles">-</div>
+                <div class="label">Complete Profiles</div>
+            </div>
+            <div class="stat-card">
+                <div class="number" id="googleUsers">-</div>
+                <div class="label">Google Sign-In</div>
+            </div>
+        </div>
+
+        <div class="admin-grid">
+            <!-- Add User Form -->
+            <div class="admin-card">
+                <h2><i class="fas fa-user-plus"></i> Add New User</h2>
+                
+                <div class="message" id="addMessage"></div>
+
+                <form id="addUserForm">
+                    <div class="form-group">
+                        <label for="userEmail">Email Address</label>
+                        <input type="email" id="userEmail" placeholder="user@example.com" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="userPassword">Temporary Password</label>
+                        <input type="password" id="userPassword" placeholder="Min. 6 characters" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="userName">Full Name (Optional)</label>
+                        <input type="text" id="userName" placeholder="John Doe">
+                    </div>
+
+                    <button type="submit" class="btn btn-primary" style="width: 100%;">
+                        <i class="fas fa-plus"></i> Add User
+                    </button>
+                </form>
+            </div>
+
+            <!-- User List -->
+            <div class="admin-card">
+                <h2><i class="fas fa-users"></i> Manage Users</h2>
+                
+                <div class="message" id="listMessage"></div>
+
+                <div id="usersLoading" class="loading">
+                    <i class="fas fa-spinner fa-spin"></i> Loading users...
+                </div>
+
+                <div id="usersContainer" style="display: none;">
+                    <div style="overflow-x: auto;">
+                        <table class="users-table">
+                            <thead>
+                                <tr>
+                                    <th>Email</th>
+                                    <th>Name</th>
+                                    <th>Profile Status</th>
+                                    <th>Sign-In Method</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="usersTableBody">
+                                <!-- Users will be loaded here -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div id="emptyState" class="empty-state" style="display: none;">
+                    <i class="fas fa-users-slash"></i>
+                    <p>No users found</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { 
+            auth,
+            db,
+            onAuthStateChanged,
+            signOut,
+            doc,
+            getDoc,
+            getDocs,
+            collection,
+            setDoc
+        } from './assets/js/firebase-config.js';
+
+        // Check admin authentication
+        onAuthStateChanged(auth, async (user) => {
+            if (!user) {
+                window.location.href = 'login.html';
+                return;
+            }
+
+            // Check if user is admin (you can customize this logic)
+            const userRef = doc(db, 'users', user.uid);
+            const userSnap = await getDoc(userRef);
+            
+            if (!userSnap.exists() || !userSnap.data().role || userSnap.data().role.toLowerCase() !== 'admin') {
+                alert('Access denied. Admin privileges required.');
+                await signOut(auth);
+                window.location.href = 'login.html';
+                return;
+            }
+
+            // Load users
+            loadUsers();
+        });
+
+        // Logout function
+        window.logoutAdmin = async function() {
+            try {
+                await signOut(auth);
+                window.location.href = 'login.html';
+            } catch (error) {
+                console.error('Logout error:', error);
+            }
+        };
+
+        // Show message
+        function showMessage(elementId, message, type) {
+            const messageEl = document.getElementById(elementId);
+            messageEl.innerHTML = `<i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-circle'}"></i> ${message}`;
+            messageEl.className = `message ${type} show`;
+            
+            setTimeout(() => {
+                messageEl.classList.remove('show');
+            }, 5000);
+        }
+
+        // Add user form submission
+        document.getElementById('addUserForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const email = document.getElementById('userEmail').value;
+            const password = document.getElementById('userPassword').value;
+            const name = document.getElementById('userName').value;
+
+            try {
+                // Note: Creating users requires Firebase Admin SDK
+                // For now, we'll create the Firestore document
+                // You'll need to create the auth user manually in Firebase Console
+                
+                showMessage('addMessage', 'Creating user...', 'success');
+
+                // Create a user document with a placeholder UID
+                // In production, you'd use Firebase Admin SDK to create the auth user
+                const userId = 'user_' + Date.now();
+                await setDoc(doc(db, 'users', userId), {
+                    email: email,
+                    displayName: name || '',
+                    createdAt: new Date().toISOString(),
+                    signInMethod: 'email',
+                    profileComplete: false,
+                    temporaryPassword: password, // Store temporarily
+                    role: 'user'
+                });
+
+                showMessage('addMessage', `⚠️ User document created. You must manually create the auth user in Firebase Console with email: ${email}`, 'success');
+                
+                // Clear form
+                document.getElementById('addUserForm').reset();
+                
+                // Reload users
+                setTimeout(() => loadUsers(), 2000);
+
+            } catch (error) {
+                console.error('Error adding user:', error);
+                showMessage('addMessage', 'Failed to add user: ' + error.message, 'error');
+            }
+        });
+
+        // Load users
+        async function loadUsers() {
+            const loadingEl = document.getElementById('usersLoading');
+            const containerEl = document.getElementById('usersContainer');
+            const emptyEl = document.getElementById('emptyState');
+            const tbody = document.getElementById('usersTableBody');
+
+            try {
+                loadingEl.style.display = 'block';
+                containerEl.style.display = 'none';
+                emptyEl.style.display = 'none';
+
+                const usersSnapshot = await getDocs(collection(db, 'users'));
+                
+                if (usersSnapshot.empty) {
+                    loadingEl.style.display = 'none';
+                    emptyEl.style.display = 'block';
+                    return;
+                }
+
+                tbody.innerHTML = '';
+                let totalUsers = 0;
+                let completeProfiles = 0;
+                let googleUsers = 0;
+
+                usersSnapshot.forEach((doc) => {
+                    const userData = doc.data();
+                    totalUsers++;
+
+                    if (userData.profileComplete) completeProfiles++;
+                    if (userData.signInMethod === 'google') googleUsers++;
+
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td class="user-email">${userData.email || 'N/A'}</td>
+                        <td>${userData.displayName || '-'}</td>
+                        <td>
+                            <span class="status-badge ${userData.profileComplete ? 'status-complete' : 'status-incomplete'}">
+                                ${userData.profileComplete ? 'Complete' : 'Incomplete'}
+                            </span>
+                        </td>
+                        <td>
+                            <span class="auth-method">${userData.signInMethod || 'email'}</span>
+                        </td>
+                        <td>
+                            <div class="user-actions">
+                                <button class="btn btn-secondary btn-small" onclick="viewUser('${doc.id}')">
+                                    <i class="fas fa-eye"></i> View
+                                </button>
+                            </div>
+                        </td>
+                    `;
+                    tbody.appendChild(row);
+                });
+
+                // Update stats
+                document.getElementById('totalUsers').textContent = totalUsers;
+                document.getElementById('completeProfiles').textContent = completeProfiles;
+                document.getElementById('googleUsers').textContent = googleUsers;
+
+                loadingEl.style.display = 'none';
+                containerEl.style.display = 'block';
+
+            } catch (error) {
+                console.error('Error loading users:', error);
+                showMessage('listMessage', 'Failed to load users: ' + error.message, 'error');
+                loadingEl.style.display = 'none';
+            }
+        }
+
+        // View user details
+        window.viewUser = async function(userId) {
+            try {
+                const userRef = doc(db, 'users', userId);
+                const userSnap = await getDoc(userRef);
+                
+                if (userSnap.exists()) {
+                    const userData = userSnap.data();
+                    alert(`User Details:\n\nEmail: ${userData.email}\nName: ${userData.displayName || 'Not set'}\nProfile Complete: ${userData.profileComplete ? 'Yes' : 'No'}\nSign-In Method: ${userData.signInMethod || 'email'}\nCreated: ${userData.createdAt || 'Unknown'}`);
+                }
+            } catch (error) {
+                console.error('Error viewing user:', error);
+                alert('Failed to load user details');
+            }
+        };
+    </script>
+</body>
+</html>
+

@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Check User ID - BlueChip Signals</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #0a0e17;
+            color: #fff;
+            padding: 2rem;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        .card {
+            background: #1a1f2e;
+            border: 2px solid #b3a17d;
+            border-radius: 12px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+        }
+        h1 {
+            color: #b3a17d;
+            margin-bottom: 1rem;
+        }
+        .user-info {
+            background: #0f1419;
+            padding: 1.5rem;
+            border-radius: 8px;
+            margin: 1rem 0;
+        }
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.75rem 0;
+            border-bottom: 1px solid #2a2f3e;
+        }
+        .info-row:last-child {
+            border-bottom: none;
+        }
+        .label {
+            color: #888;
+            font-weight: 600;
+        }
+        .value {
+            color: #b3a17d;
+            font-weight: 700;
+            font-family: monospace;
+        }
+        .copy-btn {
+            background: #b3a17d;
+            color: #000;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            margin-left: 1rem;
+        }
+        .copy-btn:hover {
+            background: #d4c5a0;
+        }
+        .instructions {
+            background: #1a2332;
+            padding: 1.5rem;
+            border-radius: 8px;
+            border-left: 4px solid #b3a17d;
+        }
+        .step {
+            margin: 1rem 0;
+            padding-left: 1.5rem;
+        }
+        .step strong {
+            color: #b3a17d;
+        }
+        .loading {
+            text-align: center;
+            padding: 3rem;
+            color: #888;
+        }
+        .error {
+            background: #ff3b3b;
+            color: white;
+            padding: 1rem;
+            border-radius: 8px;
+            margin: 1rem 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h1>🔍 Check Your User ID</h1>
+        <p>This page will show your Firebase User ID (UID) so you can make yourself an admin.</p>
+        
+        <div id="loading" class="loading">
+            <p>Loading your user information...</p>
+        </div>
+
+        <div id="userInfo" style="display: none;">
+            <div class="user-info">
+                <div class="info-row">
+                    <span class="label">Email:</span>
+                    <span class="value" id="userEmail">-</span>
+                </div>
+                <div class="info-row">
+                    <span class="label">User ID (UID):</span>
+                    <span>
+                        <span class="value" id="userUid">-</span>
+                        <button class="copy-btn" onclick="copyUid()">📋 Copy UID</button>
+                    </span>
+                </div>
+                <div class="info-row">
+                    <span class="label">Display Name:</span>
+                    <span class="value" id="userName">-</span>
+                </div>
+            </div>
+
+            <div class="instructions">
+                <h3 style="color: #b3a17d; margin-top: 0;">📋 Steps to Make Yourself Admin:</h3>
+                
+                <div class="step">
+                    <strong>Step 1:</strong> Copy your UID above (click the 📋 Copy button)
+                </div>
+                
+                <div class="step">
+                    <strong>Step 2:</strong> Go to <a href="https://console.firebase.google.com/u/0/project/blue-chip-signals-log-ins/firestore" target="_blank" style="color: #b3a17d;">Firebase Console → Firestore</a>
+                </div>
+                
+                <div class="step">
+                    <strong>Step 3:</strong> Click on the <code style="background: #0f1419; padding: 0.25rem 0.5rem; border-radius: 4px;">users</code> collection
+                </div>
+                
+                <div class="step">
+                    <strong>Step 4:</strong> Find and click on your user document (paste your UID in the search)
+                </div>
+                
+                <div class="step">
+                    <strong>Step 5:</strong> Click "Add field" button:
+                    <ul style="margin-top: 0.5rem; color: #ccc;">
+                        <li>Field name: <code style="background: #0f1419; padding: 0.25rem 0.5rem; border-radius: 4px;">role</code></li>
+                        <li>Field type: <strong>string</strong></li>
+                        <li>Field value: <code style="background: #0f1419; padding: 0.25rem 0.5rem; border-radius: 4px;">admin</code></li>
+                    </ul>
+                </div>
+                
+                <div class="step">
+                    <strong>Step 6:</strong> Click "Update" to save
+                </div>
+                
+                <div class="step">
+                    <strong>Step 7:</strong> Return to <a href="admin.html" style="color: #b3a17d;">admin.html</a> and refresh the page
+                </div>
+            </div>
+        </div>
+
+        <div id="error" class="error" style="display: none;">
+            ⚠️ You must be logged in to view your user ID. 
+            <a href="login.html" style="color: white; text-decoration: underline;">Go to Login</a>
+        </div>
+    </div>
+
+    <script type="module">
+        import { auth, onAuthStateChanged } from './assets/js/firebase-config.js';
+
+        onAuthStateChanged(auth, (user) => {
+            const loading = document.getElementById('loading');
+            const userInfo = document.getElementById('userInfo');
+            const error = document.getElementById('error');
+
+            loading.style.display = 'none';
+
+            if (user) {
+                // Show user information
+                document.getElementById('userEmail').textContent = user.email || 'N/A';
+                document.getElementById('userUid').textContent = user.uid;
+                document.getElementById('userName').textContent = user.displayName || 'Not set';
+                
+                userInfo.style.display = 'block';
+            } else {
+                // Not logged in
+                error.style.display = 'block';
+            }
+        });
+
+        // Copy UID to clipboard
+        window.copyUid = function() {
+            const uid = document.getElementById('userUid').textContent;
+            navigator.clipboard.writeText(uid).then(() => {
+                const btn = event.target;
+                const originalText = btn.textContent;
+                btn.textContent = '✅ Copied!';
+                btn.style.background = '#4caf50';
+                
+                setTimeout(() => {
+                    btn.textContent = originalText;
+                    btn.style.background = '#b3a17d';
+                }, 2000);
+            });
+        };
+    </script>
+</body>
+</html>
+

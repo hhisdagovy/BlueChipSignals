@@ -16,7 +16,7 @@ import json
 
 def post_to_backend(signal_data):
     """
-    Post signal to BlueChip Signals backend
+    Post signal to Blue Chip Signals backend
     
     Args:
         signal_data: Dictionary containing signal information

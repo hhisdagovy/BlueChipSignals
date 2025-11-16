@@ -16,7 +16,7 @@ Railway is a hosting platform that makes it super easy to deploy Python apps. Fr
 1. Click **"New Project"**
 2. Select **"Deploy from GitHub repo"**
 3. Authorize Railway to access your GitHub
-4. Select your `BlueChipSignals-main` repository
+4. Select your `Blue Chip Signals-main` repository
 
 ### 3. Configure Deployment
 Railway will auto-detect Python. If it asks for settings:
@@ -77,7 +77,7 @@ You should see:
 ```json
 {
   "status": "online",
-  "service": "BlueChip Signals Backend",
+  "service": "Blue Chip Signals Backend",
   "version": "1.0.0"
 }
 ```

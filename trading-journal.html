@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Trading Journal - BlueChip Signals</title>
+    <title>Trading Journal - Blue Chip Signals</title>
     <link rel="icon" type="image/png" href="assets/images/logo.png">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -34,18 +34,45 @@
             color: var(--light-text);
             line-height: 1.6;
             overflow-x: hidden;
+            position: relative;
+        }
+
+        /* Ambient Background */
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background: radial-gradient(1200px 800px at -10% -10%, rgba(201, 176, 55, 0.25), transparent 55%),
+                        radial-gradient(900px 900px at 110% 10%, rgba(59, 130, 246, 0.15), transparent 60%),
+                        linear-gradient(160deg, rgba(5, 8, 16, 0.92) 25%, rgba(8, 12, 22, 0.98) 70%);
+            pointer-events: none;
+            z-index: -2;
+        }
+
+        body::after {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background: repeating-linear-gradient(135deg, rgba(255, 255, 255, 0.03) 0px, rgba(255, 255, 255, 0.03) 2px, transparent 2px, transparent 6px);
+            opacity: 0.6;
+            pointer-events: none;
+            z-index: -1;
+            mix-blend-mode: lighten;
         }
 
         /* Navigation */
         nav {
-            background: rgba(5, 8, 16, 0.9);
-            backdrop-filter: blur(10px);
-            padding: 0.5rem 0;
+            background: rgba(5, 8, 16, 0.86);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            padding: 0.75rem 0;
             position: fixed;
             width: 100%;
             top: 0;
             z-index: 1000;
-            border-bottom: 1px solid rgba(201, 176, 55, 0.2);
+            min-height: 74px;
+            border-bottom: 1px solid rgba(201, 176, 55, 0.18);
+            box-shadow: 0 18px 45px rgba(5, 8, 16, 0.55);
         }
 
         .nav-container {
@@ -64,8 +91,15 @@
         }
 
         .logo img {
-            width: 80px;
-            height: 80px;
+            width: 96px;
+            height: auto;
+            max-width: 100%;
+            filter: drop-shadow(0 6px 18px rgba(201, 176, 55, 0.28));
+            transition: transform 0.3s ease, filter 0.3s ease;
+        }
+
+        .logo img:hover {
+            transform: scale(1.05);
         }
 
         .nav-links {
@@ -118,6 +152,238 @@
         .logout-btn:hover {
             background: #ff3b3b;
             color: white;
+        }
+
+        .overview-banner {
+            margin: 1.5rem auto 1.5rem;
+            max-width: 1200px;
+            padding: 2.5rem 3rem;
+            display: flex;
+            gap: 2.5rem;
+            align-items: center;
+            justify-content: space-between;
+            background: linear-gradient(135deg, rgba(201, 176, 55, 0.16) 0%, rgba(201, 176, 55, 0.05) 60%), rgba(12, 16, 26, 0.92);
+            border: 1px solid rgba(201, 176, 55, 0.25);
+            border-radius: 24px;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.45);
+        }
+
+        .overview-banner::before {
+            content: '';
+            position: absolute;
+            inset: -40%;
+            background: radial-gradient(circle at 20% 20%, rgba(201, 176, 55, 0.25), transparent 60%),
+                        radial-gradient(circle at 80% 30%, rgba(59, 130, 246, 0.18), transparent 55%);
+            filter: blur(12px);
+            opacity: 0.8;
+        }
+
+        .overview-banner::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            border-radius: inherit;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            mix-blend-mode: screen;
+            pointer-events: none;
+        }
+
+        .overview-content {
+            position: relative;
+            z-index: 1;
+            flex: 2;
+        }
+
+        .overview-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.4rem 1.2rem;
+            border-radius: 999px;
+            background: rgba(201, 176, 55, 0.14);
+            color: rgba(255, 255, 255, 0.85);
+            font-size: 0.85rem;
+            font-weight: 600;
+            letter-spacing: 0.04em;
+        }
+
+        .overview-content h2 {
+            margin: 1rem 0 0.75rem;
+            font-size: 2.2rem;
+            font-weight: 700;
+            letter-spacing: -0.03em;
+            color: rgba(255, 255, 255, 0.92);
+        }
+
+        .overview-content p {
+            color: rgba(214, 214, 214, 0.75);
+            max-width: 540px;
+            line-height: 1.7;
+        }
+
+        .overview-illustration {
+            flex: 1;
+            position: relative;
+            z-index: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .overview-illustration::before {
+            content: '';
+            position: absolute;
+            width: 220px;
+            height: 220px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(201, 176, 55, 0.35) 0%, rgba(201, 176, 55, 0) 70%);
+            filter: blur(0px);
+        }
+
+        .overview-illustration .glow-card {
+            position: relative;
+            padding: 1.6rem 1.8rem;
+            border-radius: 18px;
+            background: rgba(12, 18, 28, 0.9);
+            border: 1px solid rgba(201, 176, 55, 0.2);
+            box-shadow: 0 20px 45px rgba(0, 0, 0, 0.45);
+            text-align: left;
+            width: 100%;
+            max-width: 260px;
+        }
+
+        .glow-card h3 {
+            font-size: 1rem;
+            color: rgba(255, 255, 255, 0.85);
+            margin-bottom: 0.5rem;
+        }
+
+        .glow-metric {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--primary-gold);
+            margin-bottom: 0.5rem;
+        }
+
+        .glow-card span {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.35rem;
+            padding: 0.25rem 0.6rem;
+            border-radius: 999px;
+            font-size: 0.75rem;
+            background: rgba(16, 185, 129, 0.15);
+            color: #34d399;
+        }
+
+        .glow-card.negative span {
+            background: rgba(239, 68, 68, 0.18);
+            color: #f87171;
+        }
+
+        .glow-card.positive .glow-metric {
+            color: var(--primary-gold);
+        }
+
+        .glow-card.negative .glow-metric {
+            color: #f87171;
+        }
+
+        .insight-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 1.2rem;
+            margin-top: 1.5rem;
+        }
+
+        .insight-card {
+            position: relative;
+            padding: 1.4rem 1.6rem;
+            background: rgba(10, 15, 24, 0.88);
+            border: 1px solid rgba(201, 176, 55, 0.18);
+            border-radius: 18px;
+            overflow: hidden;
+        }
+
+        .insight-card::after {
+            content: '';
+            position: absolute;
+            inset: -40% 40% 50% -40%;
+            background: linear-gradient(120deg, rgba(201, 176, 55, 0.22), transparent 70%);
+            opacity: 0.4;
+            pointer-events: none;
+        }
+
+        .insight-label {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.12em;
+            color: rgba(214, 214, 214, 0.65);
+        }
+
+        .insight-value {
+            font-size: 1.6rem;
+            font-weight: 700;
+            margin: 0.35rem 0 0.25rem;
+            color: rgba(255, 255, 255, 0.9);
+        }
+
+        .insight-note {
+            font-size: 0.85rem;
+            color: rgba(214, 214, 214, 0.6);
+        }
+
+        .progress-track {
+            height: 8px;
+            border-radius: 999px;
+            background: rgba(255, 255, 255, 0.08);
+            margin-top: 0.75rem;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            display: block;
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(135deg, #34d399, #0ea5e9);
+            transition: width 0.5s ease;
+        }
+
+        @media (max-width: 1024px) {
+            .overview-banner {
+                flex-direction: column;
+                text-align: center;
+                padding: 2.25rem 2rem;
+            }
+
+            .overview-content h2 {
+                font-size: 1.9rem;
+            }
+
+            .overview-content p {
+                margin: 0 auto;
+            }
+
+            .overview-illustration {
+                width: 100%;
+            }
+        }
+
+        @media (max-width: 640px) {
+            .overview-banner {
+                margin: 1.5rem 1.2rem 1rem;
+                padding: 1.8rem 1.5rem;
+            }
+
+            .insight-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .glow-card {
+                max-width: none;
+            }
         }
 
         /* Header */
@@ -711,17 +977,18 @@
 
             .nav-links {
                 position: fixed;
-                top: 70px;
+                top: 74px;
                 right: -100%;
                 width: 280px;
-                height: calc(100vh - 70px);
+                height: calc(100vh - 74px);
                 background: rgba(5, 8, 16, 0.98);
-                backdrop-filter: blur(10px);
+                backdrop-filter: blur(12px);
+                -webkit-backdrop-filter: blur(12px);
                 flex-direction: column;
                 padding: 2rem;
                 gap: 1.5rem;
                 transition: right 0.3s;
-                border-left: 1px solid rgba(201, 176, 55, 0.2);
+                border-left: 1px solid rgba(201, 176, 55, 0.22);
                 overflow-y: auto;
                 z-index: 999;
             }
@@ -824,7 +1091,7 @@
     <nav>
         <div class="nav-container">
             <div class="logo">
-                <a href="dashboard.html"><img src="assets/images/logo.png" alt="BlueChip Signals Logo"></a>
+                <a href="dashboard.html"><img src="assets/images/logo.png" alt="Blue Chip Signals Logo"></a>
             </div>
             <div class="hamburger" onclick="toggleMobileMenu()">
                 <span></span>
@@ -842,9 +1109,7 @@
                         <li><a href="index.html#testimonials">Testimonials</a></li>
                         <li><a href="faq.html">FAQ</a></li>
                         <li><a href="about.html">About Us</a></li>
-                        <li><a href="legal.html">Legal Disclaimer</a></li>
-                        <li><a href="terms.html">Terms of Service</a></li>
-                        <li><a href="privacy.html">Privacy Policy</a></li>
+                        <li><a href="terms.html">Terms & Legal</a></li>
                     </ul>
                 </li>
                 <li><a href="login.html" class="login-btn" id="authButton"><i class="fas fa-sign-in-alt"></i> Login</a></li>
@@ -857,6 +1122,40 @@
         <h1><i class="fas fa-book"></i> Trading Journal</h1>
         <p>Track, analyze, and improve your trading performance</p>
     </div>
+
+    <section class="overview-banner">
+        <div class="overview-content">
+            <span class="overview-badge"><i class="fas fa-bolt"></i> Portfolio Pulse</span>
+            <h2>Transform raw trades into deliberate insights.</h2>
+            <p>Stay focused on the narrative behind every position. Monitor growth, momentum, and exposure at a glance before diving into deeper analysis.</p>
+            <div class="insight-grid">
+                <div class="insight-card">
+                    <div class="insight-label">Net Performance</div>
+                    <div class="insight-value" id="insightTotalPnL">+$0.00</div>
+                    <p class="insight-note">Cumulative profit and loss across your closed journal entries.</p>
+                </div>
+                <div class="insight-card">
+                    <div class="insight-label">Win Rate</div>
+                    <div class="insight-value" id="insightWinRate">0%</div>
+                    <div class="progress-track"><span class="progress-fill" id="winRateProgress"></span></div>
+                    <p class="insight-note">Percentage of trades finishing green. Keep pushing the edge.</p>
+                </div>
+                <div class="insight-card">
+                    <div class="insight-label">Open Positions</div>
+                    <div class="insight-value" id="openTradesInsight">0</div>
+                    <p class="insight-note">Active setups waiting for execution or exit management.</p>
+                </div>
+            </div>
+        </div>
+        <div class="overview-illustration">
+            <div class="glow-card">
+                <span><i class="fas fa-arrow-trend-up"></i> Today's Focus</span>
+                <h3>Review your edge</h3>
+                <div class="glow-metric" id="glowBestTrade">+$0.00</div>
+                <p style="color: rgba(214,214,214,0.65); font-size: 0.85rem; line-height: 1.5;">Revisit the trade that outperformed expectations and capture the repeatable pattern.</p>
+            </div>
+        </div>
+    </section>
 
     <!-- Main Container -->
     <div class="container">
@@ -1103,7 +1402,7 @@
 
     <!-- Footer -->
     <footer>
-        <p>&copy; 2025 BlueChip Signals. All Rights Reserved.</p>
+        <p>&copy; 2025 Blue Chip Signals. All Rights Reserved.</p>
         <div style="margin-top: 1rem;">
             <a href="https://www.instagram.com/bluechip.signals/" target="_blank" style="color: var(--primary-gold); margin: 0 0.5rem;">
                 <i class="fab fa-instagram"></i>
@@ -1490,17 +1789,46 @@
             const winningTrades = closedTrades.filter(t => t.pnl > 0);
             const winRate = closedTrades.length > 0 ? (winningTrades.length / closedTrades.length * 100) : 0;
             const bestTrade = closedTrades.length > 0 ? Math.max(...closedTrades.map(t => t.pnl)) : 0;
+            const openTrades = trades.filter(t => t.status === 'Open').length;
 
-            document.getElementById('totalTrades').textContent = trades.length;
-            document.getElementById('totalPnL').textContent = (totalPnL >= 0 ? '+' : '') + '$' + totalPnL.toFixed(2);
-            document.getElementById('winRate').textContent = winRate.toFixed(1) + '%';
-            document.getElementById('bestTrade').textContent = '+$' + bestTrade.toFixed(2);
+            const totalTradesEl = document.getElementById('totalTrades');
+            if (totalTradesEl) totalTradesEl.textContent = trades.length;
+            const totalPnLEl = document.getElementById('totalPnL');
+            if (totalPnLEl) totalPnLEl.textContent = (totalPnL >= 0 ? '+' : '') + '$' + totalPnL.toFixed(2);
+            const winRateEl = document.getElementById('winRate');
+            if (winRateEl) winRateEl.textContent = winRate.toFixed(1) + '%';
+            const bestTradeEl = document.getElementById('bestTrade');
+            if (bestTradeEl) bestTradeEl.textContent = (bestTrade >= 0 ? '+' : '') + '$' + bestTrade.toFixed(2);
+
+            const formattedPnL = (totalPnL >= 0 ? '+' : '') + '$' + totalPnL.toFixed(2);
+            const formattedBest = (bestTrade >= 0 ? '+' : '') + '$' + bestTrade.toFixed(2);
+            const insightTotal = document.getElementById('insightTotalPnL');
+            if (insightTotal) insightTotal.textContent = formattedPnL;
+            const insightWin = document.getElementById('insightWinRate');
+            if (insightWin) insightWin.textContent = winRate.toFixed(1) + '%';
+            const winProgress = document.getElementById('winRateProgress');
+            if (winProgress) winProgress.style.width = Math.min(Math.max(winRate, 0), 100) + '%';
+            const openInsight = document.getElementById('openTradesInsight');
+            if (openInsight) openInsight.textContent = openTrades;
+            const glowBest = document.getElementById('glowBestTrade');
+            if (glowBest) {
+                glowBest.textContent = formattedBest;
+                const glowCard = glowBest.closest('.glow-card');
+                if (glowCard) {
+                    glowCard.classList.remove('negative', 'positive');
+                    glowCard.classList.add(bestTrade >= 0 ? 'positive' : 'negative');
+                }
+            }
 
             // Update color classes
-            const pnlCard = document.getElementById('totalPnL').closest('.stat-card');
-            pnlCard.classList.remove('positive', 'negative');
-            if (totalPnL > 0) pnlCard.classList.add('positive');
-            if (totalPnL < 0) pnlCard.classList.add('negative');
+            if (totalPnLEl) {
+                const pnlCard = totalPnLEl.closest('.stat-card');
+                if (pnlCard) {
+                    pnlCard.classList.remove('positive', 'negative');
+                    if (totalPnL > 0) pnlCard.classList.add('positive');
+                    if (totalPnL < 0) pnlCard.classList.add('negative');
+                }
+            }
         }
 
         // Render charts

@@ -1,4 +1,4 @@
-# BlueChip Signals Backend
+# Blue Chip Signals Backend
 
 FastHTML backend for managing trading signals.
 

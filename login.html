@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BlueChip Signals - Client Login</title>
+    <title>Blue Chip Signals - Client Login</title>
     <link rel="icon" type="image/png" href="assets/images/logo.png">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
@@ -38,14 +38,16 @@
 
         /* Navigation */
         nav {
-            background: rgba(5, 8, 16, 0.8);
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
+            background: rgba(5, 8, 16, 0.86);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
             position: fixed;
             width: 100%;
             top: 0;
             z-index: 1000;
-            padding: 0.5rem 0;
+            padding: 0.75rem 0;
+            min-height: 74px;
+            border-bottom: 1px solid rgba(201, 176, 55, 0.18);
         }
 
         .nav-container {
@@ -64,8 +66,15 @@
         }
 
         .logo img {
-            width: 80px;
-            height: 80px;
+            width: 96px;
+            height: auto;
+            max-width: 100%;
+            filter: drop-shadow(0 6px 18px rgba(201, 176, 55, 0.28));
+            transition: transform 0.3s ease, filter 0.3s ease;
+        }
+
+        .logo img:hover {
+            transform: scale(1.05);
         }
 
         .nav-links {
@@ -386,27 +395,29 @@
             .nav-links {
                 display: none;
                 flex-direction: column;
-                position: absolute;
-                top: 0;
-                right: 0;
-                width: 250px;
-                height: 100vh;
-                background: rgba(5, 8, 16, 0.95);
-                padding-top: 5rem;
-                box-shadow: -5px 0 15px rgba(0,0,0,0.5);
+                position: fixed;
+                top: 74px;
+                right: -100%;
+                width: 260px;
+                height: calc(100vh - 74px);
+                background: rgba(5, 8, 16, 0.96);
+                backdrop-filter: blur(12px);
+                -webkit-backdrop-filter: blur(12px);
+                padding: 2.5rem 1.5rem;
+                box-shadow: -5px 0 20px rgba(0,0,0,0.55);
                 list-style: none;
-                transform: translateX(100%);
-                transition: transform 0.3s ease-in-out;
+                transition: right 0.3s ease-in-out;
+                border-left: 1px solid rgba(201, 176, 55, 0.22);
             }
 
             .nav-links.active {
-                transform: translateX(0);
+                right: 0;
                 display: flex;
             }
 
             .nav-links li {
-                padding: 1rem 2rem;
-                border-bottom: 1px solid rgba(201, 176, 55, 0.1);
+                padding: 1rem 0;
+                border-bottom: 1px solid rgba(201, 176, 55, 0.12);
             }
 
             .nav-links a {
@@ -480,7 +491,7 @@
     <nav>
         <div class="nav-container">
             <div class="logo">
-                <a href="index.html"><img src="assets/images/logo.png" alt="BlueChip Signals Logo"></a>
+                <a href="index.html"><img src="assets/images/logo.png" alt="Blue Chip Signals Logo"></a>
             </div>
             <div class="hamburger-menu">
                 <div class="bar"></div>
@@ -498,9 +509,7 @@
                         <li><a href="index.html#testimonials">Testimonials</a></li>
                         <li><a href="faq.html">FAQ</a></li>
                         <li><a href="about.html">About Us</a></li>
-                        <li><a href="legal.html">Legal Disclaimer</a></li>
-                        <li><a href="terms.html">Terms of Service</a></li>
-                        <li><a href="privacy.html">Privacy Policy</a></li>
+                        <li><a href="terms.html">Terms & Legal</a></li>
                     </ul>
                 </li>
                 <li><a href="login.html" class="login-btn" id="authButton"><i class="fas fa-sign-in-alt"></i> Login</a></li>
@@ -513,7 +522,7 @@
         <div class="login-container">
             <div class="login-header">
                 <h1>Welcome Back</h1>
-                <p>Log in to access your BlueChip Signals account</p>
+                <p>Log in to access your Blue Chip Signals account</p>
             </div>
 
             <div class="error-message" id="errorMessage">
@@ -570,7 +579,7 @@
 
     <!-- Footer -->
     <footer>
-        <p>&copy; 2025 BlueChip Signals. All rights reserved. | <a href="legal.html" style="color: var(--primary-gold); text-decoration: none;">Legal Disclaimer</a> | <a href="terms.html" style="color: var(--primary-gold); text-decoration: none;">Terms of Service</a> | <a href="privacy.html" style="color: var(--primary-gold); text-decoration: none;">Privacy Policy</a></p>
+        <p>&copy; 2025 Blue Chip Signals. All rights reserved. | <a href="terms.html" style="color: var(--primary-gold); text-decoration: none;">Terms & Legal</a> | <a href="terms.html" style="color: var(--primary-gold); text-decoration: none;">Terms of Service</a></p>
         <div class="social-media">
             <a href="https://www.tiktok.com/@bluechip.signals" target="_blank"><i class="fab fa-tiktok"></i></a>
             <a href="https://www.instagram.com/bluechip.signals/" target="_blank"><i class="fab fa-instagram"></i></a>

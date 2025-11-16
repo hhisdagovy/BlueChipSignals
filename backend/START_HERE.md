@@ -1,4 +1,4 @@
-# 🚀 BlueChip Signals Backend - START HERE
+# 🚀 Blue Chip Signals Backend - START HERE
 
 ## What I Just Built For You
 
@@ -58,7 +58,7 @@ backend/
 ### Step 1: Test Locally (5 minutes)
 ```bash
 # Navigate to backend folder
-cd /Users/hamza/Desktop/BlueChipSignals-main/backend
+cd /Users/hamza/Desktop/Blue Chip Signals-main/backend
 
 # Install dependencies
 pip install -r requirements.txt

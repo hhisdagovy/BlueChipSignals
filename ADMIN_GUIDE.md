@@ -157,7 +157,7 @@ To make someone an admin, add:
 
 3. **Send credentials** (secure email/message):
    ```
-   Welcome to BlueChip Signals!
+   Welcome to Blue Chip Signals!
    
    Login: https://yoursite.com/login.html
    Email: client@example.com

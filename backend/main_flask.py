@@ -1,5 +1,5 @@
 """
-BlueChip Signals Backend - Flask Version
+Blue Chip Signals Backend - Flask Version
 Simple and reliable backend for managing trading signals
 """
 
@@ -55,7 +55,7 @@ def admin_required(f):
 def home():
     return jsonify({
         'status': 'online',
-        'service': 'BlueChip Signals Backend',
+        'service': 'Blue Chip Signals Backend',
         'version': '1.0.0'
     })
 
@@ -222,7 +222,7 @@ ADMIN_LOGIN_HTML = '''
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Admin Login - BlueChip Signals</title>
+    <title>Admin Login - Blue Chip Signals</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
@@ -301,7 +301,7 @@ ADMIN_DASHBOARD_HTML = '''
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Admin Dashboard - BlueChip Signals</title>
+    <title>Admin Dashboard - Blue Chip Signals</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -550,7 +550,7 @@ POST_SIGNAL_HTML = '''
 '''
 
 if __name__ == '__main__':
-    print("\n🚀 BlueChip Signals Backend Starting...")
+    print("\n🚀 Blue Chip Signals Backend Starting...")
     print("📊 Admin Panel: http://127.0.0.1:5001/admin")
     print("🔑 Password: Pumrvb12!")
     print("📡 API: http://127.0.0.1:5001/api/signals/new\n")

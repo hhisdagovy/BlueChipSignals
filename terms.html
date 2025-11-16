@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Terms of Service - BlueChip Signals</title>
+    <title>Terms of Service & Legal Notice – Blue Chip Signals</title>
     <link rel="icon" type="image/png" href="assets/images/logo.png">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="assets/css/bot-style.css">
@@ -18,26 +18,28 @@
         }
 
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            font-family: "Inter", -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             background-color: var(--dark-bg);
             color: var(--light-text);
-            line-height: 1.6;
+            line-height: 1.45;
             overflow-x: hidden;
         }
 
         nav {
-            background: rgba(5, 8, 16, 0.8);
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
+            background: rgba(5, 8, 16, 0.86);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
             position: fixed;
             width: 100%;
             top: 0;
             z-index: 1000;
-            padding: 0.5rem 0;
+            padding: 0.75rem 0;
+            min-height: 74px;
+            border-bottom: 1px solid rgba(201, 176, 55, 0.18);
         }
 
         .nav-container { max-width: 1200px; margin: 0 auto; padding: 0 2rem; display: flex; justify-content: space-between; align-items: center; }
-        .logo img { width: 80px; height: 80px; }
+        .logo img { width: 96px; height: auto; }
         .nav-links { display: flex; gap: 2rem; list-style: none; }
         .nav-links a { color: var(--light-text); text-decoration: none; transition: color 0.3s; }
         .nav-links a:hover { color: var(--primary-gold); }
@@ -70,12 +72,17 @@
         .hamburger-menu .bar { width: 100%; height: 3px; background-color: var(--primary-gold); transition: all 0.3s ease-in-out; }
 
         .tos-page { padding: 8rem 2rem 4rem; max-width: 1100px; margin: 0 auto; }
-        .section-title { text-align: center; font-size: 2.5rem; margin-bottom: 1rem; background: linear-gradient(135deg, var(--primary-gold), var(--secondary-gold)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-        .section-subtitle { text-align: center; font-size: 1rem; color: var(--gray-text); margin-bottom: 2.5rem; }
-        .tos-card { background: var(--darker-bg); padding: 2rem; border: 1px solid rgba(201, 176, 55, 0.2); border-radius: 16px; }
-        .tos-card h3 { color: var(--primary-gold); margin-top: 1rem; margin-bottom: 0.5rem; font-size: 1.25rem; }
-        .tos-card p, .tos-card li { color: var(--light-text); }
-        .tos-card ul { padding-left: 1.2rem; }
+        .section-title { text-align: center; font-size: 2.2rem; margin-bottom: 0.75rem; letter-spacing: 0.04em; text-transform: uppercase; color: var(--gray-text); }
+        .section-subtitle { text-align: center; font-size: 0.95rem; color: rgba(160,160,160,0.7); margin-bottom: 2rem; }
+        .tos-card { background: rgba(8,11,15,0.92); padding: 2rem 2.5rem; border: 1px solid rgba(201, 176, 55, 0.12); border-radius: 14px; box-shadow: 0 25px 60px rgba(0,0,0,0.35); font-size: 0.95rem; letter-spacing: 0.01em; text-align: justify; }
+        .tos-card h3 { color: var(--primary-gold); margin-top: 1.8rem; margin-bottom: 0.4rem; font-size: 1.15rem; letter-spacing: 0.08em; text-transform: uppercase; }
+        .tos-card p { color: rgba(235,235,235,0.85); margin-bottom: 1.1rem; }
+        .tos-card ul { padding-left: 1.4rem; margin-bottom: 1.2rem; }
+        .tos-card li { margin-bottom: 0.6rem; color: rgba(214,214,214,0.8); }
+
+        .dense-block { margin-bottom: 1.2rem; }
+        .dense-block strong { color: rgba(255,255,255,0.82); font-weight: 600; }
+        .emphasis-inline { color: rgba(201,176,55,0.9); font-style: italic; }
 
         footer { background: var(--darker-bg); padding: 2rem; text-align: center; border-top: 1px solid rgba(201, 176, 55, 0.2); }
 
@@ -127,7 +134,7 @@
     <nav>
         <div class="nav-container">
             <div class="logo">
-                <a href="index.html"><img src="assets/images/logo.png" alt="BlueChip Signals Logo"></a>
+                <a href="index.html"><img src="assets/images/logo.png" alt="Blue Chip Signals Logo"></a>
             </div>
             <div class="hamburger-menu">
                 <div class="bar"></div>
@@ -145,9 +152,7 @@
                         <li><a href="index.html#testimonials">Testimonials</a></li>
                         <li><a href="faq.html">FAQ</a></li>
                         <li><a href="about.html">About Us</a></li>
-                        <li><a href="legal.html">Legal Disclaimer</a></li>
-                        <li><a href="terms.html">Terms of Service</a></li>
-                        <li><a href="privacy.html">Privacy Policy</a></li>
+                        <li><a href="terms.html">Terms & Legal</a></li>
                     </ul>
                 </li>
                 <li><a href="login.html" class="login-btn" id="authButton"><i class="fas fa-sign-in-alt"></i> Login</a></li>
@@ -156,63 +161,164 @@
     </nav>
 
     <main class="tos-page">
-        <h1 class="section-title">Terms of Service</h1>
-        <p class="section-subtitle">Last updated: September 22, 2025</p>
+        <h1 class="section-title">Blue Chip Signals LLC – Terms & Privacy Policy Notice</h1>
+        <p class="section-subtitle">Effective Date: November 10, 2025 · Governing Document · Read Carefully</p>
 
         <div class="tos-card">
-            <h3>1. Acceptance of Terms</h3>
-            <p>By accessing or using BlueChip Signals ("we", "us", "our") websites, content, or services, you agree to be bound by these Terms of Service ("Terms"). If you do not agree to these Terms, do not use our services.</p>
+            <div class="dense-block">
+                These Terms of Service, together with the Company's privacy disclosures, communications policies, and any supplemental notices issued from time to time (collectively, the "<strong>Agreement</strong>"), govern access to and use of the website located at <a href="https://bluechipsignals.online" style="color: var(--primary-gold); text-decoration: none;">https://bluechipsignals.online</a>, affiliated pages, content streams, dashboards, messaging channels, documentation, and any other digital or offline resources provided by Blue Chip Signals LLC, a California limited liability company ("<strong>Blue Chip Signals</strong>," "<strong>we</strong>," "<strong>us</strong>," or "<strong>our</strong>"). By visiting, browsing, or otherwise interacting with the Services, you represent and warrant that you have reviewed the Agreement in its entirety, that you have the legal capacity and authority to enter into binding obligations, and that you consent to be bound without limitation or qualification. If you disagree with any provision herein, you must immediately discontinue all access.
+            </div>
 
-            <h3>2. Eligibility</h3>
-            <p>You represent that you are at least 18 years old and legally capable of entering into a binding agreement. You are responsible for complying with all applicable laws in your jurisdiction.</p>
+            <div class="dense-block">
+                <strong>Modifications.</strong> Blue Chip Signals may amend, restate, supplement, or replace the Agreement at any time in its sole discretion. Revised language will be posted to this page with an updated effective date. Continued access after publication constitutes conclusive acceptance. You are solely responsible for monitoring revisions and familiarizing yourself with current obligations.
+            </div>
 
-            <h3>3. No Financial Advice</h3>
-            <p>All information, tools, and communications are provided for educational and informational purposes only and do not constitute financial, investment, or trading advice. You are solely responsible for your trading decisions and outcomes.</p>
+            <h3>Nature of Information; No Advisory Relationship</h3>
+            <div class="dense-block">
+                All data feeds, strategy notes, alerts, commentary, charts, research briefs, videos, webinars, messages, or conversational outputs (collectively, the “<strong>Content</strong>”) are furnished strictly for generalized educational and informational purposes. The Content does not constitute, and shall not be construed as, individualized investment advice, portfolio management, brokerage services, an offer to buy or sell securities, a solicitation for any transaction, legal advice, tax counsel, accounting guidance, or any form of professional fiduciary service. Blue Chip Signals is not registered with the U.S. Securities and Exchange Commission, the Financial Industry Regulatory Authority, the Commodity Futures Trading Commission, or any comparable domestic or foreign regulatory authority as an investment adviser, broker-dealer, commodity trading adviser, or futures commission merchant. Any discussion of historical performance, hypothetical scenarios, illustrative trades, or prospective outcomes is inherently speculative and presented without representation that similar results are probable or attainable. You remain exclusively responsible for consulting qualified professionals acquainted with your financial condition and risk tolerance prior to acting on any Content.
+            </div>
 
-            <h3>4. Risk Disclosure</h3>
-            <p>Trading securities and options involves substantial risk, including the risk of loss. Past performance does not guarantee future results. You agree that we are not liable for any losses incurred.</p>
+            <h3>Eligibility; Responsible Use</h3>
+            <div class="dense-block">
+                Access to the Services is limited to natural persons who are at least eighteen (18) years old (or the age of majority in their jurisdiction), possess full legal capacity, and are not prohibited from receiving financial-market information pursuant to applicable laws, sanctions, or contractual restrictions. You agree to conduct independent due diligence, to evaluate strategic decisions with caution, and to refrain from relying on the Services as the sole basis for any transaction. You further agree that you will not reverse engineer, duplicate, redistribute, frame, scrape, or commercially exploit the Services; interfere with system integrity or security; attempt unauthorized access to private areas; mask or misrepresent your identity; or deploy automated tools to harvest proprietary Content.
+            </div>
 
-            <h3>5. Access and Availability</h3>
-            <p>We may modify, suspend, or discontinue any part of the service at any time without notice. We do not guarantee uninterrupted or error-free operation.</p>
+            <h3>Account Security; Authorized Access</h3>
+            <div class="dense-block">
+                Credentials, authentication factors, dashboard access tokens, signal feeds, and any derivative compilations are confidential. You are obligated to maintain strict control over login details, to implement commercially reasonable safeguards, and to notify Blue Chip Signals immediately of any suspected compromise. Shared access, resale, sublicensing, rebroadcast, or distribution of alerts, dashboards, transcripts, analytics, or data—whether for consideration or otherwise—is expressly forbidden and constitutes material breach. Blue Chip Signals may, without notice, suspend or revoke access, disable credentials, or pursue civil or equitable remedies if misuse is detected or suspected. Access terminated for cause is not eligible for reinstatement absent express written consent from Blue Chip Signals.
+            </div>
 
-            <h3>6. User Conduct</h3>
-            <ul>
-                <li>Do not misuse, reverse-engineer, copy, or redistribute proprietary content.</li>
-                <li>Do not engage in unlawful, abusive, or harmful behavior on our platforms.</li>
-                <li>Do not impersonate others or misrepresent your affiliation.</li>
-            </ul>
+            <h3>Intellectual Property; Limited License</h3>
+            <div class="dense-block">
+                The Services, including all source code, algorithms, models, graphics, trademarks, service marks, compilation frameworks, audiovisual works, text, design elements, and derivative works, are owned by or licensed to Blue Chip Signals and protected by domestic and international intellectual property laws. Subject to full compliance with the Agreement, Blue Chip Signals grants a revocable, non-exclusive, non-transferable, non-sublicensable, limited license to access the Content solely for personal, non-commercial observational purposes. Any reproduction, modification, derivative creation, public display, or other exploitation is prohibited absent prior written authorization.
+            </div>
 
-            <h3>7. Intellectual Property</h3>
-            <p>All content, branding, designs, and materials are owned by BlueChip Signals or its licensors and protected by applicable intellectual property laws. You receive a limited, non-transferable, revocable license to access and use the site for personal, non-commercial purposes.</p>
+            <h3>User-Generated Contributions</h3>
+            <div class="dense-block">
+                To the extent you submit feedback, testimonials, survey responses, support tickets, forum postings, or other materials (collectively, “<strong>Submissions</strong>”), you grant Blue Chip Signals a perpetual, worldwide, irrevocable, royalty-free, fully paid, transferable license to use, adapt, store, reproduce, display, publish, translate, and create derivative works from such Submissions in any media now known or later developed, subject to our privacy commitments. You represent that your Submissions are accurate, lawful, non-confidential, and do not violate third-party rights.
+            </div>
 
-            <h3>8. Third-Party Services</h3>
-            <p>We may reference or link to third-party services (e.g., messaging platforms, data providers). We do not control and are not responsible for any third-party content, policies, or practices.</p>
+            <h3>Payment, Renewal, and Account Status</h3>
+            <div class="dense-block">
+                Subscription tiers, add-ons, promotions, and trial periods may be offered at Blue Chip Signals’ discretion and are subject to the pricing, duration, and eligibility criteria displayed at the point of purchase. By initiating a transaction, you authorize Blue Chip Signals and its payment processors to charge the payment method on file for the initial term and any subsequent automatic renewals, unless you cancel in accordance with the applicable procedure. Pricing is quoted exclusive of taxes, duties, or governmental charges, all of which remain your responsibility.
+            </div>
 
-            <h3>9. Privacy</h3>
-            <p>We handle information in accordance with our privacy practices. By using our services, you consent to such practices. Do not submit sensitive personal information through public forms.</p>
+            <div class="dense-block">
+                <strong>Cancellation.</strong> To avoid renewal, you must submit a written request to <a href="mailto:support@bluechipsignals.online" style="color: var(--primary-gold); text-decoration: none;">support@bluechipsignals.online</a> no fewer than seventy-two (72) hours before the next billing date. Cancellation prevents future charges but does not entitle you to credits or reimbursements for prior periods. Voluntary closure of an account or elective downgrade takes effect at the end of the current paid term unless otherwise specified in writing.
+            </div>
 
-            <h3>10. Disclaimers</h3>
-            <p>THE SERVICES ARE PROVIDED "AS IS" AND "AS AVAILABLE" WITHOUT WARRANTIES OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING, WITHOUT LIMITATION, WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, AND NON-INFRINGEMENT.</p>
+            <div class="dense-block">
+                <strong>Finality of Transactions.</strong> Payments remitted to Blue Chip Signals are regarded as earned upon receipt and, barring statutory rights that cannot be waived, are not subject to reversal, rescission, refund, or offset. Chargebacks, disputes, or payment recalls initiated with a financial institution will result in immediate suspension of access pending resolution, and Blue Chip Signals reserves the right to recover all associated fees, costs, and damages.
+            </div>
 
-            <h3>11. Limitation of Liability</h3>
-            <p>TO THE MAXIMUM EXTENT PERMITTED BY LAW, BLUECHIP SIGNALS SHALL NOT BE LIABLE FOR ANY INDIRECT, INCIDENTAL, SPECIAL, CONSEQUENTIAL, EXEMPLARY, OR PUNITIVE DAMAGES, OR ANY LOSS OF PROFITS OR REVENUES, WHETHER INCURRED DIRECTLY OR INDIRECTLY.</p>
+            <h3>Informational Accuracy; No Warranty</h3>
+            <div class="dense-block">
+                The Services are provided on an “<strong>AS IS</strong>,” “<strong>AS AVAILABLE</strong>” basis. While Blue Chip Signals endeavors to source data from believed-to-be reliable channels, we do not warrant that any Content is accurate, complete, timely, current, or free of typographical or technical errors. Market data may be delayed, adjusted, or erroneous. Access may be interrupted for maintenance, updates, third-party outages, force majeure events, or other circumstances beyond our control. You acknowledge that you utilize the Services entirely at your own risk.
+            </div>
 
-            <h3>12. Indemnification</h3>
-            <p>You agree to indemnify and hold harmless BlueChip Signals, its affiliates, and personnel from any claims, liabilities, damages, losses, and expenses, including reasonable legal fees, arising out of or in any way related to your use of the services or violation of these Terms.</p>
+            <h3>Risk Factors; Trading Losses</h3>
+            <div class="dense-block">
+                Trading securities, options, futures, cryptoassets, or any financial instruments involves substantial risk, including the possible loss of all invested capital. Volatility, liquidity constraints, slippage, execution delays, technology malfunctions, counterparty insolvency, regulatory changes, and macroeconomic events may result in severe adverse outcomes. Past performance, whether actual or hypothetical, is neither indicative of nor a guarantee for future results. You should trade only with risk capital that, if lost, would not impair your financial obligations or lifestyle.
+            </div>
 
-            <h3>13. Changes to These Terms</h3>
-            <p>We may update these Terms from time to time. The "Last updated" date reflects the latest revision. Continued use after changes constitutes acceptance of the updated Terms.</p>
+            <h3>Limitations of Liability</h3>
+            <div class="dense-block">
+                To the fullest extent permitted by applicable law, Blue Chip Signals, along with its members, managers, employees, contractors, licensors, affiliates, successors, and assigns, shall not be liable for any indirect, incidental, consequential, exemplary, special, punitive, or enhanced damages; lost profits, lost revenue, lost data, trading losses, opportunity costs, business interruption, reputational harm, or regulatory penalties; whether arising in contract, tort (including negligence), strict liability, statute, equity, or any other theory, even if advised of the possibility of such damages. Aggregate liability for direct damages shall not exceed the amount paid by you to Blue Chip Signals during the twelve (12) months immediately preceding the event giving rise to the claim.
+            </div>
 
-            <h3>14. Governing Law</h3>
-            <p>These Terms are governed by and construed in accordance with the laws applicable in your place of residence unless superseded by mandatory local law.</p>
+            <h3>Indemnification</h3>
+            <div class="dense-block">
+                You agree to defend, indemnify, and hold harmless Blue Chip Signals and its representatives from and against any claims, demands, causes of action, liabilities, losses, costs, or expenses (including reasonable attorneys’ fees) arising out of or related to (a) your access to or use of the Services; (b) your violation of the Agreement; (c) your infringement or misappropriation of intellectual property or other rights; or (d) any trading or investment decisions you effectuate in reliance on the Content.
+            </div>
 
-            <h3>15. Contact</h3>
-            <p>Questions about these Terms? Contact us at <a href="mailto:support@bluechipsignals.online" style="color: var(--primary-gold); text-decoration: none;">support@bluechipsignals.online</a>.</p>
+            <h3>Suspension and Termination</h3>
+            <div class="dense-block">
+                Blue Chip Signals may at any time, with or without prior notice, suspend, limit, or terminate access to any portion of the Services if we determine, in our sole judgment, that you have breached the Agreement, created risk or possible legal exposure for Blue Chip Signals, or acted in a manner inconsistent with the intended use of the Services. Upon termination, all licenses and rights granted to you shall immediately cease. Termination does not relieve you of accrued payment obligations, and Blue Chip Signals shall have no liability for any consequence arising from discontinuation of access.
+            </div>
+
+            <h3>Governing Law; Venue; Dispute Resolution</h3>
+            <div class="dense-block">
+                The Agreement shall be governed by, construed, and enforced in accordance with the laws of the State of California, without regard to conflicts-of-law principles. You consent to the exclusive jurisdiction of the state and federal courts located in the County of Los Angeles, California, and waive any objection to inconvenient forum. You agree that prior to instituting any litigation, you will provide Blue Chip Signals with written notice of the dispute and allow thirty (30) days for good-faith negotiation. To the extent permitted by law, you waive the right to participate in any class, collective, or representative action against Blue Chip Signals.
+            </div>
+
+            <h3>Electronic Communications; SMS Terms</h3>
+            <div class="dense-block">
+                By providing contact information, you consent to receiving transactional emails, platform alerts, compliance notices, and marketing communications in accordance with our privacy practices. SMS or text communications may be delivered for authentication or informational purposes; message frequency will vary. Standard carrier rates apply. You may opt-out of non-essential texts by replying “STOP,” and may request assistance by replying “HELP” or contacting <a href="mailto:support@bluechipsignals.online" style="color: var(--primary-gold); text-decoration: none;">support@bluechipsignals.online</a>. Carriers are not liable for delayed or undelivered messages.
+            </div>
+
+            <h3 id="privacy-policy">Privacy Policy</h3>
+            <div class="dense-block">
+                <strong>Overview.</strong> This Privacy Policy explains how Blue Chip Signals collects, uses, and safeguards information when you interact with the Services. By accessing the Services, you consent to the practices described below.
+            </div>
+
+            <div class="dense-block">
+                <strong>Information We Collect.</strong>
+                <ul>
+                    <li>Contact details you choose to provide (such as name, email, phone number) through forms, demos, or support inquiries.</li>
+                    <li>Usage information about how you navigate the Services, including device identifiers, browser data, IP address, and pages visited.</li>
+                    <li>Scheduling metadata and related details supplied through integrated third-party platforms (e.g., Calendly) when you book demos or consultations.</li>
+                </ul>
+            </div>
+
+            <div class="dense-block">
+                <strong>How We Use Information.</strong>
+                <ul>
+                    <li>To respond to inquiries, deliver customer support, and communicate account updates.</li>
+                    <li>To operate, maintain, personalize, and improve the Services, including analytics, security monitoring, and product development.</li>
+                    <li>To facilitate scheduling, webinars, and events administered through trusted third-party providers.</li>
+                </ul>
+            </div>
+
+            <div class="dense-block">
+                <strong>Third-Party Services.</strong> We rely on select vendors (such as Calendly for scheduling) to deliver portions of the Services. Those providers process information in accordance with their own privacy statements; we encourage you to review those disclosures. Blue Chip Signals contractually requires vendors to safeguard personal information consistent with applicable law.
+            </div>
+
+            <div class="dense-block">
+                <strong>Cookies and Analytics.</strong> We may use cookies, pixels, log files, and similar technologies to understand usage patterns, improve performance, and detect abuse. Most browsers allow you to block or delete cookies; however, doing so may impact functionality.
+            </div>
+
+            <div class="dense-block">
+                <strong>Data Security.</strong> We implement commercially reasonable technical and organizational safeguards designed to protect information against unauthorized access, disclosure, alteration, or destruction. No method of transmission or storage is completely secure, and we cannot guarantee absolute security.
+            </div>
+
+            <div class="dense-block">
+                <strong>Data Retention.</strong> Information is retained only as long as necessary to fulfill the purposes outlined in this Privacy Policy, comply with legal obligations, resolve disputes, or enforce agreements. We may anonymize or aggregate data for analytical purposes.
+            </div>
+
+            <div class="dense-block">
+                <strong>Your Choices.</strong>
+                <ul>
+                    <li>You may update, correct, or request deletion of certain information by contacting us at <a href="mailto:support@bluechipsignals.online" style="color: var(--primary-gold); text-decoration: none;">support@bluechipsignals.online</a>.</li>
+                    <li>You may opt out of non-essential communications by using the unsubscribe mechanisms provided or by notifying us directly.</li>
+                </ul>
+            </div>
+
+            <div class="dense-block">
+                <strong>Children’s Privacy.</strong> The Services are not directed to children under thirteen (13) years of age, and we do not knowingly collect personal information from children. If we become aware that a child has provided information, we will delete it promptly.
+            </div>
+
+            <div class="dense-block">
+                <strong>International Users.</strong> Information may be processed and stored in the United States or other jurisdictions where we or our service providers operate. By using the Services, you consent to such processing and transfer, which may be subject to laws different from those in your jurisdiction.
+            </div>
+
+            <div class="dense-block">
+                <strong>Changes to This Privacy Policy.</strong> We may revise this Privacy Policy periodically. Material updates will be reflected in the “Last updated” date above. Continued use of the Services constitutes acceptance of any changes.
+            </div>
+
+            <h3>Miscellaneous</h3>
+            <div class="dense-block">
+                The Agreement constitutes the entire understanding between the parties regarding the Services and supersedes all prior or contemporaneous proposals, representations, or understandings. If any provision is held unenforceable, the remaining terms remain in full force. Failure to enforce any provision shall not constitute a waiver. You may not assign or transfer rights or obligations without Blue Chip Signals’ prior written consent; any attempt is void. Blue Chip Signals may assign or delegate its rights and duties without restriction.
+            </div>
+
+            <h3>Contact</h3>
+            <div class="dense-block" style="margin-bottom: 0;">
+                For compliance inquiries, legal correspondence, or account questions, contact Blue Chip Signals LLC at <a href="mailto:support@bluechipsignals.online" style="color: var(--primary-gold); text-decoration: none;">support@bluechipsignals.online</a>. Notices shall be deemed effective upon confirmed receipt by Blue Chip Signals.
+            </div>
         </div>
     </main>
 
     <footer>
-        <p>&copy; 2025 BlueChip Signals. All rights reserved. | <a href="legal.html" style="color: var(--primary-gold); text-decoration: none;">Legal Disclaimer</a> | <a href="terms.html" style="color: var(--primary-gold); text-decoration: none;">Terms of Service</a></p>
+        <p>&copy; 2025 Blue Chip Signals. All rights reserved. | <a href="terms.html" style="color: var(--primary-gold); text-decoration: none;">Terms & Legal</a></p>
     </footer>
 
     <script>

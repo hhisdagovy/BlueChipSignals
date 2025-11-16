@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Book a Live Demo - BlueChip Signals</title>
+    <title>Book a Live Demo - Blue Chip Signals</title>
     <link rel="icon" type="image/png" href="assets/images/logo.png">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="assets/css/bot-style.css">
@@ -27,18 +27,20 @@
         }
 
         nav {
-            background: rgba(5, 8, 16, 0.8);
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
+            background: rgba(5, 8, 16, 0.86);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
             position: fixed;
             width: 100%;
             top: 0;
             z-index: 1000;
-            padding: 0.5rem 0;
+            padding: 0.75rem 0;
+            min-height: 74px;
+            border-bottom: 1px solid rgba(201, 176, 55, 0.18);
         }
 
         .nav-container { max-width: 1200px; margin: 0 auto; padding: 0 2rem; display: flex; justify-content: space-between; align-items: center; }
-        .logo img { width: 80px; height: 80px; }
+        .logo img { width: 96px; height: auto; }
         .nav-links { display: flex; gap: 2rem; list-style: none; }
         .nav-links a { color: var(--light-text); text-decoration: none; transition: color 0.3s; }
         .nav-links a:hover { color: var(--primary-gold); }
@@ -141,7 +143,7 @@
     <nav>
         <div class="nav-container">
             <div class="logo">
-                <a href="index.html"><img src="assets/images/logo.png" alt="BlueChip Signals Logo"></a>
+                <a href="index.html"><img src="assets/images/logo.png" alt="Blue Chip Signals Logo"></a>
             </div>
             <div class="hamburger-menu">
                 <div class="bar"></div>
@@ -159,9 +161,7 @@
                         <li><a href="index.html#testimonials">Testimonials</a></li>
                         <li><a href="faq.html">FAQ</a></li>
                         <li><a href="about.html">About Us</a></li>
-                        <li><a href="legal.html">Legal Disclaimer</a></li>
-                        <li><a href="terms.html">Terms of Service</a></li>
-                        <li><a href="privacy.html">Privacy Policy</a></li>
+                        <li><a href="terms.html">Terms & Legal</a></li>
                     </ul>
                 </li>
                 <li><a href="login.html" class="login-btn" id="authButton"><i class="fas fa-sign-in-alt"></i> Login</a></li>
@@ -180,7 +180,7 @@
     </section>
 
     <footer>
-        <p>&copy; 2025 BlueChip Signals. All rights reserved. | <a href="legal.html" style="color: var(--primary-gold); text-decoration: none;">Legal Disclaimer</a></p>
+        <p>&copy; 2025 Blue Chip Signals. All rights reserved. | <a href="terms.html" style="color: var(--primary-gold); text-decoration: none;">Terms & Legal</a></p>
     </footer>
 
     <script>

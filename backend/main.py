@@ -1,5 +1,5 @@
 """
-BlueChip Signals Backend
+Blue Chip Signals Backend
 FastHTML application for managing trading signals
 """
 
@@ -245,7 +245,7 @@ def admin_home(request):
     
     return Html(
         Head(
-            Title("Admin Dashboard - BlueChip Signals"),
+            Title("Admin Dashboard - Blue Chip Signals"),
             Meta(charset="UTF-8"),
             Meta(name="viewport", content="width=device-width, initial-scale=1.0"),
             Link(rel="stylesheet", href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"),
@@ -396,7 +396,7 @@ def admin_login_page():
     """Admin login page"""
     return Html(
         Head(
-            Title("Admin Login - BlueChip Signals"),
+            Title("Admin Login - Blue Chip Signals"),
             Meta(charset="UTF-8"),
             Meta(name="viewport", content="width=device-width, initial-scale=1.0"),
             Style("""
@@ -639,7 +639,7 @@ def home():
     """Health check endpoint"""
     return JSONResponse({
         'status': 'online',
-        'service': 'BlueChip Signals Backend',
+        'service': 'Blue Chip Signals Backend',
         'version': '1.0.0'
     })
 

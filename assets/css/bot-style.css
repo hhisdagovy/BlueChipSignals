@@ -34,18 +34,18 @@ body {
 /* Navigation */
 nav,
 .main-nav {
-    background: rgba(5, 8, 16, 0.9);
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
+    background: rgba(5, 8, 16, 0.86);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
     position: fixed;
     width: 100%;
     top: 0;
     z-index: 1000;
-    padding: 0.8rem 0;
-    min-height: 70px;
+    padding: 0.75rem 0;
+    min-height: 74px;
     display: flex;
     align-items: center;
-    border-bottom: 1px solid rgba(201, 176, 55, 0.2);
+    border-bottom: 1px solid rgba(201, 176, 55, 0.18);
 }
 
 .nav-container {
@@ -62,10 +62,13 @@ nav,
 .logo img,
 .nav-brand img,
 .nav-logo {
-    width: 80px;
-    height: 80px;
+    width: 96px;
+    height: auto;
+    max-width: 100%;
     display: block;
-    transition: transform 0.3s ease;
+    transition: transform 0.3s ease, filter 0.3s ease;
+    image-rendering: auto;
+    filter: drop-shadow(0 6px 18px rgba(201, 176, 55, 0.28));
 }
 
 .logo img:hover,
@@ -407,16 +410,18 @@ footer {
     .nav-links {
         display: none;
         position: fixed;
-        top: 70px; /* Position below the nav bar */
+        top: 74px; /* Position below the nav bar */
         left: 0;
         width: 100%;
-        max-height: calc(100vh - 70px); /* Don't exceed viewport height */
-        background: var(--darker-bg);
+        max-height: calc(100vh - 74px); /* Don't exceed viewport height */
+        background: rgba(5, 8, 16, 0.96);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
         flex-direction: column;
         align-items: center;
         padding: 1.5rem 0;
         gap: 0.5rem;
-        border-top: 1px solid rgba(201, 176, 55, 0.2);
+        border-top: 1px solid rgba(201, 176, 55, 0.22);
         box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
         overflow-y: auto; /* Enable scrolling */
         overflow-x: hidden;

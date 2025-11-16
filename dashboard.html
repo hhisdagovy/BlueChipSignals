@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard - BlueChip Signals</title>
+    <title>Dashboard - Blue Chip Signals</title>
     <link rel="icon" type="image/png" href="assets/images/logo.png">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
@@ -34,14 +34,16 @@
 
         /* Navigation */
         nav {
-            background: rgba(5, 8, 16, 0.9);
-            backdrop-filter: blur(10px);
+            background: rgba(5, 8, 16, 0.86);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
             position: fixed;
             width: 100%;
             top: 0;
             z-index: 1000;
-            padding: 0.5rem 0;
-            border-bottom: 1px solid rgba(201, 176, 55, 0.2);
+            padding: 0.75rem 0;
+            min-height: 74px;
+            border-bottom: 1px solid rgba(201, 176, 55, 0.18);
         }
 
         .nav-container {
@@ -60,8 +62,15 @@
         }
 
         .logo img {
-            width: 80px;
-            height: 80px;
+            width: 96px;
+            height: auto;
+            max-width: 100%;
+            filter: drop-shadow(0 6px 18px rgba(201, 176, 55, 0.28));
+            transition: transform 0.3s ease, filter 0.3s ease;
+        }
+
+        .logo img:hover {
+            transform: scale(1.05);
         }
 
         .nav-links {
@@ -818,7 +827,7 @@
     <nav>
         <div class="nav-container">
             <div class="logo">
-                <a href="index.html"><img src="assets/images/logo.png" alt="BlueChip Signals Logo"></a>
+                <a href="index.html"><img src="assets/images/logo.png" alt="Blue Chip Signals Logo"></a>
             </div>
             <div class="hamburger-menu">
                 <div class="bar"></div>
@@ -836,9 +845,7 @@
                         <li><a href="index.html#testimonials">Testimonials</a></li>
                         <li><a href="faq.html">FAQ</a></li>
                         <li><a href="about.html">About Us</a></li>
-                        <li><a href="legal.html">Legal Disclaimer</a></li>
-                        <li><a href="terms.html">Terms of Service</a></li>
-                        <li><a href="privacy.html">Privacy Policy</a></li>
+                        <li><a href="terms.html">Terms & Legal</a></li>
                     </ul>
                 </li>
                 <li><a href="login.html" class="login-btn" id="authButton" onclick="logout(); return false;" style="cursor: pointer;"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
@@ -1031,7 +1038,7 @@
                         <i class="fas fa-book"></i>
                     </div>
                     <h4>Getting Started</h4>
-                    <p>New to BlueChip Signals?</p>
+                    <p>New to Blue Chip Signals?</p>
                     <a href="about.html" class="support-link">Learn More →</a>
                 </div>
 
@@ -1041,7 +1048,7 @@
                     </div>
                     <h4>Legal Info</h4>
                     <p>Terms & disclosures</p>
-                    <a href="legal.html" class="support-link">Read Legal →</a>
+                    <a href="terms.html" class="support-link">Read Legal →</a>
                 </div>
             </div>
         </section>
@@ -1049,7 +1056,7 @@
 
     <!-- Footer -->
     <footer>
-        <p>&copy; 2025 BlueChip Signals. All rights reserved. | <a href="legal.html" style="color: var(--primary-gold); text-decoration: none;">Legal Disclaimer</a> | <a href="terms.html" style="color: var(--primary-gold); text-decoration: none;">Terms of Service</a> | <a href="privacy.html" style="color: var(--primary-gold); text-decoration: none;">Privacy Policy</a></p>
+        <p>&copy; 2025 Blue Chip Signals. All rights reserved. | <a href="terms.html" style="color: var(--primary-gold); text-decoration: none;">Terms & Legal</a></p>
         <div class="social-media">
             <a href="https://www.tiktok.com/@bluechip.signals" target="_blank"><i class="fab fa-tiktok"></i></a>
             <a href="https://www.instagram.com/bluechip.signals/" target="_blank"><i class="fab fa-instagram"></i></a>

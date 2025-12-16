@@ -1,0 +1,495 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AMZN RSI Divergence Scanner | Blue Chip Signals</title>
+    <link rel="icon" type="image/png" href="../../assets/images/logo.png">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="../../assets/css/bot-style.css?v=1751140000">
+    <script>
+        // Redirect non-logged-in users to book demo page
+        (function() {
+            const isLoggedIn = localStorage.getItem('bluechip_logged_in') || sessionStorage.getItem('bluechip_logged_in');
+            if (!isLoggedIn) {
+                window.location.href = '../../book-demo.html';
+            }
+        })();
+    </script>
+    <style>
+        :root {
+            --primary-gold: #b3a17d;
+            --secondary-gold: #E2CFB5;
+            --dark-bg: #080B0F;
+            --darker-bg: #050810;
+            --light-text: #FFFFFF;
+            --gray-text: #A0A0A0;
+        }
+
+        body {
+            background: var(--darker-bg);
+            color: var(--light-text);
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        }
+
+        .guide-hero {
+            margin-top: 100px;
+            padding: 4rem 2rem 3rem;
+            text-align: center;
+            background: radial-gradient(circle at 50% 50%, rgba(201, 176, 55, 0.15), transparent 70%);
+            position: relative;
+        }
+
+        .guide-hero::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: radial-gradient(circle at 30% 40%, rgba(201, 176, 55, 0.08), transparent 50%);
+            z-index: 0;
+        }
+
+        .guide-hero-content { max-width: 900px; margin: 0 auto; position: relative; z-index: 1; }
+        .guide-badge {
+            display: inline-block;
+            background: linear-gradient(135deg, var(--primary-gold), var(--secondary-gold));
+            color: var(--darker-bg);
+            padding: 0.4rem 1.2rem;
+            border-radius: 20px;
+            font-weight: 700;
+            font-size: 0.8rem;
+            letter-spacing: 1px;
+            margin-bottom: 1.5rem;
+            text-transform: uppercase;
+        }
+        .guide-title { font-size: 2.8rem; font-weight: 800; margin: 0 0 1rem; line-height: 1.2; color: var(--light-text); }
+        .guide-subtitle { font-size: 1.2rem; color: var(--gray-text); line-height: 1.6; margin: 0; }
+
+        .guide-content { max-width: 1200px; margin: 0 auto; padding: 3rem 2rem; }
+        .content-section {
+            background: var(--dark-bg);
+            border: 1px solid rgba(201, 176, 55, 0.2);
+            border-radius: 15px;
+            padding: 2.5rem;
+            margin-bottom: 2rem;
+        }
+        .content-section h2 { color: var(--primary-gold); font-size: 1.8rem; margin-bottom: 1rem; display: flex; align-items: center; gap: 0.75rem; }
+        .content-section h3 { color: var(--light-text); font-size: 1.4rem; margin-bottom: 1rem; }
+        .content-section p { color: var(--gray-text); line-height: 1.8; margin-bottom: 1rem; }
+
+        .grid-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 1.25rem; margin: 1.5rem 0; }
+        .info-card {
+            background: linear-gradient(135deg, rgba(179, 161, 125, 0.08), rgba(179, 161, 125, 0.03));
+            border: 1px solid rgba(179, 161, 125, 0.2);
+            border-radius: 12px;
+            padding: 1.5rem;
+            transition: all 0.3s ease;
+        }
+        .info-card:hover { transform: translateY(-4px); border-color: var(--primary-gold); box-shadow: 0 10px 28px rgba(201, 176, 55, 0.18); }
+        .info-card h4 { display: flex; align-items: center; gap: 0.6rem; color: var(--light-text); margin-bottom: 0.6rem; }
+        .info-card h4 i { color: var(--primary-gold); }
+
+        .calculator-container { margin: 2rem 0; }
+        .calculator-inputs {
+            background: rgba(179, 161, 125, 0.05);
+            border: 1px solid rgba(179, 161, 125, 0.2);
+            border-radius: 12px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+        }
+        .input-group { margin-bottom: 1.5rem; }
+        .input-group label { display: block; color: var(--primary-gold); font-weight: 600; margin-bottom: 0.5rem; font-size: 0.9rem; }
+        .calculator-input-select, .calculator-input {
+            width: 100%; padding: 0.75rem; background: var(--dark-bg); border: 1px solid rgba(179, 161, 125, 0.3);
+            border-radius: 8px; color: var(--light-text); font-size: 0.9rem; transition: all 0.3s ease;
+        }
+        .calculator-input-select:focus, .calculator-input:focus { outline: none; border-color: var(--primary-gold); box-shadow: 0 0 0 2px rgba(179, 161, 125, 0.2); }
+        .calculator-button {
+            background: linear-gradient(135deg, var(--primary-gold), var(--secondary-gold));
+            color: #000; border: none; padding: 1rem 2rem; border-radius: 8px;
+            font-weight: 600; cursor: pointer; transition: all 0.3s ease; width: 100%; font-size: 1rem;
+        }
+        .calculator-button:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(179, 161, 125, 0.4); }
+        .calculator-button:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+        .calculator-results {
+            background: linear-gradient(135deg, rgba(179, 161, 125, 0.1), rgba(179, 161, 125, 0.05));
+            border: 1px solid rgba(179, 161, 125, 0.3);
+            border-radius: 12px;
+            padding: 2rem;
+            animation: fadeInUp 0.5s ease;
+        }
+        .results-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 2rem; }
+        .result-card {
+            background: var(--dark-bg);
+            border: 1px solid rgba(179, 161, 125, 0.2);
+            border-radius: 8px;
+            padding: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        .result-icon { font-size: 2rem; color: var(--primary-gold); min-width: 40px; }
+        .result-content h5 { margin: 0 0 0.5rem 0; color: var(--light-text); font-size: 0.9rem; }
+        .result-value { font-size: 1.5rem; font-weight: 700; color: var(--primary-gold); margin-bottom: 0.25rem; }
+        .strategy-content {
+            background: rgba(42, 87, 31, 0.2);
+            border: 1px solid rgba(42, 87, 31, 0.4);
+            border-radius: 8px;
+            padding: 1.5rem;
+            line-height: 1.6;
+        }
+        .risk-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1rem; }
+        .risk-param { background: rgba(179, 161, 125, 0.1); padding: 0.75rem; border-radius: 6px; font-size: 0.9rem; }
+        .risk-param span { color: var(--primary-gold); font-weight: 600; }
+
+        @keyframes fadeInUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+
+        @media (max-width: 768px) {
+            .guide-title { font-size: 2rem; }
+            .guide-subtitle { font-size: 1rem; }
+            .content-section { padding: 1.5rem; }
+            .results-grid { grid-template-columns: 1fr; }
+            .result-card { flex-direction: column; text-align: center; }
+            .calculator-inputs { padding: 1.5rem; }
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav>
+        <div class="nav-container">
+            <div class="logo">
+                <a href="../../index.html"><img src="../../assets/images/logo.png" alt="Blue Chip Signals Logo"></a>
+            </div>
+            <div class="hamburger-menu">
+                <div class="bar"></div><div class="bar"></div><div class="bar"></div>
+            </div>
+            <ul class="nav-links">
+                <li id="dashboardLink" style="display: none;"><a href="../../dashboard.html" style="color: var(--primary-gold); font-weight: 600;"><i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
+                <li><a href="../../index.html#features">Features</a></li>
+                <li><a href="../../index.html#bots">Supported Stocks</a></li>
+                <li><a href="../../book-demo.html">Book a Demo</a></li>
+                <li><a href="../../contact.html">Contact</a></li>
+                <li class="dropdown"><a href="#">More</a>
+                    <ul class="dropdown-menu">
+                        <li><a href="../../index.html#testimonials">Testimonials</a></li>
+                        <li><a href="../../faq.html">FAQ</a></li>
+                        <li><a href="../../about.html">About Us</a></li>
+                        <li><a href="../../terms.html">Terms & Legal</a></li>
+                    </ul>
+                </li>
+                <li><a href="../../login.html" class="login-btn" id="authButton"><i class="fas fa-sign-in-alt"></i> Login</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="guide-hero">
+        <div class="guide-hero-content">
+            <div class="guide-badge">AMZN Trading Guide</div>
+            <h1 class="guide-title">RSI Divergence Scanner</h1>
+            <p class="guide-subtitle">Find bullish and bearish divergences at AMZN's key levels to time mean-reversion entries with defined risk.</p>
+        </div>
+    </section>
+
+    <!-- Guide Content -->
+    <div class="guide-content">
+        <a href="../bots/amzn-bot.html" class="back-button"><i class="fas fa-arrow-left"></i> Back to AMZN Signals</a>
+
+        <!-- Divergence Planner -->
+        <section class="content-section">
+            <h2><i class="fas fa-wave-square"></i> Divergence Planner</h2>
+            <p>Score a divergence setup based on type, timeframe, level quality, and volatility to size the trade.</p>
+            <div class="calculator-container">
+                <div class="calculator-inputs">
+                    <div class="input-group">
+                        <label for="div-type">Divergence Type:</label>
+                        <select id="div-type" class="calculator-input-select">
+                            <option value="">Select</option>
+                            <option value="bull" data-direction="positive" data-impact="1.15">Bullish (price lower low, RSI higher low)</option>
+                            <option value="bear" data-direction="negative" data-impact="1.15">Bearish (price higher high, RSI lower high)</option>
+                        </select>
+                    </div>
+                    <div class="input-group">
+                        <label for="timeframe">Timeframe:</label>
+                        <select id="timeframe" class="calculator-input-select">
+                            <option value="">Select</option>
+                            <option value="1h" data-weight="1.2">1H</option>
+                            <option value="30m" data-weight="1.1">30m</option>
+                            <option value="15m" data-weight="1.0">15m</option>
+                            <option value="5m" data-weight="0.9">5m</option>
+                        </select>
+                    </div>
+                    <div class="input-group">
+                        <label for="level-quality">Level Quality:</label>
+                        <select id="level-quality" class="calculator-input-select">
+                            <option value="">Select</option>
+                            <option value="major" data-level="1.2">Daily/4H level</option>
+                            <option value="medium" data-level="1.0">Hourly level / VWAP</option>
+                            <option value="minor" data-level="0.85">Micro level</option>
+                        </select>
+                    </div>
+                    <div class="input-group">
+                        <label for="volatility">Volatility:</label>
+                        <select id="volatility" class="calculator-input-select">
+                            <option value="">Select</option>
+                            <option value="normal" data-vol="1.0">Normal</option>
+                            <option value="high" data-vol="1.1">High</option>
+                            <option value="extreme" data-vol="1.2">Extreme</option>
+                        </select>
+                    </div>
+                    <div class="input-group">
+                        <label for="portfolio-size">Portfolio Size ($):</label>
+                        <input type="number" id="portfolio-size" class="calculator-input" placeholder="e.g., 50000" min="1000" step="1000">
+                    </div>
+                    <button id="calculate-btn" class="calculator-button"><i class="fas fa-chart-line"></i> Calculate Setup</button>
+                </div>
+
+                <div id="calculator-results" class="calculator-results" style="display: none;">
+                    <div class="results-grid">
+                        <div class="result-card">
+                            <div class="result-icon"><i class="fas fa-trending-up"></i></div>
+                            <div class="result-content">
+                                <h5>Expected Move</h5>
+                                <div class="result-value" id="price-impact">+1.0%</div>
+                                <div class="result-subtitle">Mean reversion target</div>
+                            </div>
+                        </div>
+                        <div class="result-card">
+                            <div class="result-icon"><i class="fas fa-bullseye"></i></div>
+                            <div class="result-content">
+                                <h5>Confidence</h5>
+                                <div class="result-value" id="confidence-level">Medium</div>
+                                <div class="result-subtitle">Signal quality</div>
+                            </div>
+                        </div>
+                        <div class="result-card">
+                            <div class="result-icon"><i class="fas fa-clock"></i></div>
+                            <div class="result-content">
+                                <h5>Time Window</h5>
+                                <div class="result-value" id="time-window">20-90 min</div>
+                                <div class="result-subtitle">Expected completion</div>
+                            </div>
+                        </div>
+                        <div class="result-card">
+                            <div class="result-icon"><i class="fas fa-dollar-sign"></i></div>
+                            <div class="result-content">
+                                <h5>Position Size</h5>
+                                <div class="result-value" id="position-size">$1,000</div>
+                                <div class="result-subtitle">Suggested allocation</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="strategy-content" id="strategy-text"></div>
+                    <div class="risk-grid" style="margin-top: 1.25rem;">
+                        <div class="risk-param"><strong>Stop Loss:</strong> <span id="stop-loss">0.8%</span></div>
+                        <div class="risk-param"><strong>Take Profit:</strong> <span id="take-profit">1.6%</span></div>
+                        <div class="risk-param"><strong>Max Risk:</strong> <span id="max-risk">$200</span></div>
+                        <div class="risk-param"><strong>Risk/Reward:</strong> <span id="risk-reward">1:2.0</span></div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Why it works -->
+        <section class="content-section">
+            <h2><i class="fas fa-heartbeat"></i> Why RSI Divergence on AMZN</h2>
+            <div class="grid-cards">
+                <div class="info-card"><h4><i class="fas fa-sync-alt"></i> Mean Reverter</h4><p>AMZN frequently snaps back to VWAP/levels after stretched moves, making divergences actionable.</p></div>
+                <div class="info-card"><h4><i class="fas fa-layer-group"></i> Level Confluence</h4><p>Divergences at HTF levels (daily/4H) carry higher follow-through than mid-range signals.</p></div>
+                <div class="info-card"><h4><i class="fas fa-bolt"></i> Catalyst Fade</h4><p>News spikes (AWS/retail) often fade; divergences help time the reversion.</p></div>
+                <div class="info-card"><h4><i class="fas fa-wave-square"></i> Clean Structure</h4><p>Liquidity and tight spreads keep RSI signals cleaner than thin, gappy tickers.</p></div>
+            </div>
+        </section>
+
+        <!-- Signals to watch -->
+        <section class="content-section">
+            <h2><i class="fas fa-signal"></i> Signal Checklist</h2>
+            <div class="grid-cards">
+                <div class="info-card"><h4><i class="fas fa-chart-area"></i> Price Structure</h4><p>Higher high / lower high (bear) or lower low / higher low (bull) against a marked level.</p></div>
+                <div class="info-card"><h4><i class="fas fa-eye"></i> Momentum</h4><p>RSI divergence plus slowing tape/volume near the level improves odds.</p></div>
+                <div class="info-card"><h4><i class="fas fa-vial"></i> Confluence</h4><p>Daily/4H levels, VWAP bands, and previous day high/low. More confluence = more size.</p></div>
+                <div class="info-card"><h4><i class="fas fa-cloud"></i> Catalyst Overlay</h4><p>AWS/retail headlines can invalidate weak divergences. Size down when headlines hit.</p></div>
+                <div class="info-card"><h4><i class="fas fa-rocket"></i> Reclaim/Reject</h4><p>Wait for wick reclaim (bull) or failure/reject (bear) instead of guessing the turn.</p></div>
+                <div class="info-card"><h4><i class="fas fa-clock"></i> Timing</h4><p>Best windows: first 90 minutes and power hour; midday signals are lower quality.</p></div>
+            </div>
+        </section>
+
+        <!-- Risk -->
+        <section class="content-section">
+            <h2><i class="fas fa-shield-alt"></i> Risk Management</h2>
+            <ul>
+                <li><strong>Size:</strong> 1-2% for standard divergences; 2-3% only with HTF level + strong confluence.</li>
+                <li><strong>Stops:</strong> 0.5-1% beyond the level; tighter on 5m/15m signals.</li>
+                <li><strong>Targets:</strong> First target at VWAP/IB mid; second at opposite side of range.</li>
+                <li><strong>Invalidation:</strong> Level loses with volume and no reclaim; close quickly.</li>
+                <li><strong>Options:</strong> Use liquid weeklies/next-week; avoid far OTM lottery strikes.</li>
+            </ul>
+            <div class="alert-box" style="background: linear-gradient(135deg, rgba(255,59,59,0.1), rgba(255,59,59,0.05)); border-color: rgba(255,59,59,0.3);">
+                <i class="fas fa-exclamation-triangle alert-icon"></i>
+                <strong>Warning:</strong> Don’t fade strong trend days without confirmation. If RSI stays pinned, wait for structure to change.
+            </div>
+        </section>
+
+        <!-- Quick checklist -->
+        <section class="content-section">
+            <h2><i class="fas fa-list-check"></i> Quick Execution Checklist</h2>
+            <div class="grid-cards">
+                <div class="info-card"><h4><i class="fas fa-clipboard-check"></i> Before</h4><p>Mark HTF levels, note news risk, define stop/targets, confirm spread/liquidity.</p></div>
+                <div class="info-card"><h4><i class="fas fa-stopwatch"></i> During</h4><p>Wait for wick reclaim/reject; confirm RSI divergence; watch tape speed and VWAP.</p></div>
+                <div class="info-card"><h4><i class="fas fa-flag-checkered"></i> After</h4><p>Scale out at 1R; move stop to break-even; avoid overholding if VWAP tags.</p></div>
+            </div>
+        </section>
+    </div>
+
+    <!-- Floating CTA -->
+    <div class="floating-cta">
+        <a href="../../book-demo.html" class="cta-button"><i class="fas fa-rocket"></i> Get AMZN Signals</a>
+    </div>
+
+    <!-- Footer -->
+    <footer>
+        <p>&copy; 2025 Blue Chip Signals. All rights reserved. | <a href="../../terms.html" style="color: var(--primary-gold); text-decoration: none;">Terms & Legal</a></p>
+        <div class="social-media">
+            <a href="https://www.tiktok.com/@bluechip.signals" target="_blank"><i class="fab fa-tiktok"></i></a>
+            <a href="https://www.instagram.com/bluechip.signals/" target="_blank"><i class="fab fa-instagram"></i></a>
+        </div>
+    </footer>
+
+    <script>
+        const hamburgerMenu = document.querySelector('.hamburger-menu');
+        const mobileNav = document.querySelector('.nav-links');
+        hamburgerMenu.addEventListener('click', () => mobileNav.classList.toggle('active'));
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const dropdown = document.querySelector('.dropdown');
+            const dropdownLink = dropdown.querySelector('a');
+            dropdownLink.addEventListener('click', function(e) {
+                if (window.innerWidth <= 768) {
+                    e.preventDefault();
+                    dropdown.classList.toggle('active');
+                }
+            });
+        });
+
+        class DivergencePlanner {
+            constructor() {
+                this.divType = document.getElementById('div-type');
+                this.timeframe = document.getElementById('timeframe');
+                this.levelQuality = document.getElementById('level-quality');
+                this.volatility = document.getElementById('volatility');
+                this.portfolio = document.getElementById('portfolio-size');
+                this.btn = document.getElementById('calculate-btn');
+                this.results = document.getElementById('calculator-results');
+                this.init();
+            }
+            init() {
+                this.btn.addEventListener('click', () => this.calculate());
+                [this.divType, this.timeframe, this.levelQuality, this.volatility, this.portfolio].forEach(el => {
+                    el.addEventListener('change', () => this.updateButton());
+                });
+            }
+            updateButton() {
+                const filled = this.divType.value && this.timeframe.value && this.levelQuality.value && this.volatility.value && this.portfolio.value;
+                this.btn.disabled = !filled;
+            }
+            calculate() {
+                const impact = parseFloat(this.divType.selectedOptions[0].dataset.impact);
+                const direction = this.divType.selectedOptions[0].dataset.direction;
+                const tfWeight = parseFloat(this.timeframe.selectedOptions[0].dataset.weight);
+                const level = parseFloat(this.levelQuality.selectedOptions[0].dataset.level);
+                const volAdj = parseFloat(this.volatility.selectedOptions[0].dataset.vol);
+                const portfolio = parseFloat(this.portfolio.value);
+
+                const baseMove = 0.01; // 1% base move
+                const move = baseMove * impact * tfWeight * level * volAdj;
+                const priceImpact = direction === 'negative' ? -Math.abs(move) : Math.abs(move);
+
+                const score = impact + tfWeight + level + volAdj;
+                const confidence = score >= 4.2 ? 'High' : score >= 3.4 ? 'Medium' : 'Low';
+
+                const positionPct = confidence === 'High' ? 0.025 : confidence === 'Medium' ? 0.02 : 0.015;
+                const positionSize = portfolio * positionPct;
+                const timeWindow = this.getTimeWindow(this.timeframe.value);
+
+                const stopLoss = Math.min(0.01, Math.abs(priceImpact) * 0.7);
+                const takeProfit = Math.abs(priceImpact) * 1.6;
+                const maxRisk = positionSize * stopLoss;
+                const riskReward = (takeProfit / stopLoss).toFixed(1);
+
+                const strategy = this.buildStrategy(confidence, direction, this.timeframe.value, this.levelQuality.value);
+
+                this.display({ priceImpact, confidence, timeWindow, positionSize, stopLoss, takeProfit, maxRisk, riskReward, strategy });
+            }
+            getTimeWindow(tf) {
+                switch(tf) {
+                    case '1h': return '60-180 min';
+                    case '30m': return '45-120 min';
+                    case '15m': return '30-90 min';
+                    case '5m': return '20-60 min';
+                    default: return '30-120 min';
+                }
+            }
+            buildStrategy(conf, direction, tf, level) {
+                const bias = direction === 'negative' ? 'bearish' : 'bullish';
+                const levelText = level === 'major' ? 'HTF daily/4H level' : level === 'medium' ? 'hourly/VWAP level' : 'micro level';
+                let text = `<strong>${bias.toUpperCase()} Divergence:</strong> ${tf.toUpperCase()} at ${levelText}. `;
+                if (conf === 'High') {
+                    text += `High conviction: enter on wick reclaim/reject with volume confirmation; can size full and trail after 1R. `;
+                } else if (conf === 'Medium') {
+                    text += `Moderate: start half size, add on VWAP reclaim/flip; avoid chasing. `;
+                } else {
+                    text += `Low: keep small size; require second confirmation (tape slowdown or second divergence). `;
+                }
+                text += `<br><br><strong>Entry:</strong> Limit near level; wait for candle close showing divergence. <strong>Monitor:</strong> VWAP relationship, tape speed, spread. <strong>Exit:</strong> Partial at 1R, trail stop to break-even; second target at opposite band/range.`;
+                return text;
+            }
+            display(res) {
+                const impactEl = document.getElementById('price-impact');
+                impactEl.textContent = `${res.priceImpact >= 0 ? '+' : ''}${(res.priceImpact * 100).toFixed(1)}%`;
+                impactEl.style.color = res.priceImpact >= 0 ? '#2a571f' : '#FF3B3B';
+
+                const confEl = document.getElementById('confidence-level');
+                confEl.textContent = res.confidence;
+                confEl.style.color = res.confidence === 'High' ? '#2a571f' : res.confidence === 'Medium' ? '#b3a17d' : '#FF3B3B';
+
+                document.getElementById('time-window').textContent = res.timeWindow;
+                document.getElementById('position-size').textContent = `$${res.positionSize.toLocaleString()}`;
+                document.getElementById('stop-loss').textContent = `${(res.stopLoss * 100).toFixed(1)}%`;
+                document.getElementById('take-profit').textContent = `${(res.takeProfit * 100).toFixed(1)}%`;
+                document.getElementById('max-risk').textContent = `$${res.maxRisk.toLocaleString()}`;
+                document.getElementById('risk-reward').textContent = `1:${res.riskReward}`;
+                document.getElementById('strategy-text').innerHTML = res.strategy;
+
+                this.results.style.display = 'block';
+                this.results.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => { new DivergencePlanner(); });
+
+        // Auth update
+        (function() {
+            const isLoggedIn = localStorage.getItem('bluechip_logged_in') || sessionStorage.getItem('bluechip_logged_in');
+            if (isLoggedIn) {
+                const dashboardLink = document.getElementById('dashboardLink');
+                if (dashboardLink) dashboardLink.style.display = 'block';
+                const authButton = document.getElementById('authButton');
+                if (authButton) {
+                    authButton.removeAttribute('href');
+                    authButton.innerHTML = '<i class="fas fa-sign-out-alt"></i> Logout';
+                    authButton.style.cursor = 'pointer';
+                    authButton.onclick = function(e) {
+                        e.preventDefault();
+                        localStorage.clear();
+                        sessionStorage.clear();
+                        window.location.href = '../../login.html';
+                        return false;
+                    };
+                }
+            }
+        })();
+    </script>
+</body>
+</html>
+

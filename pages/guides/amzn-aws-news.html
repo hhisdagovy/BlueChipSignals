@@ -1,0 +1,1180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AMZN AWS News Tracker | Blue Chip Signals</title>
+    <link rel="icon" type="image/png" href="../../assets/images/logo.png">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="../../assets/css/bot-style.css?v=1751140000">
+    <script>
+        // Redirect non-logged-in users to book demo page
+        (function() {
+            const isLoggedIn = localStorage.getItem('bluechip_logged_in') || sessionStorage.getItem('bluechip_logged_in');
+            if (!isLoggedIn) {
+                window.location.href = '../../book-demo.html';
+            }
+        })();
+    </script>
+    <style>
+        :root {
+            --primary-gold: #b3a17d;
+            --secondary-gold: #E2CFB5;
+            --dark-bg: #080B0F;
+            --darker-bg: #050810;
+            --light-text: #FFFFFF;
+            --gray-text: #A0A0A0;
+        }
+
+        body {
+            background: var(--darker-bg);
+            color: var(--light-text);
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        }
+
+        .guide-hero {
+            margin-top: 100px;
+            padding: 4rem 2rem 3rem;
+            text-align: center;
+            background: radial-gradient(circle at 50% 50%, rgba(201, 176, 55, 0.15), transparent 70%);
+            position: relative;
+        }
+
+        .guide-hero::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: radial-gradient(circle at 30% 40%, rgba(201, 176, 55, 0.08), transparent 50%);
+            z-index: 0;
+        }
+
+        .guide-hero-content {
+            max-width: 900px;
+            margin: 0 auto;
+            position: relative;
+            z-index: 1;
+        }
+
+        .guide-badge {
+            display: inline-block;
+            background: linear-gradient(135deg, var(--primary-gold), var(--secondary-gold));
+            color: var(--darker-bg);
+            padding: 0.4rem 1.2rem;
+            border-radius: 20px;
+            font-weight: 700;
+            font-size: 0.8rem;
+            letter-spacing: 1px;
+            margin-bottom: 1.5rem;
+            text-transform: uppercase;
+        }
+
+        .guide-title {
+            font-size: 2.8rem;
+            font-weight: 800;
+            margin: 0 0 1rem 0;
+            line-height: 1.2;
+            color: var(--light-text);
+        }
+
+        .guide-subtitle {
+            font-size: 1.2rem;
+            color: var(--gray-text);
+            line-height: 1.6;
+            margin: 0;
+        }
+
+        .guide-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 3rem 2rem;
+        }
+
+        .content-section {
+            background: var(--dark-bg);
+            border: 1px solid rgba(201, 176, 55, 0.2);
+            border-radius: 15px;
+            padding: 2.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .content-section h2 {
+            color: var(--primary-gold);
+            font-size: 1.8rem;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .content-section h2 i {
+            font-size: 1.5rem;
+        }
+
+        .content-section h3 {
+            color: var(--light-text);
+            font-size: 1.4rem;
+            margin-bottom: 1rem;
+        }
+
+        .content-section h4 {
+            color: var(--primary-gold);
+            font-size: 1.2rem;
+            margin-bottom: 1rem;
+        }
+
+        .content-section h5 {
+            color: var(--secondary-gold);
+            font-size: 1rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .content-section p {
+            color: var(--gray-text);
+            line-height: 1.8;
+            margin-bottom: 1rem;
+        }
+
+        .content-section ul {
+            color: var(--light-text);
+            line-height: 1.8;
+            margin: 1rem 0;
+            padding-left: 1.5rem;
+        }
+
+        .content-section ul li {
+            margin-bottom: 0.75rem;
+        }
+
+        .content-section strong {
+            color: var(--light-text);
+        }
+
+        .login-btn {
+            background: linear-gradient(135deg, var(--primary-gold), var(--secondary-gold)) !important;
+            color: var(--darker-bg) !important;
+            padding: 0.5rem 1.2rem;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 0.95rem;
+            transition: transform 0.3s, box-shadow 0.3s;
+            display: inline-block;
+        }
+
+        .login-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(201, 176, 55, 0.3);
+            color: var(--darker-bg) !important;
+        }
+
+        .back-button {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--primary-gold);
+            text-decoration: none;
+            font-weight: 600;
+            margin-bottom: 2rem;
+            transition: all 0.3s ease;
+        }
+
+        .back-button:hover {
+            transform: translateX(-5px);
+        }
+
+        .aws-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.5rem;
+            margin: 2rem 0;
+        }
+
+        .aws-card {
+            background: linear-gradient(135deg, rgba(179, 161, 125, 0.1), rgba(179, 161, 125, 0.05));
+            border: 1px solid rgba(179, 161, 125, 0.2);
+            border-radius: 12px;
+            padding: 1.5rem;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .aws-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, var(--primary-gold), var(--secondary-gold));
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .aws-card:hover {
+            transform: translateY(-5px);
+            border-color: var(--primary-gold);
+            box-shadow: 0 10px 30px rgba(179, 161, 125, 0.2);
+        }
+
+        .aws-card:hover::before {
+            opacity: 1;
+        }
+
+        .aws-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 1rem;
+            gap: 0.75rem;
+        }
+
+        .aws-icon {
+            font-size: 2rem;
+            color: var(--primary-gold);
+            width: 40px;
+            text-align: center;
+        }
+
+        .signal-tag {
+            display: inline-block;
+            background: rgba(179, 161, 125, 0.2);
+            color: var(--primary-gold);
+            padding: 0.3rem 0.8rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            margin: 0.2rem 0.3rem 0.2rem 0;
+            border: 1px solid rgba(179, 161, 125, 0.3);
+        }
+
+        .timeline-container {
+            position: relative;
+            margin: 2rem 0;
+        }
+
+        .timeline-item {
+            display: flex;
+            margin-bottom: 2rem;
+            position: relative;
+        }
+
+        .timeline-time {
+            min-width: 120px;
+            color: var(--primary-gold);
+            font-weight: 600;
+            padding-right: 1rem;
+        }
+
+        .timeline-content {
+            flex: 1;
+            background: rgba(179, 161, 125, 0.1);
+            padding: 1rem;
+            border-radius: 8px;
+            border-left: 3px solid var(--primary-gold);
+        }
+
+        .alert-box {
+            background: linear-gradient(135deg, rgba(255, 59, 59, 0.1), rgba(255, 59, 59, 0.05));
+            border: 1px solid rgba(255, 59, 59, 0.3);
+            border-radius: 8px;
+            padding: 1rem;
+            margin: 1.5rem 0;
+        }
+
+        .alert-box .alert-icon {
+            color: #FF3B3B;
+            margin-right: 0.5rem;
+        }
+
+        .risk-management-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin: 1.5rem 0;
+        }
+
+        .risk-item {
+            background: rgba(42, 87, 31, 0.2);
+            border: 1px solid rgba(42, 87, 31, 0.4);
+            border-radius: 8px;
+            padding: 1rem;
+            text-align: center;
+        }
+
+        .risk-icon {
+            font-size: 1.5rem;
+            color: var(--success-green);
+            margin-bottom: 0.5rem;
+        }
+
+        .calculator-container {
+            margin: 2rem 0;
+        }
+
+        .calculator-inputs {
+            background: rgba(179, 161, 125, 0.05);
+            border: 1px solid rgba(179, 161, 125, 0.2);
+            border-radius: 12px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .input-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .input-group label {
+            display: block;
+            color: var(--primary-gold);
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            font-size: 0.9rem;
+        }
+
+        .calculator-input {
+            width: 100%;
+            padding: 0.75rem;
+            background: var(--dark-bg);
+            border: 1px solid rgba(179, 161, 125, 0.3);
+            border-radius: 8px;
+            color: var(--light-text);
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+        }
+
+        .calculator-input:focus {
+            outline: none;
+            border-color: var(--primary-gold);
+            box-shadow: 0 0 0 2px rgba(179, 161, 125, 0.2);
+        }
+
+        .calculator-button {
+            background: linear-gradient(135deg, var(--primary-gold), var(--secondary-gold));
+            color: #000;
+            border: none;
+            padding: 1rem 2rem;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            width: 100%;
+            font-size: 1rem;
+        }
+
+        .calculator-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(179, 161, 125, 0.4);
+        }
+
+        .calculator-button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .calculator-results {
+            background: linear-gradient(135deg, rgba(179, 161, 125, 0.1), rgba(179, 161, 125, 0.05));
+            border: 1px solid rgba(179, 161, 125, 0.3);
+            border-radius: 12px;
+            padding: 2rem;
+            animation: fadeInUp 0.5s ease;
+        }
+
+        .results-header h4 {
+            color: var(--primary-gold);
+            margin: 0 0 1.5rem 0;
+            font-size: 1.3rem;
+        }
+
+        .results-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .result-card {
+            background: var(--dark-bg);
+            border: 1px solid rgba(179, 161, 125, 0.2);
+            border-radius: 8px;
+            padding: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .result-icon {
+            font-size: 2rem;
+            color: var(--primary-gold);
+            min-width: 40px;
+        }
+
+        .result-content h5 {
+            margin: 0 0 0.5rem 0;
+            color: var(--light-text);
+            font-size: 0.9rem;
+        }
+
+        .result-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--primary-gold);
+            margin-bottom: 0.25rem;
+        }
+
+        .result-subtitle {
+            font-size: 0.8rem;
+            color: var(--gray-text);
+        }
+
+        .strategy-content {
+            background: rgba(42, 87, 31, 0.2);
+            border: 1px solid rgba(42, 87, 31, 0.4);
+            border-radius: 8px;
+            padding: 1.5rem;
+            line-height: 1.6;
+        }
+
+        .risk-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 1rem;
+        }
+
+        .risk-param {
+            background: rgba(179, 161, 125, 0.1);
+            padding: 0.75rem;
+            border-radius: 6px;
+            font-size: 0.9rem;
+        }
+
+        .risk-param span {
+            color: var(--primary-gold);
+            font-weight: 600;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @media (max-width: 768px) {
+            .guide-title {
+                font-size: 2rem;
+            }
+
+            .guide-subtitle {
+                font-size: 1rem;
+            }
+
+            .content-section {
+                padding: 1.5rem;
+            }
+
+            .aws-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .results-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .result-card {
+                flex-direction: column;
+                text-align: center;
+            }
+
+            .calculator-inputs {
+                padding: 1.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav>
+        <div class="nav-container">
+            <div class="logo">
+                <a href="../../index.html"><img src="../../assets/images/logo.png" alt="Blue Chip Signals Logo"></a>
+            </div>
+            <div class="hamburger-menu">
+                <div class="bar"></div>
+                <div class="bar"></div>
+                <div class="bar"></div>
+            </div>
+            <ul class="nav-links">
+                <li id="dashboardLink" style="display: none;"><a href="../../dashboard.html" style="color: var(--primary-gold); font-weight: 600;"><i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
+                <li><a href="../../index.html#features">Features</a></li>
+                <li><a href="../../index.html#bots">Supported Stocks</a></li>
+                <li><a href="../../book-demo.html">Book a Demo</a></li>
+                <li><a href="../../contact.html">Contact</a></li>
+                <li class="dropdown"><a href="#">More</a>
+                    <ul class="dropdown-menu">
+                        <li><a href="../../index.html#testimonials">Testimonials</a></li>
+                        <li><a href="../../faq.html">FAQ</a></li>
+                        <li><a href="../../about.html">About Us</a></li>
+                        <li><a href="../../terms.html">Terms & Legal</a></li>
+                    </ul>
+                </li>
+                <li><a href="../../login.html" class="login-btn" id="authButton"><i class="fas fa-sign-in-alt"></i> Login</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="guide-hero">
+        <div class="guide-hero-content">
+            <div class="guide-badge">AMZN Trading Guide</div>
+            <h1 class="guide-title">AWS News Tracker</h1>
+            <p class="guide-subtitle">AWS outages, mega-customer wins, pricing shifts, and AI announcements move AMZN faster than most headlines. Track and trade them with a structured playbook.</p>
+        </div>
+    </section>
+
+    <!-- Guide Content -->
+    <div class="guide-content">
+        <a href="../bots/amzn-bot.html" class="back-button">
+            <i class="fas fa-arrow-left"></i> Back to AMZN Signals
+        </a>
+
+        <!-- Interactive Calculator Section -->
+        <section class="content-section">
+            <h2><i class="fas fa-bolt"></i> AWS News Impact Calculator</h2>
+            <p>Estimate how different AWS headlines could impact AMZN and generate a position size with risk levels.</p>
+
+            <div class="calculator-container">
+                <div class="calculator-inputs">
+                    <div class="input-group">
+                        <label for="news-type">News Type:</label>
+                        <select id="news-type" class="calculator-input">
+                            <option value="">Select News Type</option>
+                            <option value="outage" data-impact="9" data-direction="negative">Major Outage (multi-region)</option>
+                            <option value="customer-win" data-impact="8" data-direction="positive">Mega Customer Win ($500M+)</option>
+                            <option value="pricing-cut" data-impact="7" data-direction="positive">Price Cut / Savings Plan</option>
+                            <option value="pricing-increase" data-impact="6" data-direction="negative">Price Increase</option>
+                            <option value="ai-launch" data-impact="8" data-direction="positive">AI/GenAI Launch or Upgrade</option>
+                            <option value="gov-contract" data-impact="8" data-direction="positive">Government / Defense Contract</option>
+                            <option value="guidance-cut" data-impact="9" data-direction="negative">AWS Guidance Cut</option>
+                        </select>
+                    </div>
+
+                    <div class="input-group">
+                        <label for="magnitude">Magnitude:</label>
+                        <select id="magnitude" class="calculator-input">
+                            <option value="">Select Magnitude</option>
+                            <option value="5">Minor / Limited impact</option>
+                            <option value="12">Material but contained</option>
+                            <option value="20">Major / Market-moving</option>
+                        </select>
+                    </div>
+
+                    <div class="input-group">
+                        <label for="business-area">Business Area:</label>
+                        <select id="business-area" class="calculator-input">
+                            <option value="">Select Area</option>
+                            <option value="compute" data-weight="1.2">Compute / EC2</option>
+                            <option value="ai" data-weight="1.3">AI / Bedrock / SageMaker</option>
+                            <option value="database" data-weight="1.1">Databases / Redshift</option>
+                            <option value="networking" data-weight="1.0">Networking / CloudFront</option>
+                            <option value="security" data-weight="1.1">Security / IAM / Shield</option>
+                            <option value="storage" data-weight="1.0">Storage / S3</option>
+                        </select>
+                    </div>
+
+                    <div class="input-group">
+                        <label for="market-timing">Market Timing:</label>
+                        <select id="market-timing" class="calculator-input">
+                            <option value="">Select Timing</option>
+                            <option value="premarket" data-volatility="1.3">Pre-Market</option>
+                            <option value="opening" data-volatility="1.5">Market Open (9:30-10:30 ET)</option>
+                            <option value="regular" data-volatility="1.0">Regular Hours</option>
+                            <option value="afterhours" data-volatility="1.25">After Hours</option>
+                        </select>
+                    </div>
+
+                    <div class="input-group">
+                        <label for="portfolio-size">Portfolio Size ($):</label>
+                        <input type="number" id="portfolio-size" class="calculator-input" placeholder="e.g., 50000" min="1000" step="1000">
+                    </div>
+
+                    <button id="calculate-btn" class="calculator-button">
+                        <i class="fas fa-chart-line"></i> Calculate Impact
+                    </button>
+                </div>
+
+                <div id="calculator-results" class="calculator-results" style="display: none;">
+                    <div class="results-header">
+                        <h4><i class="fas fa-chart-bar"></i> Trading Analysis</h4>
+                    </div>
+
+                    <div class="results-grid">
+                        <div class="result-card impact-card">
+                            <div class="result-icon"><i class="fas fa-trending-up"></i></div>
+                            <div class="result-content">
+                                <h5>Expected AMZN Impact</h5>
+                                <div class="result-value" id="price-impact">+2.5%</div>
+                                <div class="result-subtitle">Estimated price movement</div>
+                            </div>
+                        </div>
+
+                        <div class="result-card confidence-card">
+                            <div class="result-icon"><i class="fas fa-bullseye"></i></div>
+                            <div class="result-content">
+                                <h5>Confidence Level</h5>
+                                <div class="result-value" id="confidence-level">High</div>
+                                <div class="result-subtitle">Based on historical data</div>
+                            </div>
+                        </div>
+
+                        <div class="result-card timing-card">
+                            <div class="result-icon"><i class="fas fa-clock"></i></div>
+                            <div class="result-content">
+                                <h5>Time Window</h5>
+                                <div class="result-value" id="time-window">30-60 min</div>
+                                <div class="result-subtitle">Peak impact period</div>
+                            </div>
+                        </div>
+
+                        <div class="result-card position-card">
+                            <div class="result-icon"><i class="fas fa-dollar-sign"></i></div>
+                            <div class="result-content">
+                                <h5>Recommended Position</h5>
+                                <div class="result-value" id="position-size">$1,000</div>
+                                <div class="result-subtitle">2% of portfolio</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="trading-strategy">
+                        <h5><i class="fas fa-chess"></i> Trading Strategy</h5>
+                        <div id="strategy-text" class="strategy-content">
+                            <!-- Dynamic strategy content will be inserted here -->
+                        </div>
+                    </div>
+
+                    <div class="risk-parameters">
+                        <h5><i class="fas fa-shield-alt"></i> Risk Parameters</h5>
+                        <div class="risk-grid">
+                            <div class="risk-param">
+                                <strong>Stop Loss:</strong> <span id="stop-loss">1.5%</span>
+                            </div>
+                            <div class="risk-param">
+                                <strong>Take Profit:</strong> <span id="take-profit">3.0%</span>
+                            </div>
+                            <div class="risk-param">
+                                <strong>Max Risk:</strong> <span id="max-risk">$300</span>
+                            </div>
+                            <div class="risk-param">
+                                <strong>Risk/Reward:</strong> <span id="risk-reward">1:2</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Introduction Section -->
+        <section class="content-section">
+            <h2><i class="fas fa-cloud"></i> Why AWS Headlines Move AMZN</h2>
+            <p>AWS is AMZN's profit engine. Outages hit sentiment fast; mega-customer wins and AI launches often re-rate growth; pricing moves change margin outlook. Treat AWS news as primary catalysts for AMZN.</p>
+
+            <div class="alert-box">
+                <i class="fas fa-exclamation-triangle alert-icon"></i>
+                <strong>Key Insight:</strong> The first 30-90 minutes after a credible AWS headline is the highest-edge window. Act quickly but size responsibly.
+            </div>
+        </section>
+
+        <!-- Key AWS Catalysts Section -->
+        <section class="content-section">
+            <h2><i class="fas fa-server"></i> High-Impact AWS Catalysts</h2>
+            <p>Prioritize these AWS signals when deciding to trade AMZN intraday or swing.</p>
+
+            <div class="aws-grid">
+                <div class="aws-card">
+                    <div class="aws-header">
+                        <div class="aws-icon"><i class="fas fa-plug"></i></div>
+                        <div>
+                            <h4 class="supplier-title">Major Outages</h4>
+                            <p class="supplier-subtitle" style="color: var(--gray-text); margin: 0;">Multi-region or CDN disruptions</p>
+                        </div>
+                    </div>
+                    <div class="signal-types">
+                        <span class="signal-tag">Status Page</span>
+                        <span class="signal-tag">Third-party monitors</span>
+                        <span class="signal-tag">Customer impact</span>
+                    </div>
+                    <p><strong>Impact:</strong> Negative. Watch cloud peer sympathy moves (GOOGL, MSFT) and risk-off rotations.</p>
+                </div>
+
+                <div class="aws-card">
+                    <div class="aws-header">
+                        <div class="aws-icon"><i class="fas fa-handshake"></i></div>
+                        <div>
+                            <h4 class="supplier-title">Mega-Customer Wins</h4>
+                            <p class="supplier-subtitle" style="color: var(--gray-text); margin: 0;">$500M+ TCV or marquee logos</p>
+                        </div>
+                    </div>
+                    <div class="signal-types">
+                        <span class="signal-tag">Earnings mentions</span>
+                        <span class="signal-tag">Press releases</span>
+                        <span class="signal-tag">Partner PR</span>
+                    </div>
+                    <p><strong>Impact:</strong> Positive. Especially for AI workloads and data platform deals.</p>
+                </div>
+
+                <div class="aws-card">
+                    <div class="aws-header">
+                        <div class="aws-icon"><i class="fas fa-robot"></i></div>
+                        <div>
+                            <h4 class="supplier-title">AI/GenAI Launches</h4>
+                            <p class="supplier-subtitle" style="color: var(--gray-text); margin: 0;">Bedrock, Trainium, Inferentia updates</p>
+                        </div>
+                    </div>
+                    <div class="signal-types">
+                        <span class="signal-tag">New SKUs</span>
+                        <span class="signal-tag">Model partnerships</span>
+                        <span class="signal-tag">Pricing shifts</span>
+                    </div>
+                    <p><strong>Impact:</strong> Positive. Re-prices growth vs peers and supports margin story.</p>
+                </div>
+
+                <div class="aws-card">
+                    <div class="aws-header">
+                        <div class="aws-icon"><i class="fas fa-tags"></i></div>
+                        <div>
+                            <h4 class="supplier-title">Pricing Changes</h4>
+                            <p class="supplier-subtitle" style="color: var(--gray-text); margin: 0;">Cuts, credits, savings plans</p>
+                        </div>
+                    </div>
+                    <div class="signal-types">
+                        <span class="signal-tag">Blog posts</span>
+                        <span class="signal-tag">Partner notices</span>
+                        <span class="signal-tag">CSP updates</span>
+                    </div>
+                    <p><strong>Impact:</strong> Mixed. Cuts can pressure near-term margins but defend share vs Azure/Google Cloud.</p>
+                </div>
+
+                <div class="aws-card">
+                    <div class="aws-header">
+                        <div class="aws-icon"><i class="fas fa-shield-alt"></i></div>
+                        <div>
+                            <h4 class="supplier-title">Security & Compliance</h4>
+                            <p class="supplier-subtitle" style="color: var(--gray-text); margin: 0;">FedRAMP, DoD, sovereignty</p>
+                        </div>
+                    </div>
+                    <div class="signal-types">
+                        <span class="signal-tag">Authorizations</span>
+                        <span class="signal-tag">Bids/Awards</span>
+                        <span class="signal-tag">Breach reports</span>
+                    </div>
+                    <p><strong>Impact:</strong> Positive when winning gov cloud; negative if security lapses surface.</p>
+                </div>
+
+                <div class="aws-card">
+                    <div class="aws-header">
+                        <div class="aws-icon"><i class="fas fa-globe"></i></div>
+                        <div>
+                            <h4 class="supplier-title">New Regions & Expansions</h4>
+                            <p class="supplier-subtitle" style="color: var(--gray-text); margin: 0;">Sovereign & edge builds</p>
+                        </div>
+                    </div>
+                    <div class="signal-types">
+                        <span class="signal-tag">Capex signals</span>
+                        <span class="signal-tag">Local press</span>
+                        <span class="signal-tag">Hyperscaler peering</span>
+                    </div>
+                    <p><strong>Impact:</strong> Positive for TAM; watch capex/margin commentary.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- News Sources Section -->
+        <section class="content-section">
+            <h2><i class="fas fa-newspaper"></i> Intelligence Sources & Reliability</h2>
+            <p>Track AWS headlines using a tiered source approach for speed and signal quality.</p>
+
+            <div class="aws-grid">
+                <div class="aws-card">
+                    <div class="aws-header">
+                        <div class="aws-icon"><i class="fas fa-crown"></i></div>
+                        <div>
+                            <h4 class="supplier-title">Tier 1 - Market Moving</h4>
+                            <p class="supplier-subtitle" style="color: var(--gray-text); margin: 0;">Fastest, highest-signal</p>
+                        </div>
+                    </div>
+                    <ul>
+                        <li>Bloomberg / Reuters cloud & AI desk</li>
+                        <li>AMZN earnings, 8-K, blog announcements</li>
+                        <li>Government award databases (SAM.gov, DoD)</li>
+                        <li>Status pages + Downdetector spikes</li>
+                    </ul>
+                </div>
+
+                <div class="aws-card">
+                    <div class="aws-header">
+                        <div class="aws-icon"><i class="fas fa-signal"></i></div>
+                        <div>
+                            <h4 class="supplier-title">Tier 2 - Strong Signal</h4>
+                            <p class="supplier-subtitle" style="color: var(--gray-text); margin: 0;">Good confirmation</p>
+                        </div>
+                    </div>
+                    <ul>
+                        <li>Partner press releases (Snowflake, Datadog, Nvidia)</li>
+                        <li>Channel checks & CSP/VAR notices</li>
+                        <li>LinkedIn hiring spikes for regions/AI roles</li>
+                        <li>Large customer tech blogs (Netflix, Airbnb, Stripe)</li>
+                    </ul>
+                </div>
+
+                <div class="aws-card">
+                    <div class="aws-header">
+                        <div class="aws-icon"><i class="fas fa-wave-square"></i></div>
+                        <div>
+                            <h4 class="supplier-title">Tier 3 - Early Noise</h4>
+                            <p class="supplier-subtitle" style="color: var(--gray-text); margin: 0;">Fast but verify</p>
+                        </div>
+                    </div>
+                    <ul>
+                        <li>Twitter/X outage chatter & SRE posts</li>
+                        <li>Developer forums / GitHub issues</li>
+                        <li>Regional press on data center builds</li>
+                        <li>Reddit r/aws / r/devops threads</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- Filtering Signal Section -->
+        <section class="content-section">
+            <h2><i class="fas fa-filter"></i> Filter Signal from Noise</h2>
+            <p>Use these rules to decide when to trade AWS headlines.</p>
+
+            <div class="risk-management-grid">
+                <div class="risk-item">
+                    <div class="risk-icon"><i class="fas fa-chart-line"></i></div>
+                    <h4>Magnitude Matters</h4>
+                    <p>Focus on multi-region outages, $500M+ wins, or AI launches.</p>
+                </div>
+                <div class="risk-item">
+                    <div class="risk-icon"><i class="fas fa-check-circle"></i></div>
+                    <h4>Source Quality</h4>
+                    <p>Tier 1 sources get priority. Tier 3 needs confirmation.</p>
+                </div>
+                <div class="risk-item">
+                    <div class="risk-icon"><i class="fas fa-sync"></i></div>
+                    <h4>Cross-Validate</h4>
+                    <p>Two independent confirmations before sizing up.</p>
+                </div>
+                <div class="risk-item">
+                    <div class="risk-icon"><i class="fas fa-clock"></i></div>
+                    <h4>Timing Window</h4>
+                    <p>Act in first 30-90 mins; fade after market digests.</p>
+                </div>
+            </div>
+
+            <div class="alert-box">
+                <i class="fas fa-lightbulb alert-icon" style="color: var(--primary-gold);"></i>
+                <strong>Pro Tip:</strong> Track Azure/Google Cloud reactions. Sympathy moves often confirm (or refute) the initial read on AWS headlines.
+            </div>
+        </section>
+
+        <!-- Trading Timeline Section -->
+        <section class="content-section">
+            <h2><i class="fas fa-clock"></i> Typical News-to-Market Timeline</h2>
+            <p>How AWS headlines usually flow into AMZN price action:</p>
+
+            <div class="timeline-container">
+                <div class="timeline-item">
+                    <div class="timeline-time">T+0 mins</div>
+                    <div class="timeline-content">
+                        <strong>Headline Breaks</strong><br>
+                        Status page / press release / Tier 1 wire alerts
+                    </div>
+                </div>
+
+                <div class="timeline-item">
+                    <div class="timeline-time">T+10-20 mins</div>
+                    <div class="timeline-content">
+                        <strong>Algos React</strong><br>
+                        Options flow spikes; cloud peers move; liquidity thins
+                    </div>
+                </div>
+
+                <div class="timeline-item">
+                    <div class="timeline-time">T+20-60 mins</div>
+                    <div class="timeline-content">
+                        <strong>Human Analysis</strong><br>
+                        Analysts size materiality; Twitter/X sentiment firms up
+                    </div>
+                </div>
+
+                <div class="timeline-item">
+                    <div class="timeline-time">T+1-3 hours</div>
+                    <div class="timeline-content">
+                        <strong>Management / Partners</strong><br>
+                        Confirmations, clarifications, or rebuttals
+                    </div>
+                </div>
+
+                <div class="timeline-item">
+                    <div class="timeline-time">T+1 day</div>
+                    <div class="timeline-content">
+                        <strong>Consensus Forms</strong><br>
+                        Sell-side notes; move either extends or fades
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Risk Management Section -->
+        <section class="content-section">
+            <h2><i class="fas fa-shield-alt"></i> Risk Management for AWS Trades</h2>
+            <p>Protect capital while trading fast-moving AWS headlines.</p>
+
+            <ul>
+                <li><strong>Position Size:</strong> 1-2% for single-source headlines; 3-5% when confirmed.</li>
+                <li><strong>Stops:</strong> 1-2% for intraday; trail if move extends on confirmation.</li>
+                <li><strong>Options:</strong> Favor liquid weeklies/next-week calls/puts; avoid illiquid strikes.</li>
+                <li><strong>Macro Check:</strong> Broad risk-off can mute positive AWS news.</li>
+            </ul>
+
+            <div class="alert-box">
+                <i class="fas fa-exclamation-triangle alert-icon"></i>
+                <strong>Warning:</strong> Outage headlines fade quickly once mitigated. Take profits into the first leg; avoid overstaying.
+            </div>
+        </section>
+    </div>
+
+    <!-- Floating CTA -->
+    <div class="floating-cta">
+        <a href="../../book-demo.html" class="cta-button">
+            <i class="fas fa-rocket"></i> Get AMZN Signals
+        </a>
+    </div>
+
+    <!-- Footer -->
+    <footer>
+        <p>&copy; 2025 Blue Chip Signals. All rights reserved. | <a href="../../terms.html" style="color: var(--primary-gold); text-decoration: none;">Terms & Legal</a></p>
+        <div class="social-media">
+            <a href="https://www.tiktok.com/@bluechip.signals" target="_blank"><i class="fab fa-tiktok"></i></a>
+            <a href="https://www.instagram.com/bluechip.signals/" target="_blank"><i class="fab fa-instagram"></i></a>
+        </div>
+    </footer>
+
+    <script>
+        const hamburgerMenu = document.querySelector('.hamburger-menu');
+        const mobileNav = document.querySelector('.nav-links');
+
+        hamburgerMenu.addEventListener('click', () => {
+            mobileNav.classList.toggle('active');
+        });
+
+        // Handle mobile dropdown toggle
+        document.addEventListener('DOMContentLoaded', function() {
+            const dropdown = document.querySelector('.dropdown');
+            const dropdownLink = dropdown.querySelector('a');
+
+            dropdownLink.addEventListener('click', function(e) {
+                if (window.innerWidth <= 768) {
+                    e.preventDefault();
+                    dropdown.classList.toggle('active');
+                }
+            });
+        });
+
+        // AWS News Impact Calculator
+        class AwsNewsCalculator {
+            constructor() {
+                this.newsTypeSelect = document.getElementById('news-type');
+                this.magnitudeSelect = document.getElementById('magnitude');
+                this.businessAreaSelect = document.getElementById('business-area');
+                this.marketTimingSelect = document.getElementById('market-timing');
+                this.portfolioSizeInput = document.getElementById('portfolio-size');
+                this.calculateBtn = document.getElementById('calculate-btn');
+                this.resultsDiv = document.getElementById('calculator-results');
+
+                this.initEventListeners();
+            }
+
+            initEventListeners() {
+                this.calculateBtn.addEventListener('click', () => this.calculate());
+
+                [this.newsTypeSelect, this.magnitudeSelect, this.businessAreaSelect, this.marketTimingSelect, this.portfolioSizeInput].forEach(input => {
+                    input.addEventListener('change', () => this.updateButtonState());
+                });
+            }
+
+            updateButtonState() {
+                const allFilled = this.newsTypeSelect.value &&
+                                 this.magnitudeSelect.value &&
+                                 this.businessAreaSelect.value &&
+                                 this.marketTimingSelect.value &&
+                                 this.portfolioSizeInput.value;
+
+                this.calculateBtn.disabled = !allFilled;
+            }
+
+            calculate() {
+                const newsImpact = parseFloat(this.newsTypeSelect.selectedOptions[0].dataset.impact);
+                const direction = this.newsTypeSelect.selectedOptions[0].dataset.direction;
+                const magnitude = parseFloat(this.magnitudeSelect.value);
+                const businessWeight = parseFloat(this.businessAreaSelect.selectedOptions[0].dataset.weight);
+                const volatilityMultiplier = parseFloat(this.marketTimingSelect.selectedOptions[0].dataset.volatility);
+                const portfolioSize = parseFloat(this.portfolioSizeInput.value);
+
+                // Base impact: news importance * magnitude * business weighting
+                const baseImpact = (newsImpact / 10) * (magnitude / 10) * businessWeight;
+
+                // Apply timing volatility
+                const finalImpact = baseImpact * volatilityMultiplier;
+
+                // Directional move
+                const priceImpact = direction === 'negative' ? -Math.abs(finalImpact) : Math.abs(finalImpact);
+
+                // Confidence
+                const confidence = this.getConfidenceLevel(newsImpact, magnitude);
+
+                // Position sizing
+                const positionPercent = confidence === 'High' ? 0.025 : confidence === 'Medium' ? 0.02 : 0.015;
+                const recommendedPosition = portfolioSize * positionPercent;
+
+                // Time window
+                const timeWindow = this.getTimeWindow(this.marketTimingSelect.value);
+
+                // Risk parameters
+                const stopLoss = Math.min(0.02, Math.abs(priceImpact) * 0.7);
+                const takeProfit = Math.abs(priceImpact) * 1.2;
+                const maxRisk = recommendedPosition * stopLoss;
+                const riskReward = (takeProfit / stopLoss).toFixed(1);
+
+                // Strategy text
+                const strategy = this.generateStrategy(this.newsTypeSelect.value, direction, confidence);
+
+                // Update display
+                this.displayResults({
+                    priceImpact,
+                    confidence,
+                    timeWindow,
+                    recommendedPosition,
+                    stopLoss,
+                    takeProfit,
+                    maxRisk,
+                    riskReward,
+                    strategy
+                });
+            }
+
+            getConfidenceLevel(newsImpact, magnitude) {
+                const score = newsImpact + magnitude;
+                if (score >= 25) return 'High';
+                if (score >= 15) return 'Medium';
+                return 'Low';
+            }
+
+            getTimeWindow(marketTiming) {
+                switch(marketTiming) {
+                    case 'premarket': return '20-60 min';
+                    case 'opening': return '30-90 min';
+                    case 'regular': return '30-60 min';
+                    case 'afterhours': return '20-60 min';
+                    default: return '30-60 min';
+                }
+            }
+
+            generateStrategy(newsType, direction, confidence) {
+                const bias = direction === 'negative' ? 'bearish' : 'bullish';
+                const action = direction === 'negative' ? 'short' : 'long';
+
+                const headlines = {
+                    outage: 'Major AWS outage reported',
+                    'customer-win': 'Mega-customer win announced',
+                    'pricing-cut': 'AWS price cut / savings plan announced',
+                    'pricing-increase': 'AWS price increase announced',
+                    'ai-launch': 'New AI/GenAI launch or upgrade',
+                    'gov-contract': 'Government/defense contract award',
+                    'guidance-cut': 'AWS guidance lowered'
+                };
+
+                let strategy = `<strong>${bias.toUpperCase()} Strategy:</strong> ${headlines[newsType] || 'Headline detected'}. `;
+
+                if (confidence === 'High') {
+                    strategy += `High-confidence ${action} setup. Enter quickly after confirmation; size full allocation. `;
+                } else if (confidence === 'Medium') {
+                    strategy += `Moderate-confidence ${action}. Scale in 50% then add on confirmation. `;
+                } else {
+                    strategy += `Low-confidence signal. Consider smaller size or wait for a second source. `;
+                }
+
+                strategy += `<br><br><strong>Entry:</strong> ${direction === 'negative' ? 'Short' : 'Long'} near VWAP after first pullback/rally. `;
+                strategy += `<strong>Monitor:</strong> Cloud peer sympathy (MSFT/GOOGL), options flow, and management updates. `;
+                strategy += `<strong>Exit:</strong> Take partials into first 1-1.5% move; trail stop on remainder.`;
+
+                return strategy;
+            }
+
+            displayResults(results) {
+                // Price impact
+                const impactElement = document.getElementById('price-impact');
+                impactElement.textContent = `${results.priceImpact >= 0 ? '+' : ''}${(results.priceImpact * 100).toFixed(1)}%`;
+                impactElement.style.color = results.priceImpact >= 0 ? '#2a571f' : '#FF3B3B';
+
+                // Confidence
+                const confidenceElement = document.getElementById('confidence-level');
+                confidenceElement.textContent = results.confidence;
+                confidenceElement.style.color = results.confidence === 'High' ? '#2a571f' :
+                                               results.confidence === 'Medium' ? '#b3a17d' : '#FF3B3B';
+
+                document.getElementById('time-window').textContent = results.timeWindow;
+                document.getElementById('position-size').textContent = `$${results.recommendedPosition.toLocaleString()}`;
+                document.getElementById('stop-loss').textContent = `${(results.stopLoss * 100).toFixed(1)}%`;
+                document.getElementById('take-profit').textContent = `${(results.takeProfit * 100).toFixed(1)}%`;
+                document.getElementById('max-risk').textContent = `$${results.maxRisk.toLocaleString()}`;
+                document.getElementById('risk-reward').textContent = `1:${results.riskReward}`;
+                document.getElementById('strategy-text').innerHTML = results.strategy;
+
+                this.resultsDiv.style.display = 'block';
+                this.resultsDiv.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            }
+        }
+
+        // Initialize calculator
+        document.addEventListener('DOMContentLoaded', () => {
+            new AwsNewsCalculator();
+        });
+
+        // Check if user is logged in and update the navigation
+        (function() {
+            const isLoggedIn = localStorage.getItem('bluechip_logged_in') || sessionStorage.getItem('bluechip_logged_in');
+
+            if (isLoggedIn) {
+                const dashboardLink = document.getElementById('dashboardLink');
+                if (dashboardLink) {
+                    dashboardLink.style.display = 'block';
+                }
+
+                const authButton = document.getElementById('authButton');
+                if (authButton) {
+                    authButton.removeAttribute('href');
+                    authButton.innerHTML = '<i class="fas fa-sign-out-alt"></i> Logout';
+                    authButton.style.cursor = 'pointer';
+
+                    authButton.onclick = function(e) {
+                        e.preventDefault();
+                        localStorage.clear();
+                        sessionStorage.clear();
+                        window.location.href = '../../login.html';
+                        return false;
+                    };
+                }
+            }
+        })();
+    </script>
+</body>
+</html>
+

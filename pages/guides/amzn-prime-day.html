@@ -1,0 +1,895 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AMZN Prime Day Calendar | Blue Chip Signals</title>
+    <link rel="icon" type="image/png" href="../../assets/images/logo.png">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="../../assets/css/bot-style.css?v=1751140000">
+    <script>
+        // Redirect non-logged-in users to book demo page
+        (function() {
+            const isLoggedIn = localStorage.getItem('bluechip_logged_in') || sessionStorage.getItem('bluechip_logged_in');
+            if (!isLoggedIn) {
+                window.location.href = '../../book-demo.html';
+            }
+        })();
+    </script>
+    <style>
+        :root {
+            --primary-gold: #b3a17d;
+            --secondary-gold: #E2CFB5;
+            --dark-bg: #080B0F;
+            --darker-bg: #050810;
+            --light-text: #FFFFFF;
+            --gray-text: #A0A0A0;
+        }
+
+        body {
+            background: var(--darker-bg);
+            color: var(--light-text);
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        }
+
+        .guide-hero {
+            margin-top: 100px;
+            padding: 4rem 2rem 3rem;
+            text-align: center;
+            background: radial-gradient(circle at 50% 50%, rgba(201, 176, 55, 0.15), transparent 70%);
+            position: relative;
+        }
+
+        .guide-hero::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: radial-gradient(circle at 30% 40%, rgba(201, 176, 55, 0.08), transparent 50%);
+            z-index: 0;
+        }
+
+        .guide-hero-content {
+            max-width: 900px;
+            margin: 0 auto;
+            position: relative;
+            z-index: 1;
+        }
+
+        .guide-badge {
+            display: inline-block;
+            background: linear-gradient(135deg, var(--primary-gold), var(--secondary-gold));
+            color: var(--darker-bg);
+            padding: 0.4rem 1.2rem;
+            border-radius: 20px;
+            font-weight: 700;
+            font-size: 0.8rem;
+            letter-spacing: 1px;
+            margin-bottom: 1.5rem;
+            text-transform: uppercase;
+        }
+
+        .guide-title {
+            font-size: 2.8rem;
+            font-weight: 800;
+            margin: 0 0 1rem 0;
+            line-height: 1.2;
+            color: var(--light-text);
+        }
+
+        .guide-subtitle {
+            font-size: 1.2rem;
+            color: var(--gray-text);
+            line-height: 1.6;
+            margin: 0;
+        }
+
+        .guide-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 3rem 2rem;
+        }
+
+        .content-section {
+            background: var(--dark-bg);
+            border: 1px solid rgba(201, 176, 55, 0.2);
+            border-radius: 15px;
+            padding: 2.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .content-section h2 {
+            color: var(--primary-gold);
+            font-size: 1.8rem;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .content-section h2 i {
+            font-size: 1.5rem;
+        }
+
+        .content-section h3 {
+            color: var(--light-text);
+            font-size: 1.4rem;
+            margin-bottom: 1rem;
+        }
+
+        .content-section h4 {
+            color: var(--primary-gold);
+            font-size: 1.2rem;
+            margin-bottom: 1rem;
+        }
+
+        .content-section p {
+            color: var(--gray-text);
+            line-height: 1.8;
+            margin-bottom: 1rem;
+        }
+
+        .content-section ul {
+            color: var(--light-text);
+            line-height: 1.8;
+            margin: 1rem 0;
+            padding-left: 1.5rem;
+        }
+
+        .content-section ul li {
+            margin-bottom: 0.75rem;
+        }
+
+        .login-btn {
+            background: linear-gradient(135deg, var(--primary-gold), var(--secondary-gold)) !important;
+            color: var(--darker-bg) !important;
+            padding: 0.5rem 1.2rem;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 0.95rem;
+            transition: transform 0.3s, box-shadow 0.3s;
+            display: inline-block;
+        }
+
+        .login-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(201, 176, 55, 0.3);
+            color: var(--darker-bg) !important;
+        }
+
+        .back-button {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--primary-gold);
+            text-decoration: none;
+            font-weight: 600;
+            margin-bottom: 2rem;
+            transition: all 0.3s ease;
+        }
+
+        .back-button:hover {
+            transform: translateX(-5px);
+        }
+
+        .grid-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            gap: 1.25rem;
+            margin: 1.5rem 0;
+        }
+
+        .info-card {
+            background: linear-gradient(135deg, rgba(179, 161, 125, 0.08), rgba(179, 161, 125, 0.03));
+            border: 1px solid rgba(179, 161, 125, 0.2);
+            border-radius: 12px;
+            padding: 1.5rem;
+            transition: all 0.3s ease;
+        }
+
+        .info-card:hover {
+            transform: translateY(-4px);
+            border-color: var(--primary-gold);
+            box-shadow: 0 10px 28px rgba(201, 176, 55, 0.18);
+        }
+
+        .info-card h4 {
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+            color: var(--light-text);
+            margin-bottom: 0.6rem;
+        }
+
+        .info-card h4 i {
+            color: var(--primary-gold);
+        }
+
+        .timeline-container {
+            position: relative;
+            margin: 2rem 0;
+        }
+
+        .timeline-item {
+            display: flex;
+            margin-bottom: 2rem;
+            position: relative;
+        }
+
+        .timeline-time {
+            min-width: 140px;
+            color: var(--primary-gold);
+            font-weight: 600;
+            padding-right: 1rem;
+        }
+
+        .timeline-content {
+            flex: 1;
+            background: rgba(179, 161, 125, 0.1);
+            padding: 1rem;
+            border-radius: 8px;
+            border-left: 3px solid var(--primary-gold);
+        }
+
+        .alert-box {
+            background: linear-gradient(135deg, rgba(255, 193, 7, 0.1), rgba(255, 193, 7, 0.05));
+            border: 1px solid rgba(255, 193, 7, 0.3);
+            border-radius: 8px;
+            padding: 1rem;
+            margin: 1.5rem 0;
+        }
+
+        .alert-box.danger {
+            background: linear-gradient(135deg, rgba(255, 59, 59, 0.1), rgba(255, 59, 59, 0.05));
+            border-color: rgba(255, 59, 59, 0.3);
+        }
+
+        .calculator-container {
+            margin: 2rem 0;
+        }
+
+        .calculator-inputs {
+            background: rgba(179, 161, 125, 0.05);
+            border: 1px solid rgba(179, 161, 125, 0.2);
+            border-radius: 12px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .input-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .input-group label {
+            display: block;
+            color: var(--primary-gold);
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            font-size: 0.9rem;
+        }
+
+        .calculator-input, .calculator-input-select {
+            width: 100%;
+            padding: 0.75rem;
+            background: var(--dark-bg);
+            border: 1px solid rgba(179, 161, 125, 0.3);
+            border-radius: 8px;
+            color: var(--light-text);
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+        }
+
+        .calculator-input:focus, .calculator-input-select:focus {
+            outline: none;
+            border-color: var(--primary-gold);
+            box-shadow: 0 0 0 2px rgba(179, 161, 125, 0.2);
+        }
+
+        .calculator-button {
+            background: linear-gradient(135deg, var(--primary-gold), var(--secondary-gold));
+            color: #000;
+            border: none;
+            padding: 1rem 2rem;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            width: 100%;
+            font-size: 1rem;
+        }
+
+        .calculator-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(179, 161, 125, 0.4);
+        }
+
+        .calculator-button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .calculator-results {
+            background: linear-gradient(135deg, rgba(179, 161, 125, 0.1), rgba(179, 161, 125, 0.05));
+            border: 1px solid rgba(179, 161, 125, 0.3);
+            border-radius: 12px;
+            padding: 2rem;
+            animation: fadeInUp 0.5s ease;
+        }
+
+        .results-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .result-card {
+            background: var(--dark-bg);
+            border: 1px solid rgba(179, 161, 125, 0.2);
+            border-radius: 8px;
+            padding: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .result-icon {
+            font-size: 2rem;
+            color: var(--primary-gold);
+            min-width: 40px;
+        }
+
+        .result-content h5 {
+            margin: 0 0 0.5rem 0;
+            color: var(--light-text);
+            font-size: 0.9rem;
+        }
+
+        .result-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--primary-gold);
+            margin-bottom: 0.25rem;
+        }
+
+        .strategy-content {
+            background: rgba(42, 87, 31, 0.2);
+            border: 1px solid rgba(42, 87, 31, 0.4);
+            border-radius: 8px;
+            padding: 1.5rem;
+            line-height: 1.6;
+        }
+
+        .risk-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 1rem;
+        }
+
+        .risk-param {
+            background: rgba(179, 161, 125, 0.1);
+            padding: 0.75rem;
+            border-radius: 6px;
+            font-size: 0.9rem;
+        }
+
+        .risk-param span {
+            color: var(--primary-gold);
+            font-weight: 600;
+        }
+
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @media (max-width: 768px) {
+            .guide-title { font-size: 2rem; }
+            .guide-subtitle { font-size: 1rem; }
+            .content-section { padding: 1.5rem; }
+            .results-grid { grid-template-columns: 1fr; }
+            .result-card { flex-direction: column; text-align: center; }
+            .calculator-inputs { padding: 1.5rem; }
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav>
+        <div class="nav-container">
+            <div class="logo">
+                <a href="../../index.html"><img src="../../assets/images/logo.png" alt="Blue Chip Signals Logo"></a>
+            </div>
+            <div class="hamburger-menu">
+                <div class="bar"></div>
+                <div class="bar"></div>
+                <div class="bar"></div>
+            </div>
+            <ul class="nav-links">
+                <li id="dashboardLink" style="display: none;"><a href="../../dashboard.html" style="color: var(--primary-gold); font-weight: 600;"><i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
+                <li><a href="../../index.html#features">Features</a></li>
+                <li><a href="../../index.html#bots">Supported Stocks</a></li>
+                <li><a href="../../book-demo.html">Book a Demo</a></li>
+                <li><a href="../../contact.html">Contact</a></li>
+                <li class="dropdown"><a href="#">More</a>
+                    <ul class="dropdown-menu">
+                        <li><a href="../../index.html#testimonials">Testimonials</a></li>
+                        <li><a href="../../faq.html">FAQ</a></li>
+                        <li><a href="../../about.html">About Us</a></li>
+                        <li><a href="../../terms.html">Terms & Legal</a></li>
+                    </ul>
+                </li>
+                <li><a href="../../login.html" class="login-btn" id="authButton"><i class="fas fa-sign-in-alt"></i> Login</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="guide-hero">
+        <div class="guide-hero-content">
+            <div class="guide-badge">AMZN Trading Guide</div>
+            <h1 class="guide-title">Prime Day Calendar</h1>
+            <p class="guide-subtitle">Map Prime Day, Early Access, and holiday shopping windows with a playbook for positioning before, during, and after the event.</p>
+        </div>
+    </section>
+
+    <!-- Guide Content -->
+    <div class="guide-content">
+        <a href="../bots/amzn-bot.html" class="back-button">
+            <i class="fas fa-arrow-left"></i> Back to AMZN Signals
+        </a>
+
+        <!-- Calculator -->
+        <section class="content-section">
+            <h2><i class="fas fa-calendar-alt"></i> Prime Day Impact Planner</h2>
+            <p>Estimate AMZN impact based on the phase of Prime Day/holiday season, promo intensity, macro tone, and portfolio size.</p>
+
+            <div class="calculator-container">
+                <div class="calculator-inputs">
+                    <div class="input-group">
+                        <label for="pd-phase">Event Phase:</label>
+                        <select id="pd-phase" class="calculator-input-select">
+                            <option value="">Select phase</option>
+                            <option value="announce" data-impact="6" data-direction="positive">Dates Announced</option>
+                            <option value="early-deals" data-impact="7" data-direction="positive">Early Access / Lead-Up</option>
+                            <option value="live-strong" data-impact="9" data-direction="positive">Prime Day Live - Strong Demand</option>
+                            <option value="live-weak" data-impact="8" data-direction="negative">Prime Day Live - Soft Demand</option>
+                            <option value="results-strong" data-impact="9" data-direction="positive">Results Beat / Record GMV</option>
+                            <option value="results-weak" data-impact="8" data-direction="negative">Results Miss / Soft GMV</option>
+                            <option value="holiday-kickoff" data-impact="7" data-direction="positive">Holiday / Cyber Week Kickoff</option>
+                        </select>
+                    </div>
+
+                    <div class="input-group">
+                        <label for="promo-intensity">Promo Intensity:</label>
+                        <select id="promo-intensity" class="calculator-input-select">
+                            <option value="">Select</option>
+                            <option value="5">Light discounts</option>
+                            <option value="12">Typical discounts</option>
+                            <option value="18">Heavy discounts / aggressive promos</option>
+                        </select>
+                    </div>
+
+                    <div class="input-group">
+                        <label for="sentiment">Demand Signals:</label>
+                        <select id="sentiment" class="calculator-input-select">
+                            <option value="">Select</option>
+                            <option value="positive" data-weight="1.2">Search/social trending up</option>
+                            <option value="neutral" data-weight="1.0">Mixed / baseline</option>
+                            <option value="negative" data-weight="0.8">Complaints / weak buzz</option>
+                        </select>
+                    </div>
+
+                    <div class="input-group">
+                        <label for="macro">Macro / Risk Tone:</label>
+                        <select id="macro" class="calculator-input-select">
+                            <option value="">Select</option>
+                            <option value="bull" data-vol="1.1">Risk-on</option>
+                            <option value="base" data-vol="1.0">Neutral</option>
+                            <option value="bear" data-vol="0.85">Risk-off</option>
+                        </select>
+                    </div>
+
+                    <div class="input-group">
+                        <label for="portfolio-size">Portfolio Size ($):</label>
+                        <input type="number" id="portfolio-size" class="calculator-input" placeholder="e.g., 50000" min="1000" step="1000">
+                    </div>
+
+                    <button id="calculate-btn" class="calculator-button">
+                        <i class="fas fa-chart-line"></i> Calculate Setup
+                    </button>
+                </div>
+
+                <div id="calculator-results" class="calculator-results" style="display: none;">
+                    <div class="results-grid">
+                        <div class="result-card">
+                            <div class="result-icon"><i class="fas fa-trending-up"></i></div>
+                            <div class="result-content">
+                                <h5>Expected AMZN Impact</h5>
+                                <div class="result-value" id="price-impact">+1.8%</div>
+                                <div class="result-subtitle">Estimated move</div>
+                            </div>
+                        </div>
+
+                        <div class="result-card">
+                            <div class="result-icon"><i class="fas fa-bullseye"></i></div>
+                            <div class="result-content">
+                                <h5>Confidence</h5>
+                                <div class="result-value" id="confidence-level">Medium</div>
+                                <div class="result-subtitle">Based on phase & signals</div>
+                            </div>
+                        </div>
+
+                        <div class="result-card">
+                            <div class="result-icon"><i class="fas fa-clock"></i></div>
+                            <div class="result-content">
+                                <h5>Time Window</h5>
+                                <div class="result-value" id="time-window">30-90 min</div>
+                                <div class="result-subtitle">Peak reaction window</div>
+                            </div>
+                        </div>
+
+                        <div class="result-card">
+                            <div class="result-icon"><i class="fas fa-dollar-sign"></i></div>
+                            <div class="result-content">
+                                <h5>Position Size</h5>
+                                <div class="result-value" id="position-size">$1,000</div>
+                                <div class="result-subtitle">Portfolio allocation</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="strategy-content" id="strategy-text">
+                        <!-- Dynamic -->
+                    </div>
+
+                    <div class="risk-grid" style="margin-top: 1.25rem;">
+                        <div class="risk-param"><strong>Stop Loss:</strong> <span id="stop-loss">1.2%</span></div>
+                        <div class="risk-param"><strong>Take Profit:</strong> <span id="take-profit">2.4%</span></div>
+                        <div class="risk-param"><strong>Max Risk:</strong> <span id="max-risk">$240</span></div>
+                        <div class="risk-param"><strong>Risk/Reward:</strong> <span id="risk-reward">1:2.0</span></div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Why it moves -->
+        <section class="content-section">
+            <h2><i class="fas fa-shopping-bag"></i> Why Prime Day Moves AMZN</h2>
+            <p>Prime Day is a margin + momentum catalyst: it drives GMV, Prime subs, advertising, and follow-on holiday demand. The market reprices AMZN on early signals of demand strength or weakness.</p>
+            <div class="grid-cards">
+                <div class="info-card">
+                    <h4><i class="fas fa-bullhorn"></i> Early Buzz</h4>
+                    <p>Search trends, social chatter, and site traffic often foreshadow demand strength before AMZN releases numbers.</p>
+                </div>
+                <div class="info-card">
+                    <h4><i class="fas fa-chart-area"></i> GMV & Mix</h4>
+                    <p>High-ticket electronics and owned-brand sell-through move margin expectations; weak mix can cap upside.</p>
+                </div>
+                <div class="info-card">
+                    <h4><i class="fas fa-warehouse"></i> Logistics Signal</h4>
+                    <p>FC utilization, delivery promises, and shipping rebate chatter hint at cost efficiency vs. strain.</p>
+                </div>
+                <div class="info-card">
+                    <h4><i class="fas fa-ad"></i> Ads & Attach</h4>
+                    <p>Higher ad load and attachment (Whole Foods, MGM, Alexa devices) boost ad/retail margin narrative.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Timeline -->
+        <section class="content-section">
+            <h2><i class="fas fa-clock"></i> Prime Day Playbook Timeline</h2>
+            <p>Use this calendar to prep entries and exits around Prime Day and holiday extensions.</p>
+            <div class="timeline-container">
+                <div class="timeline-item">
+                    <div class="timeline-time">T-30 to -14 days</div>
+                    <div class="timeline-content">
+                        <strong>Dates Announced</strong><br>
+                        Build watchlist; start small longs if macro supports. Track search trends.
+                    </div>
+                </div>
+                <div class="timeline-item">
+                    <div class="timeline-time">T-10 to -3 days</div>
+                    <div class="timeline-content">
+                        <strong>Early Access / Teasers</strong><br>
+                        Evaluate promo depth; scale in if buzz accelerates; watch options flow.
+                    </div>
+                </div>
+                <div class="timeline-item">
+                    <div class="timeline-time">Day 1-2</div>
+                    <div class="timeline-content">
+                        <strong>Prime Day Live</strong><br>
+                        Trade intraday on traffic/checkout signals; take partials into strength; trail stops.
+                    </div>
+                </div>
+                <div class="timeline-item">
+                    <div class="timeline-time">T+1 to +7 days</div>
+                    <div class="timeline-content">
+                        <strong>Results / Press</strong><br>
+                        AMZN/press GMV headlines; gauge sell-side notes; add/trim based on strength vs. expectations.
+                    </div>
+                </div>
+                <div class="timeline-item">
+                    <div class="timeline-time">Q3 Earnings</div>
+                    <div class="timeline-content">
+                        <strong>Official Print</strong><br>
+                        Final read on Prime Day contribution. Reposition for holiday/Cyber based on guide.
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Signals -->
+        <section class="content-section">
+            <h2><i class="fas fa-signal"></i> Signals to Monitor</h2>
+            <div class="grid-cards">
+                <div class="info-card">
+                    <h4><i class="fas fa-search"></i> Search & Social</h4>
+                    <p>Google Trends for "Prime Day", TikTok/YouTube haul videos, Twitter/X buzz volume.</p>
+                </div>
+                <div class="info-card">
+                    <h4><i class="fas fa-mouse-pointer"></i> Site & App Metrics</h4>
+                    <p>Page load issues, waitlists, sold-out flags, best-seller ranks shifting quickly.</p>
+                </div>
+                <div class="info-card">
+                    <h4><i class="fas fa-truck"></i> Delivery Promises</h4>
+                    <p>Shipping promise slip or surge fees hint at strain; faster promises suggest smooth ops.</p>
+                </div>
+                <div class="info-card">
+                    <h4><i class="fas fa-balance-scale"></i> Promo Depth</h4>
+                    <p>Compare discounts vs. last year and vs. competitors (WMT, TGT). Heavy promos can trade margin down.</p>
+                </div>
+                <div class="info-card">
+                    <h4><i class="fas fa-bullseye"></i> Category Mix</h4>
+                    <p>High-ticket electronics, devices, and subscription attach (Prime/Video/Grub) drive upside.</p>
+                </div>
+                <div class="info-card">
+                    <h4><i class="fas fa-chart-line"></i> Options / Flow</h4>
+                    <p>Watch upside call buying into the event; put skew steepening signals caution.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Risk Management -->
+        <section class="content-section">
+            <h2><i class="fas fa-shield-alt"></i> Risk Management</h2>
+            <ul>
+                <li><strong>Size:</strong> 1-2% pre-event; 2-4% intraday when strong signals confirm.</li>
+                <li><strong>Stops:</strong> 1-2% for intraday trades; trail quickly after +1% move.</li>
+                <li><strong>Options:</strong> Favor liquid weeklies/next-week calls or call spreads; avoid illiquid strikes.</li>
+                <li><strong>Fade Risk:</strong> Strong open can fade by midday; take partials early.</li>
+                <li><strong>Macro:</strong> Broad risk-off can blunt Prime Day upside—check SPY/QQQ tone.</li>
+            </ul>
+            <div class="alert-box danger">
+                <i class="fas fa-exclamation-triangle alert-icon"></i>
+                <strong>Warning:</strong> Soft results headlines can reverse gains fast. Close or hedge quickly if demand commentary turns negative.
+            </div>
+        </section>
+
+        <!-- Checklist -->
+        <section class="content-section">
+            <h2><i class="fas fa-list-check"></i> Quick Checklist</h2>
+            <div class="grid-cards">
+                <div class="info-card">
+                    <h4><i class="fas fa-clipboard-check"></i> Pre-Event</h4>
+                    <p>Log dates, monitor search trends, compare promos vs. last year, map key levels.</p>
+                </div>
+                <div class="info-card">
+                    <h4><i class="fas fa-stopwatch"></i> During Event</h4>
+                    <p>Track site performance, delivery promises, social buzz, and options flow; take partials.</p>
+                </div>
+                <div class="info-card">
+                    <h4><i class="fas fa-flag-checkered"></i> Post-Event</h4>
+                    <p>Read GMV/press notes, watch sell-side recaps, reposition for Q3 print and holiday/Cyber.</p>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <!-- Floating CTA -->
+    <div class="floating-cta">
+        <a href="../../book-demo.html" class="cta-button">
+            <i class="fas fa-rocket"></i> Get AMZN Signals
+        </a>
+    </div>
+
+    <!-- Footer -->
+    <footer>
+        <p>&copy; 2025 Blue Chip Signals. All rights reserved. | <a href="../../terms.html" style="color: var(--primary-gold); text-decoration: none;">Terms & Legal</a></p>
+        <div class="social-media">
+            <a href="https://www.tiktok.com/@bluechip.signals" target="_blank"><i class="fab fa-tiktok"></i></a>
+            <a href="https://www.instagram.com/bluechip.signals/" target="_blank"><i class="fab fa-instagram"></i></a>
+        </div>
+    </footer>
+
+    <script>
+        const hamburgerMenu = document.querySelector('.hamburger-menu');
+        const mobileNav = document.querySelector('.nav-links');
+
+        hamburgerMenu.addEventListener('click', () => {
+            mobileNav.classList.toggle('active');
+        });
+
+        // Handle mobile dropdown toggle
+        document.addEventListener('DOMContentLoaded', function() {
+            const dropdown = document.querySelector('.dropdown');
+            const dropdownLink = dropdown.querySelector('a');
+
+            dropdownLink.addEventListener('click', function(e) {
+                if (window.innerWidth <= 768) {
+                    e.preventDefault();
+                    dropdown.classList.toggle('active');
+                }
+            });
+        });
+
+        // Prime Day Impact Planner
+        class PrimeDayPlanner {
+            constructor() {
+                this.phaseSelect = document.getElementById('pd-phase');
+                this.promoSelect = document.getElementById('promo-intensity');
+                this.sentimentSelect = document.getElementById('sentiment');
+                this.macroSelect = document.getElementById('macro');
+                this.portfolioInput = document.getElementById('portfolio-size');
+                this.calculateBtn = document.getElementById('calculate-btn');
+                this.resultsDiv = document.getElementById('calculator-results');
+
+                this.initEvents();
+            }
+
+            initEvents() {
+                this.calculateBtn.addEventListener('click', () => this.calculate());
+                [this.phaseSelect, this.promoSelect, this.sentimentSelect, this.macroSelect, this.portfolioInput].forEach(el => {
+                    el.addEventListener('change', () => this.updateButton());
+                });
+            }
+
+            updateButton() {
+                const filled = this.phaseSelect.value && this.promoSelect.value && this.sentimentSelect.value && this.macroSelect.value && this.portfolioInput.value;
+                this.calculateBtn.disabled = !filled;
+            }
+
+            calculate() {
+                const phaseImpact = parseFloat(this.phaseSelect.selectedOptions[0].dataset.impact);
+                const direction = this.phaseSelect.selectedOptions[0].dataset.direction;
+                const promo = parseFloat(this.promoSelect.value);
+                const sentimentWeight = parseFloat(this.sentimentSelect.selectedOptions[0].dataset.weight);
+                const macroVol = parseFloat(this.macroSelect.selectedOptions[0].dataset.vol);
+                const portfolio = parseFloat(this.portfolioInput.value);
+
+                const baseImpact = (phaseImpact / 10) * (promo / 10) * sentimentWeight;
+                const finalImpact = baseImpact * macroVol;
+                const priceImpact = direction === 'negative' ? -Math.abs(finalImpact) : Math.abs(finalImpact);
+
+                const confidence = this.getConfidence(phaseImpact, promo, sentimentWeight);
+                const positionPercent = confidence === 'High' ? 0.025 : confidence === 'Medium' ? 0.02 : 0.015;
+                const positionSize = portfolio * positionPercent;
+                const timeWindow = this.getTimeWindow(this.phaseSelect.value);
+
+                const stopLoss = Math.min(0.02, Math.abs(priceImpact) * 0.7);
+                const takeProfit = Math.abs(priceImpact) * 1.2;
+                const maxRisk = positionSize * stopLoss;
+                const riskReward = (takeProfit / stopLoss).toFixed(1);
+
+                const strategy = this.buildStrategy(this.phaseSelect.value, direction, confidence);
+
+                this.display({
+                    priceImpact,
+                    confidence,
+                    timeWindow,
+                    positionSize,
+                    stopLoss,
+                    takeProfit,
+                    maxRisk,
+                    riskReward,
+                    strategy
+                });
+            }
+
+            getConfidence(phaseImpact, promo, sentimentWeight) {
+                const score = phaseImpact + promo * 0.6 + sentimentWeight * 5;
+                if (score >= 18) return 'High';
+                if (score >= 13) return 'Medium';
+                return 'Low';
+            }
+
+            getTimeWindow(phase) {
+                switch(phase) {
+                    case 'announce': return '30-90 min';
+                    case 'early-deals': return '1-2 hours';
+                    case 'live-strong':
+                    case 'live-weak': return '15-60 min';
+                    case 'results-strong':
+                    case 'results-weak': return '30-90 min';
+                    case 'holiday-kickoff': return '1-2 hours';
+                    default: return '30-90 min';
+                }
+            }
+
+            buildStrategy(phase, direction, confidence) {
+                const bias = direction === 'negative' ? 'bearish' : 'bullish';
+                const action = direction === 'negative' ? 'short' : 'long';
+                const phaseText = {
+                    'announce': 'Dates announced',
+                    'early-deals': 'Early access / lead-up',
+                    'live-strong': 'Prime Day live with strong demand signals',
+                    'live-weak': 'Prime Day live with weak demand signals',
+                    'results-strong': 'Post-event results beat',
+                    'results-weak': 'Post-event results miss',
+                    'holiday-kickoff': 'Holiday / Cyber kickoff'
+                }[phase] || 'Prime Day update';
+
+                let text = `<strong>${bias.toUpperCase()} Plan:</strong> ${phaseText}. `;
+
+                if (confidence === 'High') {
+                    text += `High conviction ${action}. Enter quickly; size full allocation and trail stops as move develops. `;
+                } else if (confidence === 'Medium') {
+                    text += `Moderate conviction. Start 50% size, add on confirmation (flow/site signals). `;
+                } else {
+                    text += `Low conviction. Keep size small or wait for second source/confirmation. `;
+                }
+
+                text += `<br><br><strong>Entry:</strong> Use VWAP/previous day levels; for negatives, look for failed bounces. `;
+                text += `<strong>Monitor:</strong> Site performance, delivery promises, search/social trends, and options flow. `;
+                text += `<strong>Exit:</strong> Scale out into first 1-1.5% move; trail remainder.`;
+                return text;
+            }
+
+            display(res) {
+                const impactEl = document.getElementById('price-impact');
+                impactEl.textContent = `${res.priceImpact >= 0 ? '+' : ''}${(res.priceImpact * 100).toFixed(1)}%`;
+                impactEl.style.color = res.priceImpact >= 0 ? '#2a571f' : '#FF3B3B';
+
+                const confEl = document.getElementById('confidence-level');
+                confEl.textContent = res.confidence;
+                confEl.style.color = res.confidence === 'High' ? '#2a571f' :
+                                     res.confidence === 'Medium' ? '#b3a17d' : '#FF3B3B';
+
+                document.getElementById('time-window').textContent = res.timeWindow;
+                document.getElementById('position-size').textContent = `$${res.positionSize.toLocaleString()}`;
+                document.getElementById('stop-loss').textContent = `${(res.stopLoss * 100).toFixed(1)}%`;
+                document.getElementById('take-profit').textContent = `${(res.takeProfit * 100).toFixed(1)}%`;
+                document.getElementById('max-risk').textContent = `$${res.maxRisk.toLocaleString()}`;
+                document.getElementById('risk-reward').textContent = `1:${res.riskReward}`;
+                document.getElementById('strategy-text').innerHTML = res.strategy;
+
+                this.resultsDiv.style.display = 'block';
+                this.resultsDiv.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            new PrimeDayPlanner();
+        });
+
+        // Check if user is logged in and update navigation
+        (function() {
+            const isLoggedIn = localStorage.getItem('bluechip_logged_in') || sessionStorage.getItem('bluechip_logged_in');
+
+            if (isLoggedIn) {
+                const dashboardLink = document.getElementById('dashboardLink');
+                if (dashboardLink) dashboardLink.style.display = 'block';
+
+                const authButton = document.getElementById('authButton');
+                if (authButton) {
+                    authButton.removeAttribute('href');
+                    authButton.innerHTML = '<i class="fas fa-sign-out-alt"></i> Logout';
+                    authButton.style.cursor = 'pointer';
+                    authButton.onclick = function(e) {
+                        e.preventDefault();
+                        localStorage.clear();
+                        sessionStorage.clear();
+                        window.location.href = '../../login.html';
+                        return false;
+                    };
+                }
+            }
+        })();
+    </script>
+</body>
+</html>
+

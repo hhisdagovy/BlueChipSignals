@@ -1,0 +1,698 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AMZN Support & Resistance Zones | Blue Chip Signals</title>
+    <link rel="icon" type="image/png" href="../../assets/images/logo.png">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="../../assets/css/bot-style.css?v=1751140000">
+    <script>
+        // Redirect non-logged-in users to book demo page
+        (function() {
+            const isLoggedIn = localStorage.getItem('bluechip_logged_in') || sessionStorage.getItem('bluechip_logged_in');
+            if (!isLoggedIn) {
+                window.location.href = '../../book-demo.html';
+            }
+        })();
+    </script>
+    <style>
+        :root {
+            --primary-gold: #b3a17d;
+            --secondary-gold: #E2CFB5;
+            --dark-bg: #080B0F;
+            --darker-bg: #050810;
+            --light-text: #FFFFFF;
+            --gray-text: #A0A0A0;
+        }
+
+        body {
+            background: var(--darker-bg);
+            color: var(--light-text);
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        }
+
+        .guide-hero {
+            margin-top: 100px;
+            padding: 4rem 2rem 3rem;
+            text-align: center;
+            background: radial-gradient(circle at 50% 50%, rgba(201, 176, 55, 0.15), transparent 70%);
+            position: relative;
+        }
+
+        .guide-hero::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: radial-gradient(circle at 30% 40%, rgba(201, 176, 55, 0.08), transparent 50%);
+            z-index: 0;
+        }
+
+        .guide-hero-content {
+            max-width: 900px;
+            margin: 0 auto;
+            position: relative;
+            z-index: 1;
+        }
+
+        .guide-badge {
+            display: inline-block;
+            background: linear-gradient(135deg, var(--primary-gold), var(--secondary-gold));
+            color: var(--darker-bg);
+            padding: 0.4rem 1.2rem;
+            border-radius: 20px;
+            font-weight: 700;
+            font-size: 0.8rem;
+            letter-spacing: 1px;
+            margin-bottom: 1.5rem;
+            text-transform: uppercase;
+        }
+
+        .guide-title {
+            font-size: 2.8rem;
+            font-weight: 800;
+            margin: 0 0 1rem 0;
+            line-height: 1.2;
+            color: var(--light-text);
+        }
+
+        .guide-subtitle {
+            font-size: 1.2rem;
+            color: var(--gray-text);
+            line-height: 1.6;
+            margin: 0;
+        }
+
+        .guide-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 3rem 2rem;
+        }
+
+        .content-section {
+            background: var(--dark-bg);
+            border: 1px solid rgba(201, 176, 55, 0.2);
+            border-radius: 15px;
+            padding: 2.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .content-section h2 {
+            color: var(--primary-gold);
+            font-size: 1.8rem;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .content-section h3 {
+            color: var(--light-text);
+            font-size: 1.4rem;
+            margin-bottom: 1rem;
+        }
+
+        .content-section p {
+            color: var(--gray-text);
+            line-height: 1.8;
+            margin-bottom: 1rem;
+        }
+
+        .grid-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            gap: 1.25rem;
+            margin: 1.5rem 0;
+        }
+
+        .info-card {
+            background: linear-gradient(135deg, rgba(179, 161, 125, 0.08), rgba(179, 161, 125, 0.03));
+            border: 1px solid rgba(179, 161, 125, 0.2);
+            border-radius: 12px;
+            padding: 1.5rem;
+            transition: all 0.3s ease;
+        }
+
+        .info-card:hover {
+            transform: translateY(-4px);
+            border-color: var(--primary-gold);
+            box-shadow: 0 10px 28px rgba(201, 176, 55, 0.18);
+        }
+
+        .info-card h4 {
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+            color: var(--light-text);
+            margin-bottom: 0.6rem;
+        }
+
+        .info-card h4 i {
+            color: var(--primary-gold);
+        }
+
+        .calculator-container {
+            margin: 2rem 0;
+        }
+
+        .calculator-inputs {
+            background: rgba(179, 161, 125, 0.05);
+            border: 1px solid rgba(179, 161, 125, 0.2);
+            border-radius: 12px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .input-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .input-group label {
+            display: block;
+            color: var(--primary-gold);
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            font-size: 0.9rem;
+        }
+
+        .calculator-input-select, .calculator-input {
+            width: 100%;
+            padding: 0.75rem;
+            background: var(--dark-bg);
+            border: 1px solid rgba(179, 161, 125, 0.3);
+            border-radius: 8px;
+            color: var(--light-text);
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+        }
+
+        .calculator-input-select:focus, .calculator-input:focus {
+            outline: none;
+            border-color: var(--primary-gold);
+            box-shadow: 0 0 0 2px rgba(179, 161, 125, 0.2);
+        }
+
+        .calculator-button {
+            background: linear-gradient(135deg, var(--primary-gold), var(--secondary-gold));
+            color: #000;
+            border: none;
+            padding: 1rem 2rem;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            width: 100%;
+            font-size: 1rem;
+        }
+
+        .calculator-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(179, 161, 125, 0.4);
+        }
+
+        .calculator-button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .calculator-results {
+            background: linear-gradient(135deg, rgba(179, 161, 125, 0.1), rgba(179, 161, 125, 0.05));
+            border: 1px solid rgba(179, 161, 125, 0.3);
+            border-radius: 12px;
+            padding: 2rem;
+            animation: fadeInUp 0.5s ease;
+        }
+
+        .results-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .result-card {
+            background: var(--dark-bg);
+            border: 1px solid rgba(179, 161, 125, 0.2);
+            border-radius: 8px;
+            padding: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .result-icon {
+            font-size: 2rem;
+            color: var(--primary-gold);
+            min-width: 40px;
+        }
+
+        .result-content h5 {
+            margin: 0 0 0.5rem 0;
+            color: var(--light-text);
+            font-size: 0.9rem;
+        }
+
+        .result-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--primary-gold);
+            margin-bottom: 0.25rem;
+        }
+
+        .strategy-content {
+            background: rgba(42, 87, 31, 0.2);
+            border: 1px solid rgba(42, 87, 31, 0.4);
+            border-radius: 8px;
+            padding: 1.5rem;
+            line-height: 1.6;
+        }
+
+        .risk-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 1rem;
+        }
+
+        .risk-param {
+            background: rgba(179, 161, 125, 0.1);
+            padding: 0.75rem;
+            border-radius: 6px;
+            font-size: 0.9rem;
+        }
+
+        .risk-param span {
+            color: var(--primary-gold);
+            font-weight: 600;
+        }
+
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @media (max-width: 768px) {
+            .guide-title { font-size: 2rem; }
+            .guide-subtitle { font-size: 1rem; }
+            .content-section { padding: 1.5rem; }
+            .results-grid { grid-template-columns: 1fr; }
+            .result-card { flex-direction: column; text-align: center; }
+            .calculator-inputs { padding: 1.5rem; }
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav>
+        <div class="nav-container">
+            <div class="logo">
+                <a href="../../index.html"><img src="../../assets/images/logo.png" alt="Blue Chip Signals Logo"></a>
+            </div>
+            <div class="hamburger-menu">
+                <div class="bar"></div>
+                <div class="bar"></div>
+                <div class="bar"></div>
+            </div>
+            <ul class="nav-links">
+                <li id="dashboardLink" style="display: none;"><a href="../../dashboard.html" style="color: var(--primary-gold); font-weight: 600;"><i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
+                <li><a href="../../index.html#features">Features</a></li>
+                <li><a href="../../index.html#bots">Supported Stocks</a></li>
+                <li><a href="../../book-demo.html">Book a Demo</a></li>
+                <li><a href="../../contact.html">Contact</a></li>
+                <li class="dropdown"><a href="#">More</a>
+                    <ul class="dropdown-menu">
+                        <li><a href="../../index.html#testimonials">Testimonials</a></li>
+                        <li><a href="../../faq.html">FAQ</a></li>
+                        <li><a href="../../about.html">About Us</a></li>
+                        <li><a href="../../terms.html">Terms & Legal</a></li>
+                    </ul>
+                </li>
+                <li><a href="../../login.html" class="login-btn" id="authButton"><i class="fas fa-sign-in-alt"></i> Login</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="guide-hero">
+        <div class="guide-hero-content">
+            <div class="guide-badge">AMZN Trading Guide</div>
+            <h1 class="guide-title">Support & Resistance Zones</h1>
+            <p class="guide-subtitle">Pinpoint AMZN's most respected levels, plan entries/exits, and size trades based on distance to level, trend, and volatility.</p>
+        </div>
+    </section>
+
+    <!-- Guide Content -->
+    <div class="guide-content">
+        <a href="../bots/amzn-bot.html" class="back-button">
+            <i class="fas fa-arrow-left"></i> Back to AMZN Signals
+        </a>
+
+        <!-- Level Planner -->
+        <section class="content-section">
+            <h2><i class="fas fa-ruler-combined"></i> Level Planner</h2>
+            <p>Estimate trade setup quality using trend, timeframe, volatility, and distance to your key level.</p>
+
+            <div class="calculator-container">
+                <div class="calculator-inputs">
+                    <div class="input-group">
+                        <label for="trend">Trend Context:</label>
+                        <select id="trend" class="calculator-input-select">
+                            <option value="">Select</option>
+                            <option value="up" data-impact="1.1">Uptrend</option>
+                            <option value="sideways" data-impact="1.0">Sideways</option>
+                            <option value="down" data-impact="0.9">Downtrend</option>
+                        </select>
+                    </div>
+                    <div class="input-group">
+                        <label for="timeframe">Timeframe:</label>
+                        <select id="timeframe" class="calculator-input-select">
+                            <option value="">Select</option>
+                            <option value="daily" data-weight="1.2">Daily</option>
+                            <option value="4h" data-weight="1.1">4H</option>
+                            <option value="1h" data-weight="1.0">1H</option>
+                            <option value="15m" data-weight="0.9">15m</option>
+                        </select>
+                    </div>
+                    <div class="input-group">
+                        <label for="volatility">Volatility (ATR %):</label>
+                        <select id="volatility" class="calculator-input-select">
+                            <option value="">Select</option>
+                            <option value="low" data-vol="0.9">Low</option>
+                            <option value="normal" data-vol="1.0">Normal</option>
+                            <option value="high" data-vol="1.15">High</option>
+                        </select>
+                    </div>
+                    <div class="input-group">
+                        <label for="distance">Distance to Level:</label>
+                        <select id="distance" class="calculator-input-select">
+                            <option value="">Select</option>
+                            <option value="tight" data-dist="0.8">Within 0.5%</option>
+                            <option value="near" data-dist="1.0">0.5% - 1.0%</option>
+                            <option value="far" data-dist="1.2">1.0% - 1.5%</option>
+                        </select>
+                    </div>
+                    <div class="input-group">
+                        <label for="portfolio-size">Portfolio Size ($):</label>
+                        <input type="number" id="portfolio-size" class="calculator-input" placeholder="e.g., 50000" min="1000" step="1000">
+                    </div>
+                    <button id="calculate-btn" class="calculator-button"><i class="fas fa-chart-line"></i> Calculate Setup</button>
+                </div>
+
+                <div id="calculator-results" class="calculator-results" style="display: none;">
+                    <div class="results-grid">
+                        <div class="result-card">
+                            <div class="result-icon"><i class="fas fa-trending-up"></i></div>
+                            <div class="result-content">
+                                <h5>Bias Move</h5>
+                                <div class="result-value" id="price-impact">+1.2%</div>
+                                <div class="result-subtitle">Expected move to level</div>
+                            </div>
+                        </div>
+                        <div class="result-card">
+                            <div class="result-icon"><i class="fas fa-bullseye"></i></div>
+                            <div class="result-content">
+                                <h5>Confidence</h5>
+                                <div class="result-value" id="confidence-level">Medium</div>
+                                <div class="result-subtitle">Based on confluence</div>
+                            </div>
+                        </div>
+                        <div class="result-card">
+                            <div class="result-icon"><i class="fas fa-clock"></i></div>
+                            <div class="result-content">
+                                <h5>Time Window</h5>
+                                <div class="result-value" id="time-window">30-120 min</div>
+                                <div class="result-subtitle">Hold expectation</div>
+                            </div>
+                        </div>
+                        <div class="result-card">
+                            <div class="result-icon"><i class="fas fa-dollar-sign"></i></div>
+                            <div class="result-content">
+                                <h5>Position Size</h5>
+                                <div class="result-value" id="position-size">$1,000</div>
+                                <div class="result-subtitle">Suggested allocation</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="strategy-content" id="strategy-text"></div>
+                    <div class="risk-grid" style="margin-top: 1.25rem;">
+                        <div class="risk-param"><strong>Stop Loss:</strong> <span id="stop-loss">0.8%</span></div>
+                        <div class="risk-param"><strong>Take Profit:</strong> <span id="take-profit">1.6%</span></div>
+                        <div class="risk-param"><strong>Max Risk:</strong> <span id="max-risk">$200</span></div>
+                        <div class="risk-param"><strong>Risk/Reward:</strong> <span id="risk-reward">1:2.0</span></div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Why Levels -->
+        <section class="content-section">
+            <h2><i class="fas fa-layer-group"></i> Why AMZN Respects Levels</h2>
+            <div class="grid-cards">
+                <div class="info-card">
+                    <h4><i class="fas fa-industry"></i> Institutional Flows</h4>
+                    <p>AMZN trades with heavy institutional flow; liquidity pools often anchor to prior highs/lows and VWAP bands.</p>
+                </div>
+                <div class="info-card">
+                    <h4><i class="fas fa-wave-square"></i> Mean Reversion</h4>
+                    <p>AMZN mean-reverts cleanly after stretched moves; confluence of VWAP, daily levels, and RSI is high edge.</p>
+                </div>
+                <div class="info-card">
+                    <h4><i class="fas fa-chart-line"></i> Repeatable Zones</h4>
+                    <p>Previous day high/low, weekly opens, and key gaps attract liquidity and reaction on most sessions.</p>
+                </div>
+                <div class="info-card">
+                    <h4><i class="fas fa-bolt"></i> Catalyst Snapbacks</h4>
+                    <p>News spikes (AWS, retail data) frequently fade back to levels once the initial impulse exhausts.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Signals to watch -->
+        <section class="content-section">
+            <h2><i class="fas fa-signal"></i> Confluence Checklist</h2>
+            <div class="grid-cards">
+                <div class="info-card">
+                    <h4><i class="fas fa-chart-area"></i> HTF Levels</h4>
+                    <p>Daily/weekly highs and lows, gaps, anchored VWAP from earnings/FOMC.</p>
+                </div>
+                <div class="info-card">
+                    <h4><i class="fas fa-swatchbook"></i> Intraday Context</h4>
+                    <p>Opening range high/low, IB extensions, session VWAP deviations.</p>
+                </div>
+                <div class="info-card">
+                    <h4><i class="fas fa-heartbeat"></i> Order Flow</h4>
+                    <p>Speed of tape near level, sweep/iceberg behavior, spread response.</p>
+                </div>
+                <div class="info-card">
+                    <h4><i class="fas fa-bullseye"></i> Momentum</h4>
+                    <p>RSI/MFI alignment with level tests; divergence improves reversal odds.</p>
+                </div>
+                <div class="info-card">
+                    <h4><i class="fas fa-cloud"></i> Catalyst Overlay</h4>
+                    <p>AWS/retail headlines can blow through weak levels; size down when headline risk is high.</p>
+                </div>
+                <div class="info-card">
+                    <h4><i class="fas fa-clock"></i> Timing</h4>
+                    <p>First 90 minutes and power hour react best; midday tests are lower quality.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Risk -->
+        <section class="content-section">
+            <h2><i class="fas fa-shield-alt"></i> Risk Management</h2>
+            <ul>
+                <li><strong>Size:</strong> 1-2% per level test; add only on confirmation (wick reclaim / higher low).</li>
+                <li><strong>Stops:</strong> 0.5-1% beyond level; tighter on intraday timeframes.</li>
+                <li><strong>Profit:</strong> First target = mid of range/VWAP; second = opposite range.</li>
+                <li><strong>Invalidation:</strong> Two closes beyond level on your timeframe.</li>
+                <li><strong>Macro overlay:</strong> Risk-off days reduce follow-through; size down.</li>
+            </ul>
+            <div class="alert-box" style="background: linear-gradient(135deg, rgba(255,59,59,0.1), rgba(255,59,59,0.05)); border-color: rgba(255,59,59,0.3);">
+                <i class="fas fa-exclamation-triangle alert-icon"></i>
+                <strong>Warning:</strong> Avoid fighting strong trend with size. If the level snaps with velocity + volume, exit and re-evaluate.
+            </div>
+        </section>
+
+        <!-- Quick checklist -->
+        <section class="content-section">
+            <h2><i class="fas fa-list-check"></i> Quick Execution Checklist</h2>
+            <div class="grid-cards">
+                <div class="info-card">
+                    <h4><i class="fas fa-clipboard-check"></i> Before Entry</h4>
+                    <p>Mark HTF levels, note catalyst risk, define stop/targets, check spread liquidity.</p>
+                </div>
+                <div class="info-card">
+                    <h4><i class="fas fa-stopwatch"></i> During Test</h4>
+                    <p>Watch tape speed, wicks, reclaim/reject behavior, and VWAP relationship.</p>
+                </div>
+                <div class="info-card">
+                    <h4><i class="fas fa-flag-checkered"></i> After Entry</h4>
+                    <p>Take partials into first push, trail stop to break-even after 1R, avoid overholding.</p>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <!-- Floating CTA -->
+    <div class="floating-cta">
+        <a href="../../book-demo.html" class="cta-button">
+            <i class="fas fa-rocket"></i> Get AMZN Signals
+        </a>
+    </div>
+
+    <!-- Footer -->
+    <footer>
+        <p>&copy; 2025 Blue Chip Signals. All rights reserved. | <a href="../../terms.html" style="color: var(--primary-gold); text-decoration: none;">Terms & Legal</a></p>
+        <div class="social-media">
+            <a href="https://www.tiktok.com/@bluechip.signals" target="_blank"><i class="fab fa-tiktok"></i></a>
+            <a href="https://www.instagram.com/bluechip.signals/" target="_blank"><i class="fab fa-instagram"></i></a>
+        </div>
+    </footer>
+
+    <script>
+        const hamburgerMenu = document.querySelector('.hamburger-menu');
+        const mobileNav = document.querySelector('.nav-links');
+
+        hamburgerMenu.addEventListener('click', () => {
+            mobileNav.classList.toggle('active');
+        });
+
+        // Handle mobile dropdown toggle
+        document.addEventListener('DOMContentLoaded', function() {
+            const dropdown = document.querySelector('.dropdown');
+            const dropdownLink = dropdown.querySelector('a');
+
+            dropdownLink.addEventListener('click', function(e) {
+                if (window.innerWidth <= 768) {
+                    e.preventDefault();
+                    dropdown.classList.toggle('active');
+                }
+            });
+        });
+
+        class LevelPlanner {
+            constructor() {
+                this.trend = document.getElementById('trend');
+                this.timeframe = document.getElementById('timeframe');
+                this.volatility = document.getElementById('volatility');
+                this.distance = document.getElementById('distance');
+                this.portfolio = document.getElementById('portfolio-size');
+                this.btn = document.getElementById('calculate-btn');
+                this.results = document.getElementById('calculator-results');
+                this.init();
+            }
+            init() {
+                this.btn.addEventListener('click', () => this.calculate());
+                [this.trend, this.timeframe, this.volatility, this.distance, this.portfolio].forEach(el => {
+                    el.addEventListener('change', () => this.updateButton());
+                });
+            }
+            updateButton() {
+                const filled = this.trend.value && this.timeframe.value && this.volatility.value && this.distance.value && this.portfolio.value;
+                this.btn.disabled = !filled;
+            }
+            calculate() {
+                const trendImpact = parseFloat(this.trend.selectedOptions[0].dataset.impact);
+                const tfWeight = parseFloat(this.timeframe.selectedOptions[0].dataset.weight);
+                const volAdj = parseFloat(this.volatility.selectedOptions[0].dataset.vol);
+                const distAdj = parseFloat(this.distance.selectedOptions[0].dataset.dist);
+                const portfolio = parseFloat(this.portfolio.value);
+
+                const base = 0.012 * tfWeight; // base 1.2% for daily weight 1.2
+                const move = base * trendImpact * volAdj * distAdj;
+                const priceImpact = move;
+
+                const score = trendImpact + tfWeight + (1 / distAdj) + volAdj;
+                const confidence = score >= 4.2 ? 'High' : score >= 3.4 ? 'Medium' : 'Low';
+
+                const positionPct = confidence === 'High' ? 0.025 : confidence === 'Medium' ? 0.02 : 0.015;
+                const positionSize = portfolio * positionPct;
+                const timeWindow = this.getTimeWindow(this.timeframe.value);
+
+                const stopLoss = Math.min(0.012, Math.abs(priceImpact) * 0.7);
+                const takeProfit = Math.abs(priceImpact) * 1.6;
+                const maxRisk = positionSize * stopLoss;
+                const riskReward = (takeProfit / stopLoss).toFixed(1);
+                const strategy = this.buildStrategy(confidence, this.trend.value, this.timeframe.value, this.distance.value);
+
+                this.display({ priceImpact, confidence, timeWindow, positionSize, stopLoss, takeProfit, maxRisk, riskReward, strategy });
+            }
+            getTimeWindow(tf) {
+                switch(tf) {
+                    case 'daily': return 'Half/Full day';
+                    case '4h': return '2-4 hours';
+                    case '1h': return '60-180 min';
+                    case '15m': return '20-90 min';
+                    default: return '30-120 min';
+                }
+            }
+            buildStrategy(conf, trend, tf, dist) {
+                const bias = trend === 'down' ? 'bearish' : 'bullish/neutral';
+                const distanceText = { tight: 'very close', near: 'nearby', far: 'further away' }[dist] || 'nearby';
+                let text = `<strong>${conf} Confluence:</strong> ${bias} context, ${tf.toUpperCase()} level ${distanceText}. `;
+                if (conf === 'High') {
+                    text += `Enter on wick reclaim/reject with volume; size full and trail quickly after 1R. `;
+                } else if (conf === 'Medium') {
+                    text += `Start half size; add on confirmation (reclaim of level or VWAP). `;
+                } else {
+                    text += `Keep small size; wait for secondary confirmation (divergence or VWAP flip). `;
+                }
+                text += `<br><br><strong>Entry:</strong> Use limit near level; avoid chasing. <strong>Monitor:</strong> tape speed, spread, VWAP relationship. <strong>Exit:</strong> Partial at first push; move stop to break-even after 1R.`;
+                return text;
+            }
+            display(res) {
+                const impactEl = document.getElementById('price-impact');
+                impactEl.textContent = `${res.priceImpact >= 0 ? '+' : ''}${(res.priceImpact * 100).toFixed(1)}%`;
+                impactEl.style.color = res.priceImpact >= 0 ? '#2a571f' : '#FF3B3B';
+
+                const confEl = document.getElementById('confidence-level');
+                confEl.textContent = res.confidence;
+                confEl.style.color = res.confidence === 'High' ? '#2a571f' : res.confidence === 'Medium' ? '#b3a17d' : '#FF3B3B';
+
+                document.getElementById('time-window').textContent = res.timeWindow;
+                document.getElementById('position-size').textContent = `$${res.positionSize.toLocaleString()}`;
+                document.getElementById('stop-loss').textContent = `${(res.stopLoss * 100).toFixed(1)}%`;
+                document.getElementById('take-profit').textContent = `${(res.takeProfit * 100).toFixed(1)}%`;
+                document.getElementById('max-risk').textContent = `$${res.maxRisk.toLocaleString()}`;
+                document.getElementById('risk-reward').textContent = `1:${res.riskReward}`;
+                document.getElementById('strategy-text').innerHTML = res.strategy;
+
+                this.results.style.display = 'block';
+                this.results.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            new LevelPlanner();
+        });
+
+        // Auth update
+        (function() {
+            const isLoggedIn = localStorage.getItem('bluechip_logged_in') || sessionStorage.getItem('bluechip_logged_in');
+            if (isLoggedIn) {
+                const dashboardLink = document.getElementById('dashboardLink');
+                if (dashboardLink) dashboardLink.style.display = 'block';
+
+                const authButton = document.getElementById('authButton');
+                if (authButton) {
+                    authButton.removeAttribute('href');
+                    authButton.innerHTML = '<i class="fas fa-sign-out-alt"></i> Logout';
+                    authButton.style.cursor = 'pointer';
+                    authButton.onclick = function(e) {
+                        e.preventDefault();
+                        localStorage.clear();
+                        sessionStorage.clear();
+                        window.location.href = '../../login.html';
+                        return false;
+                    };
+                }
+            }
+        })();
+    </script>
+</body>
+</html>
+

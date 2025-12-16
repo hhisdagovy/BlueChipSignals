@@ -22,6 +22,10 @@ import {
     where,
     getDocs
 } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
+import {
+    getFunctions,
+    httpsCallable
+} from "https://www.gstatic.com/firebasejs/11.0.2/firebase-functions.js";
 
 // Your web app's Firebase configuration
 const firebaseConfig = {
@@ -37,6 +41,7 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
+const functions = getFunctions(app);
 
 // Export auth instance and functions
 export { 
@@ -57,6 +62,8 @@ export {
     collection,
     query,
     where,
-    getDocs
+    getDocs,
+    functions,
+    httpsCallable
 };
 

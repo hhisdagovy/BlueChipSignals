@@ -431,7 +431,9 @@
             getDoc,
             getDocs,
             collection,
-            setDoc
+            setDoc,
+            functions,
+            httpsCallable
         } from './assets/js/firebase-config.js';
 
         // Check admin authentication
@@ -477,6 +479,9 @@
             }, 5000);
         }
 
+        // Callable function for admin user creation (deployed in Firebase Functions)
+        const createUserFn = httpsCallable(functions, 'createUserForAdmin');
+
         // Add user form submission
         document.getElementById('addUserForm').addEventListener('submit', async (e) => {
             e.preventDefault();
@@ -486,36 +491,27 @@
             const name = document.getElementById('userName').value;
 
             try {
-                // Note: Creating users requires Firebase Admin SDK
-                // For now, we'll create the Firestore document
-                // You'll need to create the auth user manually in Firebase Console
-                
                 showMessage('addMessage', 'Creating user...', 'success');
 
-                // Create a user document with a placeholder UID
-                // In production, you'd use Firebase Admin SDK to create the auth user
-                const userId = 'user_' + Date.now();
-                await setDoc(doc(db, 'users', userId), {
-                    email: email,
-                    displayName: name || '',
-                    createdAt: new Date().toISOString(),
-                    signInMethod: 'email',
-                    profileComplete: false,
-                    temporaryPassword: password, // Store temporarily
+                // Call the secured Cloud Function (requires role: admin on caller)
+                await createUserFn({
+                    email,
+                    password,
+                    displayName: name,
                     role: 'user'
                 });
 
-                showMessage('addMessage', `⚠️ User document created. You must manually create the auth user in Firebase Console with email: ${email}`, 'success');
+                showMessage('addMessage', 'User created in Auth + Firestore', 'success');
                 
                 // Clear form
                 document.getElementById('addUserForm').reset();
                 
-                // Reload users
-                setTimeout(() => loadUsers(), 2000);
+                // Reload users after a short delay
+                setTimeout(() => loadUsers(), 1500);
 
             } catch (error) {
                 console.error('Error adding user:', error);
-                showMessage('addMessage', 'Failed to add user: ' + error.message, 'error');
+                showMessage('addMessage', 'Failed to add user: ' + (error.message || error.code), 'error');
             }
         });
 

@@ -76,8 +76,8 @@
         }
     }
 
-    /* Standard public nav — auth scripts on each page update #authButton
-       and show #dashboardLink once Firebase confirms the user is logged in. */
+    /* Standard public nav — logo click redirects logged-in users to dashboard
+       via redirectIfLoggedIn() on each page. */
     function publicNav() {
         return '<div class="nav-container">' +
             '<div class="logo">' +
@@ -89,11 +89,6 @@
                 '<span class="bar"></span>' +
             '</button>' +
             '<ul class="nav-links">' +
-                '<li id="dashboardLink" style="display:none;">' +
-                    '<a href="' + base + 'dashboard.html" class="nav-dashboard-link">' +
-                        '<i class="fas fa-tachometer-alt"></i> Dashboard' +
-                    '</a>' +
-                '</li>' +
                 '<li><a href="' + base + 'contact.html">Contact</a></li>' +
                 '<li><a href="' + base + 'faq.html">FAQ</a></li>' +
                 '<li><a href="' + base + 'about.html">About Us</a></li>' +
@@ -105,7 +100,7 @@
     }
 
     /* Always-logged-in nav — used by dashboard.html.
-       Dashboard link is always visible; button always shows Logout.
+       Logo click redirects to index.html which bounces back to dashboard.
        Calls window.logout() which each protected page defines. */
     function loggedinNav() {
         return '<div class="nav-container">' +
@@ -118,11 +113,6 @@
                 '<span class="bar"></span>' +
             '</button>' +
             '<ul class="nav-links">' +
-                '<li>' +
-                    '<a href="' + base + 'dashboard.html" class="nav-dashboard-link">' +
-                        '<i class="fas fa-tachometer-alt"></i> Dashboard' +
-                    '</a>' +
-                '</li>' +
                 '<li><a href="' + base + 'contact.html">Contact</a></li>' +
                 '<li><a href="' + base + 'faq.html">FAQ</a></li>' +
                 '<li><a href="' + base + 'about.html">About Us</a></li>' +

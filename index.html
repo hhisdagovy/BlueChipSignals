@@ -1427,41 +1427,9 @@
 
     <!-- Firebase Authentication -->
     <script type="module">
-        import { auth, onAuthStateChanged, signOut } from './assets/js/firebase-config.js';
-
-        // Check if user is logged in with Firebase
-        onAuthStateChanged(auth, (user) => {
-            const authButton = document.getElementById('authButton');
-            const dashboardLink = document.getElementById('dashboardLink');
-            
-            if (user) {
-                // User is logged in
-                // Show Dashboard link
-                if (dashboardLink) {
-                    dashboardLink.style.display = 'block';
-                }
-                
-                // Update auth button to logout
-                if (authButton) {
-                    authButton.removeAttribute('href');
-                    authButton.innerHTML = '<i class="fas fa-sign-out-alt"></i> Logout';
-                    authButton.style.cursor = 'pointer';
-                    
-                    authButton.onclick = async function(e) {
-                        e.preventDefault();
-                        try {
-                            await signOut(auth);
-                            localStorage.clear();
-                            sessionStorage.clear();
-                            window.location.href = 'login.html';
-                        } catch (error) {
-                            console.error('Logout error:', error);
-                        }
-                        return false;
-                    };
-                }
-            }
-        });
+        import { redirectIfLoggedIn, updateAuthButton } from './assets/js/firebase-auth-check.js';
+        redirectIfLoggedIn('dashboard.html');
+        updateAuthButton('login.html');
     </script>
 </body>
 </html>

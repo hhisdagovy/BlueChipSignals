@@ -43,14 +43,34 @@ export async function performFirebaseLogout(loginPath) {
 }
 
 /**
+ * Landing-page guard: redirect already-logged-in users away from public pages.
+ * Call on index.html (and any other marketing page) so returning users go
+ * straight to their dashboard without seeing the landing page again.
+ * @param {string} destination - Where to send logged-in users (e.g. 'dashboard.html')
+ */
+export function redirectIfLoggedIn(destination) {
+    const _redirect = () => { window.location.href = destination || 'dashboard.html'; };
+
+    onAuthStateChanged(auth, (user) => {
+        if (user) _redirect();
+    });
+
+    // Handle bfcache restoration (e.g. Back button after logout)
+    window.addEventListener('pageshow', (e) => {
+        if (e.persisted && auth.currentUser) {
+            _redirect();
+        }
+    });
+}
+
+/**
  * Wire the injected #authButton and #dashboardLink to the current auth state.
  * Call after nav-component.js has run so the elements exist in the DOM.
  * @param {string} loginPath - Relative path to login.html (e.g. '../../login.html')
  */
 export function updateAuthButton(loginPath) {
     onAuthStateChanged(auth, (user) => {
-        const authButton    = document.getElementById('authButton');
-        const dashboardLink = document.getElementById('dashboardLink');
+        const authButton = document.getElementById('authButton');
 
         if (user && authButton) {
             authButton.removeAttribute('href');
@@ -61,10 +81,6 @@ export function updateAuthButton(loginPath) {
                 performFirebaseLogout(loginPath);
                 return false;
             };
-        }
-
-        if (user && dashboardLink) {
-            dashboardLink.style.display = 'block';
         }
     });
 }

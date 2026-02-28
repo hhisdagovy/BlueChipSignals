@@ -94,9 +94,6 @@
                         '<i class="fas fa-tachometer-alt"></i> Dashboard' +
                     '</a>' +
                 '</li>' +
-                '<li><a href="' + base + 'index.html#features">Features</a></li>' +
-                '<li><a href="' + base + 'index.html#bots">Supported Stocks</a></li>' +
-                '<li><a href="' + base + 'book-demo.html">Book a Demo</a></li>' +
                 '<li><a href="' + base + 'contact.html">Contact</a></li>' +
                 '<li><a href="' + base + 'faq.html">FAQ</a></li>' +
                 '<li><a href="' + base + 'about.html">About Us</a></li>' +
@@ -126,9 +123,6 @@
                         '<i class="fas fa-tachometer-alt"></i> Dashboard' +
                     '</a>' +
                 '</li>' +
-                '<li><a href="' + base + 'index.html#features">Features</a></li>' +
-                '<li><a href="' + base + 'index.html#bots">Supported Stocks</a></li>' +
-                '<li><a href="' + base + 'book-demo.html">Book a Demo</a></li>' +
                 '<li><a href="' + base + 'contact.html">Contact</a></li>' +
                 '<li><a href="' + base + 'faq.html">FAQ</a></li>' +
                 '<li><a href="' + base + 'about.html">About Us</a></li>' +

@@ -6,25 +6,8 @@
     <title>AMZN AWS News Tracker | Blue Chip Signals</title>
     <link rel="icon" type="image/png" href="../../assets/images/logo.png">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="../../assets/css/bot-style.css?v=1751140000">
-    <script>
-        // Redirect non-logged-in users to book demo page
-        (function() {
-            const isLoggedIn = localStorage.getItem('bluechip_logged_in') || sessionStorage.getItem('bluechip_logged_in');
-            if (!isLoggedIn) {
-                window.location.href = '../../book-demo.html';
-            }
-        })();
-    </script>
+    <link rel="stylesheet" href="../../assets/css/bot-style.css">
     <style>
-        :root {
-            --primary-gold: #b3a17d;
-            --secondary-gold: #E2CFB5;
-            --dark-bg: #080B0F;
-            --darker-bg: #050810;
-            --light-text: #FFFFFF;
-            --gray-text: #A0A0A0;
-        }
 
         body {
             background: var(--darker-bg);
@@ -498,35 +481,8 @@
     </style>
 </head>
 <body>
-    <!-- Navigation -->
-    <nav>
-        <div class="nav-container">
-            <div class="logo">
-                <a href="../../index.html"><img src="../../assets/images/logo.png" alt="Blue Chip Signals Logo"></a>
-            </div>
-            <div class="hamburger-menu">
-                <div class="bar"></div>
-                <div class="bar"></div>
-                <div class="bar"></div>
-            </div>
-            <ul class="nav-links">
-                <li id="dashboardLink" style="display: none;"><a href="../../dashboard.html" style="color: var(--primary-gold); font-weight: 600;"><i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
-                <li><a href="../../index.html#features">Features</a></li>
-                <li><a href="../../index.html#bots">Supported Stocks</a></li>
-                <li><a href="../../book-demo.html">Book a Demo</a></li>
-                <li><a href="../../contact.html">Contact</a></li>
-                <li class="dropdown"><a href="#">More</a>
-                    <ul class="dropdown-menu">
-                        <li><a href="../../index.html#testimonials">Testimonials</a></li>
-                        <li><a href="../../faq.html">FAQ</a></li>
-                        <li><a href="../../about.html">About Us</a></li>
-                        <li><a href="../../terms.html">Terms & Legal</a></li>
-                    </ul>
-                </li>
-                <li><a href="../../login.html" class="login-btn" id="authButton"><i class="fas fa-sign-in-alt"></i> Login</a></li>
-            </ul>
-        </div>
-    </nav>
+    <div id="nav-placeholder" data-nav-type="public" data-base="../../"></div>
+    <script src="../../assets/js/nav-component.js"></script>
 
     <!-- Hero Section -->
     <section class="guide-hero">
@@ -959,221 +915,13 @@
     </div>
 
     <!-- Footer -->
-    <footer>
-        <p>&copy; 2025 Blue Chip Signals. All rights reserved. | <a href="../../terms.html" style="color: var(--primary-gold); text-decoration: none;">Terms & Legal</a></p>
-        <div class="social-media">
-            <a href="https://www.tiktok.com/@bluechip.signals" target="_blank"><i class="fab fa-tiktok"></i></a>
-            <a href="https://www.instagram.com/bluechip.signals/" target="_blank"><i class="fab fa-instagram"></i></a>
-        </div>
-    </footer>
+    <div id="footer-placeholder" data-footer-type="standard-social" data-base="../../"></div>
+    <script src="../../assets/js/footer-component.js"></script>
 
-    <script>
-        const hamburgerMenu = document.querySelector('.hamburger-menu');
-        const mobileNav = document.querySelector('.nav-links');
-
-        hamburgerMenu.addEventListener('click', () => {
-            mobileNav.classList.toggle('active');
-        });
-
-        // Handle mobile dropdown toggle
-        document.addEventListener('DOMContentLoaded', function() {
-            const dropdown = document.querySelector('.dropdown');
-            const dropdownLink = dropdown.querySelector('a');
-
-            dropdownLink.addEventListener('click', function(e) {
-                if (window.innerWidth <= 768) {
-                    e.preventDefault();
-                    dropdown.classList.toggle('active');
-                }
-            });
-        });
-
-        // AWS News Impact Calculator
-        class AwsNewsCalculator {
-            constructor() {
-                this.newsTypeSelect = document.getElementById('news-type');
-                this.magnitudeSelect = document.getElementById('magnitude');
-                this.businessAreaSelect = document.getElementById('business-area');
-                this.marketTimingSelect = document.getElementById('market-timing');
-                this.portfolioSizeInput = document.getElementById('portfolio-size');
-                this.calculateBtn = document.getElementById('calculate-btn');
-                this.resultsDiv = document.getElementById('calculator-results');
-
-                this.initEventListeners();
-            }
-
-            initEventListeners() {
-                this.calculateBtn.addEventListener('click', () => this.calculate());
-
-                [this.newsTypeSelect, this.magnitudeSelect, this.businessAreaSelect, this.marketTimingSelect, this.portfolioSizeInput].forEach(input => {
-                    input.addEventListener('change', () => this.updateButtonState());
-                });
-            }
-
-            updateButtonState() {
-                const allFilled = this.newsTypeSelect.value &&
-                                 this.magnitudeSelect.value &&
-                                 this.businessAreaSelect.value &&
-                                 this.marketTimingSelect.value &&
-                                 this.portfolioSizeInput.value;
-
-                this.calculateBtn.disabled = !allFilled;
-            }
-
-            calculate() {
-                const newsImpact = parseFloat(this.newsTypeSelect.selectedOptions[0].dataset.impact);
-                const direction = this.newsTypeSelect.selectedOptions[0].dataset.direction;
-                const magnitude = parseFloat(this.magnitudeSelect.value);
-                const businessWeight = parseFloat(this.businessAreaSelect.selectedOptions[0].dataset.weight);
-                const volatilityMultiplier = parseFloat(this.marketTimingSelect.selectedOptions[0].dataset.volatility);
-                const portfolioSize = parseFloat(this.portfolioSizeInput.value);
-
-                // Base impact: news importance * magnitude * business weighting
-                const baseImpact = (newsImpact / 10) * (magnitude / 10) * businessWeight;
-
-                // Apply timing volatility
-                const finalImpact = baseImpact * volatilityMultiplier;
-
-                // Directional move
-                const priceImpact = direction === 'negative' ? -Math.abs(finalImpact) : Math.abs(finalImpact);
-
-                // Confidence
-                const confidence = this.getConfidenceLevel(newsImpact, magnitude);
-
-                // Position sizing
-                const positionPercent = confidence === 'High' ? 0.025 : confidence === 'Medium' ? 0.02 : 0.015;
-                const recommendedPosition = portfolioSize * positionPercent;
-
-                // Time window
-                const timeWindow = this.getTimeWindow(this.marketTimingSelect.value);
-
-                // Risk parameters
-                const stopLoss = Math.min(0.02, Math.abs(priceImpact) * 0.7);
-                const takeProfit = Math.abs(priceImpact) * 1.2;
-                const maxRisk = recommendedPosition * stopLoss;
-                const riskReward = (takeProfit / stopLoss).toFixed(1);
-
-                // Strategy text
-                const strategy = this.generateStrategy(this.newsTypeSelect.value, direction, confidence);
-
-                // Update display
-                this.displayResults({
-                    priceImpact,
-                    confidence,
-                    timeWindow,
-                    recommendedPosition,
-                    stopLoss,
-                    takeProfit,
-                    maxRisk,
-                    riskReward,
-                    strategy
-                });
-            }
-
-            getConfidenceLevel(newsImpact, magnitude) {
-                const score = newsImpact + magnitude;
-                if (score >= 25) return 'High';
-                if (score >= 15) return 'Medium';
-                return 'Low';
-            }
-
-            getTimeWindow(marketTiming) {
-                switch(marketTiming) {
-                    case 'premarket': return '20-60 min';
-                    case 'opening': return '30-90 min';
-                    case 'regular': return '30-60 min';
-                    case 'afterhours': return '20-60 min';
-                    default: return '30-60 min';
-                }
-            }
-
-            generateStrategy(newsType, direction, confidence) {
-                const bias = direction === 'negative' ? 'bearish' : 'bullish';
-                const action = direction === 'negative' ? 'short' : 'long';
-
-                const headlines = {
-                    outage: 'Major AWS outage reported',
-                    'customer-win': 'Mega-customer win announced',
-                    'pricing-cut': 'AWS price cut / savings plan announced',
-                    'pricing-increase': 'AWS price increase announced',
-                    'ai-launch': 'New AI/GenAI launch or upgrade',
-                    'gov-contract': 'Government/defense contract award',
-                    'guidance-cut': 'AWS guidance lowered'
-                };
-
-                let strategy = `<strong>${bias.toUpperCase()} Strategy:</strong> ${headlines[newsType] || 'Headline detected'}. `;
-
-                if (confidence === 'High') {
-                    strategy += `High-confidence ${action} setup. Enter quickly after confirmation; size full allocation. `;
-                } else if (confidence === 'Medium') {
-                    strategy += `Moderate-confidence ${action}. Scale in 50% then add on confirmation. `;
-                } else {
-                    strategy += `Low-confidence signal. Consider smaller size or wait for a second source. `;
-                }
-
-                strategy += `<br><br><strong>Entry:</strong> ${direction === 'negative' ? 'Short' : 'Long'} near VWAP after first pullback/rally. `;
-                strategy += `<strong>Monitor:</strong> Cloud peer sympathy (MSFT/GOOGL), options flow, and management updates. `;
-                strategy += `<strong>Exit:</strong> Take partials into first 1-1.5% move; trail stop on remainder.`;
-
-                return strategy;
-            }
-
-            displayResults(results) {
-                // Price impact
-                const impactElement = document.getElementById('price-impact');
-                impactElement.textContent = `${results.priceImpact >= 0 ? '+' : ''}${(results.priceImpact * 100).toFixed(1)}%`;
-                impactElement.style.color = results.priceImpact >= 0 ? '#2a571f' : '#FF3B3B';
-
-                // Confidence
-                const confidenceElement = document.getElementById('confidence-level');
-                confidenceElement.textContent = results.confidence;
-                confidenceElement.style.color = results.confidence === 'High' ? '#2a571f' :
-                                               results.confidence === 'Medium' ? '#b3a17d' : '#FF3B3B';
-
-                document.getElementById('time-window').textContent = results.timeWindow;
-                document.getElementById('position-size').textContent = `$${results.recommendedPosition.toLocaleString()}`;
-                document.getElementById('stop-loss').textContent = `${(results.stopLoss * 100).toFixed(1)}%`;
-                document.getElementById('take-profit').textContent = `${(results.takeProfit * 100).toFixed(1)}%`;
-                document.getElementById('max-risk').textContent = `$${results.maxRisk.toLocaleString()}`;
-                document.getElementById('risk-reward').textContent = `1:${results.riskReward}`;
-                document.getElementById('strategy-text').innerHTML = results.strategy;
-
-                this.resultsDiv.style.display = 'block';
-                this.resultsDiv.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-            }
-        }
-
-        // Initialize calculator
-        document.addEventListener('DOMContentLoaded', () => {
-            new AwsNewsCalculator();
-        });
-
-        // Check if user is logged in and update the navigation
-        (function() {
-            const isLoggedIn = localStorage.getItem('bluechip_logged_in') || sessionStorage.getItem('bluechip_logged_in');
-
-            if (isLoggedIn) {
-                const dashboardLink = document.getElementById('dashboardLink');
-                if (dashboardLink) {
-                    dashboardLink.style.display = 'block';
-                }
-
-                const authButton = document.getElementById('authButton');
-                if (authButton) {
-                    authButton.removeAttribute('href');
-                    authButton.innerHTML = '<i class="fas fa-sign-out-alt"></i> Logout';
-                    authButton.style.cursor = 'pointer';
-
-                    authButton.onclick = function(e) {
-                        e.preventDefault();
-                        localStorage.clear();
-                        sessionStorage.clear();
-                        window.location.href = '../../login.html';
-                        return false;
-                    };
-                }
-            }
-        })();
+    <script type="module">
+        import { requireAuth, updateAuthButton } from '../../assets/js/firebase-auth-check.js';
+        requireAuth('../../book-demo.html');
+        updateAuthButton('../../login.html');
     </script>
 </body>
 </html>

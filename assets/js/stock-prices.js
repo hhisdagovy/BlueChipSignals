@@ -1,5 +1,7 @@
+import { POLYGON_API_KEY } from './config.js';
+
 document.addEventListener('DOMContentLoaded', () => {
-    const polygonApiKey = "sTQWgQESNYRtbmcO5yKoOrToz2ZZeryV";
+    const polygonApiKey = POLYGON_API_KEY;
 
     // This logic is only needed for the bot pages.
     if (document.querySelector('.bot-symbol')) {

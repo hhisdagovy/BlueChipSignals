@@ -6,25 +6,8 @@
     <title>AMZN E-Commerce Trends | Blue Chip Signals</title>
     <link rel="icon" type="image/png" href="../../assets/images/logo.png">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="../../assets/css/bot-style.css?v=1751140000">
-    <script>
-        // Redirect non-logged-in users to book demo page
-        (function() {
-            const isLoggedIn = localStorage.getItem('bluechip_logged_in') || sessionStorage.getItem('bluechip_logged_in');
-            if (!isLoggedIn) {
-                window.location.href = '../../book-demo.html';
-            }
-        })();
-    </script>
+    <link rel="stylesheet" href="../../assets/css/bot-style.css">
     <style>
-        :root {
-            --primary-gold: #b3a17d;
-            --secondary-gold: #E2CFB5;
-            --dark-bg: #080B0F;
-            --darker-bg: #050810;
-            --light-text: #FFFFFF;
-            --gray-text: #A0A0A0;
-        }
 
         body { background: var(--darker-bg); color: var(--light-text); font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; }
 
@@ -92,33 +75,8 @@
     </style>
 </head>
 <body>
-    <!-- Navigation -->
-    <nav>
-        <div class="nav-container">
-            <div class="logo">
-                <a href="../../index.html"><img src="../../assets/images/logo.png" alt="Blue Chip Signals Logo"></a>
-            </div>
-            <div class="hamburger-menu">
-                <div class="bar"></div><div class="bar"></div><div class="bar"></div>
-            </div>
-            <ul class="nav-links">
-                <li id="dashboardLink" style="display: none;"><a href="../../dashboard.html" style="color: var(--primary-gold); font-weight: 600;"><i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
-                <li><a href="../../index.html#features">Features</a></li>
-                <li><a href="../../index.html#bots">Supported Stocks</a></li>
-                <li><a href="../../book-demo.html">Book a Demo</a></li>
-                <li><a href="../../contact.html">Contact</a></li>
-                <li class="dropdown"><a href="#">More</a>
-                    <ul class="dropdown-menu">
-                        <li><a href="../../index.html#testimonials">Testimonials</a></li>
-                        <li><a href="../../faq.html">FAQ</a></li>
-                        <li><a href="../../about.html">About Us</a></li>
-                        <li><a href="../../terms.html">Terms & Legal</a></li>
-                    </ul>
-                </li>
-                <li><a href="../../login.html" class="login-btn" id="authButton"><i class="fas fa-sign-in-alt"></i> Login</a></li>
-            </ul>
-        </div>
-    </nav>
+    <div id="nav-placeholder" data-nav-type="public" data-base="../../"></div>
+    <script src="../../assets/js/nav-component.js"></script>
 
     <!-- Hero Section -->
     <section class="guide-hero">
@@ -297,147 +255,13 @@
     </div>
 
     <!-- Footer -->
-    <footer>
-        <p>&copy; 2025 Blue Chip Signals. All rights reserved. | <a href="../../terms.html" style="color: var(--primary-gold); text-decoration: none;">Terms & Legal</a></p>
-        <div class="social-media">
-            <a href="https://www.tiktok.com/@bluechip.signals" target="_blank"><i class="fab fa-tiktok"></i></a>
-            <a href="https://www.instagram.com/bluechip.signals/" target="_blank"><i class="fab fa-instagram"></i></a>
-        </div>
-    </footer>
+    <div id="footer-placeholder" data-footer-type="standard-social" data-base="../../"></div>
+    <script src="../../assets/js/footer-component.js"></script>
 
-    <script>
-        const hamburgerMenu = document.querySelector('.hamburger-menu');
-        const mobileNav = document.querySelector('.nav-links');
-        hamburgerMenu.addEventListener('click', () => mobileNav.classList.toggle('active'));
-
-        document.addEventListener('DOMContentLoaded', function() {
-            const dropdown = document.querySelector('.dropdown');
-            const dropdownLink = dropdown.querySelector('a');
-            dropdownLink.addEventListener('click', function(e) {
-                if (window.innerWidth <= 768) {
-                    e.preventDefault();
-                    dropdown.classList.toggle('active');
-                }
-            });
-        });
-
-        class RetailPulsePlanner {
-            constructor() {
-                this.season = document.getElementById('season');
-                this.macro = document.getElementById('macro');
-                this.category = document.getElementById('category');
-                this.promo = document.getElementById('promo');
-                this.portfolio = document.getElementById('portfolio-size');
-                this.btn = document.getElementById('calculate-btn');
-                this.results = document.getElementById('calculator-results');
-                this.init();
-            }
-            init() {
-                this.btn.addEventListener('click', () => this.calculate());
-                [this.season, this.macro, this.category, this.promo, this.portfolio].forEach(el => {
-                    el.addEventListener('change', () => this.updateButton());
-                });
-            }
-            updateButton() {
-                const filled = this.season.value && this.macro.value && this.category.value && this.promo.value && this.portfolio.value;
-                this.btn.disabled = !filled;
-            }
-            calculate() {
-                const seasonImpact = parseFloat(this.season.selectedOptions[0].dataset.impact);
-                const macroVol = parseFloat(this.macro.selectedOptions[0].dataset.vol);
-                const catWeight = parseFloat(this.category.selectedOptions[0].dataset.weight);
-                const promoAdj = parseFloat(this.promo.selectedOptions[0].dataset.promo);
-                const portfolio = parseFloat(this.portfolio.value);
-
-                const baseMove = 0.012; // 1.2%
-                const move = baseMove * seasonImpact * macroVol * catWeight * promoAdj;
-                const priceImpact = move;
-
-                const score = seasonImpact + macroVol + catWeight + promoAdj;
-                const confidence = score >= 4.2 ? 'High' : score >= 3.4 ? 'Medium' : 'Low';
-
-                const positionPct = confidence === 'High' ? 0.025 : confidence === 'Medium' ? 0.02 : 0.015;
-                const positionSize = portfolio * positionPct;
-                const timeWindow = this.getTimeWindow(this.season.value);
-
-                const stopLoss = Math.min(0.012, Math.abs(priceImpact) * 0.7);
-                const takeProfit = Math.abs(priceImpact) * 1.6;
-                const maxRisk = positionSize * stopLoss;
-                const riskReward = (takeProfit / stopLoss).toFixed(1);
-
-                const strategy = this.buildStrategy(confidence, this.season.value, this.macro.value, this.category.value);
-
-                this.display({ priceImpact, confidence, timeWindow, positionSize, stopLoss, takeProfit, maxRisk, riskReward, strategy });
-            }
-            getTimeWindow(season) {
-                switch(season) {
-                    case 'q1': return '1-2 days';
-                    case 'q2': return '1-3 days';
-                    case 'q3': return '1-3 days';
-                    case 'q4': return '1-4 days';
-                    default: return '1-3 days';
-                }
-            }
-            buildStrategy(conf, season, macro, category) {
-                const seasonText = { q1: 'Post-holiday digestion', q2: 'Prime lead-up', q3: 'Prime/Back-to-school', q4: 'Holiday/Cyber season' }[season] || 'Retail flow';
-                const macroText = { 'risk-on': 'risk-on consumer', 'neutral': 'neutral macro', 'risk-off': 'risk-off consumer' }[macro] || 'macro mixed';
-                const catText = { electronics: 'electronics/device strength', general: 'broad merchandise', soft: 'softlines-heavy mix' }[category] || 'general mix';
-                let text = `<strong>Setup:</strong> ${seasonText} with ${macroText}, ${catText}. `;
-                if (conf === 'High') {
-                    text += `High conviction: size full; enter on pullbacks to VWAP/levels; trail after 1R. `;
-                } else if (conf === 'Medium') {
-                    text += `Moderate: start half size, add on confirmation (flow/search/delivery). `;
-                } else {
-                    text += `Low: keep small; wait for second confirmation (options flow or delivery signals). `;
-                }
-                text += `<br><br><strong>Entry:</strong> Use limit near levels; align with VWAP. <strong>Monitor:</strong> delivery promises, stockouts, peer promos. <strong>Exit:</strong> Partial at VWAP/IB mid; trail remainder to range targets.`;
-                return text;
-            }
-            display(res) {
-                const impactEl = document.getElementById('price-impact');
-                impactEl.textContent = `${res.priceImpact >= 0 ? '+' : ''}${(res.priceImpact * 100).toFixed(1)}%`;
-                impactEl.style.color = res.priceImpact >= 0 ? '#2a571f' : '#FF3B3B';
-
-                const confEl = document.getElementById('confidence-level');
-                confEl.textContent = res.confidence;
-                confEl.style.color = res.confidence === 'High' ? '#2a571f' : res.confidence === 'Medium' ? '#b3a17d' : '#FF3B3B';
-
-                document.getElementById('time-window').textContent = res.timeWindow;
-                document.getElementById('position-size').textContent = `$${res.positionSize.toLocaleString()}`;
-                document.getElementById('stop-loss').textContent = `${(res.stopLoss * 100).toFixed(1)}%`;
-                document.getElementById('take-profit').textContent = `${(res.takeProfit * 100).toFixed(1)}%`;
-                document.getElementById('max-risk').textContent = `$${res.maxRisk.toLocaleString()}`;
-                document.getElementById('risk-reward').textContent = `1:${res.riskReward}`;
-                document.getElementById('strategy-text').innerHTML = res.strategy;
-
-                this.results.style.display = 'block';
-                this.results.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-            }
-        }
-
-        document.addEventListener('DOMContentLoaded', () => { new RetailPulsePlanner(); });
-
-        // Auth update
-        (function() {
-            const isLoggedIn = localStorage.getItem('bluechip_logged_in') || sessionStorage.getItem('bluechip_logged_in');
-            if (isLoggedIn) {
-                const dashboardLink = document.getElementById('dashboardLink');
-                if (dashboardLink) dashboardLink.style.display = 'block';
-                const authButton = document.getElementById('authButton');
-                if (authButton) {
-                    authButton.removeAttribute('href');
-                    authButton.innerHTML = '<i class="fas fa-sign-out-alt"></i> Logout';
-                    authButton.style.cursor = 'pointer';
-                    authButton.onclick = function(e) {
-                        e.preventDefault();
-                        localStorage.clear();
-                        sessionStorage.clear();
-                        window.location.href = '../../login.html';
-                        return false;
-                    };
-                }
-            }
-        })();
+    <script type="module">
+        import { requireAuth, updateAuthButton } from '../../assets/js/firebase-auth-check.js';
+        requireAuth('../../book-demo.html');
+        updateAuthButton('../../login.html');
     </script>
 </body>
 </html>

@@ -7,25 +7,8 @@
     <meta name="description" content="Master the key events and news flow that drive AAPL's stock price. Learn to anticipate, not just react to Apple's product cycle for profitable trading.">
     <link rel="icon" type="image/png" href="../../assets/images/logo.png">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="../../assets/css/bot-style.css?v=1751140000">
-    <script>
-        // Redirect non-logged-in users to book demo page
-        (function() {
-            const isLoggedIn = localStorage.getItem('bluechip_logged_in') || sessionStorage.getItem('bluechip_logged_in');
-            if (!isLoggedIn) {
-                window.location.href = '../../book-demo.html';
-            }
-        })();
-    </script>
+    <link rel="stylesheet" href="../../assets/css/bot-style.css">
     <style>
-        :root {
-            --primary-gold: #b3a17d;
-            --secondary-gold: #E2CFB5;
-            --dark-bg: #080B0F;
-            --darker-bg: #050810;
-            --light-text: #FFFFFF;
-            --gray-text: #A0A0A0;
-        }
 
         body {
             background: var(--darker-bg);
@@ -201,35 +184,8 @@
     </style>
 </head>
 <body>
-    <!-- Navigation -->
-    <nav>
-        <div class="nav-container">
-            <div class="logo">
-                <a href="../../index.html"><img src="../../assets/images/logo.png" alt="Blue Chip Signals Logo"></a>
-            </div>
-            <div class="hamburger-menu">
-                <div class="bar"></div>
-                <div class="bar"></div>
-                <div class="bar"></div>
-            </div>
-            <ul class="nav-links">
-                <li id="dashboardLink" style="display: none;"><a href="../../dashboard.html" style="color: var(--primary-gold); font-weight: 600;"><i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
-                <li><a href="../../index.html#features">Features</a></li>
-                <li><a href="../../index.html#bots">Supported Stocks</a></li>
-                <li><a href="../../book-demo.html">Book a Demo</a></li>
-                <li><a href="../../contact.html">Contact</a></li>
-                <li class="dropdown"><a href="#">More</a>
-                    <ul class="dropdown-menu">
-                        <li><a href="../../index.html#testimonials">Testimonials</a></li>
-                        <li><a href="../../faq.html">FAQ</a></li>
-                        <li><a href="../../about.html">About Us</a></li>
-                        <li><a href="../../terms.html">Terms & Legal</a></li>
-                    </ul>
-                </li>
-                <li><a href="../../login.html" class="login-btn" id="authButton"><i class="fas fa-sign-in-alt"></i> Login</a></li>
-            </ul>
-        </div>
-    </nav>
+    <div id="nav-placeholder" data-nav-type="public" data-base="../../"></div>
+    <script src="../../assets/js/nav-component.js"></script>
 
     <!-- Hero Section -->
     <section class="guide-hero">
@@ -826,205 +782,13 @@
     </div>
 
     <!-- Footer -->
-    <footer>
-        <p>&copy; 2025 Blue Chip Signals. All rights reserved. | <a href="../../terms.html" style="color: var(--primary-gold); text-decoration: none;">Terms & Legal</a></p>
-        <div class="social-media">
-            <a href="https://www.tiktok.com/@bluechip.signals" target="_blank"><i class="fab fa-tiktok"></i></a>
-            <a href="https://www.instagram.com/bluechip.signals/" target="_blank"><i class="fab fa-instagram"></i></a>
-        </div>
-    </footer>
-    <script>
-        const hamburgerMenu = document.querySelector('.hamburger-menu');
-        const mobileNav = document.querySelector('.nav-links');
+    <div id="footer-placeholder" data-footer-type="standard-social" data-base="../../"></div>
+    <script src="../../assets/js/footer-component.js"></script>
 
-        hamburgerMenu.addEventListener('click', () => {
-            mobileNav.classList.toggle('active');
-        });
-
-        // Handle mobile dropdown toggle
-        document.addEventListener('DOMContentLoaded', function() {
-            const dropdown = document.querySelector('.dropdown');
-            const dropdownLink = dropdown.querySelector('a');
-            
-            // For mobile, toggle dropdown on click
-            dropdownLink.addEventListener('click', function(e) {
-                if (window.innerWidth <= 768) {
-                    e.preventDefault();
-                    dropdown.classList.toggle('active');
-                }
-            });
-        });
-
-        // Product Cycle Phase Detector Logic
-        document.addEventListener('DOMContentLoaded', function() {
-            const detectorQuestions = document.querySelectorAll('.detector-question');
-            const detectorResults = document.querySelectorAll('.detector-result');
-            const detectorQuestionContainer = document.getElementById('detector-question-container');
-            const detectorResultsContainer = document.getElementById('detector-results-container');
-            const restartDetectorButton = document.getElementById('restart-detector');
-
-            // Add CSS styles for the phase detector
-            const detectorStyle = document.createElement('style');
-            detectorStyle.textContent = `
-                .detector-btn {
-                    background: rgba(26, 31, 46, 0.3);
-                    border: 1px solid rgba(255, 193, 7, 0.3);
-                    color: var(--light-text);
-                    padding: 1.5rem;
-                    border-radius: 12px;
-                    cursor: pointer;
-                    transition: all 0.3s ease;
-                    text-align: center;
-                    display: flex;
-                    flex-direction: column;
-                    align-items: center;
-                    gap: 0.8rem;
-                    min-height: 120px;
-                    justify-content: center;
-                }
-
-                .detector-btn:hover {
-                    background: rgba(255, 193, 7, 0.1);
-                    border-color: var(--primary-gold);
-                    transform: translateY(-2px);
-                    box-shadow: 0 8px 25px rgba(255, 193, 7, 0.2);
-                }
-
-                .detector-btn i {
-                    font-size: 1.8rem;
-                    margin-bottom: 0.5rem;
-                }
-
-                .detector-btn strong {
-                    font-size: 1.1rem;
-                    color: var(--primary-gold);
-                    margin-bottom: 0.3rem;
-                }
-
-                .detector-btn small {
-                    font-size: 0.85rem;
-                    color: var(--gray-text);
-                    line-height: 1.4;
-                }
-
-                .detector-question {
-                    display: none;
-                    animation: fadeInDetector 0.5s ease-in-out;
-                }
-
-                .detector-question.active {
-                    display: block;
-                }
-
-                .detector-result {
-                    display: none;
-                    animation: slideInDetector 0.6s ease-out;
-                }
-
-                .detector-result.active {
-                    display: block;
-                }
-
-                @keyframes fadeInDetector {
-                    from { opacity: 0; transform: translateY(20px); }
-                    to { opacity: 1; transform: translateY(0); }
-                }
-
-                @keyframes slideInDetector {
-                    from { opacity: 0; transform: translateX(-30px); }
-                    to { opacity: 1; transform: translateX(0); }
-                }
-
-                #restart-detector:hover {
-                    background: rgba(255, 193, 7, 0.3);
-                    transform: translateY(-2px);
-                    box-shadow: 0 5px 15px rgba(255, 193, 7, 0.3);
-                }
-            `;
-            document.head.appendChild(detectorStyle);
-
-            // Handle button clicks for phase detector
-            document.addEventListener('click', function(e) {
-                if (e.target.classList.contains('detector-btn') || e.target.closest('.detector-btn')) {
-                    const button = e.target.classList.contains('detector-btn') ? e.target : e.target.closest('.detector-btn');
-                    const nextStep = button.getAttribute('data-next');
-                    
-                    // Hide current question
-                    const currentQuestion = document.querySelector('.detector-question.active');
-                    if (currentQuestion) {
-                        currentQuestion.classList.remove('active');
-                    }
-                    
-                    // Show next question or result
-                    if (nextStep.startsWith('result-')) {
-                        // Show result
-                        detectorQuestionContainer.style.display = 'none';
-                        detectorResultsContainer.style.display = 'block';
-                        
-                        // Hide all results first
-                        detectorResults.forEach(result => result.classList.remove('active'));
-                        
-                        // Show specific result
-                        const targetResult = document.querySelector(`[data-result="${nextStep}"]`);
-                        if (targetResult) {
-                            targetResult.classList.add('active');
-                        }
-                    } else {
-                        // Show next question
-                        const nextQuestion = document.querySelector(`[data-question="${nextStep}"]`);
-                        if (nextQuestion) {
-                            nextQuestion.classList.add('active');
-                        }
-                    }
-                }
-            });
-
-            // Handle restart button for phase detector
-            restartDetectorButton.addEventListener('click', function() {
-                // Hide results and show questions
-                detectorResultsContainer.style.display = 'none';
-                detectorQuestionContainer.style.display = 'block';
-                
-                // Hide all questions and results
-                detectorQuestions.forEach(q => q.classList.remove('active'));
-                detectorResults.forEach(r => r.classList.remove('active'));
-                
-                // Show first question
-                const firstQuestion = document.querySelector('[data-question="1"]');
-                if (firstQuestion) {
-                    firstQuestion.classList.add('active');
-                }
-            });
-        });
-
-        // Check if user is logged in and update the navigation
-        (function() {
-            const isLoggedIn = localStorage.getItem('bluechip_logged_in') || sessionStorage.getItem('bluechip_logged_in');
-            
-            if (isLoggedIn) {
-                // Show dashboard link
-                const dashboardLink = document.getElementById('dashboardLink');
-                if (dashboardLink) {
-                    dashboardLink.style.display = 'block';
-                }
-                
-                // Change login button to logout
-                const authButton = document.getElementById('authButton');
-                if (authButton) {
-                    authButton.removeAttribute('href');
-                    authButton.innerHTML = '<i class="fas fa-sign-out-alt"></i> Logout';
-                    authButton.style.cursor = 'pointer';
-                    
-                    authButton.onclick = function(e) {
-                        e.preventDefault();
-                        localStorage.clear();
-                        sessionStorage.clear();
-                        window.location.href = '../../login.html';
-                        return false;
-                    };
-                }
-            }
-        })();
+    <script type="module">
+        import { requireAuth, updateAuthButton } from '../../assets/js/firebase-auth-check.js';
+        requireAuth('../../book-demo.html');
+        updateAuthButton('../../login.html');
     </script>
 </body>
 </html>

@@ -4,26 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Welcome to Blue Chip Signals</title>
+    <link rel="stylesheet" href="assets/css/global.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="icon" type="image/png" href="assets/images/logo.png">
     <style>
-        :root {
-            --primary-gold: #C9B037;
-            --secondary-gold: #D4AF37;
-            --darker-bg: #0a0a0a;
-            --dark-bg: #1a1a1a;
-            --card-bg: #151515;
-            --light-text: #E8E8E8;
-            --gray-text: #A0A0A0;
-            --success-green: #2a571f;
-        }
-
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
         body {
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             background: linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 100%);
@@ -31,45 +15,6 @@
             min-height: 100vh;
             padding: 0;
             margin: 0;
-        }
-
-        /* Navigation */
-        nav {
-            background: rgba(5, 8, 16, 0.86);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-            position: fixed;
-            width: 100%;
-            top: 0;
-            z-index: 1000;
-            padding: 0.75rem 0;
-            border-bottom: 1px solid rgba(201, 176, 55, 0.18);
-            min-height: 74px;
-        }
-
-        .nav-container {
-            max-width: 1400px;
-            margin: 0 auto;
-            padding: 0 2rem;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .logo-nav {
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-        }
-
-        .logo-nav a {
-            display: flex;
-            align-items: center;
-        }
-
-        .logo-nav img {
-            width: 96px;
-            height: auto;
         }
 
         .main-wrapper {
@@ -299,21 +244,13 @@
                 height: 80px;
             }
 
-            .nav-container {
-                padding: 0 1rem;
-            }
         }
     </style>
 </head>
 <body>
     <!-- Navigation -->
-    <nav>
-        <div class="nav-container">
-            <div class="logo-nav">
-                <img src="assets/images/logo.png" alt="Blue Chip Signals Logo">
-            </div>
-        </div>
-    </nav>
+    <div id="nav-placeholder" data-nav-type="minimal"></div>
+    <script src="assets/js/nav-component.js"></script>
 
     <!-- Main Content -->
     <div class="main-wrapper">
@@ -382,15 +319,8 @@
     </div>
 
     <!-- Footer -->
-    <footer>
-        <div class="footer-content">
-            <p>&copy; 2025 Blue Chip Signals. All rights reserved.</p>
-            <div class="social-links">
-                <a href="https://www.tiktok.com/@bluechip.signals" target="_blank"><i class="fab fa-tiktok"></i></a>
-                <a href="https://www.instagram.com/bluechip.signals/" target="_blank"><i class="fab fa-instagram"></i></a>
-            </div>
-        </div>
-    </footer>
+    <div id="footer-placeholder" data-footer-type="standard-social" data-base=""></div>
+    <script src="assets/js/footer-component.js"></script>
 
     <script type="module">
         import { auth, db, onAuthStateChanged, doc, setDoc, updateDoc } from './assets/js/firebase-config.js';

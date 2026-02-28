@@ -1,70 +1,70 @@
-// Firebase Authentication Check for Protected Pages
+// Firebase Authentication Check — Blue Chip Signals
+// Centralised auth utilities used by all protected pages.
 import { auth, onAuthStateChanged, signOut } from './firebase-config.js';
 
-// Check if user is authenticated
-export function checkAuth(redirectIfNot = true) {
-    return new Promise((resolve, reject) => {
-        onAuthStateChanged(auth, (user) => {
-            if (user) {
-                // User is signed in
-                resolve(user);
-            } else {
-                // User is not signed in
-                if (redirectIfNot) {
-                    window.location.href = '../../book-demo.html';
-                }
-                reject(new Error('Not authenticated'));
-            }
-        });
+/**
+ * Protect a page: redirect unauthenticated users immediately.
+ * Call once near the top of any page that requires login.
+ * @param {string} redirectPath - Relative path to redirect to (e.g. '../../book-demo.html')
+ */
+export function requireAuth(redirectPath) {
+    const _redirect = () => { window.location.href = redirectPath || 'book-demo.html'; };
+
+    onAuthStateChanged(auth, (user) => {
+        if (!user) _redirect();
+    });
+
+    /* When the browser restores this page from the bfcache (Back/Forward navigation),
+       JavaScript does not re-execute. The pageshow event always fires on restoration,
+       and auth.currentUser is synchronously available after the first onAuthStateChanged
+       call, so we can redirect immediately without waiting for another async check. */
+    window.addEventListener('pageshow', (e) => {
+        if (e.persisted && !auth.currentUser) {
+            _redirect();
+        }
     });
 }
 
-// Logout function
-export async function performFirebaseLogout() {
+/**
+ * Sign the current user out and redirect to the login page.
+ * @param {string} loginPath - Relative path to login.html (e.g. '../../login.html')
+ */
+export async function performFirebaseLogout(loginPath) {
     try {
         await signOut(auth);
-        // Clear local storage
         localStorage.removeItem('bluechip_logged_in');
         localStorage.removeItem('bluechip_user_email');
         sessionStorage.removeItem('bluechip_logged_in');
         sessionStorage.removeItem('bluechip_user_email');
-        // Redirect to login
-        window.location.href = 'login.html';
+        window.location.href = loginPath || 'login.html';
     } catch (error) {
         console.error('Logout error:', error);
-        alert('Error logging out. Please try again.');
     }
 }
 
-// Update auth button in navigation
-export function updateAuthButton() {
+/**
+ * Wire the injected #authButton and #dashboardLink to the current auth state.
+ * Call after nav-component.js has run so the elements exist in the DOM.
+ * @param {string} loginPath - Relative path to login.html (e.g. '../../login.html')
+ */
+export function updateAuthButton(loginPath) {
     onAuthStateChanged(auth, (user) => {
-        const authButton = document.getElementById('authButton');
+        const authButton    = document.getElementById('authButton');
         const dashboardLink = document.getElementById('dashboardLink');
-        
+
         if (user && authButton) {
             authButton.removeAttribute('href');
             authButton.innerHTML = '<i class="fas fa-sign-out-alt"></i> Logout';
             authButton.style.cursor = 'pointer';
-            
-            authButton.onclick = function(e) {
+            authButton.onclick = function (e) {
                 e.preventDefault();
-                performFirebaseLogout();
+                performFirebaseLogout(loginPath);
                 return false;
             };
         }
-        
-        // Show Dashboard link for logged-in users
+
         if (user && dashboardLink) {
             dashboardLink.style.display = 'block';
         }
     });
 }
-
-// Initialize auth check on page load
-if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', updateAuthButton);
-} else {
-    updateAuthButton();
-}
-

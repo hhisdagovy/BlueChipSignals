@@ -7,16 +7,8 @@
     <meta name="description" content="Learn how to watch critical price levels after earnings gaps. Master pre-market highs/lows and previous day levels for precise entry timing.">
     <link rel="icon" type="image/png" href="../../assets/images/logo.png">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="../../assets/css/bot-style.css?v=1751140000">
+    <link rel="stylesheet" href="../../assets/css/bot-style.css">
     <style>
-        :root {
-            --primary-gold: #b3a17d;
-            --secondary-gold: #E2CFB5;
-            --dark-bg: #080B0F;
-            --darker-bg: #050810;
-            --light-text: #FFFFFF;
-            --gray-text: #A0A0A0;
-        }
 
         body {
             background: var(--darker-bg);
@@ -190,46 +182,10 @@
             }
         }
     </style>
-    <script>
-        // Redirect non-logged-in users to book demo page
-        (function() {
-            const isLoggedIn = localStorage.getItem('bluechip_logged_in') || sessionStorage.getItem('bluechip_logged_in');
-            if (!isLoggedIn) {
-                window.location.href = '../../book-demo.html';
-            }
-        })();
-    </script>
 </head>
 <body>
-    <!-- Navigation -->
-    <nav>
-        <div class="nav-container">
-            <div class="logo">
-                <a href="../../index.html"><img src="../../assets/images/logo.png" alt="Blue Chip Signals Logo"></a>
-            </div>
-            <div class="hamburger-menu">
-                <div class="bar"></div>
-                <div class="bar"></div>
-                <div class="bar"></div>
-            </div>
-            <ul class="nav-links">
-                <li id="dashboardLink" style="display: none;"><a href="../../dashboard.html" style="color: var(--primary-gold); font-weight: 600;"><i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
-                <li><a href="../../index.html#features">Features</a></li>
-                <li><a href="../../index.html#bots">Supported Stocks</a></li>
-                <li><a href="../../book-demo.html">Book a Demo</a></li>
-                <li><a href="../../contact.html">Contact</a></li>
-                <li class="dropdown"><a href="#">More</a>
-                    <ul class="dropdown-menu">
-                        <li><a href="../../index.html#testimonials">Testimonials</a></li>
-                        <li><a href="../../faq.html">FAQ</a></li>
-                        <li><a href="../../about.html">About Us</a></li>
-                        <li><a href="../../terms.html">Terms & Legal</a></li>
-                    </ul>
-                </li>
-                <li><a href="../../login.html" class="login-btn" id="authButton"><i class="fas fa-sign-in-alt"></i> Login</a></li>
-            </ul>
-        </div>
-    </nav>
+    <div id="nav-placeholder" data-nav-type="public" data-base="../../"></div>
+    <script src="../../assets/js/nav-component.js"></script>
 
     <!-- Hero Section -->
     <section class="guide-hero">
@@ -981,162 +937,13 @@
     </div>
 
     <!-- Footer -->
-    <footer>
-        <p>&copy; 2025 Blue Chip Signals. All rights reserved. | <a href="../../terms.html" style="color: var(--primary-gold); text-decoration: none;">Terms & Legal</a></p>
-        <div class="social-media">
-            <a href="https://www.tiktok.com/@bluechip.signals" target="_blank"><i class="fab fa-tiktok"></i></a>
-            <a href="https://www.instagram.com/bluechip.signals/" target="_blank"><i class="fab fa-instagram"></i></a>
-        </div>
-    </footer>
-    <script>
-        const hamburgerMenu = document.querySelector('.hamburger-menu');
-        const mobileNav = document.querySelector('.nav-links');
+    <div id="footer-placeholder" data-footer-type="standard-social" data-base="../../"></div>
+    <script src="../../assets/js/footer-component.js"></script>
 
-        hamburgerMenu.addEventListener('click', () => {
-            mobileNav.classList.toggle('active');
-        });
-
-        // Gap Strategy Decision Tree Logic
-        document.addEventListener('DOMContentLoaded', function() {
-            const gapQuestions = document.querySelectorAll('.gap-question');
-            const gapResults = document.querySelectorAll('.gap-result');
-            const gapQuestionContainer = document.getElementById('gap-question-container');
-            const gapResultsContainer = document.getElementById('gap-results-container');
-            const restartGapButton = document.getElementById('restart-gap-selector');
-
-            // Add CSS styles for the gap selector
-            const gapStyle = document.createElement('style');
-            gapStyle.textContent = `
-                .gap-selector-btn {
-                    background: rgba(26, 31, 46, 0.3);
-                    border: 1px solid rgba(255, 193, 7, 0.3);
-                    color: var(--light-text);
-                    padding: 1.5rem;
-                    border-radius: 12px;
-                    cursor: pointer;
-                    transition: all 0.3s ease;
-                    text-align: center;
-                    display: flex;
-                    flex-direction: column;
-                    align-items: center;
-                    gap: 0.8rem;
-                    min-height: 120px;
-                    justify-content: center;
-                }
-
-                .gap-selector-btn:hover {
-                    background: rgba(255, 193, 7, 0.1);
-                    border-color: var(--primary-gold);
-                    transform: translateY(-2px);
-                    box-shadow: 0 8px 25px rgba(255, 193, 7, 0.2);
-                }
-
-                .gap-selector-btn i {
-                    font-size: 1.8rem;
-                    margin-bottom: 0.5rem;
-                }
-
-                .gap-selector-btn strong {
-                    font-size: 1.1rem;
-                    color: var(--primary-gold);
-                    margin-bottom: 0.3rem;
-                }
-
-                .gap-selector-btn small {
-                    font-size: 0.85rem;
-                    color: var(--gray-text);
-                    line-height: 1.4;
-                }
-
-                .gap-question {
-                    display: none;
-                    animation: fadeInGap 0.5s ease-in-out;
-                }
-
-                .gap-question.active {
-                    display: block;
-                }
-
-                .gap-result {
-                    display: none;
-                    animation: slideInGap 0.6s ease-out;
-                }
-
-                .gap-result.active {
-                    display: block;
-                }
-
-                @keyframes fadeInGap {
-                    from { opacity: 0; transform: translateY(20px); }
-                    to { opacity: 1; transform: translateY(0); }
-                }
-
-                @keyframes slideInGap {
-                    from { opacity: 0; transform: translateX(-30px); }
-                    to { opacity: 1; transform: translateX(0); }
-                }
-
-                #restart-gap-selector:hover {
-                    background: rgba(255, 193, 7, 0.3);
-                    transform: translateY(-2px);
-                    box-shadow: 0 5px 15px rgba(255, 193, 7, 0.3);
-                }
-            `;
-            document.head.appendChild(gapStyle);
-
-            // Handle button clicks for gap selector
-            document.addEventListener('click', function(e) {
-                if (e.target.classList.contains('gap-selector-btn') || e.target.closest('.gap-selector-btn')) {
-                    const button = e.target.classList.contains('gap-selector-btn') ? e.target : e.target.closest('.gap-selector-btn');
-                    const nextStep = button.getAttribute('data-next');
-                    
-                    // Hide current question
-                    const currentQuestion = document.querySelector('.gap-question.active');
-                    if (currentQuestion) {
-                        currentQuestion.classList.remove('active');
-                    }
-                    
-                    // Show next question or result
-                    if (nextStep.startsWith('result-')) {
-                        // Show result
-                        gapQuestionContainer.style.display = 'none';
-                        gapResultsContainer.style.display = 'block';
-                        
-                        // Hide all results first
-                        gapResults.forEach(result => result.classList.remove('active'));
-                        
-                        // Show specific result
-                        const targetResult = document.querySelector(`[data-result="${nextStep}"]`);
-                        if (targetResult) {
-                            targetResult.classList.add('active');
-                        }
-                    } else {
-                        // Show next question
-                        const nextQuestion = document.querySelector(`[data-question="${nextStep}"]`);
-                        if (nextQuestion) {
-                            nextQuestion.classList.add('active');
-                        }
-                    }
-                }
-            });
-
-            // Handle restart button for gap selector
-            restartGapButton.addEventListener('click', function() {
-                // Hide results and show questions
-                gapResultsContainer.style.display = 'none';
-                gapQuestionContainer.style.display = 'block';
-                
-                // Hide all questions and results
-                gapQuestions.forEach(q => q.classList.remove('active'));
-                gapResults.forEach(r => r.classList.remove('active'));
-                
-                // Show first question
-                const firstQuestion = document.querySelector('[data-question="1"]');
-                if (firstQuestion) {
-                    firstQuestion.classList.add('active');
-                }
-            });
-        });
+    <script type="module">
+        import { requireAuth, updateAuthButton } from '../../assets/js/firebase-auth-check.js';
+        requireAuth('../../book-demo.html');
+        updateAuthButton('../../login.html');
     </script>
 </body>
 </html> 

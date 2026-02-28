@@ -214,67 +214,102 @@
 
         /* Features Section */
         .features {
-            padding: 4rem 2rem;
+            padding: 5rem 0 6rem;
             background: var(--darker-bg);
+            position: relative;
+            overflow: hidden;
         }
-
+        .features::before {
+            content: '';
+            position: absolute; inset: 0;
+            background-image: radial-gradient(circle, rgba(201,176,55,0.09) 1px, transparent 1px);
+            background-size: 32px 32px;
+            pointer-events: none;
+            z-index: 0;
+        }
         .features-container {
-            max-width: 1200px;
-            margin: 0 auto;
+            position: relative;
+            z-index: 1;
         }
-
         .section-title {
             text-align: center;
             font-size: 2.6rem;
-            margin-bottom: 2.2rem;
+            margin-bottom: 3rem;
             color: var(--primary-gold);
             letter-spacing: 0.3px;
+            padding: 0 2rem;
         }
-
-        .features-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 2rem;
+        /* Marquee wrapper — clips overflow and applies edge fades */
+        .features-marquee-wrap {
+            overflow: hidden;
+            -webkit-mask-image: linear-gradient(to right, transparent 0%, black 8%, black 92%, transparent 100%);
+            mask-image: linear-gradient(to right, transparent 0%, black 8%, black 92%, transparent 100%);
+            padding: 1rem 0 3rem;
         }
-
-        .feature-card {
-            position: relative;
-            background: radial-gradient(1200px 200px at 0% 0%, rgba(201,176,55,0.08), transparent 30%),
-                        rgba(18, 22, 32, 0.72);
-            border: 1px solid rgba(201, 176, 55, 0.22);
-            border-radius: 16px;
-            padding: 2rem;
-            transition: transform 0.35s ease, box-shadow 0.35s ease, border-color 0.35s ease;
-            box-shadow: 0 12px 30px rgba(0,0,0,0.25), inset 0 1px 0 rgba(255,255,255,0.02);
-            backdrop-filter: blur(2px);
-        }
-
-        .feature-card:hover {
-            transform: translateY(-6px);
-            border-color: rgba(201, 176, 55, 0.38);
-            box-shadow: 0 16px 40px rgba(201,176,55,0.12);
-        }
-
-        .feature-card h3 {
-            letter-spacing: 0.2px;
-        }
-
-        .feature-icon {
-            width: 64px;
-            height: 64px;
-            border-radius: 14px;
+        /* Scrolling track — contains cards × 2 for seamless loop */
+        .features-track {
             display: flex;
-            align-items: center;
-            justify-content: center;
-            margin-bottom: 1.25rem;
+            gap: 1.5rem;
+            width: max-content;
+            animation: marquee-scroll 50s linear infinite;
+        }
+        .features-marquee-wrap:hover .features-track {
+            animation-play-state: paused;
+        }
+        @keyframes marquee-scroll {
+            from { transform: translateX(0); }
+            to   { transform: translateX(-50%); }
+        }
+        /* Individual card */
+        .feature-bubble {
+            position: relative;
+            flex: 0 0 260px;
+            background: rgba(12, 15, 24, 0.78);
+            border: 1px solid rgba(201, 176, 55, 0.28);
+            border-radius: 20px;
+            padding: 1.5rem 1.4rem 1.8rem;
+            backdrop-filter: blur(12px);
+            box-shadow: 0 10px 28px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.03);
+            transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
+            cursor: default;
+            user-select: none;
+        }
+        /* Alternate heights for wave effect */
+        .feature-bubble:nth-child(even) { transform: translateY(28px); }
+        .feature-bubble:hover {
+            transform: translateY(-8px) !important;
+            border-color: rgba(201, 176, 55, 0.65);
+            box-shadow: 0 0 28px rgba(201,176,55,0.2), 0 16px 40px rgba(0,0,0,0.4);
+        }
+        /* Gold connector dot */
+        .feature-bubble::after {
+            content: '';
+            position: absolute; bottom: -8px; left: 50%;
+            transform: translateX(-50%);
+            width: 9px; height: 9px; border-radius: 50%;
+            background: rgba(201,176,55,0.6);
+            box-shadow: 0 0 8px rgba(201,176,55,0.4);
+        }
+        .feature-icon {
+            width: 48px; height: 48px; border-radius: 12px;
+            display: flex; align-items: center; justify-content: center;
+            margin-bottom: 1rem;
             background: linear-gradient(180deg, rgba(201,176,55,0.12), rgba(201,176,55,0.03));
             border: 1px solid rgba(201,176,55,0.28);
-            box-shadow: inset 0 1px 0 rgba(255,255,255,0.06), 0 6px 16px rgba(0,0,0,0.25);
         }
-
-        .feature-icon i {
-            color: var(--primary-gold);
-            font-size: 1.4rem;
+        .feature-icon i { color: var(--primary-gold); font-size: 1.2rem; }
+        .feature-bubble h3 { font-size: 0.95rem; letter-spacing: 0.2px; margin-bottom: 0.45rem; }
+        .feature-bubble p { font-size: 0.82rem; color: rgba(255,255,255,0.58); line-height: 1.6; margin: 0; }
+        .feature-bubble .feature-disclaimer {
+            display: block;
+            font-size: 0.7rem;
+            color: rgba(255,255,255,0.28);
+            margin-top: 0.5rem;
+            font-style: italic;
+            line-height: 1.4;
+        }
+        @media (max-width: 768px) {
+            .features-track { animation-duration: 35s; }
         }
         
         /* Pricing Section */
@@ -857,7 +892,7 @@
         <div class="hero-container panel-card">
             <div class="hero-content">
                 <h2>Elite Trading Signals for Blue-Chip Stocks</h2>
-                <p>Get precise buy signals for SPY, META, AAPL, TSLA, NVDA, and AMZN. Our momentum breakout strategy delivers 2-4 high-probability alerts daily.</p>
+                <p>Get precise daily signals for SPY, META, AAPL, TSLA, NVDA, AMZN and soon to be more!</p>
                 <div class="hero-buttons">
                     <a href="book-demo.html" class="cta-button">Book a Demo</a>
                     <a href="contact.html" class="cta-button" style="background: none; border: 2px solid var(--primary-gold); color: var(--primary-gold);">Contact Support</a>
@@ -1064,38 +1099,134 @@
 
     <!-- Features Section -->
     <section id="features" class="features panel">
-        <div class="features-container panel-card">
+        <div class="features-container">
             <h2 class="section-title">Why Choose Blue Chip Signals?</h2>
-            <div class="features-grid">
-                <div class="feature-card">
+        </div>
+        <div class="features-marquee-wrap">
+            <div class="features-track">
+                <!-- Set 1 -->
+                <div class="feature-bubble">
                     <div class="feature-icon"><i class="fas fa-chart-bar"></i></div>
-                    <h3>VWAP & MFI Analysis</h3>
+                    <h3>VWAP &amp; MFI Analysis</h3>
                     <p>Our bots use Volume Weighted Average Price and Money Flow Index to identify optimal entry points with high probability of success.</p>
                 </div>
-                <div class="feature-card">
+                <div class="feature-bubble">
                     <div class="feature-icon"><i class="fas fa-bolt"></i></div>
                     <h3>2-4 Daily Alerts</h3>
                     <p>Get the perfect balance of quality and quantity with multiple trading opportunities throughout each trading day.</p>
                 </div>
-                <div class="feature-card">
+                <div class="feature-bubble">
                     <div class="feature-icon"><i class="fas fa-gem"></i></div>
                     <h3>Blue-Chip Focus</h3>
-                    <p>Trade the most liquid and reliable stocks in the market - perfect for both day trading and swing trading strategies.</p>
+                    <p>Trade the most liquid and reliable stocks in the market — perfect for both day trading and swing trading strategies.</p>
                 </div>
-                <div class="feature-card">
+                <div class="feature-bubble">
                     <div class="feature-icon"><i class="fas fa-mobile-alt"></i></div>
                     <h3>Telegram Delivery</h3>
                     <p>Instant alerts delivered directly to your phone via dedicated Telegram channels for each stock.</p>
                 </div>
-                <div class="feature-card">
+                <div class="feature-bubble">
                     <div class="feature-icon"><i class="fas fa-bullseye"></i></div>
-                    <h3>Simple & Clear</h3>
-                    <p>No complex analysis needed - we provide exact entry points and contract details for immediate action.</p>
+                    <h3>Simple &amp; Clear</h3>
+                    <p>No complex analysis needed — we provide exact entry points and contract details for immediate action.</p>
                 </div>
-                <div class="feature-card">
+                <div class="feature-bubble">
                     <div class="feature-icon"><i class="fas fa-coins"></i></div>
                     <h3>Any Account Size</h3>
                     <p>Whether you're starting small or trading large, our signals work for any account size that can afford the contract.</p>
+                </div>
+                <div class="feature-bubble">
+                    <div class="feature-icon"><i class="fas fa-shield-alt"></i></div>
+                    <h3>Built-In Risk Management</h3>
+                    <p>Every signal includes a clear stop-loss level so you always know your max downside before entering.</p>
+                </div>
+                <div class="feature-bubble">
+                    <div class="feature-icon"><i class="fas fa-history"></i></div>
+                    <h3>Proven Track Record</h3>
+                    <p>Consistent, documented performance across multiple market conditions since launch.</p>
+                    <span class="feature-disclaimer">Past performance does not indicate future results.</span>
+                </div>
+                <div class="feature-bubble">
+                    <div class="feature-icon"><i class="fas fa-user-graduate"></i></div>
+                    <h3>No Experience Required</h3>
+                    <p>Signals are formatted for immediate action — no need to interpret charts or run your own analysis.</p>
+                </div>
+                <div class="feature-bubble">
+                    <div class="feature-icon"><i class="fas fa-layer-group"></i></div>
+                    <h3>6 Blue-Chip Stocks</h3>
+                    <p>Focused coverage of SPY, TSLA, META, NVDA, AAPL, and AMZN — the most liquid names in the market.</p>
+                </div>
+                <div class="feature-bubble">
+                    <div class="feature-icon"><i class="fas fa-eye"></i></div>
+                    <h3>100% Transparent</h3>
+                    <p>Every alert shows the exact entry, target, and stop. No black box. No guessing.</p>
+                </div>
+                <div class="feature-bubble">
+                    <div class="feature-icon"><i class="fas fa-clock"></i></div>
+                    <h3>Market-Hours Coverage</h3>
+                    <p>Signals are timed to market open volatility windows when the highest-probability setups occur.</p>
+                </div>
+                <!-- Set 2 — duplicate for seamless loop -->
+                <div class="feature-bubble" aria-hidden="true">
+                    <div class="feature-icon"><i class="fas fa-chart-bar"></i></div>
+                    <h3>VWAP &amp; MFI Analysis</h3>
+                    <p>Our bots use Volume Weighted Average Price and Money Flow Index to identify optimal entry points with high probability of success.</p>
+                </div>
+                <div class="feature-bubble" aria-hidden="true">
+                    <div class="feature-icon"><i class="fas fa-bolt"></i></div>
+                    <h3>2-4 Daily Alerts</h3>
+                    <p>Get the perfect balance of quality and quantity with multiple trading opportunities throughout each trading day.</p>
+                </div>
+                <div class="feature-bubble" aria-hidden="true">
+                    <div class="feature-icon"><i class="fas fa-gem"></i></div>
+                    <h3>Blue-Chip Focus</h3>
+                    <p>Trade the most liquid and reliable stocks in the market — perfect for both day trading and swing trading strategies.</p>
+                </div>
+                <div class="feature-bubble" aria-hidden="true">
+                    <div class="feature-icon"><i class="fas fa-mobile-alt"></i></div>
+                    <h3>Telegram Delivery</h3>
+                    <p>Instant alerts delivered directly to your phone via dedicated Telegram channels for each stock.</p>
+                </div>
+                <div class="feature-bubble" aria-hidden="true">
+                    <div class="feature-icon"><i class="fas fa-bullseye"></i></div>
+                    <h3>Simple &amp; Clear</h3>
+                    <p>No complex analysis needed — we provide exact entry points and contract details for immediate action.</p>
+                </div>
+                <div class="feature-bubble" aria-hidden="true">
+                    <div class="feature-icon"><i class="fas fa-coins"></i></div>
+                    <h3>Any Account Size</h3>
+                    <p>Whether you're starting small or trading large, our signals work for any account size that can afford the contract.</p>
+                </div>
+                <div class="feature-bubble" aria-hidden="true">
+                    <div class="feature-icon"><i class="fas fa-shield-alt"></i></div>
+                    <h3>Built-In Risk Management</h3>
+                    <p>Every signal includes a clear stop-loss level so you always know your max downside before entering.</p>
+                </div>
+                <div class="feature-bubble" aria-hidden="true">
+                    <div class="feature-icon"><i class="fas fa-history"></i></div>
+                    <h3>Proven Track Record</h3>
+                    <p>Consistent, documented performance across multiple market conditions since launch.</p>
+                    <span class="feature-disclaimer">Past performance does not indicate future results.</span>
+                </div>
+                <div class="feature-bubble" aria-hidden="true">
+                    <div class="feature-icon"><i class="fas fa-user-graduate"></i></div>
+                    <h3>No Experience Required</h3>
+                    <p>Signals are formatted for immediate action — no need to interpret charts or run your own analysis.</p>
+                </div>
+                <div class="feature-bubble" aria-hidden="true">
+                    <div class="feature-icon"><i class="fas fa-layer-group"></i></div>
+                    <h3>6 Blue-Chip Stocks</h3>
+                    <p>Focused coverage of SPY, TSLA, META, NVDA, AAPL, and AMZN — the most liquid names in the market.</p>
+                </div>
+                <div class="feature-bubble" aria-hidden="true">
+                    <div class="feature-icon"><i class="fas fa-eye"></i></div>
+                    <h3>100% Transparent</h3>
+                    <p>Every alert shows the exact entry, target, and stop. No black box. No guessing.</p>
+                </div>
+                <div class="feature-bubble" aria-hidden="true">
+                    <div class="feature-icon"><i class="fas fa-clock"></i></div>
+                    <h3>Market-Hours Coverage</h3>
+                    <p>Signals are timed to market open volatility windows when the highest-probability setups occur.</p>
                 </div>
             </div>
         </div>
@@ -1331,7 +1462,6 @@
             });
         }
 
-        primeReveal(document.querySelectorAll('.features-grid .feature-card'), 70);
         // Subtle fade for section titles
         primeReveal(document.querySelectorAll('.section-title'), 0);
 

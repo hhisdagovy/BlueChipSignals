@@ -5,7 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Trading Journal - Blue Chip Signals</title>
     <link rel="icon" type="image/png" href="assets/images/logo.png">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="assets/css/global.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns"></script>
     <style>
@@ -21,22 +22,6 @@
             --danger-red: #ef4444;
             --border-color: rgba(201, 176, 55, 0.25);
         }
-
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: var(--dark-bg);
-            color: var(--light-text);
-            line-height: 1.6;
-            overflow-x: hidden;
-            position: relative;
-        }
-
         /* Ambient Background */
         body::before {
             content: '';
@@ -60,99 +45,7 @@
             mix-blend-mode: lighten;
         }
 
-        /* Navigation */
-        nav {
-            background: rgba(5, 8, 16, 0.86);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-            padding: 0.75rem 0;
-            position: fixed;
-            width: 100%;
-            top: 0;
-            z-index: 1000;
-            min-height: 74px;
-            border-bottom: 1px solid rgba(201, 176, 55, 0.18);
-            box-shadow: 0 18px 45px rgba(5, 8, 16, 0.55);
-        }
-
-        .nav-container {
-            max-width: 1400px;
-            margin: 0 auto;
-            padding: 0 2rem;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .logo {
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-        }
-
-        .logo img {
-            width: 96px;
-            height: auto;
-            max-width: 100%;
-            filter: drop-shadow(0 6px 18px rgba(201, 176, 55, 0.28));
-            transition: transform 0.3s ease, filter 0.3s ease;
-        }
-
-        .logo img:hover {
-            transform: scale(1.05);
-        }
-
-        .nav-links {
-            display: flex;
-            list-style: none;
-            gap: 2rem;
-            align-items: center;
-        }
-
-        .nav-links a {
-            color: var(--light-text);
-            text-decoration: none;
-            transition: color 0.3s;
-            font-weight: 500;
-        }
-
-        .nav-links a:hover {
-            color: var(--primary-gold);
-        }
-
-        .login-btn {
-            background: rgba(255, 59, 59, 0.1);
-            color: #ff3b3b;
-            padding: 0.5rem 1.2rem;
-            border-radius: 20px;
-            border: 1px solid #ff3b3b;
-            font-weight: 600;
-            transition: all 0.3s;
-            cursor: pointer;
-            text-decoration: none;
-        }
-
-        .login-btn:hover {
-            background: #ff3b3b;
-            color: white;
-        }
-
-        .logout-btn {
-            background: rgba(255, 59, 59, 0.1);
-            color: #ff3b3b;
-            padding: 0.5rem 1.2rem;
-            border-radius: 20px;
-            border: 1px solid #ff3b3b;
-            cursor: pointer;
-            transition: all 0.3s;
-            font-size: 0.9rem;
-            font-weight: 600;
-        }
-
-        .logout-btn:hover {
-            background: #ff3b3b;
-            color: white;
-        }
+        /* Nav/btn styles → global.css */
 
         .overview-banner {
             margin: 1.5rem auto 1.5rem;
@@ -933,21 +826,7 @@
             color: var(--secondary-gold);
         }
 
-        /* Hamburger Menu */
-        .hamburger {
-            display: none;
-            flex-direction: column;
-            cursor: pointer;
-            gap: 4px;
-        }
-
-        .hamburger span {
-            width: 25px;
-            height: 3px;
-            background: var(--primary-gold);
-            transition: all 0.3s;
-            border-radius: 3px;
-        }
+        /* Nav, hamburger, dropdown → global.css */
 
         /* Responsive */
         @media (max-width: 768px) {
@@ -971,48 +850,6 @@
                 grid-template-columns: 1fr;
             }
 
-            .hamburger {
-                display: flex;
-            }
-
-            .nav-links {
-                position: fixed;
-                top: 74px;
-                right: -100%;
-                width: 280px;
-                height: calc(100vh - 74px);
-                background: rgba(5, 8, 16, 0.98);
-                backdrop-filter: blur(12px);
-                -webkit-backdrop-filter: blur(12px);
-                flex-direction: column;
-                padding: 2rem;
-                gap: 1.5rem;
-                transition: right 0.3s;
-                border-left: 1px solid rgba(201, 176, 55, 0.22);
-                overflow-y: auto;
-                z-index: 999;
-            }
-
-            .nav-links.active {
-                right: 0;
-            }
-
-            .nav-links li {
-                width: 100%;
-            }
-
-            .nav-links a,
-            .nav-links button {
-                display: block;
-                width: 100%;
-                text-align: left;
-            }
-
-            .logo img {
-                width: 60px;
-                height: 60px;
-            }
-
             .table-container {
                 font-size: 0.85rem;
             }
@@ -1021,101 +858,12 @@
                 padding: 0.5rem;
             }
         }
-
-        /* Dropdown Menu Styles */
-        .dropdown {
-            position: relative;
-        }
-
-        .dropdown > a::after {
-            content: " \25BE";
-            font-size: 0.8rem;
-        }
-
-        .dropdown-menu {
-            display: none;
-            position: absolute;
-            top: 100%;
-            right: 0;
-            background: rgba(5, 8, 16, 0.95);
-            border: 1px solid rgba(201, 176, 55, 0.2);
-            border-radius: 8px;
-            min-width: 220px;
-            padding: 0.5rem 0;
-            z-index: 1200;
-        }
-
-        .dropdown-menu li {
-            list-style: none;
-        }
-
-        .dropdown-menu a {
-            display: block;
-            padding: 0.6rem 1rem;
-            color: var(--light-text);
-            white-space: nowrap;
-        }
-
-        .dropdown-menu a:hover {
-            background: rgba(201, 176, 55, 0.08);
-            color: var(--primary-gold);
-        }
-
-        .dropdown:hover .dropdown-menu {
-            display: block;
-        }
-
-        @media (max-width: 768px) {
-            .dropdown-menu {
-                position: static;
-                display: none;
-                background: rgba(0, 0, 0, 0.3);
-                border: none;
-                border-radius: 0;
-                padding: 0;
-                margin-left: 1rem;
-            }
-
-            .dropdown.active .dropdown-menu {
-                display: block;
-            }
-
-            .dropdown > a::after {
-                float: right;
-            }
-        }
     </style>
 </head>
 <body>
     <!-- Navigation -->
-    <nav>
-        <div class="nav-container">
-            <div class="logo">
-                <a href="dashboard.html"><img src="assets/images/logo.png" alt="Blue Chip Signals Logo"></a>
-            </div>
-            <div class="hamburger" onclick="toggleMobileMenu()">
-                <span></span>
-                <span></span>
-                <span></span>
-            </div>
-            <ul class="nav-links" id="navLinks">
-                <li id="dashboardLink" style="display: none;"><a href="dashboard.html" style="color: var(--primary-gold); font-weight: 600;"><i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
-                <li><a href="index.html#features">Features</a></li>
-                <li><a href="index.html#bots">Supported Stocks</a></li>
-                <li><a href="book-demo.html">Book a Demo</a></li>
-                <li><a href="contact.html">Contact</a></li>
-                <li class="dropdown"><a href="#">More</a>
-                    <ul class="dropdown-menu">
-                        <li><a href="index.html#testimonials">Testimonials</a></li>
-                        <li><a href="faq.html">FAQ</a></li>
-                        <li><a href="about.html">About Us</a></li>
-                        <li><a href="terms.html">Terms & Legal</a></li>
-                    </ul>
-                </li>
-                <li><a href="login.html" class="login-btn" id="authButton"><i class="fas fa-sign-in-alt"></i> Login</a></li>
-            </ul>
-        </div>
-    </nav>
+    <div id="nav-placeholder" data-nav-type="public"></div>
+    <script src="assets/js/nav-component.js"></script>
 
     <!-- Header -->
     <div class="header">
@@ -1401,14 +1149,8 @@
     </div>
 
     <!-- Footer -->
-    <footer>
-        <p>&copy; 2025 Blue Chip Signals. All Rights Reserved.</p>
-        <div style="margin-top: 1rem;">
-            <a href="https://www.instagram.com/bluechip.signals/" target="_blank" style="color: var(--primary-gold); margin: 0 0.5rem;">
-                <i class="fab fa-instagram"></i>
-            </a>
-        </div>
-    </footer>
+    <div id="footer-placeholder" data-footer-type="standard-social" data-base=""></div>
+    <script src="assets/js/footer-component.js"></script>
 
     <script type="module">
         import { auth, db, onAuthStateChanged, doc, getDoc, setDoc, updateDoc } from './assets/js/firebase-config.js';
@@ -2129,12 +1871,6 @@
             a.download = `bluechip-trades-${new Date().toISOString().slice(0, 10)}.csv`;
             a.click();
             window.URL.revokeObjectURL(url);
-        };
-
-        // Toggle mobile menu (make it global)
-        window.toggleMobileMenu = function() {
-            const navLinks = document.getElementById('navLinks');
-            navLinks.classList.toggle('active');
         };
 
         // Logout function (make it global)

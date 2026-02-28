@@ -6,25 +6,8 @@
     <title>AMZN RSI Divergence Scanner | Blue Chip Signals</title>
     <link rel="icon" type="image/png" href="../../assets/images/logo.png">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="../../assets/css/bot-style.css?v=1751140000">
-    <script>
-        // Redirect non-logged-in users to book demo page
-        (function() {
-            const isLoggedIn = localStorage.getItem('bluechip_logged_in') || sessionStorage.getItem('bluechip_logged_in');
-            if (!isLoggedIn) {
-                window.location.href = '../../book-demo.html';
-            }
-        })();
-    </script>
+    <link rel="stylesheet" href="../../assets/css/bot-style.css">
     <style>
-        :root {
-            --primary-gold: #b3a17d;
-            --secondary-gold: #E2CFB5;
-            --dark-bg: #080B0F;
-            --darker-bg: #050810;
-            --light-text: #FFFFFF;
-            --gray-text: #A0A0A0;
-        }
 
         body {
             background: var(--darker-bg);
@@ -155,33 +138,8 @@
     </style>
 </head>
 <body>
-    <!-- Navigation -->
-    <nav>
-        <div class="nav-container">
-            <div class="logo">
-                <a href="../../index.html"><img src="../../assets/images/logo.png" alt="Blue Chip Signals Logo"></a>
-            </div>
-            <div class="hamburger-menu">
-                <div class="bar"></div><div class="bar"></div><div class="bar"></div>
-            </div>
-            <ul class="nav-links">
-                <li id="dashboardLink" style="display: none;"><a href="../../dashboard.html" style="color: var(--primary-gold); font-weight: 600;"><i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
-                <li><a href="../../index.html#features">Features</a></li>
-                <li><a href="../../index.html#bots">Supported Stocks</a></li>
-                <li><a href="../../book-demo.html">Book a Demo</a></li>
-                <li><a href="../../contact.html">Contact</a></li>
-                <li class="dropdown"><a href="#">More</a>
-                    <ul class="dropdown-menu">
-                        <li><a href="../../index.html#testimonials">Testimonials</a></li>
-                        <li><a href="../../faq.html">FAQ</a></li>
-                        <li><a href="../../about.html">About Us</a></li>
-                        <li><a href="../../terms.html">Terms & Legal</a></li>
-                    </ul>
-                </li>
-                <li><a href="../../login.html" class="login-btn" id="authButton"><i class="fas fa-sign-in-alt"></i> Login</a></li>
-            </ul>
-        </div>
-    </nav>
+    <div id="nav-placeholder" data-nav-type="public" data-base="../../"></div>
+    <script src="../../assets/js/nav-component.js"></script>
 
     <!-- Hero Section -->
     <section class="guide-hero">
@@ -348,147 +306,13 @@
     </div>
 
     <!-- Footer -->
-    <footer>
-        <p>&copy; 2025 Blue Chip Signals. All rights reserved. | <a href="../../terms.html" style="color: var(--primary-gold); text-decoration: none;">Terms & Legal</a></p>
-        <div class="social-media">
-            <a href="https://www.tiktok.com/@bluechip.signals" target="_blank"><i class="fab fa-tiktok"></i></a>
-            <a href="https://www.instagram.com/bluechip.signals/" target="_blank"><i class="fab fa-instagram"></i></a>
-        </div>
-    </footer>
+    <div id="footer-placeholder" data-footer-type="standard-social" data-base="../../"></div>
+    <script src="../../assets/js/footer-component.js"></script>
 
-    <script>
-        const hamburgerMenu = document.querySelector('.hamburger-menu');
-        const mobileNav = document.querySelector('.nav-links');
-        hamburgerMenu.addEventListener('click', () => mobileNav.classList.toggle('active'));
-
-        document.addEventListener('DOMContentLoaded', function() {
-            const dropdown = document.querySelector('.dropdown');
-            const dropdownLink = dropdown.querySelector('a');
-            dropdownLink.addEventListener('click', function(e) {
-                if (window.innerWidth <= 768) {
-                    e.preventDefault();
-                    dropdown.classList.toggle('active');
-                }
-            });
-        });
-
-        class DivergencePlanner {
-            constructor() {
-                this.divType = document.getElementById('div-type');
-                this.timeframe = document.getElementById('timeframe');
-                this.levelQuality = document.getElementById('level-quality');
-                this.volatility = document.getElementById('volatility');
-                this.portfolio = document.getElementById('portfolio-size');
-                this.btn = document.getElementById('calculate-btn');
-                this.results = document.getElementById('calculator-results');
-                this.init();
-            }
-            init() {
-                this.btn.addEventListener('click', () => this.calculate());
-                [this.divType, this.timeframe, this.levelQuality, this.volatility, this.portfolio].forEach(el => {
-                    el.addEventListener('change', () => this.updateButton());
-                });
-            }
-            updateButton() {
-                const filled = this.divType.value && this.timeframe.value && this.levelQuality.value && this.volatility.value && this.portfolio.value;
-                this.btn.disabled = !filled;
-            }
-            calculate() {
-                const impact = parseFloat(this.divType.selectedOptions[0].dataset.impact);
-                const direction = this.divType.selectedOptions[0].dataset.direction;
-                const tfWeight = parseFloat(this.timeframe.selectedOptions[0].dataset.weight);
-                const level = parseFloat(this.levelQuality.selectedOptions[0].dataset.level);
-                const volAdj = parseFloat(this.volatility.selectedOptions[0].dataset.vol);
-                const portfolio = parseFloat(this.portfolio.value);
-
-                const baseMove = 0.01; // 1% base move
-                const move = baseMove * impact * tfWeight * level * volAdj;
-                const priceImpact = direction === 'negative' ? -Math.abs(move) : Math.abs(move);
-
-                const score = impact + tfWeight + level + volAdj;
-                const confidence = score >= 4.2 ? 'High' : score >= 3.4 ? 'Medium' : 'Low';
-
-                const positionPct = confidence === 'High' ? 0.025 : confidence === 'Medium' ? 0.02 : 0.015;
-                const positionSize = portfolio * positionPct;
-                const timeWindow = this.getTimeWindow(this.timeframe.value);
-
-                const stopLoss = Math.min(0.01, Math.abs(priceImpact) * 0.7);
-                const takeProfit = Math.abs(priceImpact) * 1.6;
-                const maxRisk = positionSize * stopLoss;
-                const riskReward = (takeProfit / stopLoss).toFixed(1);
-
-                const strategy = this.buildStrategy(confidence, direction, this.timeframe.value, this.levelQuality.value);
-
-                this.display({ priceImpact, confidence, timeWindow, positionSize, stopLoss, takeProfit, maxRisk, riskReward, strategy });
-            }
-            getTimeWindow(tf) {
-                switch(tf) {
-                    case '1h': return '60-180 min';
-                    case '30m': return '45-120 min';
-                    case '15m': return '30-90 min';
-                    case '5m': return '20-60 min';
-                    default: return '30-120 min';
-                }
-            }
-            buildStrategy(conf, direction, tf, level) {
-                const bias = direction === 'negative' ? 'bearish' : 'bullish';
-                const levelText = level === 'major' ? 'HTF daily/4H level' : level === 'medium' ? 'hourly/VWAP level' : 'micro level';
-                let text = `<strong>${bias.toUpperCase()} Divergence:</strong> ${tf.toUpperCase()} at ${levelText}. `;
-                if (conf === 'High') {
-                    text += `High conviction: enter on wick reclaim/reject with volume confirmation; can size full and trail after 1R. `;
-                } else if (conf === 'Medium') {
-                    text += `Moderate: start half size, add on VWAP reclaim/flip; avoid chasing. `;
-                } else {
-                    text += `Low: keep small size; require second confirmation (tape slowdown or second divergence). `;
-                }
-                text += `<br><br><strong>Entry:</strong> Limit near level; wait for candle close showing divergence. <strong>Monitor:</strong> VWAP relationship, tape speed, spread. <strong>Exit:</strong> Partial at 1R, trail stop to break-even; second target at opposite band/range.`;
-                return text;
-            }
-            display(res) {
-                const impactEl = document.getElementById('price-impact');
-                impactEl.textContent = `${res.priceImpact >= 0 ? '+' : ''}${(res.priceImpact * 100).toFixed(1)}%`;
-                impactEl.style.color = res.priceImpact >= 0 ? '#2a571f' : '#FF3B3B';
-
-                const confEl = document.getElementById('confidence-level');
-                confEl.textContent = res.confidence;
-                confEl.style.color = res.confidence === 'High' ? '#2a571f' : res.confidence === 'Medium' ? '#b3a17d' : '#FF3B3B';
-
-                document.getElementById('time-window').textContent = res.timeWindow;
-                document.getElementById('position-size').textContent = `$${res.positionSize.toLocaleString()}`;
-                document.getElementById('stop-loss').textContent = `${(res.stopLoss * 100).toFixed(1)}%`;
-                document.getElementById('take-profit').textContent = `${(res.takeProfit * 100).toFixed(1)}%`;
-                document.getElementById('max-risk').textContent = `$${res.maxRisk.toLocaleString()}`;
-                document.getElementById('risk-reward').textContent = `1:${res.riskReward}`;
-                document.getElementById('strategy-text').innerHTML = res.strategy;
-
-                this.results.style.display = 'block';
-                this.results.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-            }
-        }
-
-        document.addEventListener('DOMContentLoaded', () => { new DivergencePlanner(); });
-
-        // Auth update
-        (function() {
-            const isLoggedIn = localStorage.getItem('bluechip_logged_in') || sessionStorage.getItem('bluechip_logged_in');
-            if (isLoggedIn) {
-                const dashboardLink = document.getElementById('dashboardLink');
-                if (dashboardLink) dashboardLink.style.display = 'block';
-                const authButton = document.getElementById('authButton');
-                if (authButton) {
-                    authButton.removeAttribute('href');
-                    authButton.innerHTML = '<i class="fas fa-sign-out-alt"></i> Logout';
-                    authButton.style.cursor = 'pointer';
-                    authButton.onclick = function(e) {
-                        e.preventDefault();
-                        localStorage.clear();
-                        sessionStorage.clear();
-                        window.location.href = '../../login.html';
-                        return false;
-                    };
-                }
-            }
-        })();
+    <script type="module">
+        import { requireAuth, updateAuthButton } from '../../assets/js/firebase-auth-check.js';
+        requireAuth('../../book-demo.html');
+        updateAuthButton('../../login.html');
     </script>
 </body>
 </html>

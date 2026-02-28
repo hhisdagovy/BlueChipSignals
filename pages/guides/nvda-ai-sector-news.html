@@ -6,47 +6,11 @@
     <title>NVDA AI Sector News Guide - Blue Chip Signals</title>
     <link rel="icon" type="image/png" href="../../assets/images/logo.png">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="../../assets/css/bot-style.css?v=1751140000">
-    <script>
-        // Redirect non-logged-in users to book demo page
-        (function() {
-            const isLoggedIn = localStorage.getItem('bluechip_logged_in') || sessionStorage.getItem('bluechip_logged_in');
-            if (!isLoggedIn) {
-                window.location.href = '../../book-demo.html';
-            }
-        })();
-    </script>
+    <link rel="stylesheet" href="../../assets/css/bot-style.css">
 </head>
 <body>
-    <!-- Navigation -->
-    <nav>
-        <div class="nav-container">
-            <div class="logo">
-                <a href="../../index.html"><img src="../../assets/images/logo.png" alt="Blue Chip Signals Logo"></a>
-            </div>
-            <div class="hamburger-menu">
-                <div class="bar"></div>
-                <div class="bar"></div>
-                <div class="bar"></div>
-            </div>
-            <ul class="nav-links">
-                <li id="dashboardLink" style="display: none;"><a href="../../dashboard.html" style="color: var(--primary-gold); font-weight: 600;"><i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
-                <li><a href="../../index.html#features">Features</a></li>
-                <li><a href="../../index.html#bots">Supported Stocks</a></li>
-                <li><a href="../../book-demo.html">Book a Demo</a></li>
-                <li><a href="../../contact.html">Contact</a></li>
-                <li class="dropdown"><a href="#">More</a>
-                    <ul class="dropdown-menu">
-                        <li><a href="../../index.html#testimonials">Testimonials</a></li>
-                        <li><a href="../../faq.html">FAQ</a></li>
-                        <li><a href="../../about.html">About Us</a></li>
-                        <li><a href="../../terms.html">Terms & Legal</a></li>
-                    </ul>
-                </li>
-                <li><a href="../../login.html" class="login-btn" id="authButton"><i class="fas fa-sign-in-alt"></i> Login</a></li>
-            </ul>
-        </div>
-    </nav>
+    <div id="nav-placeholder" data-nav-type="public" data-base="../../"></div>
+    <script src="../../assets/js/nav-component.js"></script>
 
     <div class="container">
         <div class="breadcrumb">
@@ -415,93 +379,8 @@
                 </div>
             </section>
         </main>
-
-    <footer class="main-footer">
-        <div class="footer-content">
-            <div class="footer-section">
-                <h3>Blue Chip Signals</h3>
-                <p>Advanced algorithmic trading signals for the modern trader. Our bots analyze market conditions 24/7 to deliver high-probability setups.</p>
-            </div>
-            <div class="footer-section">
-                <h4>Quick Links</h4>
-                <ul>
-                    <li><a href="../../index.html#features">Features</a></li>
-                    <li><a href="../../index.html#bots">Supported Stocks</a></li>
-                    <li><a href="../../book-demo.html">Book a Demo</a></li>
-                    <li><a href="../../faq.html">FAQ</a></li>
-                </ul>
-            </div>
-            <div class="footer-section">
-                <h4>Legal</h4>
-                <ul>
-                    <li><a href="../../terms.html">Terms & Legal</a></li>
-                    <li><a href="../../about.html">About Us</a></li>
-                    <li><a href="../../contact.html">Contact</a></li>
-                </ul>
-            </div>
-        </div>
-        <div class="footer-bottom">
-            <p>&copy; 2025 Blue Chip Signals. All rights reserved.</p>
-            <div class="footer-social">
-                <a href="https://www.tiktok.com/@bluechip.signals" target="_blank"><i class="fab fa-tiktok"></i></a>
-                <a href="https://www.instagram.com/bluechip.signals/" target="_blank"><i class="fab fa-instagram"></i></a>
-            </div>
-        </div>
-    </footer>
-
-    <script>
-        const hamburgerMenu = document.querySelector('.hamburger-menu');
-        const mobileNav = document.querySelector('.nav-links');
-
-        hamburgerMenu.addEventListener('click', () => {
-            mobileNav.classList.toggle('active');
-        });
-
-        // Interactive functionality
-        function addCustomKeyword() {
-            const input = document.getElementById('custom-keyword');
-            const keyword = input.value.trim();
-            if (keyword) {
-                const chip = document.createElement('span');
-                chip.className = 'keyword-chip active';
-                chip.setAttribute('data-keyword', keyword);
-                chip.textContent = keyword;
-                chip.onclick = () => chip.classList.toggle('active');
-                
-                document.querySelector('.keyword-chips').appendChild(chip);
-                input.value = '';
-            }
-        }
-
-        function generateAlertDemo() {
-            const result = document.getElementById('alert-demo-result');
-            result.style.display = 'block';
-            result.scrollIntoView({ behavior: 'smooth' });
-        }
-
-        function updateProgress() {
-            const checkboxes = document.querySelectorAll('.checklist-item input[type="checkbox"]');
-            const checked = document.querySelectorAll('.checklist-item input[type="checkbox"]:checked');
-            const progress = (checked.length / checkboxes.length) * 100;
-            
-            document.getElementById('progress-fill').style.width = progress + '%';
-            document.getElementById('progress-text').textContent = Math.round(progress) + '% Complete';
-        }
-
-        // Keyword chip interactivity
-        document.querySelectorAll('.keyword-chip').forEach(chip => {
-            chip.addEventListener('click', () => {
-                chip.classList.toggle('active');
-            });
-        });
-
-        // Enter key for custom keyword
-        document.getElementById('custom-keyword').addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') {
-                addCustomKeyword();
-            }
-        });
-    </script>
+    <div id="footer-placeholder" data-footer-type="standard-social" data-base="../../"></div>
+    <script src="../../assets/js/footer-component.js"></script>
 
     <style>
         .ai-news-tracker {
@@ -1177,5 +1056,11 @@
             }
         }
     </style>
+
+    <script type="module">
+        import { requireAuth, updateAuthButton } from '../../assets/js/firebase-auth-check.js';
+        requireAuth('../../book-demo.html');
+        updateAuthButton('../../login.html');
+    </script>
 </body>
 </html> 

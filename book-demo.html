@@ -8,70 +8,6 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="assets/css/bot-style.css">
     <style>
-        :root {
-            --primary-gold: #b3a17d;
-            --secondary-gold: #E2CFB5;
-            --dark-bg: #080B0F;
-            --darker-bg: #080B0F;
-            --light-text: #FFFFFF;
-            --gray-text: #A0A0A0;
-            --field-bg: rgba(26, 31, 46, 0.7);
-        }
-
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background-color: var(--dark-bg);
-            color: var(--light-text);
-            line-height: 1.6;
-            overflow-x: hidden;
-        }
-
-        nav {
-            background: rgba(5, 8, 16, 0.86);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-            position: fixed;
-            width: 100%;
-            top: 0;
-            z-index: 1000;
-            padding: 0.75rem 0;
-            min-height: 74px;
-            border-bottom: 1px solid rgba(201, 176, 55, 0.18);
-        }
-
-        .nav-container { max-width: 1200px; margin: 0 auto; padding: 0 2rem; display: flex; justify-content: space-between; align-items: center; }
-        .logo img { width: 96px; height: auto; }
-        .nav-links { display: flex; gap: 2rem; list-style: none; }
-        .nav-links a { color: var(--light-text); text-decoration: none; transition: color 0.3s; }
-        .nav-links a:hover { color: var(--primary-gold); }
-
-        .login-btn {
-            background: linear-gradient(135deg, var(--primary-gold), var(--secondary-gold));
-            color: var(--darker-bg);
-            padding: 0.5rem 1.2rem;
-            border-radius: 20px;
-            font-weight: 600;
-            font-size: 0.95rem;
-            transition: transform 0.3s, box-shadow 0.3s;
-            display: inline-block;
-        }
-
-        .login-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(201, 176, 55, 0.3);
-            color: var(--darker-bg);
-        }
-
-        .dropdown { position: relative; }
-        .dropdown > a::after { content: " \25BE"; font-size: 0.8rem; }
-        .dropdown-menu { display: none; position: absolute; top: 100%; right: 0; background: rgba(5, 8, 16, 0.95); border: 1px solid rgba(201, 176, 55, 0.2); border-radius: 8px; min-width: 220px; padding: 0.5rem 0; z-index: 1200; }
-        .dropdown-menu li { list-style: none; }
-        .dropdown-menu a { display: block; padding: 0.6rem 1rem; color: var(--light-text); white-space: nowrap; }
-        .dropdown-menu a:hover { background: rgba(201, 176, 55, 0.08); color: var(--primary-gold); }
-        .dropdown:hover .dropdown-menu { display: block; }
-        .hamburger-menu { display: none; flex-direction: column; justify-content: space-around; width: 30px; height: 25px; cursor: pointer; z-index: 1100; }
-        .hamburger-menu .bar { width: 100%; height: 3px; background-color: var(--primary-gold); transition: all 0.3s ease-in-out; }
-
         .demo-page { padding: 8rem 2rem 4rem; max-width: 1100px; margin: 0 auto; }
         .section-title { text-align: center; font-size: 3rem; margin-bottom: 1rem; background: linear-gradient(135deg, var(--primary-gold), var(--secondary-gold)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
         .section-subtitle { text-align: center; font-size: 1.2rem; color: var(--gray-text); margin-bottom: 3rem; max-width: 760px; margin-left: auto; margin-right: auto; }
@@ -95,79 +31,13 @@
         footer { background: var(--darker-bg); padding: 2rem; text-align: center; border-top: 1px solid rgba(201, 176, 55, 0.2); margin-top: 3rem; }
 
         @media (max-width: 900px) { .demo-grid { grid-template-columns: 1fr; } }
-        @media (max-width: 768px) {
-            .nav-links { display: none; flex-direction: column; position: absolute; top: 0; right: 0; width: 250px; height: 100vh; background: rgba(5, 8, 16, 0.95); padding-top: 5rem; box-shadow: -5px 0 15px rgba(0,0,0,0.5); list-style: none; transform: translateX(100%); transition: transform 0.3s ease-in-out; }
-            .nav-links.active { transform: translateX(0); display: flex; }
-            .nav-links li { padding: 1rem 2rem; border-bottom: 1px solid rgba(201, 176, 55, 0.1); }
-            .nav-links a { font-size: 1.1rem; display: block; }
-            .hamburger-menu { display: flex; }
-        }
-        @media (min-width: 769px) { .hamburger-menu { display: none; } .nav-links { display: flex; } }
-
         /* Dropdown (More) */
-        .dropdown { position: relative; }
-        .dropdown > a::after { content: " \25BE"; font-size: 0.8rem; }
-        .dropdown-menu {
-            display: none;
-            position: absolute;
-            top: 100%;
-            right: 0;
-            background: rgba(5, 8, 16, 0.95);
-            border: 1px solid rgba(201, 176, 55, 0.2);
-            border-radius: 8px;
-            min-width: 220px;
-            padding: 0.5rem 0;
-            z-index: 1200;
-        }
-        .dropdown-menu li { list-style: none; }
-        .dropdown-menu a { display: block; padding: 0.6rem 1rem; color: var(--light-text); white-space: nowrap; }
-        .dropdown-menu a:hover { background: rgba(201, 176, 55, 0.08); color: var(--primary-gold); }
-        .dropdown:hover .dropdown-menu { display: block; }
-
-        @media (max-width: 768px) {
-            .dropdown-menu {
-                position: static;
-                display: none;
-                background: rgba(0, 0, 0, 0.3);
-                border: none;
-                border-radius: 0;
-                padding: 0;
-                margin-left: 1rem;
-            }
-            .dropdown.active .dropdown-menu { display: block; }
-            .dropdown > a::after { float: right; }
-        }
     </style>
 </head>
 <body>
-    <nav>
-        <div class="nav-container">
-            <div class="logo">
-                <a href="index.html"><img src="assets/images/logo.png" alt="Blue Chip Signals Logo"></a>
-            </div>
-            <div class="hamburger-menu">
-                <div class="bar"></div>
-                <div class="bar"></div>
-                <div class="bar"></div>
-            </div>
-            <ul class="nav-links">
-                <li id="dashboardLink" style="display: none;"><a href="dashboard.html" style="color: var(--primary-gold); font-weight: 600;"><i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
-                <li><a href="index.html#features">Features</a></li>
-                <li><a href="index.html#bots">Supported Stocks</a></li>
-                <li><a href="book-demo.html">Book a Demo</a></li>
-                <li><a href="contact.html">Contact</a></li>
-                <li class="dropdown"><a href="#">More</a>
-                    <ul class="dropdown-menu">
-                        <li><a href="index.html#testimonials">Testimonials</a></li>
-                        <li><a href="faq.html">FAQ</a></li>
-                        <li><a href="about.html">About Us</a></li>
-                        <li><a href="terms.html">Terms & Legal</a></li>
-                    </ul>
-                </li>
-                <li><a href="login.html" class="login-btn" id="authButton"><i class="fas fa-sign-in-alt"></i> Login</a></li>
-            </ul>
-        </div>
-    </nav>
+    <!-- Navigation -->
+    <div id="nav-placeholder" data-nav-type="public"></div>
+    <script src="assets/js/nav-component.js"></script>
 
     <section class="demo-page" style="text-align: center; max-width: 760px;">
         <h1 class="section-title">Schedule a Live Demo</h1>
@@ -178,16 +48,10 @@
             <a id="calendlyBtn" class="cta-button" href="#" data-calendly-url="https://calendly.com/bluechipsignals/30min">Schedule on Calendly</a>
         </div>
     </section>
-
-    <footer>
-        <p>&copy; 2025 Blue Chip Signals. All rights reserved. | <a href="terms.html" style="color: var(--primary-gold); text-decoration: none;">Terms & Legal</a></p>
-    </footer>
+    <div id="footer-placeholder" data-footer-type="minimal" data-base=""></div>
+    <script src="assets/js/footer-component.js"></script>
 
     <script>
-        const hamburgerMenu = document.querySelector('.hamburger-menu');
-        const mobileNav = document.querySelector('.nav-links');
-        hamburgerMenu.addEventListener('click', () => { mobileNav.classList.toggle('active'); });
-
         // Calendly redirect handling (set your URL on the button's data-calendly-url)
         const btn = document.getElementById('calendlyBtn');
         const calendlyUrl = btn.getAttribute('data-calendly-url');

@@ -6,25 +6,8 @@
     <title>AMZN Prime Day Calendar | Blue Chip Signals</title>
     <link rel="icon" type="image/png" href="../../assets/images/logo.png">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="../../assets/css/bot-style.css?v=1751140000">
-    <script>
-        // Redirect non-logged-in users to book demo page
-        (function() {
-            const isLoggedIn = localStorage.getItem('bluechip_logged_in') || sessionStorage.getItem('bluechip_logged_in');
-            if (!isLoggedIn) {
-                window.location.href = '../../book-demo.html';
-            }
-        })();
-    </script>
+    <link rel="stylesheet" href="../../assets/css/bot-style.css">
     <style>
-        :root {
-            --primary-gold: #b3a17d;
-            --secondary-gold: #E2CFB5;
-            --dark-bg: #080B0F;
-            --darker-bg: #050810;
-            --light-text: #FFFFFF;
-            --gray-text: #A0A0A0;
-        }
 
         body {
             background: var(--darker-bg);
@@ -397,35 +380,8 @@
     </style>
 </head>
 <body>
-    <!-- Navigation -->
-    <nav>
-        <div class="nav-container">
-            <div class="logo">
-                <a href="../../index.html"><img src="../../assets/images/logo.png" alt="Blue Chip Signals Logo"></a>
-            </div>
-            <div class="hamburger-menu">
-                <div class="bar"></div>
-                <div class="bar"></div>
-                <div class="bar"></div>
-            </div>
-            <ul class="nav-links">
-                <li id="dashboardLink" style="display: none;"><a href="../../dashboard.html" style="color: var(--primary-gold); font-weight: 600;"><i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
-                <li><a href="../../index.html#features">Features</a></li>
-                <li><a href="../../index.html#bots">Supported Stocks</a></li>
-                <li><a href="../../book-demo.html">Book a Demo</a></li>
-                <li><a href="../../contact.html">Contact</a></li>
-                <li class="dropdown"><a href="#">More</a>
-                    <ul class="dropdown-menu">
-                        <li><a href="../../index.html#testimonials">Testimonials</a></li>
-                        <li><a href="../../faq.html">FAQ</a></li>
-                        <li><a href="../../about.html">About Us</a></li>
-                        <li><a href="../../terms.html">Terms & Legal</a></li>
-                    </ul>
-                </li>
-                <li><a href="../../login.html" class="login-btn" id="authButton"><i class="fas fa-sign-in-alt"></i> Login</a></li>
-            </ul>
-        </div>
-    </nav>
+    <div id="nav-placeholder" data-nav-type="public" data-base="../../"></div>
+    <script src="../../assets/js/nav-component.js"></script>
 
     <!-- Hero Section -->
     <section class="guide-hero">
@@ -698,197 +654,13 @@
     </div>
 
     <!-- Footer -->
-    <footer>
-        <p>&copy; 2025 Blue Chip Signals. All rights reserved. | <a href="../../terms.html" style="color: var(--primary-gold); text-decoration: none;">Terms & Legal</a></p>
-        <div class="social-media">
-            <a href="https://www.tiktok.com/@bluechip.signals" target="_blank"><i class="fab fa-tiktok"></i></a>
-            <a href="https://www.instagram.com/bluechip.signals/" target="_blank"><i class="fab fa-instagram"></i></a>
-        </div>
-    </footer>
+    <div id="footer-placeholder" data-footer-type="standard-social" data-base="../../"></div>
+    <script src="../../assets/js/footer-component.js"></script>
 
-    <script>
-        const hamburgerMenu = document.querySelector('.hamburger-menu');
-        const mobileNav = document.querySelector('.nav-links');
-
-        hamburgerMenu.addEventListener('click', () => {
-            mobileNav.classList.toggle('active');
-        });
-
-        // Handle mobile dropdown toggle
-        document.addEventListener('DOMContentLoaded', function() {
-            const dropdown = document.querySelector('.dropdown');
-            const dropdownLink = dropdown.querySelector('a');
-
-            dropdownLink.addEventListener('click', function(e) {
-                if (window.innerWidth <= 768) {
-                    e.preventDefault();
-                    dropdown.classList.toggle('active');
-                }
-            });
-        });
-
-        // Prime Day Impact Planner
-        class PrimeDayPlanner {
-            constructor() {
-                this.phaseSelect = document.getElementById('pd-phase');
-                this.promoSelect = document.getElementById('promo-intensity');
-                this.sentimentSelect = document.getElementById('sentiment');
-                this.macroSelect = document.getElementById('macro');
-                this.portfolioInput = document.getElementById('portfolio-size');
-                this.calculateBtn = document.getElementById('calculate-btn');
-                this.resultsDiv = document.getElementById('calculator-results');
-
-                this.initEvents();
-            }
-
-            initEvents() {
-                this.calculateBtn.addEventListener('click', () => this.calculate());
-                [this.phaseSelect, this.promoSelect, this.sentimentSelect, this.macroSelect, this.portfolioInput].forEach(el => {
-                    el.addEventListener('change', () => this.updateButton());
-                });
-            }
-
-            updateButton() {
-                const filled = this.phaseSelect.value && this.promoSelect.value && this.sentimentSelect.value && this.macroSelect.value && this.portfolioInput.value;
-                this.calculateBtn.disabled = !filled;
-            }
-
-            calculate() {
-                const phaseImpact = parseFloat(this.phaseSelect.selectedOptions[0].dataset.impact);
-                const direction = this.phaseSelect.selectedOptions[0].dataset.direction;
-                const promo = parseFloat(this.promoSelect.value);
-                const sentimentWeight = parseFloat(this.sentimentSelect.selectedOptions[0].dataset.weight);
-                const macroVol = parseFloat(this.macroSelect.selectedOptions[0].dataset.vol);
-                const portfolio = parseFloat(this.portfolioInput.value);
-
-                const baseImpact = (phaseImpact / 10) * (promo / 10) * sentimentWeight;
-                const finalImpact = baseImpact * macroVol;
-                const priceImpact = direction === 'negative' ? -Math.abs(finalImpact) : Math.abs(finalImpact);
-
-                const confidence = this.getConfidence(phaseImpact, promo, sentimentWeight);
-                const positionPercent = confidence === 'High' ? 0.025 : confidence === 'Medium' ? 0.02 : 0.015;
-                const positionSize = portfolio * positionPercent;
-                const timeWindow = this.getTimeWindow(this.phaseSelect.value);
-
-                const stopLoss = Math.min(0.02, Math.abs(priceImpact) * 0.7);
-                const takeProfit = Math.abs(priceImpact) * 1.2;
-                const maxRisk = positionSize * stopLoss;
-                const riskReward = (takeProfit / stopLoss).toFixed(1);
-
-                const strategy = this.buildStrategy(this.phaseSelect.value, direction, confidence);
-
-                this.display({
-                    priceImpact,
-                    confidence,
-                    timeWindow,
-                    positionSize,
-                    stopLoss,
-                    takeProfit,
-                    maxRisk,
-                    riskReward,
-                    strategy
-                });
-            }
-
-            getConfidence(phaseImpact, promo, sentimentWeight) {
-                const score = phaseImpact + promo * 0.6 + sentimentWeight * 5;
-                if (score >= 18) return 'High';
-                if (score >= 13) return 'Medium';
-                return 'Low';
-            }
-
-            getTimeWindow(phase) {
-                switch(phase) {
-                    case 'announce': return '30-90 min';
-                    case 'early-deals': return '1-2 hours';
-                    case 'live-strong':
-                    case 'live-weak': return '15-60 min';
-                    case 'results-strong':
-                    case 'results-weak': return '30-90 min';
-                    case 'holiday-kickoff': return '1-2 hours';
-                    default: return '30-90 min';
-                }
-            }
-
-            buildStrategy(phase, direction, confidence) {
-                const bias = direction === 'negative' ? 'bearish' : 'bullish';
-                const action = direction === 'negative' ? 'short' : 'long';
-                const phaseText = {
-                    'announce': 'Dates announced',
-                    'early-deals': 'Early access / lead-up',
-                    'live-strong': 'Prime Day live with strong demand signals',
-                    'live-weak': 'Prime Day live with weak demand signals',
-                    'results-strong': 'Post-event results beat',
-                    'results-weak': 'Post-event results miss',
-                    'holiday-kickoff': 'Holiday / Cyber kickoff'
-                }[phase] || 'Prime Day update';
-
-                let text = `<strong>${bias.toUpperCase()} Plan:</strong> ${phaseText}. `;
-
-                if (confidence === 'High') {
-                    text += `High conviction ${action}. Enter quickly; size full allocation and trail stops as move develops. `;
-                } else if (confidence === 'Medium') {
-                    text += `Moderate conviction. Start 50% size, add on confirmation (flow/site signals). `;
-                } else {
-                    text += `Low conviction. Keep size small or wait for second source/confirmation. `;
-                }
-
-                text += `<br><br><strong>Entry:</strong> Use VWAP/previous day levels; for negatives, look for failed bounces. `;
-                text += `<strong>Monitor:</strong> Site performance, delivery promises, search/social trends, and options flow. `;
-                text += `<strong>Exit:</strong> Scale out into first 1-1.5% move; trail remainder.`;
-                return text;
-            }
-
-            display(res) {
-                const impactEl = document.getElementById('price-impact');
-                impactEl.textContent = `${res.priceImpact >= 0 ? '+' : ''}${(res.priceImpact * 100).toFixed(1)}%`;
-                impactEl.style.color = res.priceImpact >= 0 ? '#2a571f' : '#FF3B3B';
-
-                const confEl = document.getElementById('confidence-level');
-                confEl.textContent = res.confidence;
-                confEl.style.color = res.confidence === 'High' ? '#2a571f' :
-                                     res.confidence === 'Medium' ? '#b3a17d' : '#FF3B3B';
-
-                document.getElementById('time-window').textContent = res.timeWindow;
-                document.getElementById('position-size').textContent = `$${res.positionSize.toLocaleString()}`;
-                document.getElementById('stop-loss').textContent = `${(res.stopLoss * 100).toFixed(1)}%`;
-                document.getElementById('take-profit').textContent = `${(res.takeProfit * 100).toFixed(1)}%`;
-                document.getElementById('max-risk').textContent = `$${res.maxRisk.toLocaleString()}`;
-                document.getElementById('risk-reward').textContent = `1:${res.riskReward}`;
-                document.getElementById('strategy-text').innerHTML = res.strategy;
-
-                this.resultsDiv.style.display = 'block';
-                this.resultsDiv.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-            }
-        }
-
-        document.addEventListener('DOMContentLoaded', () => {
-            new PrimeDayPlanner();
-        });
-
-        // Check if user is logged in and update navigation
-        (function() {
-            const isLoggedIn = localStorage.getItem('bluechip_logged_in') || sessionStorage.getItem('bluechip_logged_in');
-
-            if (isLoggedIn) {
-                const dashboardLink = document.getElementById('dashboardLink');
-                if (dashboardLink) dashboardLink.style.display = 'block';
-
-                const authButton = document.getElementById('authButton');
-                if (authButton) {
-                    authButton.removeAttribute('href');
-                    authButton.innerHTML = '<i class="fas fa-sign-out-alt"></i> Logout';
-                    authButton.style.cursor = 'pointer';
-                    authButton.onclick = function(e) {
-                        e.preventDefault();
-                        localStorage.clear();
-                        sessionStorage.clear();
-                        window.location.href = '../../login.html';
-                        return false;
-                    };
-                }
-            }
-        })();
+    <script type="module">
+        import { requireAuth, updateAuthButton } from '../../assets/js/firebase-auth-check.js';
+        requireAuth('../../book-demo.html');
+        updateAuthButton('../../login.html');
     </script>
 </body>
 </html>

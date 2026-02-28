@@ -1,7 +1,8 @@
 // bls-data.js - Fetches latest CPI and PPI figures from the BLS API and injects mini-cards on the SPY economic data page.
+import { BLS_API_KEY } from './config.js';
 
 (() => {
-  const API_KEY = '6db22f52282f4b429de1712f22bf4336';
+  const API_KEY = BLS_API_KEY;
   const SERIES = [
     { id: 'CUUR0000SA0', label: 'Headline CPI YoY', changeType: 'yoy' },
     { id: 'CUUR0000SA0L1E', label: 'Core CPI YoY', changeType: 'yoy' },

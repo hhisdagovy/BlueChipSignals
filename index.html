@@ -277,68 +277,6 @@
             font-size: 1.4rem;
         }
         
-        /* Bots Section */
-        .bots {
-            padding: 4rem 2rem;
-        }
-
-        .bots-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-            gap: 1.8rem;
-            max-width: 1200px;
-            margin: 0 auto;
-        }
-
-        .bot-card {
-            position: relative;
-            background: radial-gradient(1000px 160px at 0% 0%, rgba(201,176,55,0.07), transparent 25%),
-                        rgba(18, 22, 32, 0.72);
-            border: 1px solid rgba(201, 176, 55, 0.22);
-            border-radius: 16px;
-            padding: 1.6rem 1.8rem;
-            text-align: left;
-            transition: transform 0.35s ease, box-shadow 0.35s ease, border-color 0.35s ease;
-            box-shadow: 0 10px 26px rgba(0,0,0,0.25), inset 0 1px 0 rgba(255,255,255,0.02);
-        }
-
-        .bot-card.premium:hover {
-            transform: translateY(-6px);
-            border-color: rgba(201, 176, 55, 0.38);
-            box-shadow: 0 16px 40px rgba(201,176,55,0.12);
-        }
-
-        .bot-symbol {
-            font-size: 2.1rem;
-            font-weight: 800;
-            color: var(--primary-gold);
-            margin-bottom: 0.35rem;
-            letter-spacing: 0.6px;
-        }
-
-        .bot-name {
-            color: var(--gray-text);
-            font-weight: 500;
-        }
-
-        .stock-price-data {
-            margin-top: 1rem;
-            font-size: 1.2rem;
-            font-weight: 600;
-        }
-
-        .price {
-            color: var(--light-text);
-        }
-
-        .change.positive {
-            color: var(--success-green);
-        }
-
-        .change.negative {
-            color: var(--danger-red);
-        }
-
         /* Pricing Section */
         .pricing {
             padding: 4rem 2rem;
@@ -396,49 +334,140 @@
             font-weight: 600;
         }
 
-        /* Testimonials */
+        /* Testimonials Carousel */
         .testimonials {
-            padding: 4rem 2rem;
-        }
-
-        .testimonials-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 2rem;
-            max-width: 1200px;
-            margin: 0 auto;
-        }
-
-        .testimonial-card {
-            background: rgba(26, 31, 46, 0.5);
-            border-radius: 15px;
-            padding: 2rem;
+            padding: 6rem 2rem;
             position: relative;
+            overflow: hidden;
         }
 
-        .quote-mark {
-            font-size: 3rem;
-            color: var(--primary-gold);
-            opacity: 0.3;
+        .testimonials-slider-container {
+            position: relative;
+            max-width: 900px;
+            margin: 0 auto;
+            min-height: 280px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .testimonials-bg-quote {
             position: absolute;
-            top: 10px;
-            left: 20px;
+            top: -3rem;
+            left: -1rem;
+            font-size: clamp(12rem, 22vw, 20rem);
+            line-height: 1;
+            color: var(--primary-gold);
+            opacity: 0.05;
+            font-family: Georgia, serif;
+            pointer-events: none;
+            user-select: none;
+            z-index: 0;
+        }
+
+        .testimonials-track {
+            position: relative;
+            width: 100%;
+            z-index: 1;
+        }
+
+        .testimonial-slide {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            padding: 0 1rem;
+            animation: fadeInSlide 0.5s ease;
+        }
+
+        .testimonial-slide.active {
+            display: flex;
+        }
+
+        @keyframes fadeInSlide {
+            from { opacity: 0; transform: translateY(12px); }
+            to   { opacity: 1; transform: translateY(0); }
         }
 
         .testimonial-text {
-            margin: 1.5rem 0;
+            font-size: clamp(1.1rem, 2.5vw, 1.6rem);
             font-style: italic;
-            color: var(--gray-text);
+            color: var(--light-text);
+            line-height: 1.7;
+            max-width: 820px;
+            margin: 0 auto 2rem;
         }
 
         .testimonial-author {
-            color: var(--primary-gold);
-            font-weight: 600;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.25rem;
         }
 
-        .rating {
+        .author-name {
             color: var(--primary-gold);
-            margin-bottom: 1rem;
+            font-weight: 600;
+            font-size: 1.05rem;
+            letter-spacing: 0.04em;
+        }
+
+        .author-role {
+            color: var(--gray-text);
+            font-size: 0.88rem;
+            letter-spacing: 0.03em;
+        }
+
+        .testimonials-dots {
+            display: flex;
+            gap: 0.6rem;
+            margin-top: 2.5rem;
+            z-index: 1;
+        }
+
+        .testimonials-dots .dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            border: 2px solid var(--primary-gold);
+            background: transparent;
+            cursor: pointer;
+            padding: 0;
+            transition: background 0.3s, transform 0.3s;
+        }
+
+        .testimonials-dots .dot.active {
+            background: var(--primary-gold);
+            transform: scale(1.25);
+        }
+
+        .testimonials-arrows {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1.5rem;
+            z-index: 1;
+        }
+
+        .testimonials-prev,
+        .testimonials-next {
+            background: transparent;
+            border: 1px solid rgba(201, 176, 55, 0.4);
+            color: var(--primary-gold);
+            width: 42px;
+            height: 42px;
+            border-radius: 50%;
+            font-size: 1.1rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.25s, border-color 0.25s;
+        }
+
+        .testimonials-prev:hover,
+        .testimonials-next:hover {
+            background: rgba(201, 176, 55, 0.12);
+            border-color: var(--primary-gold);
         }
 
         /* Footer */
@@ -1072,87 +1101,78 @@
         </div>
     </section>
 
-    <!-- Supported Stocks Section -->
-    <section id="bots" class="bots panel">
-        <div class="bots-container panel-card">
-            <h2 class="section-title">Supported Stocks</h2>
-            <div class="bots-grid">
-                <a href="pages/bots/spy-bot.html" class="bot-card premium" data-symbol="SPY">
-                    <div class="bot-symbol">SPY</div>
-                    <div class="bot-name">S&P 500 ETF</div>
-                </a>
-                <a href="pages/bots/meta-bot.html" class="bot-card premium" data-symbol="META">
-                    <div class="bot-symbol">META</div>
-                    <div class="bot-name">Meta Platforms</div>
-                </a>
-                <a href="pages/bots/aapl-bot.html" class="bot-card premium" data-symbol="AAPL">
-                    <div class="bot-symbol">AAPL</div>
-                    <div class="bot-name">Apple Inc.</div>
-                </a>
-                <a href="pages/bots/tsla-bot.html" class="bot-card premium" data-symbol="TSLA">
-                    <div class="bot-symbol">TSLA</div>
-                    <div class="bot-name">Tesla Inc.</div>
-                </a>
-                <a href="pages/bots/nvda-bot.html" class="bot-card premium" data-symbol="NVDA">
-                    <div class="bot-symbol">NVDA</div>
-                    <div class="bot-name">NVIDIA Corp.</div>
-                </a>
-                <a href="pages/bots/amzn-bot.html" class="bot-card premium" data-symbol="AMZN">
-                    <div class="bot-symbol">AMZN</div>
-                    <div class="bot-name">Amazon.com</div>
-                </a>
-            </div>
-        </div>
-    </section>
 
     
 
     <!-- Testimonials -->
     <section id="testimonials" class="testimonials panel">
-        <div class="testimonials-container panel-card">
-            <h2 class="section-title">What Our Traders Say</h2>
-            <div class="testimonials-grid">
-                <div class="testimonial-card">
-                    <div class="quote-mark">"</div>
-                    <div class="rating">★★★★★</div>
-                    <p class="testimonial-text">Caught a TSLA call at $337.50 that hit 80% profit in two days. The timing on these momentum signals is honestly impressive. Not every trade wins but the winners definitely make up for it.</p>
-                    <div class="testimonial-author">Marcus T. - Day Trader</div>
+        <div class="panel-card" style="background:transparent;border:none;box-shadow:none;">
+            <h2 class="section-title">What Our Traders Are Saying</h2>
+            <div class="testimonials-slider-container">
+                <div class="testimonials-bg-quote">"</div>
+                <div class="testimonials-track">
+                    <div class="testimonial-slide active">
+                        <p class="testimonial-text">Caught a TSLA call at $337.50 that hit 80% profit in two days. The timing on these momentum signals is honestly impressive. Not every trade wins but the winners definitely make up for it.</p>
+                        <div class="testimonial-author">
+                            <span class="author-name">Marcus T.</span>
+                            <span class="author-role">Day Trader</span>
+                        </div>
+                    </div>
+                    <div class="testimonial-slide">
+                        <p class="testimonial-text">I work a 9-5 so I can't watch charts all day. Getting these signals straight to Telegram during market hours is perfect for me. Just get alerts, check the setup, and execute if it makes sense.</p>
+                        <div class="testimonial-author">
+                            <span class="author-name">Sarah Chen</span>
+                            <span class="author-role">Part-time Trader</span>
+                        </div>
+                    </div>
+                    <div class="testimonial-slide">
+                        <p class="testimonial-text">Been trading SPY options for 3 years. The VWAP + MFI approach here actually aligns with what I was doing manually. Now I just get the alerts when conditions line up instead of staring at charts.</p>
+                        <div class="testimonial-author">
+                            <span class="author-name">David K.</span>
+                            <span class="author-role">Options Trader</span>
+                        </div>
+                    </div>
+                    <div class="testimonial-slide">
+                        <p class="testimonial-text">Really solid momentum signals. Only downside is sometimes you get 2-3 signals at once and have to pick which ones to take. But that's better than having no setups at all I guess!</p>
+                        <div class="testimonial-author">
+                            <span class="author-name">Tyler R.</span>
+                            <span class="author-role">Swing Trader</span>
+                        </div>
+                    </div>
+                    <div class="testimonial-slide">
+                        <p class="testimonial-text">The META and NVDA signals have been money for me. I like that it focuses on just buy signals when momentum is strong — keeps things simple and I manage my own exits based on my risk tolerance.</p>
+                        <div class="testimonial-author">
+                            <span class="author-name">Jennifer M.</span>
+                            <span class="author-role">Tech Stock Trader</span>
+                        </div>
+                    </div>
+                    <div class="testimonial-slide">
+                        <p class="testimonial-text">Joined three weeks ago and already up 12% on my options account. The strike prices and expiration suggestions are realistic — not some crazy lottery ticket plays. Actually tradeable setups.</p>
+                        <div class="testimonial-author">
+                            <span class="author-name">Alex P.</span>
+                            <span class="author-role">New Subscriber</span>
+                        </div>
+                    </div>
+                    <div class="testimonial-slide">
+                        <p class="testimonial-text">Love that I don't have to join Discord or watch videos. Just clean signal notifications with price, VWAP, MFI and the contract details. In and out, exactly what I needed.</p>
+                        <div class="testimonial-author">
+                            <span class="author-name">Robert G.</span>
+                            <span class="author-role">Busy Professional</span>
+                        </div>
+                    </div>
                 </div>
-                <div class="testimonial-card">
-                    <div class="quote-mark">"</div>
-                    <div class="rating">★★★★★</div>
-                    <p class="testimonial-text">I work a 9-5 so I can't watch charts all day. Getting these signals straight to Telegram during market hours is perfect for me. Just get alerts, check the setup, and execute if it makes sense.</p>
-                    <div class="testimonial-author">Sarah Chen - Part-time Trader</div>
+                <div class="testimonials-dots">
+                    <button class="dot active" data-index="0" aria-label="Testimonial 1"></button>
+                    <button class="dot" data-index="1" aria-label="Testimonial 2"></button>
+                    <button class="dot" data-index="2" aria-label="Testimonial 3"></button>
+                    <button class="dot" data-index="3" aria-label="Testimonial 4"></button>
+                    <button class="dot" data-index="4" aria-label="Testimonial 5"></button>
+                    <button class="dot" data-index="5" aria-label="Testimonial 6"></button>
+                    <button class="dot" data-index="6" aria-label="Testimonial 7"></button>
                 </div>
-                <div class="testimonial-card">
-                    <div class="quote-mark">"</div>
-                    <div class="rating">★★★★★</div>
-                    <p class="testimonial-text">Been trading SPY options for 3 years. The VWAP + MFI approach here actually aligns with what I was doing manually. Now I just get the alerts when conditions line up instead of staring at charts.</p>
-                    <div class="testimonial-author">David K. - Options Trader</div>
-                </div>
-                <div class="testimonial-card">
-                    <div class="quote-mark">"</div>
-                    <div class="rating">★★★★☆</div>
-                    <p class="testimonial-text">Really solid momentum signals. Only downside is sometimes you get 2-3 signals at once and have to pick which ones to take. But that's better than having no setups at all I guess!</p>
-                    <div class="testimonial-author">Tyler R. - Swing Trader</div>
-                </div>
-                <div class="testimonial-card">
-                    <div class="quote-mark">"</div>
-                    <div class="rating">★★★★★</div>
-                    <p class="testimonial-text">The META and NVDA signals have been money for me. I like that it focuses on just buy signals when momentum is strong - keeps things simple and I manage my own exits based on my risk tolerance.</p>
-                    <div class="testimonial-author">Jennifer M. - Tech Stock Trader</div>
-                </div>
-                <div class="testimonial-card">
-                    <div class="quote-mark">"</div>
-                    <div class="rating">★★★★★</div>
-                    <p class="testimonial-text">Joined three weeks ago and already up 12% on my options account. The strike prices and expiration suggestions are realistic - not some crazy lottery ticket plays. Actually tradeable setups.</p>
-                    <div class="testimonial-author">Alex P. - New Subscriber</div>
-                </div>
-                <div class="testimonial-card">
-                    <div class="quote-mark">"</div>
-                    <div class="rating">★★★★★</div>
-                    <p class="testimonial-text">Love that I don't have to join Discord or watch videos. Just clean signal notifications with price, VWAP, MFI and the contract details. In and out, exactly what I needed.</p>
-                    <div class="testimonial-author">Robert G. - Busy Professional</div>
+                <div class="testimonials-arrows">
+                    <button class="testimonials-prev" aria-label="Previous testimonial">&#8592;</button>
+                    <button class="testimonials-next" aria-label="Next testimonial">&#8594;</button>
                 </div>
             </div>
         </div>
@@ -1312,10 +1332,47 @@
         }
 
         primeReveal(document.querySelectorAll('.features-grid .feature-card'), 70);
-        primeReveal(document.querySelectorAll('.bots-grid .bot-card'), 70);
-        primeReveal(document.querySelectorAll('.testimonials-grid .testimonial-card'), 70);
         // Subtle fade for section titles
         primeReveal(document.querySelectorAll('.section-title'), 0);
+
+        // Testimonials carousel
+        (function() {
+            const slides = document.querySelectorAll('.testimonial-slide');
+            const dotBtns = document.querySelectorAll('.testimonials-dots .dot');
+            const prevBtn = document.querySelector('.testimonials-prev');
+            const nextBtn = document.querySelector('.testimonials-next');
+            const container = document.querySelector('.testimonials-slider-container');
+
+            if (!slides.length) return;
+
+            let idx = 0;
+            let autoTimer = null;
+
+            function showSlide(n) {
+                slides[idx].classList.remove('active');
+                dotBtns[idx].classList.remove('active');
+                idx = (n + slides.length) % slides.length;
+                slides[idx].classList.add('active');
+                dotBtns[idx].classList.add('active');
+            }
+
+            function startAuto() {
+                autoTimer = setInterval(() => showSlide(idx + 1), 4000);
+            }
+
+            function stopAuto() {
+                clearInterval(autoTimer);
+            }
+
+            dotBtns.forEach((dot, i) => dot.addEventListener('click', () => { stopAuto(); showSlide(i); startAuto(); }));
+            prevBtn.addEventListener('click', () => { stopAuto(); showSlide(idx - 1); startAuto(); });
+            nextBtn.addEventListener('click', () => { stopAuto(); showSlide(idx + 1); startAuto(); });
+
+            container.addEventListener('mouseenter', stopAuto);
+            container.addEventListener('mouseleave', startAuto);
+
+            startAuto();
+        })();
 
         // Deck panel observer for section-level animation
         const panelObserver = new IntersectionObserver((entries) => {

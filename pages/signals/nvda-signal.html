@@ -27,7 +27,7 @@
                 <div class="sp-hero-left">
                     <div class="sp-badge"><i class="fas fa-microchip"></i> NVIDIA Corp.</div>
                     <div class="sp-ticker">NVDA</div>
-                    <p class="sp-subtitle">Trade the King of Artificial Intelligence</p>
+                    <p class="sp-subtitle">Trade the king of<br><em>artificial intelligence.</em></p>
                     <p class="sp-description">Momentum-driven breakout signals for NVIDIA — the world's leading AI chipmaker. VWAP, MFI, and volume-based entries tuned for NVDA's powerful trending behavior.</p>
                     <div class="sp-stat-chips">
                         <span class="sp-stat-chip"><i class="fas fa-robot"></i> AI / Semiconductors</span>
@@ -77,8 +77,8 @@
         <!-- ── Metrics ── -->
         <section class="sp-metrics sp-reveal">
             <div class="sp-metrics-grid">
-                <div class="sp-metric-card" data-idx="01"><div class="sp-m-icon"><i class="fas fa-chart-line"></i></div><div class="sp-m-value">1–3</div><div class="sp-m-label">Daily Signals</div></div>
-                <div class="sp-metric-card" data-idx="02"><div class="sp-m-icon"><i class="fas fa-clock"></i></div><div class="sp-m-value">7 DTE</div><div class="sp-m-label">Contract Duration</div></div>
+                <div class="sp-metric-card" data-idx="01"><div class="sp-m-icon"><i class="fas fa-chart-line"></i></div><div class="sp-m-value" data-count="3" data-label="1–3">1–3</div><div class="sp-m-label">Daily Signals</div></div>
+                <div class="sp-metric-card" data-idx="02"><div class="sp-m-icon"><i class="fas fa-clock"></i></div><div class="sp-m-value" data-count="7" data-label="7 DTE">7 DTE</div><div class="sp-m-label">Contract Duration</div></div>
                 <div class="sp-metric-card" data-idx="03"><div class="sp-m-icon"><i class="fas fa-rocket"></i></div><div class="sp-m-value">Breakouts</div><div class="sp-m-label">Primary Strategy</div></div>
                 <div class="sp-metric-card" data-idx="04"><div class="sp-m-icon"><i class="fas fa-robot"></i></div><div class="sp-m-value">AI Leader</div><div class="sp-m-label">Market Position</div></div>
             </div>
@@ -226,16 +226,44 @@
     <div id="footer-placeholder" data-footer-type="standard-social" data-base="../../"></div>
     <script src="../../assets/js/footer-component.js"></script>
     <script type="module">
-        import { requireAuth, updateAuthButton } from '../../assets/js/firebase-auth-check.js';
-        requireAuth('../../book-demo.html');
+        import { updateAuthButton } from '../../assets/js/firebase-auth-check.js';
         updateAuthButton('../../login.html');
     </script>
     <script>
         (function () {
+            /* Section scroll reveal */
             var obs = new IntersectionObserver(function (entries) {
-                entries.forEach(function (e) { if (e.isIntersecting) { e.target.classList.add('sp-visible'); obs.unobserve(e.target); } });
+                entries.forEach(function (e) {
+                    if (e.isIntersecting) { e.target.classList.add('sp-visible'); obs.unobserve(e.target); }
+                });
             }, { threshold: 0.08 });
             document.querySelectorAll('.sp-reveal').forEach(function (el) { obs.observe(el); });
+
+            /* Metrics — staggered card reveal + number counter */
+            var metricsSection = document.querySelector('.sp-metrics');
+            if (metricsSection) {
+                var metricsObs = new IntersectionObserver(function (entries) {
+                    entries.forEach(function (e) {
+                        if (!e.isIntersecting) return;
+                        e.target.querySelectorAll('.sp-metric-card').forEach(function (card, i) {
+                            setTimeout(function () { card.classList.add('sp-card-visible'); }, i * 100);
+                        });
+                        e.target.querySelectorAll('[data-count]').forEach(function (el) {
+                            var target = parseInt(el.getAttribute('data-count'), 10);
+                            var label  = el.getAttribute('data-label');
+                            var startTime = null, duration = 1200;
+                            (function step(ts) {
+                                if (!startTime) startTime = ts;
+                                var p = Math.min((ts - startTime) / duration, 1);
+                                el.textContent = Math.floor(p * target);
+                                if (p < 1) requestAnimationFrame(step); else el.textContent = label;
+                            })(performance.now());
+                        });
+                        metricsObs.unobserve(e.target);
+                    });
+                }, { threshold: 0.2 });
+                metricsObs.observe(metricsSection);
+            }
         })();
     </script>
 </body>

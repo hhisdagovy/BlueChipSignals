@@ -1384,6 +1384,17 @@ stripe-buy-button {
    in a tiny inline <style> block on each page.
    ================================================================ */
 
+/* ---- Hero entrance animations ---- */
+@keyframes sp-fade-up {
+    from { opacity: 0; transform: translateY(18px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes sp-grid-drift {
+    from { background-position: 0 0; }
+    to   { background-position: 32px 32px; }
+}
+
 /* ---- Hero Section ---- */
 .sp-hero {
     margin-top: 100px;
@@ -1407,6 +1418,21 @@ stripe-buy-button {
     z-index: 0;
 }
 
+/* Desktop: animated dot-grid drift behind hero */
+@media (min-width: 769px) {
+    .sp-hero::after {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background-image: radial-gradient(circle, rgba(201,176,55,0.13) 1px, transparent 1px);
+        background-size: 32px 32px;
+        animation: sp-grid-drift 22s linear infinite;
+        opacity: 0.3;
+        pointer-events: none;
+        z-index: 0;
+    }
+}
+
 .sp-hero-inner {
     position: relative;
     z-index: 1;
@@ -1418,6 +1444,15 @@ stripe-buy-button {
 }
 
 .sp-hero-left { display: flex; flex-direction: column; gap: 1.25rem; }
+
+/* Staggered entrance — each element fades up in sequence */
+.sp-badge       { animation: sp-fade-up 0.55s cubic-bezier(0.22,1,0.36,1) 0.10s both; }
+.sp-ticker      { animation: sp-fade-up 0.55s cubic-bezier(0.22,1,0.36,1) 0.20s both; }
+.sp-subtitle    { animation: sp-fade-up 0.55s cubic-bezier(0.22,1,0.36,1) 0.30s both; }
+.sp-description { animation: sp-fade-up 0.55s cubic-bezier(0.22,1,0.36,1) 0.40s both; }
+.sp-stat-chips  { animation: sp-fade-up 0.55s cubic-bezier(0.22,1,0.36,1) 0.50s both; }
+.sp-cta-btn     { animation: sp-fade-up 0.55s cubic-bezier(0.22,1,0.36,1) 0.60s both; }
+.sp-hero-right  { animation: sp-fade-up 0.70s cubic-bezier(0.22,1,0.36,1) 0.35s both; }
 
 .sp-badge {
     display: inline-flex;
@@ -1451,6 +1486,15 @@ stripe-buy-button {
     color: var(--light-text);
     font-weight: 600;
     line-height: 1.4;
+}
+
+.sp-subtitle em {
+    display: inline;
+    font-style: italic;
+    background: linear-gradient(135deg, var(--primary-gold), var(--secondary-gold));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
 }
 
 .sp-description {
@@ -1670,7 +1714,16 @@ stripe-buy-button {
     text-align: center;
     position: relative;
     overflow: hidden;
-    transition: border-color 0.25s, transform 0.25s, box-shadow 0.25s;
+    opacity: 0;
+    transform: translateY(16px);
+    transition: opacity 0.45s cubic-bezier(0.22,1,0.36,1),
+                transform 0.45s cubic-bezier(0.22,1,0.36,1),
+                border-color 0.25s, box-shadow 0.25s;
+}
+
+.sp-metric-card.sp-card-visible {
+    opacity: 1;
+    transform: translateY(0);
 }
 
 .sp-metric-card::before {
@@ -1685,7 +1738,7 @@ stripe-buy-button {
     pointer-events: none;
 }
 
-.sp-metric-card:hover {
+.sp-metric-card.sp-card-visible:hover {
     border-color: rgba(201,176,55,0.4);
     transform: translateY(-4px);
     box-shadow: 0 12px 32px rgba(0,0,0,0.3);
@@ -2079,6 +2132,44 @@ stripe-buy-button {
     flex-wrap: wrap;
     position: relative;
     z-index: 1;
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, var(--primary-gold), var(--secondary-gold));
+    color: #0c101c;
+    border: none;
+    border-radius: 50px;
+    padding: 0.85rem 2.2rem;
+    font-size: 0.95rem;
+    font-weight: 700;
+    cursor: pointer;
+    text-decoration: none;
+    display: inline-block;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(201,176,55,0.35);
+}
+
+.btn-outline {
+    background: none;
+    color: var(--primary-gold);
+    border: 1.5px solid rgba(201,176,55,0.5);
+    border-radius: 50px;
+    padding: 0.85rem 2.2rem;
+    font-size: 0.95rem;
+    font-weight: 600;
+    cursor: pointer;
+    text-decoration: none;
+    display: inline-block;
+    transition: border-color 0.2s, background 0.2s;
+}
+
+.btn-outline:hover {
+    border-color: var(--primary-gold);
+    background: rgba(201,176,55,0.08);
 }
 
 /* ---- Scroll Reveal ---- */

@@ -8,547 +8,323 @@
     <link rel="stylesheet" href="assets/css/global.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        /* Main Content */
         .main-content {
-            margin-top: 120px;
-            padding: 2rem;
-            max-width: 1400px;
+            margin-top: 110px;
+            padding: 0 2rem 2rem;
+            max-width: 1100px;
             margin-left: auto;
             margin-right: auto;
         }
 
-        /* Welcome Section */
-        .welcome-section {
-            background: linear-gradient(135deg, rgba(179, 161, 125, 0.15) 0%, rgba(179, 161, 125, 0.05) 100%),
-                        var(--card-bg);
-            border: 1px solid rgba(201, 176, 55, 0.3);
-            border-radius: 20px;
-            padding: 3rem 2.5rem;
-            margin-bottom: 3rem;
-            position: relative;
-            overflow: hidden;
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
-        }
-
-        .welcome-section::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 3px;
-            background: linear-gradient(90deg, var(--primary-gold), var(--secondary-gold));
-        }
-
-        .welcome-header {
+        /* ---- Welcome bar ---- */
+        .dash-welcome {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            flex-wrap: wrap;
-            gap: 2rem;
+            padding: 1rem 0 1.25rem;
+            margin-bottom: 1.25rem;
+            border-bottom: 1px solid rgba(201, 176, 55, 0.12);
         }
 
-        .welcome-text h1 {
-            font-size: 2.5rem;
-            background: linear-gradient(135deg, var(--primary-gold), var(--secondary-gold));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            margin-bottom: 0.75rem;
-            font-weight: 700;
-            letter-spacing: -0.5px;
-        }
-
-        .welcome-text p {
-            color: var(--gray-text);
-            font-size: 1.1rem;
-            line-height: 1.6;
-        }
-
-        .subscription-badge {
-            background: linear-gradient(135deg, rgba(42, 87, 31, 0.2), rgba(42, 87, 31, 0.1));
-            border: 2px solid var(--success-green);
-            color: var(--success-green);
-            padding: 1rem 2rem;
-            border-radius: 12px;
-            font-weight: 700;
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-            font-size: 1.05rem;
-            box-shadow: 0 5px 20px rgba(42, 87, 31, 0.2);
-        }
-
-        /* Section Title */
-        .section-title {
-            font-size: 1.8rem;
+        .dash-welcome h1 {
+            font-size: 1.4rem;
             font-weight: 700;
             background: linear-gradient(135deg, var(--primary-gold), var(--secondary-gold));
             -webkit-background-clip: text;
+            background-clip: text;
             -webkit-text-fill-color: transparent;
-            margin-bottom: 1rem;
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-            letter-spacing: -0.3px;
         }
 
-        .section-description {
-            color: var(--gray-text);
-            margin-bottom: 2.5rem;
-            font-size: 1.05rem;
-            line-height: 1.7;
-            max-width: 800px;
-        }
-
-        /* Telegram Channels Grid */
-        .telegram-grid {
-            display: grid;
-            grid-template-columns: repeat(6, 1fr);
-            gap: 1.5rem;
-            margin-bottom: 5rem;
-        }
-
-        .telegram-card {
-            background: radial-gradient(1000px 160px at 0% 0%, rgba(201,176,55,0.08), transparent 25%),
-                        var(--card-bg);
-            border: 1px solid rgba(201, 176, 55, 0.25);
-            border-radius: 20px;
-            padding: 2.5rem 2rem;
-            text-align: center;
-            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-            position: relative;
-            overflow: hidden;
-            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.25);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
-
-        .telegram-card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 4px;
-            background: linear-gradient(90deg, var(--primary-gold), var(--secondary-gold));
-            opacity: 0;
-            transition: opacity 0.4s;
-        }
-
-        .telegram-card::after {
-            content: '';
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            width: 0;
-            height: 0;
-            background: radial-gradient(circle, rgba(201,176,55,0.1), transparent);
-            transform: translate(-50%, -50%);
-            transition: width 0.6s, height 0.6s;
-            border-radius: 50%;
-            z-index: 0;
-        }
-
-        .telegram-card:hover {
-            transform: translateY(-8px);
-            border-color: var(--primary-gold);
-            box-shadow: 0 15px 50px rgba(201, 176, 55, 0.3);
-        }
-
-        .telegram-card:hover::before {
-            opacity: 1;
-        }
-
-        .telegram-card:hover::after {
-            width: 300px;
-            height: 300px;
-        }
-
-        .telegram-card > * {
-            position: relative;
-            z-index: 1;
-        }
-
-        .telegram-icon {
-            width: 80px;
-            height: 80px;
-            border-radius: 12px;
-            margin: 0 auto 1.5rem;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.6rem;
-            font-weight: 700;
-            color: white;
-            border: 1px solid rgba(201, 176, 55, 0.2);
-            background: rgba(179, 161, 125, 0.08);
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
-            transition: all 0.3s ease;
-            letter-spacing: 0.5px;
-            position: relative;
-        }
-
-        .telegram-card:hover .telegram-icon {
-            transform: translateY(-3px);
-            border-color: var(--primary-gold);
-            box-shadow: 0 8px 25px rgba(201, 176, 55, 0.3);
-        }
-
-        .telegram-icon.spy { 
-            color: var(--primary-gold);
-        }
-
-        .telegram-icon.tsla { 
-            color: #ff6666;
-        }
-
-        .telegram-icon.meta { 
-            color: #5b9eff;
-        }
-
-        .telegram-icon.aapl { 
-            color: #b3b3b3;
-        }
-
-        .telegram-icon.nvda { 
-            color: #8fdb2f;
-        }
-
-        .telegram-icon.amzn { 
-            color: #ffaa33;
-        }
-
-        .telegram-card h3 {
-            color: var(--light-text);
-            margin-bottom: 0.75rem;
-            font-size: 1.4rem;
-            font-weight: 700;
-            letter-spacing: 0.5px;
-            min-height: 2.8rem;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .telegram-card p {
-            color: var(--gray-text);
-            font-size: 0.95rem;
-            line-height: 1.5;
-            flex-grow: 1;
-            margin-bottom: 1.5rem;
-            min-height: 3rem;
-        }
-
-        .telegram-btn {
+        .dash-welcome .sub-badge {
             display: inline-flex;
             align-items: center;
-            justify-content: center;
-            gap: 0.75rem;
-            background: linear-gradient(135deg, var(--primary-gold), var(--secondary-gold));
-            color: var(--dark-bg);
-            padding: 0.9rem 1.75rem;
-            border-radius: 10px;
-            text-decoration: none;
-            font-weight: 700;
-            font-size: 0.95rem;
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 15px rgba(201, 176, 55, 0.25);
-            width: 100%;
-            max-width: 200px;
-            white-space: nowrap;
-            min-height: 52px;
-            margin-top: auto;
-            border: 1px solid rgba(201, 176, 55, 0.3);
-        }
-
-        .telegram-btn:hover {
-            background: linear-gradient(135deg, var(--secondary-gold), var(--primary-gold));
-            transform: translateY(-2px);
-            box-shadow: 0 6px 25px rgba(201, 176, 55, 0.4);
-            border-color: var(--primary-gold);
-        }
-
-        .telegram-btn i {
-            font-size: 1.1rem;
-        }
-
-        /* Trading Bots Section */
-        .bots-section {
-            margin-bottom: 5rem;
-        }
-
-        .bots-grid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 2rem;
-            margin-bottom: 3rem;
-        }
-
-        .bot-card {
-            background: radial-gradient(800px 150px at 50% 0%, rgba(201,176,55,0.08), transparent 30%),
-                        var(--card-bg);
-            border: 1px solid rgba(201, 176, 55, 0.25);
-            border-radius: 16px;
-            padding: 2.5rem 2rem;
-            text-decoration: none;
-            transition: all 0.35s ease;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            text-align: center;
-            position: relative;
-            overflow: hidden;
-            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.2);
-        }
-
-        .bot-card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 3px;
-            background: linear-gradient(90deg, var(--primary-gold), var(--secondary-gold));
-            opacity: 0;
-            transition: opacity 0.35s;
-        }
-
-        .bot-card:hover {
-            border-color: var(--primary-gold);
-            transform: translateY(-5px);
-            box-shadow: 0 10px 35px rgba(201, 176, 55, 0.3);
-        }
-
-        .bot-card:hover::before {
-            opacity: 1;
-        }
-
-        .bot-icon {
-            width: 70px;
-            height: 70px;
-            border-radius: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 2rem;
-            margin-bottom: 1.5rem;
-            border: 1px solid rgba(201, 176, 55, 0.2);
-            background: rgba(179, 161, 125, 0.08);
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
-            transition: all 0.3s ease;
-        }
-
-        .bot-card:hover .bot-icon {
-            transform: scale(1.1);
-            border-color: var(--primary-gold);
-            box-shadow: 0 6px 20px rgba(201, 176, 55, 0.3);
-        }
-
-        .bot-icon.spy {
-            color: var(--primary-gold);
-        }
-
-        .bot-icon.tsla {
-            color: #ff6666;
-        }
-
-        .bot-icon.meta {
-            color: #5b9eff;
-        }
-
-        .bot-icon.aapl {
-            color: #b3b3b3;
-        }
-
-        .bot-icon.nvda {
-            color: #8fdb2f;
-        }
-
-        .bot-icon.amzn {
-            color: #ffaa33;
-        }
-
-        .bot-card h3 {
-            color: var(--light-text);
-            font-size: 1.4rem;
-            font-weight: 700;
-            margin-bottom: 0.75rem;
-            letter-spacing: 0.3px;
-        }
-
-        .bot-card p {
-            color: var(--gray-text);
-            font-size: 0.95rem;
-            line-height: 1.6;
-            margin-bottom: 1.5rem;
-            flex-grow: 1;
-        }
-
-        .bot-status {
-            display: inline-flex;
-            align-items: center;
-            gap: 0.5rem;
-            background: rgba(42, 87, 31, 0.2);
+            gap: 0.45rem;
+            background: rgba(42, 87, 31, 0.15);
             border: 1px solid var(--success-green);
             color: var(--success-green);
-            padding: 0.5rem 1rem;
+            padding: 0.35rem 0.9rem;
             border-radius: 20px;
-            font-size: 0.85rem;
+            font-size: 0.8rem;
             font-weight: 600;
-            margin-top: auto;
+            white-space: nowrap;
         }
 
-        .bot-status i {
-            font-size: 0.5rem;
-            animation: pulse 2s ease-in-out infinite;
-        }
+        .dash-welcome .sub-badge i { font-size: 0.7rem; }
 
-        @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.4; }
-        }
-
-        /* Support Section */
-        .support-section {
-            background: linear-gradient(135deg, rgba(179, 161, 125, 0.08) 0%, rgba(179, 161, 125, 0.02) 100%),
-                        var(--card-bg);
-            border: 1px solid rgba(201, 176, 55, 0.3);
-            border-radius: 20px;
-            padding: 3rem;
-            margin-bottom: 5rem;
-            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.25);
-        }
-
-        .support-grid {
+        /* ---- Bento grid ---- */
+        .bento-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 1.5rem;
+            grid-template-columns: 2fr 1fr;
+            grid-template-rows: auto auto;
+            gap: 1.25rem;
         }
 
-        .support-card {
-            background: radial-gradient(600px 120px at 50% 0%, rgba(201,176,55,0.08), transparent 30%),
-                        rgba(179, 161, 125, 0.05);
-            border: 1px solid rgba(179, 161, 125, 0.25);
+        .bento-card {
+            background: rgba(10, 14, 22, 0.7);
+            border: 1px solid rgba(201, 176, 55, 0.18);
             border-radius: 16px;
-            padding: 2rem;
-            text-align: center;
-            transition: all 0.35s ease;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
+            padding: 1.5rem;
+            box-shadow: 0 6px 24px rgba(0, 0, 0, 0.3);
         }
 
-        .support-card:hover {
-            border-color: var(--primary-gold);
-            transform: translateY(-5px);
-            box-shadow: 0 8px 25px rgba(201, 176, 55, 0.2);
-        }
-
-        .support-icon {
-            width: 60px;
-            height: 60px;
-            background: linear-gradient(135deg, rgba(179, 161, 125, 0.3), rgba(179, 161, 125, 0.15));
-            border-radius: 14px;
+        .bento-card-title {
+            font-size: 1.05rem;
+            font-weight: 700;
+            color: var(--primary-gold);
+            margin-bottom: 1.1rem;
             display: flex;
-            align-items: center;
-            justify-content: center;
-            margin: 0 auto 1.25rem;
-            color: var(--primary-gold);
-            font-size: 1.8rem;
-            box-shadow: 0 4px 15px rgba(179, 161, 125, 0.2);
-            transition: transform 0.3s;
-        }
-
-        .support-card:hover .support-icon {
-            transform: scale(1.1);
-        }
-
-        .support-card h4 {
-            color: var(--light-text);
-            margin-bottom: 0.75rem;
-            font-size: 1.1rem;
-            font-weight: 700;
-        }
-
-        .support-card p {
-            color: var(--gray-text);
-            font-size: 0.9rem;
-            margin-bottom: 1.25rem;
-            line-height: 1.5;
-        }
-
-        .support-link {
-            color: var(--primary-gold);
-            text-decoration: none;
-            font-weight: 700;
-            font-size: 0.95rem;
-            transition: all 0.3s;
-            display: inline-flex;
             align-items: center;
             gap: 0.5rem;
         }
 
-        .support-link:hover {
+        .bento-card-title i { font-size: 0.95rem; }
+
+        /* ---- Stock table ---- */
+        .card-stocks { grid-column: 1; grid-row: 1; }
+
+        .stock-row {
+            display: flex;
+            align-items: center;
+            padding: 0.7rem 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+            gap: 0.75rem;
+        }
+
+        .stock-row:last-child { border-bottom: none; }
+
+        .stock-ticker-icon {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.65rem;
+            font-weight: 800;
+            letter-spacing: 0.02em;
+            flex-shrink: 0;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .stock-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .stock-info .ticker {
+            font-weight: 700;
+            font-size: 0.92rem;
+            color: var(--light-text);
+        }
+
+        .stock-info .name {
+            font-size: 0.78rem;
+            color: var(--gray-text);
+        }
+
+        .stock-actions {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            flex-shrink: 0;
+        }
+
+        .stock-actions .tg-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.35rem;
+            padding: 0.3rem 0.7rem;
+            border: 1px solid rgba(201, 176, 55, 0.3);
+            border-radius: 8px;
+            color: var(--primary-gold);
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-decoration: none;
+            background: transparent;
+            transition: background 0.2s, border-color 0.2s;
+            white-space: nowrap;
+        }
+
+        .stock-actions .tg-btn:hover {
+            background: rgba(201, 176, 55, 0.1);
+            border-color: var(--primary-gold);
+        }
+
+        .stock-actions .tg-btn i { font-size: 0.8rem; }
+
+        .stock-actions .signals-link {
+            color: var(--primary-gold);
+            font-size: 0.78rem;
+            font-weight: 600;
+            text-decoration: none;
+            white-space: nowrap;
+            transition: color 0.2s;
+        }
+
+        .stock-actions .signals-link:hover {
             color: var(--secondary-gold);
-            transform: translateX(3px);
         }
 
-        /* Footer */
-        footer {
-            background: var(--darker-bg);
-            padding: 2rem;
+        /* ---- Journal card ---- */
+        .card-journal {
+            grid-column: 2;
+            grid-row: 1 / 3;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
             text-align: center;
-            border-top: 1px solid rgba(201, 176, 55, 0.2);
-            margin-top: 3rem;
-        }
-        /* Responsive */
-        @media (max-width: 1400px) {
-            .telegram-grid {
-                grid-template-columns: repeat(3, 1fr);
-            }
-
-            .bots-grid {
-                grid-template-columns: repeat(2, 1fr);
-            }
+            justify-content: center;
+            gap: 1rem;
         }
 
-        @media (max-width: 1024px) {
-            .telegram-grid {
-                grid-template-columns: repeat(2, 1fr);
-            }
-
-            .bots-grid {
-                grid-template-columns: repeat(2, 1fr);
-            }
+        .journal-icon {
+            width: 56px;
+            height: 56px;
+            border-radius: 14px;
+            background: linear-gradient(135deg, #D4AF37, #f4d03f);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.4rem;
+            color: #0a0a0a;
         }
 
+        .journal-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.3rem;
+            background: linear-gradient(135deg, #D4AF37, #f4d03f);
+            color: #0a0a0a;
+            padding: 0.25rem 0.65rem;
+            border-radius: 12px;
+            font-size: 0.7rem;
+            font-weight: 700;
+        }
+
+        .card-journal h3 {
+            font-size: 1.15rem;
+            font-weight: 700;
+            color: var(--light-text);
+            margin: 0;
+        }
+
+        .card-journal .journal-desc {
+            font-size: 0.85rem;
+            color: var(--gray-text);
+            line-height: 1.5;
+        }
+
+        .journal-open-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            padding: 0.6rem 1.6rem;
+            border-radius: 50px;
+            background: linear-gradient(135deg, var(--primary-gold), var(--secondary-gold));
+            color: var(--darker-bg);
+            font-weight: 700;
+            font-size: 0.88rem;
+            text-decoration: none;
+            transition: transform 0.2s, box-shadow 0.2s;
+            box-shadow: 0 4px 14px rgba(201, 176, 55, 0.25);
+        }
+
+        .journal-open-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(201, 176, 55, 0.4);
+        }
+
+        /* ---- Quick links (slim strip) ---- */
+        .card-links {
+            grid-column: 1;
+            grid-row: 2;
+            padding: 0.9rem 1.2rem;
+            background: rgba(10, 14, 22, 0.5);
+            border-color: rgba(201, 176, 55, 0.1);
+        }
+
+        .card-links .bento-card-title {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: var(--gray-text);
+            margin-bottom: 0.5rem;
+        }
+
+        .quick-link-row {
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+            padding: 0.45rem 0.3rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+            text-decoration: none;
+            border-radius: 4px;
+            transition: background 0.15s;
+        }
+
+        .quick-link-row:last-child { border-bottom: none; }
+
+        .quick-link-row:hover { background: rgba(201, 176, 55, 0.04); }
+
+        .quick-link-row .ql-icon {
+            width: 22px;
+            height: 22px;
+            border-radius: 5px;
+            background: rgba(179, 161, 125, 0.1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--primary-gold);
+            font-size: 0.72rem;
+            flex-shrink: 0;
+        }
+
+        .quick-link-row .ql-label {
+            flex: 1;
+            font-size: 0.8rem;
+            font-weight: 500;
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        .quick-link-row .ql-arrow {
+            color: rgba(255, 255, 255, 0.2);
+            font-size: 0.65rem;
+            transition: color 0.15s, transform 0.15s;
+        }
+
+        .quick-link-row:hover .ql-label { color: var(--light-text); }
+
+        .quick-link-row:hover .ql-arrow {
+            color: var(--primary-gold);
+            transform: translateX(2px);
+        }
+
+        /* ---- Responsive ---- */
         @media (max-width: 768px) {
             .main-content {
-                padding: 1rem;
-                margin-top: 100px;
+                padding: 0 1rem 1.5rem;
+                margin-top: 90px;
             }
 
-            .welcome-header {
-                flex-direction: column;
-                align-items: flex-start;
-            }
+            .dash-welcome h1 { font-size: 1.15rem; }
 
-            .welcome-text h1 {
-                font-size: 1.5rem;
-            }
-
-            .telegram-grid {
+            .bento-grid {
                 grid-template-columns: 1fr;
+                grid-template-rows: auto;
             }
 
-            .bots-grid {
-                grid-template-columns: 1fr;
-            }
+            .card-stocks { grid-column: 1; grid-row: auto; }
+            .card-journal { grid-column: 1; grid-row: auto; padding: 2rem 1.5rem; }
+            .card-links   { grid-column: 1; grid-row: auto; }
 
-            .account-grid {
-                grid-template-columns: 1fr;
+            .stock-row { flex-wrap: wrap; }
+
+            .stock-actions {
+                width: 100%;
+                padding-left: 2.6rem;
+                margin-top: 0.25rem;
             }
         }
-
     </style>
 </head>
 <body>
@@ -558,203 +334,112 @@
 
     <!-- Main Content -->
     <div class="main-content">
-        <!-- Welcome Section -->
-        <div class="welcome-section">
-            <div class="welcome-header">
-                <div class="welcome-text">
-                    <h1 id="welcomeMessage">Welcome back!</h1>
-                    <p id="userEmail">Loading your information...</p>
-                </div>
-                <div class="subscription-badge">
-                    <i class="fas fa-crown"></i> <span id="subscriptionStatus">Premium Active</span>
-                </div>
-            </div>
+
+        <!-- Welcome Bar -->
+        <div class="dash-welcome">
+            <h1 id="welcomeMessage">Welcome back!</h1>
+            <span class="sub-badge"><i class="fas fa-crown"></i> <span id="subscriptionStatus">Premium Active</span></span>
         </div>
 
-        <!-- Telegram Channels Section -->
-        <section>
-            <h2 class="section-title"><i class="fab fa-telegram"></i> Your Telegram Signal Channels</h2>
-            <p class="section-description">Click to join or access your exclusive trading signal channels. Signals are delivered instantly to your phone.</p>
-            
-            <div class="telegram-grid">
-                <div class="telegram-card">
-                    <div class="telegram-icon spy">SPY</div>
-                    <h3>SPY Signals</h3>
-                    <p>S&P 500 ETF momentum signals</p>
-                    <a href="https://t.me/+vaznP276aM1jMGVh" class="telegram-btn" target="_blank">
-                        <i class="fab fa-telegram"></i> Join Channel
-                    </a>
+        <!-- Bento Grid -->
+        <div class="bento-grid">
+
+            <!-- Stock Channels Table -->
+            <div class="bento-card card-stocks">
+                <div class="bento-card-title"><i class="fas fa-chart-line"></i> Your Signal Channels</div>
+
+                <div class="stock-row">
+                    <div class="stock-ticker-icon" style="background:rgba(179,161,125,0.15);color:var(--primary-gold);">SPY</div>
+                    <div class="stock-info"><span class="ticker">SPY</span> <span class="name">S&P 500 ETF Trust</span></div>
+                    <div class="stock-actions">
+                        <a href="https://t.me/+vaznP276aM1jMGVh" target="_blank" class="tg-btn"><i class="fab fa-telegram"></i> Telegram</a>
+                        <a href="pages/bots/spy-bot.html" class="signals-link">View Guide &rarr;</a>
+                    </div>
                 </div>
 
-                <div class="telegram-card">
-                    <div class="telegram-icon tsla">TSLA</div>
-                    <h3>TSLA Signals</h3>
-                    <p>Tesla breakout & volatility signals</p>
-                    <a href="https://t.me/+EUxramV9fkI4MDVh" class="telegram-btn" target="_blank">
-                        <i class="fab fa-telegram"></i> Join Channel
-                    </a>
+                <div class="stock-row">
+                    <div class="stock-ticker-icon" style="background:rgba(255,102,102,0.12);color:#ff6666;">TSLA</div>
+                    <div class="stock-info"><span class="ticker">TSLA</span> <span class="name">Tesla, Inc.</span></div>
+                    <div class="stock-actions">
+                        <a href="https://t.me/+EUxramV9fkI4MDVh" target="_blank" class="tg-btn"><i class="fab fa-telegram"></i> Telegram</a>
+                        <a href="pages/bots/tsla-bot.html" class="signals-link">View Guide &rarr;</a>
+                    </div>
                 </div>
 
-                <div class="telegram-card">
-                    <div class="telegram-icon meta">META</div>
-                    <h3>META Signals</h3>
-                    <p>Meta Platforms momentum signals</p>
-                    <a href="https://t.me/+95vOUdI99VM0ZDNh" class="telegram-btn" target="_blank">
-                        <i class="fab fa-telegram"></i> Join Channel
-                    </a>
+                <div class="stock-row">
+                    <div class="stock-ticker-icon" style="background:rgba(91,158,255,0.12);color:#5b9eff;">META</div>
+                    <div class="stock-info"><span class="ticker">META</span> <span class="name">Meta Platforms</span></div>
+                    <div class="stock-actions">
+                        <a href="https://t.me/+95vOUdI99VM0ZDNh" target="_blank" class="tg-btn"><i class="fab fa-telegram"></i> Telegram</a>
+                        <a href="pages/bots/meta-bot.html" class="signals-link">View Guide &rarr;</a>
+                    </div>
                 </div>
 
-                <div class="telegram-card">
-                    <div class="telegram-icon aapl">AAPL</div>
-                    <h3>AAPL Signals</h3>
-                    <p>Apple options & breakout signals</p>
-                    <a href="https://t.me/+ItfI3WYEZ1g1NzQx" class="telegram-btn" target="_blank">
-                        <i class="fab fa-telegram"></i> Join Channel
-                    </a>
+                <div class="stock-row">
+                    <div class="stock-ticker-icon" style="background:rgba(179,179,179,0.12);color:#b3b3b3;">AAPL</div>
+                    <div class="stock-info"><span class="ticker">AAPL</span> <span class="name">Apple Inc.</span></div>
+                    <div class="stock-actions">
+                        <a href="https://t.me/+ItfI3WYEZ1g1NzQx" target="_blank" class="tg-btn"><i class="fab fa-telegram"></i> Telegram</a>
+                        <a href="pages/bots/aapl-bot.html" class="signals-link">View Guide &rarr;</a>
+                    </div>
                 </div>
 
-                <div class="telegram-card">
-                    <div class="telegram-icon nvda">NVDA</div>
-                    <h3>NVDA Signals</h3>
-                    <p>NVIDIA AI sector signals</p>
-                    <a href="https://t.me/+_de2o3DNnu44ODg5" class="telegram-btn" target="_blank">
-                        <i class="fab fa-telegram"></i> Join Channel
-                    </a>
+                <div class="stock-row">
+                    <div class="stock-ticker-icon" style="background:rgba(143,219,47,0.12);color:#8fdb2f;">NVDA</div>
+                    <div class="stock-info"><span class="ticker">NVDA</span> <span class="name">NVIDIA Corporation</span></div>
+                    <div class="stock-actions">
+                        <a href="https://t.me/+_de2o3DNnu44ODg5" target="_blank" class="tg-btn"><i class="fab fa-telegram"></i> Telegram</a>
+                        <a href="pages/bots/nvda-bot.html" class="signals-link">View Guide &rarr;</a>
+                    </div>
                 </div>
 
-                <div class="telegram-card">
-                    <div class="telegram-icon amzn">AMZN</div>
-                    <h3>AMZN Signals</h3>
-                    <p>Amazon momentum signals</p>
-                    <a href="https://t.me/+XEuyiOt5-Vc1OTJh" class="telegram-btn" target="_blank">
-                        <i class="fab fa-telegram"></i> Join Channel
-                    </a>
+                <div class="stock-row">
+                    <div class="stock-ticker-icon" style="background:rgba(255,170,51,0.12);color:#ffaa33;">AMZN</div>
+                    <div class="stock-info"><span class="ticker">AMZN</span> <span class="name">Amazon.com, Inc.</span></div>
+                    <div class="stock-actions">
+                        <a href="https://t.me/+XEuyiOt5-Vc1OTJh" target="_blank" class="tg-btn"><i class="fab fa-telegram"></i> Telegram</a>
+                        <a href="pages/bots/amzn-bot.html" class="signals-link">View Guide &rarr;</a>
+                    </div>
                 </div>
             </div>
-        </section>
 
-        <!-- Quick Tools Section -->
-        <section class="bots-section">
-            <h2 class="section-title"><i class="fas fa-tools"></i> Trading Tools</h2>
-            <p class="section-description">Access your personal trading journal and premium bot signals.</p>
-            
-            <div class="bots-grid">
-                <a href="trading-journal.html" class="bot-card" style="grid-column: span 2;">
-                    <div class="bot-icon" style="background: linear-gradient(135deg, #D4AF37, #f4d03f);">
-                        <i class="fas fa-book"></i>
-                    </div>
+            <!-- Trading Journal -->
+            <div class="bento-card card-journal">
+                <div class="journal-icon"><i class="fas fa-book"></i></div>
+                <div>
                     <h3>Trading Journal</h3>
-                    <p>Track your trades, analyze performance, and visualize your P&L with interactive charts</p>
-                    <span class="bot-status" style="background: linear-gradient(135deg, #D4AF37, #f4d03f); color: #0a0a0a;">
-                        <i class="fas fa-star"></i> New Feature
-                    </span>
+                    <span class="journal-badge"><i class="fas fa-star"></i> New Feature</span>
+                </div>
+                <p class="journal-desc">Track your trades, analyze performance, and visualize your P&L with interactive charts.</p>
+                <a href="trading-journal.html" class="journal-open-btn">Open Journal <i class="fas fa-arrow-right"></i></a>
+            </div>
+
+            <!-- Quick Links -->
+            <div class="bento-card card-links">
+                <div class="bento-card-title"><i class="fas fa-link"></i> Quick Links</div>
+                <a href="contact.html" class="quick-link-row">
+                    <span class="ql-icon"><i class="fas fa-headset"></i></span>
+                    <span class="ql-label">Contact Support</span>
+                    <span class="ql-arrow"><i class="fas fa-chevron-right"></i></span>
+                </a>
+                <a href="faq.html" class="quick-link-row">
+                    <span class="ql-icon"><i class="fas fa-question-circle"></i></span>
+                    <span class="ql-label">FAQ</span>
+                    <span class="ql-arrow"><i class="fas fa-chevron-right"></i></span>
+                </a>
+                <a href="about.html" class="quick-link-row">
+                    <span class="ql-icon"><i class="fas fa-rocket"></i></span>
+                    <span class="ql-label">Getting Started</span>
+                    <span class="ql-arrow"><i class="fas fa-chevron-right"></i></span>
+                </a>
+                <a href="terms.html" class="quick-link-row">
+                    <span class="ql-icon"><i class="fas fa-file-alt"></i></span>
+                    <span class="ql-label">Legal Info</span>
+                    <span class="ql-arrow"><i class="fas fa-chevron-right"></i></span>
                 </a>
             </div>
-        </section>
 
-        <!-- Trading Bots Section -->
-        <section class="bots-section">
-            <h2 class="section-title"><i class="fas fa-robot"></i> Premium Trading Signals</h2>
-            <p class="section-description">Access our exclusive automated trading signals.</p>
-            
-            <div class="bots-grid">
-                <a href="pages/bots/spy-bot.html" class="bot-card">
-                    <div class="bot-icon spy">
-                        <i class="fas fa-chart-line"></i>
-                    </div>
-                    <h3>SPY Signals</h3>
-                    <p>S&P 500 ETF momentum signals and market analysis</p>
-                    <span class="bot-status"><i class="fas fa-circle"></i> Active</span>
-                </a>
-
-                <a href="pages/bots/tsla-bot.html" class="bot-card">
-                    <div class="bot-icon tsla">
-                        <img src="assets/images/tesla-logo.svg" alt="Tesla" style="width: 35px; height: 35px;">
-                    </div>
-                    <h3>TSLA Signals</h3>
-                    <p>Tesla breakout signals and volatility tracking</p>
-                    <span class="bot-status"><i class="fas fa-circle"></i> Active</span>
-                </a>
-
-                <a href="pages/bots/meta-bot.html" class="bot-card">
-                    <div class="bot-icon meta">
-                        <i class="fab fa-meta"></i>
-                    </div>
-                    <h3>META Signals</h3>
-                    <p>Meta Platforms momentum and key level alerts</p>
-                    <span class="bot-status"><i class="fas fa-circle"></i> Active</span>
-                </a>
-
-                <a href="pages/bots/aapl-bot.html" class="bot-card">
-                    <div class="bot-icon aapl">
-                        <i class="fab fa-apple"></i>
-                    </div>
-                    <h3>AAPL Signals</h3>
-                    <p>Apple options flow and breakout detection</p>
-                    <span class="bot-status"><i class="fas fa-circle"></i> Active</span>
-                </a>
-
-                <a href="pages/bots/nvda-bot.html" class="bot-card">
-                    <div class="bot-icon nvda">
-                        <img src="assets/images/nvda-logo.png" alt="NVIDIA" style="width: 45px; height: 45px; object-fit: contain; image-rendering: -webkit-optimize-contrast; image-rendering: crisp-edges; margin-top: 15px;">
-                    </div>
-                    <h3>NVDA Signals</h3>
-                    <p>NVIDIA AI sector trends and momentum signals</p>
-                    <span class="bot-status"><i class="fas fa-circle"></i> Active</span>
-                </a>
-
-                <a href="pages/bots/amzn-bot.html" class="bot-card">
-                    <div class="bot-icon amzn">
-                        <i class="fab fa-amazon"></i>
-                    </div>
-                    <h3>AMZN Signals</h3>
-                    <p>Amazon price action and momentum analysis</p>
-                    <span class="bot-status"><i class="fas fa-circle"></i> Active</span>
-                </a>
-            </div>
-        </section>
-
-        <!-- Support & Resources Section -->
-        <section class="support-section">
-            <h2 class="section-title"><i class="fas fa-life-ring"></i> Support & Resources</h2>
-            <div class="support-grid">
-                <div class="support-card">
-                    <div class="support-icon">
-                        <i class="fas fa-headset"></i>
-                    </div>
-                    <h4>Contact Support</h4>
-                    <p>Get help from our team</p>
-                    <a href="contact.html" class="support-link">Contact Us →</a>
-                </div>
-
-                <div class="support-card">
-                    <div class="support-icon">
-                        <i class="fas fa-question-circle"></i>
-                    </div>
-                    <h4>FAQ</h4>
-                    <p>Find answers quickly</p>
-                    <a href="faq.html" class="support-link">View FAQ →</a>
-                </div>
-
-                <div class="support-card">
-                    <div class="support-icon">
-                        <i class="fas fa-book"></i>
-                    </div>
-                    <h4>Getting Started</h4>
-                    <p>New to Blue Chip Signals?</p>
-                    <a href="about.html" class="support-link">Learn More →</a>
-                </div>
-
-                <div class="support-card">
-                    <div class="support-icon">
-                        <i class="fas fa-file-alt"></i>
-                    </div>
-                    <h4>Legal Info</h4>
-                    <p>Terms & disclosures</p>
-                    <a href="terms.html" class="support-link">Read Legal →</a>
-                </div>
-            </div>
-        </section>
+        </div>
     </div>
 
     <!-- Footer -->
@@ -794,17 +479,13 @@
             }
         }
 
-        // Update dashboard with user information
         function updateDashboard(userData) {
             const welcomeMessage = document.getElementById('welcomeMessage');
-            const userEmail = document.getElementById('userEmail');
             const subscriptionStatus = document.getElementById('subscriptionStatus');
             
             if (userData) {
-                // Use first name only for more personal greeting
                 const firstName = userData.firstName || userData.displayName || 'there';
                 welcomeMessage.textContent = `Welcome back, ${firstName}!`;
-                userEmail.textContent = `Access your trading signals and premium guides`;
                 subscriptionStatus.textContent = userData.subscriptionStatus || 'Premium Active';
             }
         }

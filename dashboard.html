@@ -95,17 +95,15 @@
         .stock-row:last-child { border-bottom: none; }
 
         .stock-ticker-icon {
-            width: 32px;
-            height: 32px;
-            border-radius: 50%;
+            width: 38px;
+            height: 38px;
+            border-radius: 10px;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 0.65rem;
-            font-weight: 800;
-            letter-spacing: 0.02em;
+            font-size: 1rem;
             flex-shrink: 0;
-            border: 1px solid rgba(255, 255, 255, 0.08);
+            border: 1px solid transparent;
         }
 
         .stock-info {
@@ -167,142 +165,208 @@
             color: var(--secondary-gold);
         }
 
-        /* ---- Journal card ---- */
-        .card-journal {
+        /* ---- Portfolio Stats card ---- */
+        .card-stats {
             grid-column: 2;
             grid-row: 1;
             display: flex;
             flex-direction: column;
-            align-items: center;
-            text-align: center;
-            justify-content: center;
-            gap: 0.85rem;
+            gap: 0;
+            padding: 1.4rem;
         }
 
-        .journal-icon {
-            width: 56px;
-            height: 56px;
-            border-radius: 14px;
-            background: linear-gradient(135deg, #D4AF37, #f4d03f);
+        .stats-header {
             display: flex;
             align-items: center;
-            justify-content: center;
-            font-size: 1.4rem;
-            color: #0a0a0a;
+            justify-content: space-between;
+            margin-bottom: 1rem;
         }
 
-        .journal-badge {
-            display: inline-flex;
-            align-items: center;
-            gap: 0.3rem;
-            background: linear-gradient(135deg, #D4AF37, #f4d03f);
-            color: #0a0a0a;
-            padding: 0.25rem 0.65rem;
-            border-radius: 12px;
+        /* 2×2 stat tiles */
+        .stats-tile-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.65rem;
+            margin-bottom: 1.1rem;
+        }
+
+        .stats-tile {
+            background: rgba(15, 19, 32, 0.65);
+            border: 1px solid rgba(255,255,255,0.06);
+            border-radius: 11px;
+            padding: 0.75rem 0.85rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stats-tile::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 2px;
+            border-radius: 11px 11px 0 0;
+        }
+
+        #st-pnl::before       { background: linear-gradient(90deg, #4ade80, #22c55e); }
+        #st-winrate::before   { background: linear-gradient(90deg, #60a5fa, #3b82f6); }
+        #st-trades::before    { background: linear-gradient(90deg, var(--primary-gold), var(--secondary-gold)); }
+        #st-open::before      { background: linear-gradient(90deg, #f97316, #fb923c); }
+
+        .stats-tile-label {
+            font-size: 0.63rem;
+            font-weight: 600;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+            color: rgba(255,255,255,0.35);
+            margin-bottom: 0.3rem;
+        }
+
+        .stats-tile-value {
+            font-size: 1.5rem;
+            font-weight: 900;
+            line-height: 1;
+            letter-spacing: -0.02em;
+            color: var(--light-text);
+        }
+
+        .stats-tile-value.pnl-pos { color: #4ade80; }
+        .stats-tile-value.pnl-neg { color: #ef4444; }
+
+        .stats-tile-sub {
+            font-size: 0.62rem;
+            color: rgba(255,255,255,0.25);
+            margin-top: 0.25rem;
+        }
+
+        /* Active plans section */
+        .stats-plans-header {
             font-size: 0.7rem;
             font-weight: 700;
-        }
-
-        .card-journal h3 {
-            font-size: 1.15rem;
-            font-weight: 700;
-            color: var(--light-text);
-            margin: 0;
-        }
-
-        .card-journal .journal-desc {
-            font-size: 0.85rem;
-            color: var(--gray-text);
-            line-height: 1.5;
-        }
-
-        .journal-open-btn {
-            display: inline-flex;
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+            color: rgba(255,255,255,0.35);
+            margin-bottom: 0.55rem;
+            display: flex;
             align-items: center;
             gap: 0.4rem;
-            padding: 0.6rem 1.6rem;
-            border-radius: 50px;
-            background: linear-gradient(135deg, var(--primary-gold), var(--secondary-gold));
-            color: var(--darker-bg);
+        }
+
+        .stats-plans-header .plans-count-badge {
+            background: rgba(201,176,55,0.12);
+            color: var(--primary-gold);
+            border: 1px solid rgba(201,176,55,0.25);
+            border-radius: 20px;
+            font-size: 0.6rem;
+            padding: 0.1rem 0.45rem;
             font-weight: 700;
-            font-size: 0.88rem;
-            text-decoration: none;
-            transition: transform 0.2s, box-shadow 0.2s;
-            box-shadow: 0 4px 14px rgba(201, 176, 55, 0.25);
         }
 
-        .journal-open-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(201, 176, 55, 0.4);
-        }
-
-        /* ---- Planner card ---- */
-        .card-planner {
-            grid-column: 2;
-            grid-row: 2;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            text-align: center;
-            justify-content: center;
-            gap: 0.85rem;
-        }
-
-        .planner-icon {
-            width: 48px;
-            height: 48px;
-            border-radius: 12px;
-            background: linear-gradient(135deg, #D4AF37, #f4d03f);
+        .stats-plan-row {
             display: flex;
             align-items: center;
-            justify-content: center;
-            font-size: 1.2rem;
-            color: #0a0a0a;
+            gap: 0.6rem;
+            padding: 0.5rem 0;
+            border-bottom: 1px solid rgba(255,255,255,0.04);
         }
 
-        .planner-badge {
-            display: inline-flex;
-            align-items: center;
-            gap: 0.3rem;
-            background: linear-gradient(135deg, #D4AF37, #f4d03f);
-            color: #0a0a0a;
-            padding: 0.25rem 0.65rem;
-            border-radius: 12px;
+        .stats-plan-row:last-child { border-bottom: none; }
+
+        .stats-plan-ticker {
             font-size: 0.7rem;
-            font-weight: 700;
+            font-weight: 800;
+            letter-spacing: 0.04em;
+            padding: 0.2rem 0.5rem;
+            border-radius: 6px;
+            background: rgba(201,176,55,0.1);
+            color: var(--primary-gold);
+            border: 1px solid rgba(201,176,55,0.22);
+            white-space: nowrap;
+            min-width: 38px;
+            text-align: center;
         }
 
-        .card-planner h3 {
-            font-size: 1.05rem;
+        .stats-plan-dir {
+            font-size: 0.68rem;
             font-weight: 700;
-            color: var(--light-text);
-            margin: 0;
+            white-space: nowrap;
         }
 
-        .card-planner .planner-desc {
-            font-size: 0.82rem;
+        .stats-plan-dir.long  { color: #4ade80; }
+        .stats-plan-dir.short { color: #ef4444; }
+
+        .stats-plan-meta {
+            flex: 1;
+            font-size: 0.67rem;
+            color: rgba(255,255,255,0.4);
+            min-width: 0;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .stats-plan-rr {
+            font-size: 0.68rem;
+            font-weight: 700;
+            color: #60a5fa;
+            white-space: nowrap;
+        }
+
+        .stats-plan-status {
+            font-size: 0.6rem;
+            font-weight: 700;
+            padding: 0.12rem 0.4rem;
+            border-radius: 20px;
+            white-space: nowrap;
+        }
+
+        .stats-plan-status.watching { color: var(--primary-gold); background: rgba(201,176,55,0.1); border: 1px solid rgba(201,176,55,0.25); }
+        .stats-plan-status.active   { color: #4ade80; background: rgba(74,222,128,0.1); border: 1px solid rgba(74,222,128,0.25); }
+
+        .stats-empty {
+            font-size: 0.78rem;
+            color: rgba(255,255,255,0.25);
+            text-align: center;
+            padding: 0.75rem 0;
+        }
+
+        .stats-more-link {
+            font-size: 0.68rem;
             color: var(--gray-text);
-            line-height: 1.5;
+            text-decoration: none;
+            transition: color 0.2s;
         }
 
-        .planner-open-btn {
+        .stats-more-link:hover { color: var(--primary-gold); }
+
+        /* Ghost tool links at bottom */
+        .stats-tool-links {
+            display: flex;
+            gap: 0.6rem;
+            margin-top: auto;
+            padding-top: 0.9rem;
+            border-top: 1px solid rgba(255,255,255,0.05);
+        }
+
+        .stats-tool-link {
             display: inline-flex;
             align-items: center;
-            gap: 0.4rem;
-            padding: 0.55rem 1.4rem;
-            border-radius: 50px;
-            background: linear-gradient(135deg, var(--primary-gold), var(--secondary-gold));
-            color: var(--darker-bg);
-            font-weight: 700;
-            font-size: 0.85rem;
+            gap: 0.35rem;
+            flex: 1;
+            justify-content: center;
+            padding: 0.45rem 0;
+            border: 1px solid rgba(201,176,55,0.2);
+            border-radius: 8px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: rgba(255,255,255,0.5);
             text-decoration: none;
-            transition: transform 0.2s, box-shadow 0.2s;
-            box-shadow: 0 4px 14px rgba(201, 176, 55, 0.25);
+            transition: background 0.2s, border-color 0.2s, color 0.2s;
         }
 
-        .planner-open-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(201, 176, 55, 0.4);
+        .stats-tool-link:hover {
+            background: rgba(201,176,55,0.07);
+            border-color: rgba(201,176,55,0.4);
+            color: var(--primary-gold);
         }
 
         /* ---- Live ticker strip ---- */
@@ -351,70 +415,470 @@
         a.ticker-item { text-decoration: none; }
         a.ticker-item:hover { background: rgba(201,176,55,0.06); border-radius: 6px; }
 
-        /* ---- Quick links (slim strip) ---- */
-        .card-links {
+        /* ---- Economic Indicators card ---- */
+        .card-econ {
             grid-column: 1;
             grid-row: 2;
-            align-self: start;
-            padding: 0.9rem 1.2rem;
-            background: rgba(10, 14, 22, 0.5);
-            border-color: rgba(201, 176, 55, 0.1);
         }
 
-        .card-links .bento-card-title {
-            font-size: 0.75rem;
-            text-transform: uppercase;
-            letter-spacing: 0.1em;
-            color: var(--gray-text);
-            margin-bottom: 0.5rem;
+        .econ-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            margin-bottom: 1.1rem;
         }
 
-        .quick-link-row {
+        .econ-header-left {
             display: flex;
             align-items: center;
             gap: 0.6rem;
-            padding: 0.45rem 0.3rem;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.03);
-            text-decoration: none;
-            border-radius: 4px;
-            transition: background 0.15s;
         }
 
-        .quick-link-row:last-child { border-bottom: none; }
+        .econ-live-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.35rem;
+            font-size: 0.67rem;
+            font-weight: 700;
+            letter-spacing: 0.05em;
+            color: #4ade80;
+            border: 1px solid rgba(74,222,128,0.3);
+            background: rgba(74,222,128,0.07);
+            padding: 0.18rem 0.55rem;
+            border-radius: 50px;
+        }
 
-        .quick-link-row:hover { background: rgba(201, 176, 55, 0.04); }
+        .econ-live-dot {
+            width: 5px; height: 5px;
+            border-radius: 50%;
+            background: #4ade80;
+            animation: econPulse 2s ease-in-out infinite;
+        }
 
-        .quick-link-row .ql-icon {
-            width: 22px;
-            height: 22px;
+        @keyframes econPulse {
+            0%, 100% { opacity: 1; }
+            50%       { opacity: 0.25; }
+        }
+
+        .econ-timestamp {
+            font-size: 0.67rem;
+            color: rgba(255,255,255,0.25);
+        }
+
+        .econ-stat-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.8rem;
+        }
+
+        .econ-stat {
+            background: rgba(15, 19, 32, 0.65);
+            border: 1px solid rgba(255,255,255,0.06);
+            border-radius: 12px;
+            padding: 0.9rem 1rem;
+            position: relative;
+            overflow: hidden;
+            animation: statFadeUp 0.45s ease both;
+        }
+
+        .econ-stat:nth-child(1) { animation-delay: 0ms; }
+        .econ-stat:nth-child(2) { animation-delay: 80ms; }
+        .econ-stat:nth-child(3) { animation-delay: 160ms; }
+        .econ-stat:nth-child(4) { animation-delay: 240ms; }
+
+        @keyframes statFadeUp {
+            from { opacity: 0; transform: translateY(8px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        .econ-stat::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 2px;
+            border-radius: 12px 12px 0 0;
+        }
+
+        #econ-card-cpi::before  { background: #f97316; }
+        #econ-card-core::before { background: #6366f1; }
+        #econ-card-ppi::before  { background: #8b5cf6; }
+        #econ-card-fed::before  { background: var(--primary-gold); }
+
+        .econ-stat-top {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 0.5rem;
+        }
+
+        .econ-stat-icon {
+            width: 26px; height: 26px;
+            border-radius: 7px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.72rem;
+        }
+
+        #econ-card-cpi  .econ-stat-icon { background: rgba(249,115,22,0.12); color: #f97316; }
+        #econ-card-core .econ-stat-icon { background: rgba(99,102,241,0.12);  color: #818cf8; }
+        #econ-card-ppi  .econ-stat-icon { background: rgba(139,92,246,0.12);  color: #a78bfa; }
+        #econ-card-fed  .econ-stat-icon { background: rgba(201,176,55,0.12);  color: var(--primary-gold); }
+
+        .econ-s-badge {
+            font-size: 0.58rem;
+            font-weight: 700;
+            letter-spacing: 0.04em;
+            padding: 0.13rem 0.42rem;
+            border-radius: 20px;
+            border: 1px solid;
+        }
+
+        .live-s-badge { color: #4ade80; border-color: rgba(74,222,128,0.3);  background: rgba(74,222,128,0.07); }
+        .fomc-s-badge { color: var(--primary-gold); border-color: rgba(201,176,55,0.3); background: rgba(201,176,55,0.07); }
+
+        .econ-stat-label {
+            font-size: 0.65rem;
+            font-weight: 600;
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
+            color: rgba(255,255,255,0.38);
+            margin-bottom: 0.28rem;
+        }
+
+        .econ-stat-value-row {
+            display: flex;
+            align-items: baseline;
+            gap: 0.4rem;
+            flex-wrap: wrap;
+            margin-bottom: 0.3rem;
+        }
+
+        .econ-stat-value {
+            font-size: 1.65rem;
+            font-weight: 900;
+            color: var(--light-text);
+            line-height: 1;
+            letter-spacing: -0.02em;
+            transition: color 0.5s;
+        }
+
+        .econ-stat-value.loading {
+            background: linear-gradient(90deg, rgba(255,255,255,0.04) 25%, rgba(255,255,255,0.09) 50%, rgba(255,255,255,0.04) 75%);
+            background-size: 200% 100%;
+            animation: shimmerStat 1.4s infinite;
             border-radius: 5px;
-            background: rgba(179, 161, 125, 0.1);
+            color: transparent;
+            min-width: 55px;
+        }
+
+        @keyframes shimmerStat {
+            0%   { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
+        }
+
+        .econ-stat-trend { font-size: 0.65rem; font-weight: 700; white-space: nowrap; }
+        .trend-up        { color: #ef4444; }
+        .trend-down      { color: #4ade80; }
+        .trend-flat      { color: rgba(255,255,255,0.3); font-weight: 600; }
+
+        .econ-stat-date {
+            font-size: 0.63rem;
+            color: rgba(255,255,255,0.22);
+        }
+
+        .econ-source {
+            font-size: 0.68rem;
+            color: rgba(255,255,255,0.18);
+            margin-top: 0.7rem;
+            display: flex;
+            align-items: center;
+            gap: 0.35rem;
+        }
+
+        /* ---- Fear & Greed card ---- */
+        .card-fg {
+            grid-column: 2;
+            grid-row: 2;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .card-fg::before {
+            content: '';
+            position: absolute;
+            top: -50px; left: 50%; transform: translateX(-50%);
+            width: 280px; height: 220px;
+            background: radial-gradient(ellipse, rgba(201,176,55,0.06), transparent 70%);
+            pointer-events: none;
+        }
+
+        .fg-card-top {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.3rem;
+            margin-bottom: 0;
+            width: 100%;
+            position: relative;
+        }
+
+        .fg-card-live {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.35rem;
+            font-size: 0.67rem;
+            font-weight: 700;
+            letter-spacing: 0.05em;
+            color: #4ade80;
+            border: 1px solid rgba(74,222,128,0.3);
+            background: rgba(74,222,128,0.07);
+            padding: 0.18rem 0.55rem;
+            border-radius: 50px;
+        }
+
+        .fg-card-live-dot {
+            width: 5px; height: 5px;
+            border-radius: 50%;
+            background: #4ade80;
+            animation: econPulse 2s ease-in-out infinite;
+        }
+
+        #fg-gauge {
+            max-width: 260px;
+            width: 100%;
+            display: block;
+            margin: 0 auto;
+        }
+
+        /* #fg-needle rotation handled via SVG transform attribute in fear-greed.js */
+
+        .fg-val-num {
+            font-size: 2.6rem;
+            font-weight: 900;
+            line-height: 1;
+            color: var(--light-text);
+            transition: color 0.6s;
+            letter-spacing: -0.03em;
+            margin-top: -0.2rem;
+        }
+
+        .fg-zone-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.35rem;
+            padding: 0.3rem 0.9rem;
+            border-radius: 50px;
+            font-size: 0.7rem;
+            font-weight: 700;
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
+            border: 1px solid rgba(201,176,55,0.3);
+            background: rgba(201,176,55,0.07);
+            color: var(--primary-gold);
+            margin-top: 0.45rem;
+            transition: all 0.6s;
+        }
+
+        .fg-card-note {
+            font-size: 0.67rem;
+            color: rgba(255,255,255,0.2);
+            margin-top: 0.65rem;
+            border-top: 1px solid rgba(255,255,255,0.04);
+            padding-top: 0.6rem;
+            width: 100%;
+            position: relative;
+        }
+
+        /* ---- Guide Modal ---- */
+        .guide-modal-backdrop {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.72);
+            backdrop-filter: blur(5px);
+            -webkit-backdrop-filter: blur(5px);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+            padding: 1.5rem;
+        }
+
+        .guide-modal-backdrop.open {
+            display: flex;
+        }
+
+        .guide-modal {
+            background: rgba(8, 11, 18, 0.97);
+            border: 1px solid rgba(201, 176, 55, 0.28);
+            border-radius: 18px;
+            width: 100%;
+            max-width: 460px;
+            box-shadow: 0 24px 64px rgba(0, 0, 0, 0.6);
+            animation: modalIn 0.22s cubic-bezier(0.22, 1, 0.36, 1) both;
+            overflow: hidden;
+        }
+
+        @keyframes modalIn {
+            from { opacity: 0; transform: translateY(18px) scale(0.97); }
+            to   { opacity: 1; transform: translateY(0)   scale(1); }
+        }
+
+        .guide-modal-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 1.25rem 1.5rem 1rem;
+            border-bottom: 1px solid rgba(201, 176, 55, 0.1);
+        }
+
+        .guide-modal-header-left {
+            display: flex;
+            align-items: center;
+            gap: 0.65rem;
+        }
+
+        .guide-modal-ticker-badge {
+            font-size: 0.72rem;
+            font-weight: 800;
+            letter-spacing: 0.05em;
+            padding: 0.25rem 0.65rem;
+            border-radius: 6px;
+        }
+
+        .guide-modal-header h3 {
+            font-size: 1rem;
+            font-weight: 700;
+            color: var(--light-text);
+            margin: 0;
+        }
+
+        .guide-modal-close {
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            color: var(--gray-text);
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 0.8rem;
+            transition: background 0.2s, color 0.2s;
+            flex-shrink: 0;
+        }
+
+        .guide-modal-close:hover {
+            background: rgba(255, 255, 255, 0.12);
+            color: var(--light-text);
+        }
+
+        .guide-modal-list {
+            padding: 0.85rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .guide-modal-item {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 0.9rem 1rem;
+            border: 1px solid rgba(201, 176, 55, 0.1);
+            border-radius: 12px;
+            background: rgba(26, 31, 46, 0.4);
+            cursor: pointer;
+            text-decoration: none;
+            transition: border-color 0.2s, background 0.2s, transform 0.2s;
+        }
+
+        .guide-modal-item:hover {
+            border-color: rgba(201, 176, 55, 0.4);
+            background: rgba(201, 176, 55, 0.07);
+            transform: translateX(3px);
+        }
+
+        .guide-modal-icon {
+            width: 38px;
+            height: 38px;
+            border-radius: 10px;
+            background: linear-gradient(135deg, rgba(201, 176, 55, 0.18), rgba(201, 176, 55, 0.06));
+            border: 1px solid rgba(201, 176, 55, 0.2);
             display: flex;
             align-items: center;
             justify-content: center;
             color: var(--primary-gold);
-            font-size: 0.72rem;
+            font-size: 0.9rem;
             flex-shrink: 0;
         }
 
-        .quick-link-row .ql-label {
+        .guide-modal-info {
             flex: 1;
-            font-size: 0.8rem;
-            font-weight: 500;
-            color: rgba(255, 255, 255, 0.7);
+            min-width: 0;
         }
 
-        .quick-link-row .ql-arrow {
-            color: rgba(255, 255, 255, 0.2);
-            font-size: 0.65rem;
-            transition: color 0.15s, transform 0.15s;
+        .guide-modal-info strong {
+            display: block;
+            font-size: 0.88rem;
+            font-weight: 700;
+            color: var(--light-text);
+            margin-bottom: 0.2rem;
         }
 
-        .quick-link-row:hover .ql-label { color: var(--light-text); }
+        .guide-modal-info span {
+            display: block;
+            font-size: 0.76rem;
+            color: var(--gray-text);
+            line-height: 1.4;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
 
-        .quick-link-row:hover .ql-arrow {
+        .guide-modal-arrow {
+            color: rgba(201, 176, 55, 0.4);
+            font-size: 0.75rem;
+            transition: color 0.2s, transform 0.2s;
+            flex-shrink: 0;
+        }
+
+        .guide-modal-item:hover .guide-modal-arrow {
             color: var(--primary-gold);
-            transform: translateX(2px);
+            transform: translateX(3px);
+        }
+
+        .guide-modal-footer {
+            padding: 0.75rem 1.5rem 1rem;
+            text-align: center;
+            border-top: 1px solid rgba(201, 176, 55, 0.08);
+        }
+
+        .guide-modal-footer a {
+            font-size: 0.78rem;
+            color: var(--gray-text);
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+
+        .guide-modal-footer a:hover {
+            color: var(--primary-gold);
+        }
+
+        /* button reset for signals-link */
+        button.signals-link {
+            background: none;
+            border: none;
+            padding: 0;
+            cursor: pointer;
+            font-family: inherit;
         }
 
         /* ---- Responsive ---- */
@@ -431,10 +895,12 @@
                 grid-template-rows: auto;
             }
 
-            .card-stocks  { grid-column: 1; grid-row: auto; }
-            .card-journal { grid-column: 1; grid-row: auto; padding: 2rem 1.5rem; }
-            .card-planner { grid-column: 1; grid-row: auto; padding: 2rem 1.5rem; }
-            .card-links   { grid-column: 1; grid-row: auto; }
+            .card-stocks { grid-column: 1; grid-row: auto; }
+            .card-stats  { grid-column: 1; grid-row: auto; }
+            .card-econ   { grid-column: 1; grid-row: auto; }
+            .card-fg     { grid-column: 1; grid-row: auto; }
+
+            .econ-stat-grid { grid-template-columns: 1fr 1fr; }
 
             .stock-row { flex-wrap: wrap; }
 
@@ -443,6 +909,10 @@
                 padding-left: 2.6rem;
                 margin-top: 0.25rem;
             }
+        }
+
+        @media (max-width: 480px) {
+            .stats-tile-grid { grid-template-columns: 1fr 1fr; }
         }
     </style>
 </head>
@@ -478,113 +948,364 @@
                 </div>
 
                 <div class="stock-row">
-                    <div class="stock-ticker-icon" style="background:rgba(179,161,125,0.15);color:var(--primary-gold);">SPY</div>
+                    <div class="stock-ticker-icon" style="background:linear-gradient(135deg,rgba(179,161,125,0.22),rgba(179,161,125,0.06));border-color:rgba(179,161,125,0.28);color:var(--primary-gold);"><i class="fas fa-chart-bar"></i></div>
                     <div class="stock-info"><span class="ticker">SPY</span> <span class="name">S&P 500 ETF Trust</span></div>
                     <div class="stock-actions">
                         <a href="https://t.me/+vaznP276aM1jMGVh" target="_blank" class="tg-btn"><i class="fab fa-telegram"></i> Telegram</a>
-                        <a href="pages/signals/spy-signal.html" class="signals-link">View Guide &rarr;</a>
+                        <button class="signals-link" onclick="openGuideModal('SPY')">View Guide &rarr;</button>
                     </div>
                 </div>
 
                 <div class="stock-row">
-                    <div class="stock-ticker-icon" style="background:rgba(255,102,102,0.12);color:#ff6666;">TSLA</div>
+                    <div class="stock-ticker-icon" style="background:linear-gradient(135deg,rgba(255,102,102,0.2),rgba(255,102,102,0.05));border-color:rgba(255,102,102,0.28);color:#ff6666;"><i class="fas fa-bolt"></i></div>
                     <div class="stock-info"><span class="ticker">TSLA</span> <span class="name">Tesla, Inc.</span></div>
                     <div class="stock-actions">
                         <a href="https://t.me/+EUxramV9fkI4MDVh" target="_blank" class="tg-btn"><i class="fab fa-telegram"></i> Telegram</a>
-                        <a href="pages/signals/tsla-signal.html" class="signals-link">View Guide &rarr;</a>
+                        <button class="signals-link" onclick="openGuideModal('TSLA')">View Guide &rarr;</button>
                     </div>
                 </div>
 
                 <div class="stock-row">
-                    <div class="stock-ticker-icon" style="background:rgba(91,158,255,0.12);color:#5b9eff;">META</div>
+                    <div class="stock-ticker-icon" style="background:linear-gradient(135deg,rgba(91,158,255,0.2),rgba(91,158,255,0.05));border-color:rgba(91,158,255,0.28);color:#5b9eff;"><i class="fab fa-meta"></i></div>
                     <div class="stock-info"><span class="ticker">META</span> <span class="name">Meta Platforms</span></div>
                     <div class="stock-actions">
                         <a href="https://t.me/+95vOUdI99VM0ZDNh" target="_blank" class="tg-btn"><i class="fab fa-telegram"></i> Telegram</a>
-                        <a href="pages/signals/meta-signal.html" class="signals-link">View Guide &rarr;</a>
+                        <button class="signals-link" onclick="openGuideModal('META')">View Guide &rarr;</button>
                     </div>
                 </div>
 
                 <div class="stock-row">
-                    <div class="stock-ticker-icon" style="background:rgba(179,179,179,0.12);color:#b3b3b3;">AAPL</div>
+                    <div class="stock-ticker-icon" style="background:linear-gradient(135deg,rgba(210,210,210,0.18),rgba(210,210,210,0.05));border-color:rgba(200,200,200,0.25);color:#d0d0d0;"><i class="fab fa-apple"></i></div>
                     <div class="stock-info"><span class="ticker">AAPL</span> <span class="name">Apple Inc.</span></div>
                     <div class="stock-actions">
                         <a href="https://t.me/+ItfI3WYEZ1g1NzQx" target="_blank" class="tg-btn"><i class="fab fa-telegram"></i> Telegram</a>
-                        <a href="pages/signals/aapl-signal.html" class="signals-link">View Guide &rarr;</a>
+                        <button class="signals-link" onclick="openGuideModal('AAPL')">View Guide &rarr;</button>
                     </div>
                 </div>
 
                 <div class="stock-row">
-                    <div class="stock-ticker-icon" style="background:rgba(143,219,47,0.12);color:#8fdb2f;">NVDA</div>
+                    <div class="stock-ticker-icon" style="background:linear-gradient(135deg,rgba(143,219,47,0.2),rgba(143,219,47,0.05));border-color:rgba(143,219,47,0.28);color:#8fdb2f;"><i class="fas fa-microchip"></i></div>
                     <div class="stock-info"><span class="ticker">NVDA</span> <span class="name">NVIDIA Corporation</span></div>
                     <div class="stock-actions">
                         <a href="https://t.me/+_de2o3DNnu44ODg5" target="_blank" class="tg-btn"><i class="fab fa-telegram"></i> Telegram</a>
-                        <a href="pages/signals/nvda-signal.html" class="signals-link">View Guide &rarr;</a>
+                        <button class="signals-link" onclick="openGuideModal('NVDA')">View Guide &rarr;</button>
                     </div>
                 </div>
 
                 <div class="stock-row">
-                    <div class="stock-ticker-icon" style="background:rgba(255,170,51,0.12);color:#ffaa33;">AMZN</div>
+                    <div class="stock-ticker-icon" style="background:linear-gradient(135deg,rgba(255,170,51,0.2),rgba(255,170,51,0.05));border-color:rgba(255,170,51,0.28);color:#ffaa33;"><i class="fab fa-amazon"></i></div>
                     <div class="stock-info"><span class="ticker">AMZN</span> <span class="name">Amazon.com, Inc.</span></div>
                     <div class="stock-actions">
                         <a href="https://t.me/+XEuyiOt5-Vc1OTJh" target="_blank" class="tg-btn"><i class="fab fa-telegram"></i> Telegram</a>
-                        <a href="pages/signals/amzn-signal.html" class="signals-link">View Guide &rarr;</a>
+                        <button class="signals-link" onclick="openGuideModal('AMZN')">View Guide &rarr;</button>
                     </div>
                 </div>
             </div>
 
-            <!-- Trading Journal -->
-            <div class="bento-card card-journal">
-                <div class="journal-icon"><i class="fas fa-book"></i></div>
-                <div>
-                    <h3>Trading Journal</h3>
-                    <span class="journal-badge"><i class="fas fa-star"></i> New Feature</span>
+            <!-- Portfolio Stats Card -->
+            <div class="bento-card card-stats">
+                <div class="stats-header">
+                    <span class="bento-card-title" style="margin:0;"><i class="fas fa-chart-pie"></i> Portfolio Overview</span>
                 </div>
-                <p class="journal-desc">Track your trades, analyze performance, and visualize your P&L with interactive charts.</p>
-                <a href="trading-journal.html" class="journal-open-btn">Open Journal <i class="fas fa-arrow-right"></i></a>
-            </div>
 
-            <!-- Trade Planner -->
-            <div class="bento-card card-planner">
-                <div class="planner-icon"><i class="fas fa-crosshairs"></i></div>
-                <div>
-                    <h3>Trade Planner</h3>
-                    <span class="planner-badge"><i class="fas fa-star"></i> New Feature</span>
+                <!-- 2×2 stat tiles -->
+                <div class="stats-tile-grid">
+                    <div class="stats-tile" id="st-pnl">
+                        <div class="stats-tile-label">Total P/L</div>
+                        <div class="stats-tile-value" id="stats-pnl-val">—</div>
+                        <div class="stats-tile-sub" id="stats-pnl-sub">closed trades</div>
+                    </div>
+                    <div class="stats-tile" id="st-winrate">
+                        <div class="stats-tile-label">Win Rate</div>
+                        <div class="stats-tile-value" id="stats-wr-val">—</div>
+                        <div class="stats-tile-sub" id="stats-wr-sub">of closed trades</div>
+                    </div>
+                    <div class="stats-tile" id="st-trades">
+                        <div class="stats-tile-label">Total Trades</div>
+                        <div class="stats-tile-value" id="stats-trades-val">—</div>
+                        <div class="stats-tile-sub" id="stats-trades-sub">all time</div>
+                    </div>
+                    <div class="stats-tile" id="st-open">
+                        <div class="stats-tile-label">Open Positions</div>
+                        <div class="stats-tile-value" id="stats-open-val">—</div>
+                        <div class="stats-tile-sub">currently active</div>
+                    </div>
                 </div>
-                <p class="planner-desc">Plan before you trade. Calculate R:R, position size &amp; max risk.</p>
-                <a href="trade-planner.html" class="planner-open-btn">Open Planner <i class="fas fa-arrow-right"></i></a>
+
+                <!-- Active / Watching trade plans -->
+                <div class="stats-plans-header">
+                    <i class="fas fa-crosshairs"></i> Active Plans
+                    <span class="plans-count-badge" id="stats-plans-count">0</span>
+                </div>
+                <div id="stats-plans-list">
+                    <div class="stats-empty">No active plans</div>
+                </div>
+
+                <!-- Ghost links to the full tools -->
+                <div class="stats-tool-links">
+                    <a href="trading-journal.html" class="stats-tool-link"><i class="fas fa-book"></i> Journal</a>
+                    <a href="trade-planner.html"   class="stats-tool-link"><i class="fas fa-crosshairs"></i> Planner</a>
+                </div>
             </div>
 
-            <!-- Quick Links -->
-            <div class="bento-card card-links">
-                <div class="bento-card-title"><i class="fas fa-link"></i> Quick Links</div>
-                <a href="contact.html" class="quick-link-row">
-                    <span class="ql-icon"><i class="fas fa-headset"></i></span>
-                    <span class="ql-label">Contact Support</span>
-                    <span class="ql-arrow"><i class="fas fa-chevron-right"></i></span>
-                </a>
-                <a href="faq.html" class="quick-link-row">
-                    <span class="ql-icon"><i class="fas fa-question-circle"></i></span>
-                    <span class="ql-label">FAQ</span>
-                    <span class="ql-arrow"><i class="fas fa-chevron-right"></i></span>
-                </a>
-                <a href="about.html" class="quick-link-row">
-                    <span class="ql-icon"><i class="fas fa-rocket"></i></span>
-                    <span class="ql-label">Getting Started</span>
-                    <span class="ql-arrow"><i class="fas fa-chevron-right"></i></span>
-                </a>
-                <a href="terms.html" class="quick-link-row">
-                    <span class="ql-icon"><i class="fas fa-file-alt"></i></span>
-                    <span class="ql-label">Legal Info</span>
-                    <span class="ql-arrow"><i class="fas fa-chevron-right"></i></span>
-                </a>
+            <!-- Key Economic Indicators -->
+            <div class="bento-card card-econ">
+                <div class="econ-header">
+                    <div class="econ-header-left">
+                        <span class="bento-card-title" style="margin:0;"><i class="fas fa-chart-line"></i> Key Economic Indicators</span>
+                        <span class="econ-live-badge"><span class="econ-live-dot"></span>Live</span>
+                    </div>
+                    <span class="econ-timestamp" id="econ-last-updated">Fetching…</span>
+                </div>
+
+                <div class="econ-stat-grid">
+                    <!-- CPI -->
+                    <div class="econ-stat" id="econ-card-cpi">
+                        <div class="econ-stat-top">
+                            <span class="econ-stat-icon"><i class="fas fa-receipt"></i></span>
+                            <span class="econ-s-badge live-s-badge"><span class="econ-live-dot" style="width:4px;height:4px;display:inline-block;"></span> Live</span>
+                        </div>
+                        <div class="econ-stat-label">CPI (Y/Y)</div>
+                        <div class="econ-stat-value-row">
+                            <span class="econ-stat-value loading" id="econ-cpi-value">0.0%</span>
+                            <span class="econ-stat-trend" id="econ-cpi-trend"></span>
+                        </div>
+                        <div class="econ-stat-date" id="econ-cpi-date">Loading…</div>
+                    </div>
+
+                    <!-- Core CPI -->
+                    <div class="econ-stat" id="econ-card-core">
+                        <div class="econ-stat-top">
+                            <span class="econ-stat-icon"><i class="fas fa-utensils"></i></span>
+                            <span class="econ-s-badge live-s-badge"><span class="econ-live-dot" style="width:4px;height:4px;display:inline-block;"></span> Live</span>
+                        </div>
+                        <div class="econ-stat-label">Core CPI (Y/Y)</div>
+                        <div class="econ-stat-value-row">
+                            <span class="econ-stat-value loading" id="econ-core-value">0.0%</span>
+                            <span class="econ-stat-trend" id="econ-core-trend"></span>
+                        </div>
+                        <div class="econ-stat-date" id="econ-core-date">Loading…</div>
+                    </div>
+
+                    <!-- PPI -->
+                    <div class="econ-stat" id="econ-card-ppi">
+                        <div class="econ-stat-top">
+                            <span class="econ-stat-icon"><i class="fas fa-industry"></i></span>
+                            <span class="econ-s-badge live-s-badge"><span class="econ-live-dot" style="width:4px;height:4px;display:inline-block;"></span> Live</span>
+                        </div>
+                        <div class="econ-stat-label">PPI (Y/Y)</div>
+                        <div class="econ-stat-value-row">
+                            <span class="econ-stat-value loading" id="econ-ppi-value">0.0%</span>
+                            <span class="econ-stat-trend" id="econ-ppi-trend"></span>
+                        </div>
+                        <div class="econ-stat-date" id="econ-ppi-date">Loading…</div>
+                    </div>
+
+                    <!-- Fed Funds Rate (static) -->
+                    <div class="econ-stat" id="econ-card-fed">
+                        <div class="econ-stat-top">
+                            <span class="econ-stat-icon"><i class="fas fa-landmark"></i></span>
+                            <span class="econ-s-badge fomc-s-badge">FOMC</span>
+                        </div>
+                        <div class="econ-stat-label">Fed Funds Rate</div>
+                        <div class="econ-stat-value-row">
+                            <span class="econ-stat-value" id="econ-fed-value">4.25–4.50%</span>
+                        </div>
+                        <div class="econ-stat-date">Target Range · Dec 2024</div>
+                    </div>
+                </div>
+
+                <p class="econ-source"><i class="fas fa-circle-info"></i> CPI &amp; PPI: BLS Public API &nbsp;·&nbsp; Fed Rate: FOMC (8×/yr)</p>
             </div>
 
+            <!-- Fear & Greed Gauge -->
+            <div class="bento-card card-fg">
+                <div class="fg-card-top">
+                    <span class="fg-card-live"><span class="fg-card-live-dot"></span>Live</span>
+                    <div class="bento-card-title" style="margin:0;"><i class="fas fa-gauge-high"></i> Fear &amp; Greed</div>
+                </div>
+
+                <!-- Arc gauge — same SVG as guide page, center (150,130), r=100 -->
+                <svg id="fg-gauge" viewBox="0 0 300 165" xmlns="http://www.w3.org/2000/svg">
+                    <defs>
+                    <filter id="needleGlow" filterUnits="userSpaceOnUse" x="0" y="0" width="300" height="165">
+                        <feGaussianBlur stdDeviation="2" result="blur"/>
+                        <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+                    </filter>
+                    </defs>
+                    <!-- Background track -->
+                    <path d="M 50 130 A 100 100 0 0 1 250 130" fill="none" stroke="rgba(255,255,255,0.06)" stroke-width="22" stroke-linecap="round"/>
+                    <!-- Zone arcs -->
+                    <path d="M 50 130 A 100 100 0 0 1 69.1 71.2"   fill="none" stroke="#ef4444" stroke-width="18" stroke-linecap="butt" opacity="0.85"/>
+                    <path d="M 69.1 71.2 A 100 100 0 0 1 119.1 34.9" fill="none" stroke="#f97316" stroke-width="18" stroke-linecap="butt" opacity="0.85"/>
+                    <path d="M 119.1 34.9 A 100 100 0 0 1 180.9 34.9" fill="none" stroke="#c9b037" stroke-width="18" stroke-linecap="butt" opacity="0.85"/>
+                    <path d="M 180.9 34.9 A 100 100 0 0 1 230.9 71.2" fill="none" stroke="#84cc16" stroke-width="18" stroke-linecap="butt" opacity="0.85"/>
+                    <path d="M 230.9 71.2 A 100 100 0 0 1 250 130"   fill="none" stroke="#22c55e" stroke-width="18" stroke-linecap="butt" opacity="0.85"/>
+                    <!-- Scale labels -->
+                    <text x="38"  y="150" text-anchor="middle" font-size="9" fill="rgba(255,255,255,0.35)" font-family="sans-serif">0</text>
+                    <text x="262" y="150" text-anchor="middle" font-size="9" fill="rgba(255,255,255,0.35)" font-family="sans-serif">100</text>
+                    <text x="150" y="17"  text-anchor="middle" font-size="9" fill="rgba(255,255,255,0.35)" font-family="sans-serif">50</text>
+                    <!-- Needle (rotated via SVG transform attr in fear-greed.js) -->
+                    <line id="fg-needle" x1="150" y1="130" x2="150" y2="50" stroke="white" stroke-width="2.5" stroke-linecap="round" filter="url(#needleGlow)"/>
+                    <!-- Center hub -->
+                    <circle cx="150" cy="130" r="7" fill="#0a0e1a" stroke="rgba(201,176,55,0.5)" stroke-width="2"/>
+                    <circle cx="150" cy="130" r="3" fill="rgba(201,176,55,0.7)"/>
+                </svg>
+
+                <!-- Value display -->
+                <div id="fg-value-num" class="fg-val-num">--</div>
+                <div id="fg-zone-badge" class="fg-zone-badge">
+                    <i class="fas fa-circle-dot" style="font-size:0.6rem;"></i>
+                    <span id="fg-class">Loading…</span>
+                </div>
+
+                <p class="fg-card-note"><i class="fas fa-circle-info"></i> CNN Business Fear &amp; Greed Index · refreshes every 5 min</p>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Guide Picker Modal -->
+    <div id="guideModal" class="guide-modal-backdrop" onclick="handleBackdropClick(event)">
+        <div class="guide-modal">
+            <div class="guide-modal-header">
+                <div class="guide-modal-header-left">
+                    <span id="guideModalBadge" class="guide-modal-ticker-badge"></span>
+                    <h3>Trading Guides</h3>
+                </div>
+                <button class="guide-modal-close" onclick="closeGuideModal()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div id="guideModalList" class="guide-modal-list"></div>
+            <div class="guide-modal-footer">
+                <a id="guideModalSignalLink" href="#">View full signal page &rarr;</a>
+            </div>
         </div>
     </div>
 
     <!-- Footer -->
     <div id="footer-placeholder" data-footer-type="standard-social" data-base=""></div>
     <script src="assets/js/footer-component.js"></script>
+
+    <!-- Live market data -->
+    <script src="assets/js/fear-greed.js" defer></script>
+    <script type="module" src="assets/js/bls-data.js"></script>
+
+    <!-- Guide Picker Modal Logic -->
+    <script>
+    (function () {
+        var GUIDES = {
+            SPY: {
+                color: 'rgba(179,161,125,0.15)',
+                textColor: 'var(--primary-gold)',
+                signalPage: 'pages/signals/spy-signal.html',
+                guides: [
+                    { icon: 'fas fa-chart-pie',    title: 'Economic Data Monitor',   desc: 'CPI, PPI, Fed decisions & GDP — get ahead of market-moving releases.',    path: 'pages/guides/spy-economic-data.html' },
+                    { icon: 'fas fa-heartbeat',    title: 'Fear & Greed / VIX',      desc: 'Monitor the VIX and sentiment index to time your SPY entries.',             path: 'pages/guides/spy-vix.html' },
+                    { icon: 'fas fa-calculator',   title: 'S/R Level Calculator',    desc: 'Key support and resistance zones using pivot points and Fibonacci.',         path: 'pages/guides/spy-support-resistance.html' }
+                ]
+            },
+            TSLA: {
+                color: 'rgba(255,102,102,0.12)',
+                textColor: '#ff6666',
+                signalPage: 'pages/signals/tsla-signal.html',
+                guides: [
+                    { icon: 'fas fa-user-tie',     title: 'Elon Musk Tracker',        desc: 'Monitor Elon\'s communications for early price-moving announcements.',      path: 'pages/guides/tsla-elon-communications.html' },
+                    { icon: 'fas fa-truck',        title: 'Delivery Report Calendar', desc: 'Tesla\'s quarterly delivery numbers — the biggest recurring catalyst.',      path: 'pages/guides/tsla-delivery-production.html' },
+                    { icon: 'fas fa-chart-line',   title: 'Trend Analyzer',           desc: 'Identify TSLA\'s trend direction and manage volatility in winning trades.',  path: 'pages/guides/tsla-trend-following.html' }
+                ]
+            },
+            META: {
+                color: 'rgba(91,158,255,0.12)',
+                textColor: '#5b9eff',
+                signalPage: 'pages/signals/meta-signal.html',
+                guides: [
+                    { icon: 'fas fa-ad',           title: 'Ad Revenue Tracker',       desc: 'Quarterly ad revenue trends and seasonal patterns that drive big moves.',    path: 'pages/guides/meta-ad-revenue-growth.html' },
+                    { icon: 'fas fa-chart-area',   title: 'Earnings Trading Guide',   desc: 'Position before and after META earnings + the four critical gap levels.',   path: 'pages/guides/meta-earnings-trading.html' },
+                    { icon: 'fas fa-gavel',        title: 'Regulatory News Monitor',  desc: 'EU privacy rulings, antitrust cases & FTC actions that move META.',          path: 'pages/guides/meta-regulatory-news.html' }
+                ]
+            },
+            AAPL: {
+                color: 'rgba(179,179,179,0.12)',
+                textColor: '#b3b3b3',
+                signalPage: 'pages/signals/aapl-signal.html',
+                guides: [
+                    { icon: 'fas fa-industry',     title: 'Product Cycles & Suppliers', desc: 'iPhone cycle playbook and key supply-chain signals from TSMC & Foxconn.',  path: 'pages/guides/aapl-product-cycles.html' },
+                    { icon: 'fas fa-chart-line',   title: 'Orderly Pullbacks Guide',    desc: 'Identify high-probability bounce entries within AAPL\'s structured trends.', path: 'pages/guides/aapl-orderly-pullbacks.html' },
+                    { icon: 'fas fa-eye',          title: 'Options Volume Monitor',     desc: 'Track unusual options activity to spot institutional positioning early.',    path: 'pages/guides/aapl-options-volume.html' }
+                ]
+            },
+            NVDA: {
+                color: 'rgba(143,219,47,0.12)',
+                textColor: '#8fdb2f',
+                signalPage: 'pages/signals/nvda-signal.html',
+                guides: [
+                    { icon: 'fas fa-robot',        title: 'AI & Sector Tracker',      desc: 'AI news, compute demand, NVIDIA partnerships & SMH sector correlation.',    path: 'pages/guides/nvda-ai-sector-news.html' },
+                    { icon: 'fas fa-calendar-alt', title: 'Earnings Calendar',        desc: 'NVDA earnings history and typical post-earnings move size.',                  path: 'pages/guides/nvda-earnings-history.html' },
+                    { icon: 'fas fa-chart-area',   title: 'Parabolic Move Guide',     desc: 'Manage entries and exits during NVDA\'s characteristic parabolic phases.',   path: 'pages/guides/nvda-parabolic-moves.html' }
+                ]
+            },
+            AMZN: {
+                color: 'rgba(255,170,51,0.12)',
+                textColor: '#ffaa33',
+                signalPage: 'pages/signals/amzn-signal.html',
+                guides: [
+                    { icon: 'fas fa-cloud',        title: 'AWS News Tracker',         desc: 'Monitor AWS announcements and cloud revenue trends driving AMZN moves.',     path: 'pages/guides/amzn-aws-news.html' },
+                    { icon: 'fas fa-shopping-cart', title: 'Prime Day Calendar',      desc: 'Annual Prime Day history and typical AMZN price behaviour around events.',   path: 'pages/guides/amzn-prime-day.html' },
+                    { icon: 'fas fa-layer-group',  title: 'Support/Resistance Zones', desc: 'Key structural price zones where AMZN consistently finds buyers or sellers.', path: 'pages/guides/amzn-support-resistance.html' }
+                ]
+            }
+        };
+
+        window.openGuideModal = function (ticker) {
+            var data   = GUIDES[ticker];
+            if (!data) return;
+
+            // Badge
+            var badge = document.getElementById('guideModalBadge');
+            badge.textContent        = ticker;
+            badge.style.background   = data.color;
+            badge.style.color        = data.textColor;
+
+            // Guide rows
+            var list = document.getElementById('guideModalList');
+            list.innerHTML = data.guides.map(function (g) {
+                return '<a class="guide-modal-item" href="' + g.path + '">' +
+                    '<div class="guide-modal-icon"><i class="' + g.icon + '"></i></div>' +
+                    '<div class="guide-modal-info">' +
+                        '<strong>' + g.title + '</strong>' +
+                        '<span>' + g.desc + '</span>' +
+                    '</div>' +
+                    '<i class="fas fa-chevron-right guide-modal-arrow"></i>' +
+                '</a>';
+            }).join('');
+
+            // Footer signal-page link
+            document.getElementById('guideModalSignalLink').href = data.signalPage;
+
+            // Show
+            document.getElementById('guideModal').classList.add('open');
+            document.body.style.overflow = 'hidden';
+        };
+
+        window.closeGuideModal = function () {
+            document.getElementById('guideModal').classList.remove('open');
+            document.body.style.overflow = '';
+        };
+
+        window.handleBackdropClick = function (e) {
+            if (e.target === document.getElementById('guideModal')) {
+                closeGuideModal();
+            }
+        };
+
+        // Close on Escape key
+        document.addEventListener('keydown', function (e) {
+            if (e.key === 'Escape') closeGuideModal();
+        });
+    })();
+    </script>
 
     <!-- Live Ticker Bar -->
     <script>
@@ -646,30 +1367,23 @@
     })();
     </script>
 
-    <!-- Firebase Authentication -->
+    <!-- Firebase Authentication + Portfolio Stats -->
     <script type="module">
         import { auth, db, onAuthStateChanged, signOut, doc, getDoc, setDoc } from './assets/js/firebase-config.js';
 
-        // Get or create user profile
         async function getUserProfile(userId, userEmail) {
             try {
                 const userDocRef = doc(db, 'users', userId);
                 const userDoc = await getDoc(userDocRef);
-                
+
                 if (userDoc.exists()) {
                     const userData = userDoc.data();
-                    
-                    // Check if user has completed setup
                     if (!userData.setupCompleted) {
-                        // Redirect to welcome setup page
                         window.location.href = 'welcome-setup.html';
                         return null;
                     }
-                    
-                    // User profile exists and setup is complete
                     return userData;
                 } else {
-                    // New user - redirect to welcome setup
                     window.location.href = 'welcome-setup.html';
                     return null;
                 }
@@ -680,38 +1394,120 @@
         }
 
         function updateDashboard(userData) {
-            const welcomeMessage = document.getElementById('welcomeMessage');
+            const welcomeMessage    = document.getElementById('welcomeMessage');
             const subscriptionStatus = document.getElementById('subscriptionStatus');
-            
+
             if (userData) {
                 const firstName = userData.firstName || userData.displayName || 'there';
-                welcomeMessage.textContent = `Welcome back, ${firstName}!`;
-                subscriptionStatus.textContent = userData.subscriptionStatus || 'Premium Active';
+                welcomeMessage.textContent       = `Welcome back, ${firstName}!`;
+                subscriptionStatus.textContent   = userData.subscriptionStatus || 'Premium Active';
+
+                renderPortfolioStats(userData.trades || [], userData.tradePlans || []);
             }
         }
 
-        // Check if user is authenticated
+        /* ── Portfolio Stats renderer ── */
+        function renderPortfolioStats(trades, plans) {
+
+            /* --- Stats computation --- */
+            const closed       = trades.filter(t => t.status === 'Closed');
+            const totalPnL     = closed.reduce((s, t) => s + (t.pnl || 0), 0);
+            const wins         = closed.filter(t => (t.pnl || 0) > 0).length;
+            const winRate      = closed.length > 0 ? (wins / closed.length * 100) : null;
+            const openCount    = trades.filter(t => t.status === 'Open').length;
+
+            /* --- P/L tile --- */
+            const pnlEl  = document.getElementById('stats-pnl-val');
+            const pnlSub = document.getElementById('stats-pnl-sub');
+            if (pnlEl) {
+                if (trades.length === 0) {
+                    pnlEl.textContent = '—';
+                } else {
+                    const sign = totalPnL >= 0 ? '+' : '';
+                    pnlEl.textContent = sign + '$' + Math.abs(totalPnL).toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 2 });
+                    pnlEl.classList.toggle('pnl-pos', totalPnL > 0);
+                    pnlEl.classList.toggle('pnl-neg', totalPnL < 0);
+                }
+                if (pnlSub) pnlSub.textContent = closed.length + ' closed trade' + (closed.length !== 1 ? 's' : '');
+            }
+
+            /* --- Win rate tile --- */
+            const wrEl  = document.getElementById('stats-wr-val');
+            const wrSub = document.getElementById('stats-wr-sub');
+            if (wrEl) {
+                wrEl.textContent = winRate !== null ? Math.round(winRate) + '%' : '—';
+                if (wrSub) wrSub.textContent = wins + ' wins / ' + closed.length + ' closed';
+            }
+
+            /* --- Total trades tile --- */
+            const tvEl  = document.getElementById('stats-trades-val');
+            const tvSub = document.getElementById('stats-trades-sub');
+            if (tvEl) {
+                tvEl.textContent = trades.length || '0';
+                if (tvSub) tvSub.textContent = trades.length === 1 ? '1 trade logged' : trades.length + ' trades logged';
+            }
+
+            /* --- Open positions tile --- */
+            const opEl = document.getElementById('stats-open-val');
+            if (opEl) opEl.textContent = openCount;
+
+            /* --- Active / Watching plans --- */
+            const active       = plans.filter(p => p.status === 'Watching' || p.status === 'Active');
+            const countBadge   = document.getElementById('stats-plans-count');
+            const listEl       = document.getElementById('stats-plans-list');
+
+            if (countBadge) countBadge.textContent = active.length;
+
+            if (listEl) {
+                if (active.length === 0) {
+                    listEl.innerHTML = '<div class="stats-empty">No active plans — <a href="trade-planner.html" style="color:var(--primary-gold);text-decoration:none;">add one</a></div>';
+                } else {
+                    const MAX  = 4;
+                    const show = active.slice(0, MAX);
+                    const more = active.length - MAX;
+
+                    listEl.innerHTML = show.map(function (p) {
+                        const dirClass  = p.direction === 'Long' ? 'long' : 'short';
+                        const dirIcon   = p.direction === 'Long' ? '↑' : '↓';
+                        const rrLabel   = p.rr ? p.rr.toFixed(1) + 'R' : '—';
+                        const statusCls = p.status === 'Active' ? 'active' : 'watching';
+                        const meta      = p.tradeType === 'Option'
+                            ? (p.optionType || '') + ' $' + (p.strikePrice || '—')
+                            : '$' + (p.entryPrice || '—') + ' → $' + (p.targetPrice || '—');
+
+                        return '<div class="stats-plan-row">' +
+                            '<span class="stats-plan-ticker">' + (p.ticker || '—') + '</span>' +
+                            '<span class="stats-plan-dir ' + dirClass + '">' + dirIcon + ' ' + p.direction + '</span>' +
+                            '<span class="stats-plan-meta">' + meta + '</span>' +
+                            '<span class="stats-plan-rr">' + rrLabel + '</span>' +
+                            '<span class="stats-plan-status ' + statusCls + '">' + p.status + '</span>' +
+                        '</div>';
+                    }).join('');
+
+                    if (more > 0) {
+                        listEl.innerHTML += '<div style="padding:0.4rem 0 0;text-align:right;">' +
+                            '<a href="trade-planner.html" class="stats-more-link">+' + more + ' more &rarr;</a></div>';
+                    }
+                }
+            }
+        }
+
         onAuthStateChanged(auth, async (user) => {
             if (!user) {
-                // User is not logged in, redirect to login page
                 window.location.href = 'login.html';
             } else {
-                // User is logged in, load their profile
                 const userData = await getUserProfile(user.uid, user.email);
                 updateDashboard(userData);
             }
         });
 
-        // Logout function
-        window.logout = async function() {
+        window.logout = async function () {
             try {
                 await signOut(auth);
-                // Clear local storage
                 localStorage.removeItem('bluechip_logged_in');
                 localStorage.removeItem('bluechip_user_email');
                 sessionStorage.removeItem('bluechip_logged_in');
                 sessionStorage.removeItem('bluechip_user_email');
-                // Redirect to login
                 window.location.href = 'login.html';
             } catch (error) {
                 console.error('Logout error:', error);

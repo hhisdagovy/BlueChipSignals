@@ -1,0 +1,341 @@
+/* ─────────────────────────────────────────────────────────────────────────────
+   guide-style.css — Shared styles for all /pages/guides/*.html pages
+   Refreshed to match the site's modern design language (signal pages, book-demo).
+   Each page's unique tool/calculator CSS remains in an inline <style> block.
+───────────────────────────────────────────────────────────────────────────── */
+
+/* ---- Base ---- */
+body {
+    background: var(--darker-bg);
+    color: var(--light-text);
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+}
+
+/* ════════════════════════════════════════
+   HERO
+════════════════════════════════════════ */
+.guide-hero {
+    margin-top: 0;
+    padding: 10rem 2rem 5rem;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+}
+
+/* Animated dot grid (bottom layer) */
+.guide-hero::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image: radial-gradient(circle, rgba(201, 176, 55, 0.14) 1px, transparent 1px);
+    background-size: 32px 32px;
+    animation: sp-grid-drift 22s linear infinite;
+    opacity: 0.35;
+    pointer-events: none;
+    z-index: 0;
+}
+
+/* Gold glow + seamless bottom fade (sits above dot grid, below content) */
+.guide-hero::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background:
+        radial-gradient(ellipse 80% 60% at 50% 0%, rgba(201, 176, 55, 0.16), transparent 70%),
+        linear-gradient(to bottom, var(--darker-bg) 0%, transparent 18%, transparent 50%, var(--darker-bg) 100%);
+    pointer-events: none;
+    z-index: 1;
+}
+
+.guide-hero-content {
+    max-width: 820px;
+    margin: 0 auto;
+    position: relative;
+    z-index: 2;
+    animation: sp-fade-up 0.65s cubic-bezier(0.22, 1, 0.36, 1) 0.05s both;
+}
+
+/* ---- Badge — outline pill ---- */
+.guide-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: rgba(201, 176, 55, 0.07);
+    border: 1px solid rgba(201, 176, 55, 0.38);
+    color: var(--primary-gold);
+    padding: 0.42rem 1.2rem;
+    border-radius: 50px;
+    font-weight: 700;
+    font-size: 0.75rem;
+    letter-spacing: 0.08em;
+    margin-bottom: 1.6rem;
+    text-transform: uppercase;
+}
+
+/* ---- Title — pure white, large, heavy — mirrors index.html h2 ---- */
+.guide-title {
+    font-size: clamp(3rem, 6vw, 4.5rem);
+    font-weight: 900;
+    margin: 0 0 1rem 0;
+    line-height: 1.06;
+    letter-spacing: -0.025em;
+    color: var(--light-text);
+    /* plain white — the subtitle carries the gold accent */
+}
+
+/* ---- Subtitle — italic gold gradient — mirrors index.html h2 em ---- */
+.guide-subtitle {
+    font-size: 1.2rem;
+    font-style: italic;
+    font-weight: 400;
+    background: linear-gradient(135deg, var(--primary-gold) 0%, var(--secondary-gold) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    line-height: 1.55;
+    max-width: 620px;
+    margin: 0 auto;
+}
+
+/* ════════════════════════════════════════
+   CONTENT WRAPPER
+════════════════════════════════════════ */
+.guide-content {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 3rem 2rem 5rem;
+}
+
+/* ════════════════════════════════════════
+   CONTENT SECTIONS
+════════════════════════════════════════ */
+.content-section {
+    background: rgba(26, 31, 46, 0.55);
+    border: 1px solid rgba(201, 176, 55, 0.14);
+    border-radius: 20px;
+    padding: 2.5rem;
+    margin-bottom: 2rem;
+    transition: border-color 0.25s, transform 0.25s, box-shadow 0.25s;
+}
+
+.content-section:hover {
+    border-color: rgba(201, 176, 55, 0.30);
+    transform: translateY(-3px);
+    box-shadow: 0 14px 36px rgba(0, 0, 0, 0.28);
+}
+
+/* ---- Scroll-reveal ---- */
+.gp-reveal {
+    opacity: 0;
+    transform: translateY(24px);
+    transition: opacity 0.55s ease, transform 0.55s ease;
+}
+
+.gp-reveal.gp-visible {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+/* ---- Typography inside sections ---- */
+.content-section h2 {
+    color: var(--primary-gold);
+    font-size: 1.75rem;
+    font-weight: 700;
+    margin-bottom: 1.1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.content-section h2 i {
+    font-size: 1.4rem;
+    opacity: 0.9;
+}
+
+.content-section h3 {
+    color: var(--light-text);
+    font-size: 1.35rem;
+    font-weight: 600;
+    margin: 1.5rem 0 0.85rem;
+}
+
+.content-section h4 {
+    color: var(--primary-gold);
+    font-size: 1.15rem;
+    font-weight: 600;
+    margin-bottom: 0.85rem;
+}
+
+.content-section h5 {
+    color: var(--light-text);
+    font-size: 1.05rem;
+    font-weight: 600;
+    margin-bottom: 0.65rem;
+}
+
+.content-section p {
+    color: var(--gray-text);
+    line-height: 1.8;
+    margin-bottom: 1rem;
+}
+
+.content-section ul {
+    color: var(--light-text);
+    line-height: 1.8;
+    margin: 1rem 0;
+    padding-left: 1.5rem;
+}
+
+.content-section ul li {
+    margin-bottom: 0.75rem;
+}
+
+.content-section strong {
+    color: var(--light-text);
+}
+
+/* ════════════════════════════════════════
+   BACK BUTTON — pill style
+════════════════════════════════════════ */
+.back-button {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: var(--primary-gold);
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 0.9rem;
+    padding: 0.5rem 1.25rem;
+    border: 1px solid rgba(201, 176, 55, 0.30);
+    border-radius: 50px;
+    background: rgba(201, 176, 55, 0.06);
+    margin-bottom: 2rem;
+    transition: border-color 0.25s, background 0.25s, transform 0.25s;
+}
+
+.back-button:hover {
+    border-color: rgba(201, 176, 55, 0.55);
+    background: rgba(201, 176, 55, 0.12);
+    transform: translateX(-4px);
+}
+
+/* ════════════════════════════════════════
+   LOGIN BUTTON (nav override)
+════════════════════════════════════════ */
+.login-btn {
+    background: linear-gradient(135deg, var(--primary-gold), var(--secondary-gold)) !important;
+    color: var(--darker-bg) !important;
+    padding: 0.5rem 1.2rem;
+    border-radius: 50px;
+    font-weight: 600;
+    font-size: 0.95rem;
+    transition: transform 0.3s, box-shadow 0.3s;
+    display: inline-block;
+}
+
+.login-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 18px rgba(201, 176, 55, 0.32);
+    color: var(--darker-bg) !important;
+}
+
+/* ════════════════════════════════════════
+   ALERT / CALLOUT BOXES
+════════════════════════════════════════ */
+
+/* Red warning alert */
+.alert-box {
+    background: rgba(255, 59, 59, 0.07);
+    border: 1px solid rgba(255, 59, 59, 0.25);
+    border-left: 4px solid var(--danger-red);
+    border-radius: 12px;
+    padding: 1.5rem 1.75rem;
+    margin: 2rem 0;
+}
+
+.alert-box h4 {
+    color: var(--danger-red);
+    margin-bottom: 0.75rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.alert-box p {
+    color: var(--light-text);
+    margin: 0;
+    line-height: 1.7;
+}
+
+.alert-icon {
+    font-size: 1.1rem;
+    color: var(--danger-red);
+    margin-right: 0.4rem;
+}
+
+/* Gold info highlight box */
+.guide-highlight-box {
+    background: rgba(201, 176, 55, 0.07);
+    border: 1px solid rgba(201, 176, 55, 0.22);
+    border-left: 4px solid var(--primary-gold);
+    border-radius: 12px;
+    padding: 1.5rem 1.75rem;
+    margin: 2rem 0;
+    line-height: 1.75;
+    color: var(--light-text);
+}
+
+.guide-highlight-box h4 {
+    color: var(--primary-gold);
+    margin-bottom: 0.75rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 1.05rem;
+}
+
+.guide-highlight-box p {
+    color: var(--light-text);
+    margin: 0;
+    line-height: 1.75;
+}
+
+/* ════════════════════════════════════════
+   MOBILE
+════════════════════════════════════════ */
+@media (max-width: 768px) {
+    .guide-hero {
+        margin-top: 0;
+        padding: 8rem 1.5rem 3rem;
+    }
+
+    .guide-hero::after {
+        display: none;
+    }
+
+    .guide-title {
+        font-size: clamp(2.2rem, 8vw, 3rem);
+        letter-spacing: -0.02em;
+    }
+
+    .guide-subtitle {
+        font-size: 1.05rem;
+    }
+
+    .content-section {
+        padding: 1.5rem;
+        border-radius: 14px;
+    }
+
+    .content-section:hover {
+        transform: none;
+    }
+
+    .content-section h2 {
+        font-size: 1.4rem;
+    }
+
+    .guide-content {
+        padding: 2rem 1rem 4rem;
+    }
+}

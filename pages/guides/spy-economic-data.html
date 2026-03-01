@@ -7,165 +7,184 @@
     <link rel="icon" type="image/png" href="../../assets/images/logo.png">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="../../assets/css/signal-style.css">
+    <link rel="stylesheet" href="../../assets/css/guide-style.css">
     <style>
 
-        body {
-            background: var(--darker-bg);
-            color: var(--light-text);
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-        }
-
-        .guide-hero {
-            margin-top: 100px;
-            padding: 4rem 2rem 3rem;
-            text-align: center;
-            background: radial-gradient(circle at 50% 50%, rgba(201, 176, 55, 0.15), transparent 70%);
-            position: relative;
-        }
-
-        .guide-hero::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: radial-gradient(circle at 30% 40%, rgba(201, 176, 55, 0.08), transparent 50%);
-            z-index: 0;
-        }
-
-        .guide-hero-content {
-            max-width: 900px;
-            margin: 0 auto;
-            position: relative;
-            z-index: 1;
-        }
-
-        .guide-badge {
-            display: inline-block;
-            background: linear-gradient(135deg, var(--primary-gold), var(--secondary-gold));
-            color: var(--darker-bg);
-            padding: 0.4rem 1.2rem;
-            border-radius: 20px;
-            font-weight: 700;
-            font-size: 0.8rem;
-            letter-spacing: 1px;
-            margin-bottom: 1.5rem;
-            text-transform: uppercase;
-        }
-
-        .guide-title {
-            font-size: 2.8rem;
-            font-weight: 800;
-            margin: 0 0 1rem 0;
-            line-height: 1.2;
-            color: var(--light-text);
-        }
-
-        .guide-subtitle {
-            font-size: 1.2rem;
-            color: var(--gray-text);
-            line-height: 1.6;
-            margin: 0;
-        }
-
-        .guide-content {
-            max-width: 1000px;
-            margin: 0 auto;
-            padding: 3rem 2rem;
-        }
-
-        .content-section {
-            background: var(--dark-bg);
-            border: 1px solid rgba(201, 176, 55, 0.2);
-            border-radius: 15px;
-            padding: 2.5rem;
-            margin-bottom: 2rem;
-        }
-
-        .content-section h2 {
-            color: var(--primary-gold);
-            font-size: 1.8rem;
-            margin-bottom: 1rem;
+        /* ── Economic Indicators Panel ── */
+        .econ-panel-header {
             display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 1rem;
+            flex-wrap: wrap;
+            margin-bottom: 1.5rem;
+        }
+
+        .econ-panel-header h2 { margin: 0 0 0.3rem; }
+        .econ-panel-header p  { margin: 0; color: var(--gray-text); font-size: 0.875rem; }
+
+        .econ-fetch-badge {
+            display: inline-flex;
             align-items: center;
-            gap: 0.75rem;
+            gap: 0.4rem;
+            font-size: 0.72rem;
+            font-weight: 600;
+            letter-spacing: 0.04em;
+            color: rgba(255,255,255,0.5);
+            white-space: nowrap;
+            padding-top: 0.2rem;
         }
 
-        .content-section h2 i {
-            font-size: 1.5rem;
+        .econ-fetch-dot {
+            width: 6px; height: 6px;
+            border-radius: 50%;
+            background: #4ade80;
+            animation: econPulse 2s ease-in-out infinite;
         }
 
-        .content-section h3 {
-            color: var(--light-text);
-            font-size: 1.4rem;
-            margin-bottom: 1rem;
+        @keyframes econPulse {
+            0%, 100% { opacity: 1; }
+            50%       { opacity: 0.3; }
         }
 
-        .content-section p {
-            color: var(--gray-text);
-            line-height: 1.8;
-            margin-bottom: 1rem;
-        }
-
-        .content-section ul {
-            list-style: none;
-            padding: 0;
-            margin: 1.5rem 0;
-        }
-
-        .content-section ul li {
-            color: var(--gray-text);
-            line-height: 1.8;
-            margin-bottom: 1rem;
-            padding-left: 2rem;
-            position: relative;
-        }
-
-        .content-section ul li::before {
-            content: "→";
-            position: absolute;
-            left: 0;
-            color: var(--primary-gold);
-            font-weight: 700;
-        }
-
-        .content-section ul li strong {
-            color: var(--light-text);
-        }
-
+        /* Grid */
         .data-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 1.5rem;
-            margin: 2rem 0;
+            grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+            gap: 1.25rem;
+            margin: 0 0 1rem;
         }
 
+        /* Card base */
         .data-card {
-            background: rgba(201, 176, 55, 0.05);
-            border: 1px solid rgba(201, 176, 55, 0.2);
-            border-radius: 12px;
-            padding: 1.5rem;
-            text-align: center;
+            background: rgba(15, 19, 32, 0.7);
+            border: 1px solid rgba(255,255,255,0.07);
+            border-radius: 16px;
+            padding: 1.4rem 1.4rem 1.2rem;
+            position: relative;
+            overflow: hidden;
+            transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
         }
 
-        .data-card .label {
-            color: var(--gray-text);
-            font-size: 0.85rem;
+        .data-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 32px rgba(0,0,0,0.35);
+        }
+
+        /* Coloured top accent bar per card */
+        .data-card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 3px;
+            border-radius: 16px 16px 0 0;
+        }
+
+        #econ-card-cpi::before   { background: linear-gradient(90deg, #f97316, #fb923c); }
+        #econ-card-core::before  { background: linear-gradient(90deg, #6366f1, #818cf8); }
+        #econ-card-ppi::before   { background: linear-gradient(90deg, #8b5cf6, #a78bfa); }
+        #econ-card-fed::before   { background: linear-gradient(90deg, var(--primary-gold), var(--secondary-gold)); }
+
+        /* Card header row */
+        .data-card-top {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 1rem;
+        }
+
+        .data-card-icon {
+            width: 34px; height: 34px;
+            border-radius: 9px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.9rem;
+        }
+
+        #econ-card-cpi  .data-card-icon { background: rgba(249,115,22,0.12); color: #f97316; }
+        #econ-card-core .data-card-icon { background: rgba(99,102,241,0.12); color: #818cf8; }
+        #econ-card-ppi  .data-card-icon { background: rgba(139,92,246,0.12); color: #a78bfa; }
+        #econ-card-fed  .data-card-icon { background: rgba(201,176,55,0.12); color: var(--primary-gold); }
+
+        .data-card-badge {
+            font-size: 0.63rem;
+            font-weight: 700;
+            letter-spacing: 0.06em;
             text-transform: uppercase;
-            letter-spacing: 0.5px;
-            margin-bottom: 0.5rem;
+            padding: 0.2rem 0.55rem;
+            border-radius: 20px;
+            border: 1px solid;
         }
 
-        .data-card .value {
-            color: var(--primary-gold);
-            font-size: 2rem;
-            font-weight: 800;
+        .live-badge  { color: #4ade80; border-color: rgba(74,222,128,0.35); background: rgba(74,222,128,0.07); }
+        .fomc-badge  { color: var(--primary-gold); border-color: rgba(201,176,55,0.35); background: rgba(201,176,55,0.07); }
+
+        /* Label */
+        .data-card-label {
+            font-size: 0.75rem;
+            font-weight: 600;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+            color: rgba(255,255,255,0.45);
+            margin-bottom: 0.45rem;
         }
 
-        .data-card .date {
-            color: var(--gray-text);
-            font-size: 0.8rem;
+        /* Value + trend row */
+        .data-value-row {
+            display: flex;
+            align-items: baseline;
+            gap: 0.6rem;
+            flex-wrap: wrap;
+            margin-bottom: 0.7rem;
+        }
+
+        .data-value {
+            font-size: 2.4rem;
+            font-weight: 900;
+            line-height: 1;
+            color: var(--light-text);
+            letter-spacing: -0.03em;
+        }
+
+        /* Skeleton loading */
+        .data-value.loading {
+            background: linear-gradient(90deg, rgba(255,255,255,0.05) 25%, rgba(255,255,255,0.1) 50%, rgba(255,255,255,0.05) 75%);
+            background-size: 200% 100%;
+            animation: shimmer 1.4s infinite;
+            border-radius: 6px;
+            color: transparent;
+            min-width: 80px;
+        }
+
+        @keyframes shimmer {
+            0%   { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
+        }
+
+        /* Trend chip */
+        .trend-up   { color: #ef4444; font-size: 0.72rem; font-weight: 700; white-space: nowrap; }
+        .trend-down { color: #4ade80; font-size: 0.72rem; font-weight: 700; white-space: nowrap; }
+        .trend-flat { color: rgba(255,255,255,0.4); font-size: 0.72rem; font-weight: 600; white-space: nowrap; }
+
+        /* Date */
+        .data-card-date {
+            font-size: 0.75rem;
+            color: rgba(255,255,255,0.3);
+            display: flex;
+            align-items: center;
+            gap: 0.3rem;
+        }
+
+        .data-card-date i { font-size: 0.65rem; }
+
+        /* Source note */
+        .econ-source-note {
+            font-size: 0.78rem;
+            color: rgba(255,255,255,0.25);
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
             margin-top: 0.5rem;
         }
 
@@ -209,51 +228,7 @@
             margin: 0;
         }
 
-        .login-btn {
-            background: linear-gradient(135deg, var(--primary-gold), var(--secondary-gold)) !important;
-            color: var(--darker-bg) !important;
-            padding: 0.5rem 1.2rem;
-            border-radius: 20px;
-            font-weight: 600;
-            font-size: 0.95rem;
-            transition: transform 0.3s, box-shadow 0.3s;
-            display: inline-block;
-        }
-
-        .login-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(201, 176, 55, 0.3);
-            color: var(--darker-bg) !important;
-        }
-
-        .back-button {
-            display: inline-flex;
-            align-items: center;
-            gap: 0.5rem;
-            color: var(--primary-gold);
-            text-decoration: none;
-            font-weight: 600;
-            margin-bottom: 2rem;
-            transition: all 0.3s ease;
-        }
-
-        .back-button:hover {
-            transform: translateX(-5px);
-        }
-
-        @media (max-width: 768px) {
-            .guide-title {
-                font-size: 2rem;
-            }
-
-            .guide-subtitle {
-                font-size: 1rem;
-            }
-
-            .content-section {
-                padding: 1.5rem;
-            }
-        }
+        
     </style>
 </head>
 <body>
@@ -277,34 +252,77 @@
 
         <!-- Latest Economic Data -->
         <section class="content-section">
-            <h2><i class="fas fa-chart-line"></i> Key Economic Indicators</h2>
-            <p>Monitor these critical releases that move SPY:</p>
-            
-            <div class="data-grid">
-                <div class="data-card">
-                    <div class="label">CPI (Y/Y)</div>
-                    <div class="value">2.6%</div>
-                    <div class="date">Last Updated: Oct 2025</div>
+            <div class="econ-panel-header">
+                <div>
+                    <h2 style="margin:0 0 0.3rem;"><i class="fas fa-chart-line"></i> Key Economic Indicators</h2>
+                    <p style="margin:0;color:var(--gray-text);font-size:0.875rem;">Live macro data that moves SPY &mdash; auto-refreshed every 12 hrs</p>
                 </div>
-                <div class="data-card">
-                    <div class="label">Core CPI (Y/Y)</div>
-                    <div class="value">3.3%</div>
-                    <div class="date">Last Updated: Oct 2025</div>
-                </div>
-                <div class="data-card">
-                    <div class="label">PPI (Y/Y)</div>
-                    <div class="value">2.4%</div>
-                    <div class="date">Last Updated: Oct 2025</div>
-                </div>
-                <div class="data-card">
-                    <div class="label">Fed Funds Rate</div>
-                    <div class="value">4.25-4.50%</div>
-                    <div class="date">Current Target Range</div>
+                <div class="econ-fetch-badge">
+                    <span class="econ-fetch-dot"></span>
+                    <span id="econ-last-updated">Fetching live data…</span>
                 </div>
             </div>
-            
-            <p style="font-size: 0.85rem; color: var(--gray-text); margin-top: 1rem;">
-                <i class="fas fa-info-circle"></i> Data sourced from U.S. Bureau of Labor Statistics and Federal Reserve
+
+            <div class="data-grid">
+                <!-- CPI -->
+                <div class="data-card" id="econ-card-cpi">
+                    <div class="data-card-top">
+                        <span class="data-card-icon"><i class="fas fa-receipt"></i></span>
+                        <span class="data-card-badge live-badge"><span class="econ-fetch-dot" style="width:5px;height:5px;display:inline-block;"></span> Live</span>
+                    </div>
+                    <div class="data-card-label">CPI (Y/Y)</div>
+                    <div class="data-value-row">
+                        <span class="data-value loading" id="econ-cpi-value">0.0%</span>
+                        <span class="data-trend" id="econ-cpi-trend"></span>
+                    </div>
+                    <div class="data-card-date"><i class="fas fa-calendar-check"></i><span id="econ-cpi-date">Loading…</span></div>
+                </div>
+
+                <!-- Core CPI -->
+                <div class="data-card" id="econ-card-core">
+                    <div class="data-card-top">
+                        <span class="data-card-icon"><i class="fas fa-utensils"></i></span>
+                        <span class="data-card-badge live-badge"><span class="econ-fetch-dot" style="width:5px;height:5px;display:inline-block;"></span> Live</span>
+                    </div>
+                    <div class="data-card-label">Core CPI (Y/Y)</div>
+                    <div class="data-value-row">
+                        <span class="data-value loading" id="econ-core-value">0.0%</span>
+                        <span class="data-trend" id="econ-core-trend"></span>
+                    </div>
+                    <div class="data-card-date"><i class="fas fa-calendar-check"></i><span id="econ-core-date">Loading…</span></div>
+                </div>
+
+                <!-- PPI -->
+                <div class="data-card" id="econ-card-ppi">
+                    <div class="data-card-top">
+                        <span class="data-card-icon"><i class="fas fa-industry"></i></span>
+                        <span class="data-card-badge live-badge"><span class="econ-fetch-dot" style="width:5px;height:5px;display:inline-block;"></span> Live</span>
+                    </div>
+                    <div class="data-card-label">PPI (Y/Y)</div>
+                    <div class="data-value-row">
+                        <span class="data-value loading" id="econ-ppi-value">0.0%</span>
+                        <span class="data-trend" id="econ-ppi-trend"></span>
+                    </div>
+                    <div class="data-card-date"><i class="fas fa-calendar-check"></i><span id="econ-ppi-date">Loading…</span></div>
+                </div>
+
+                <!-- Fed Funds Rate (static — FOMC changes only 8×/year) -->
+                <div class="data-card" id="econ-card-fed">
+                    <div class="data-card-top">
+                        <span class="data-card-icon"><i class="fas fa-landmark"></i></span>
+                        <span class="data-card-badge fomc-badge">FOMC</span>
+                    </div>
+                    <div class="data-card-label">Fed Funds Rate</div>
+                    <div class="data-value-row">
+                        <span class="data-value" id="econ-fed-value">4.25–4.50%</span>
+                    </div>
+                    <div class="data-card-date"><i class="fas fa-calendar-check"></i>Target Range · Dec 2024</div>
+                </div>
+            </div>
+
+            <p class="econ-source-note">
+                <i class="fas fa-circle-info"></i>
+                CPI &amp; PPI: U.S. Bureau of Labor Statistics Public API &nbsp;·&nbsp; Fed Rate: Federal Reserve FOMC (set 8×/year)
             </p>
         </section>
 
@@ -373,23 +391,36 @@
             </ul>
         </section>
     </div>
-
-    <!-- Floating CTA -->
-    <div class="floating-cta">
-        <a href="https://calendly.com/bluechipsignals/30min" target="_blank" rel="noopener" class="cta-button">
-            <i class="fas fa-rocket"></i> Get SPY Signals
-        </a>
-    </div>
-
     <!-- Footer -->
     <div id="footer-placeholder" data-footer-type="standard-social" data-base="../../"></div>
     <script src="../../assets/js/footer-component.js"></script>
 
-    <script type="module" src="../../assets/js/bls-data.js"></script>
+    <script src="../../assets/js/bls-data.js" type="module"></script>
     <script type="module">
         import { requireAuth, updateAuthButton } from '../../assets/js/firebase-auth-check.js';
         requireAuth('../../book-demo.html');
         updateAuthButton('../../login.html');
     </script>
+
+    <script>
+        /* Guide page scroll-reveal */
+        (function() {
+            var sections = document.querySelectorAll('.content-section');
+            if (!sections.length) return;
+            var observer = new IntersectionObserver(function(entries) {
+                entries.forEach(function(entry) {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('gp-visible');
+                        observer.unobserve(entry.target);
+                    }
+                });
+            }, { threshold: 0.08 });
+            sections.forEach(function(el) {
+                el.classList.add('gp-reveal');
+                observer.observe(el);
+            });
+        })();
+    </script>
+<script src="../../assets/js/guide-nav.js"></script>
 </body>
 </html>

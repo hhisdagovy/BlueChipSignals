@@ -1,103 +1,178 @@
-// bls-data.js - Fetches latest CPI and PPI figures from the BLS API and injects mini-cards on the SPY economic data page.
+// bls-data.js — Live BLS economic data (CPI, Core CPI, PPI)
 import { BLS_API_KEY } from './config.js';
 
-(() => {
-  const API_KEY = BLS_API_KEY;
-  const SERIES = [
-    { id: 'CUUR0000SA0', label: 'Headline CPI YoY', changeType: 'yoy' },
-    { id: 'CUUR0000SA0L1E', label: 'Core CPI YoY', changeType: 'yoy' },
-    { id: 'WPSFD4', label: 'PPI MoM', changeType: 'mom' }
-  ];
+const KEY       = BLS_API_KEY;
+const CACHE_KEY = 'bls_econ_v3';
+const CACHE_TTL = 12 * 60 * 60 * 1000; // 12 hours
 
-  const CACHE_KEY = 'bls_macro_cache_v1';
-  const CACHE_TTL_MS = 12 * 60 * 60 * 1000; // 12 hours
+// BLS series → card element IDs
+const SERIES = [
+  {
+    id:      'CUUR0000SA0',     // Headline CPI, not seasonally adjusted
+    valueId: 'econ-cpi-value',
+    dateId:  'econ-cpi-date',
+    trendId: 'econ-cpi-trend',
+  },
+  {
+    id:      'CUUR0000SA0L1E',  // Core CPI (ex food & energy), not seasonally adjusted
+    valueId: 'econ-core-value',
+    dateId:  'econ-core-date',
+    trendId: 'econ-core-trend',
+  },
+  {
+    id:      'WPSFD4',          // PPI Final Demand, not seasonally adjusted
+    valueId: 'econ-ppi-value',
+    dateId:  'econ-ppi-date',
+    trendId: 'econ-ppi-trend',
+  },
+];
 
-  document.addEventListener('DOMContentLoaded', init);
-
-  function init() {
-    const cached = getCached();
-    if (cached) {
-      renderCards(cached);
-      return;
-    }
-    fetchData().then(data => {
-      if (data) {
-        cacheData(data);
-        renderCards(data);
-      }
-    }).catch(() => {
-      renderError();
-    });
+document.addEventListener('DOMContentLoaded', async () => {
+  // Try cache first
+  const cached = getCache();
+  if (cached) {
+    renderAll(cached, true);
+    return;
   }
 
-  function getCached() {
-    try {
-      const str = sessionStorage.getItem(CACHE_KEY);
-      if (!str) return null;
-      const obj = JSON.parse(str);
-      if (Date.now() - obj.timestamp > CACHE_TTL_MS) return null;
-      return obj.data;
-    } catch (e) { return null; }
+  // Fetch live
+  const data = await fetchAll();
+  if (data) {
+    setCache(data);
+    renderAll(data, false);
+  } else {
+    renderError();
   }
+});
 
-  function cacheData(data) {
-    try {
-      sessionStorage.setItem(CACHE_KEY, JSON.stringify({ timestamp: Date.now(), data }));
-    } catch (_) {}
-  }
+/* ── Fetch ── */
+async function fetchAll() {
+  const now       = new Date();
+  const endYear   = now.getFullYear();
+  const startYear = endYear - 2; // 2 years → ensures 14+ monthly data points
 
-  async function fetchData() {
-    const now = new Date();
-    const start = now.getFullYear() - 1;
-    const end = now.getFullYear();
+  const results = {};
 
-    const output = {};
+  try {
+    for (const s of SERIES) {
+      const url = [
+        'https://api.bls.gov/publicAPI/v2/timeseries/data/',
+        s.id,
+        `?startyear=${startYear}&endyear=${endYear}`,
+        `&registrationKey=${KEY}`,
+      ].join('');
 
-    for (const meta of SERIES) {
-      const url = `https://api.bls.gov/publicAPI/v2/timeseries/data/${meta.id}?startyear=${start}&endyear=${end}&calculations=true&annualaverage=false&registrationKey=${API_KEY}`;
-      const res = await fetch(url);
+      const res  = await fetch(url);
       if (!res.ok) continue;
       const json = await res.json();
       if (json.status !== 'REQUEST_SUCCEEDED') continue;
-      const series = json.Results.series[0];
-      const latest = series.data[0];
-      if (!latest) continue;
 
-      let value = latest.value;
-      let dateLabel = `${latest.periodName} ${latest.year}`;
-      let display = value;
+      const pts = json.Results.series[0].data; // newest first
+      if (pts.length < 13) continue;
 
-      if (series.calculations && series.calculations.net_changes) {
-        const changes = series.calculations.net_changes;
-        const changeObj = changes.find(c => (meta.changeType === 'yoy' ? c.period === 'M12' : c.period === 'M01'));
-        if (changeObj) display = changeObj.value;
+      // YoY % for latest data point
+      const curr = parseFloat(pts[0].value);
+      const yr0  = parseFloat(pts[12].value);  // same month last year
+      const yoy  = ((curr - yr0) / yr0) * 100;
+
+      // YoY % for previous month (trend comparison)
+      let prevYoy  = null;
+      let delta    = null;
+      if (pts.length >= 14) {
+        const prev = parseFloat(pts[1].value);
+        const yr1  = parseFloat(pts[13].value);
+        prevYoy    = ((prev - yr1) / yr1) * 100;
+        delta      = yoy - prevYoy;
       }
 
-      output[meta.id] = {
-        label: meta.label,
-        value: display + ' %',
-        date: dateLabel
+      results[s.id] = {
+        yoy:   yoy.toFixed(1),
+        delta: delta !== null ? delta.toFixed(2) : null,
+        date:  `${pts[0].periodName} ${pts[0].year}`,
       };
     }
-
-    return output;
+  } catch {
+    return null;
   }
 
-  function renderCards(data) {
-    const grid = document.getElementById('bls-grid');
-    if (!grid) return;
-    Object.values(data).forEach(d => {
-      const card = document.createElement('div');
-      card.className = 'bea-card';
-      card.innerHTML = `<h4>${d.label}</h4><p>${d.value}</p><small>${d.date}</small>`;
-      grid.appendChild(card);
-    });
-  }
+  return Object.keys(results).length > 0 ? results : null;
+}
 
-  function renderError() {
-    const grid = document.getElementById('bls-grid');
-    if (grid) {
-      grid.innerHTML = '<p style="color: var(--gray-text);">Data unavailable</p>';
+/* ── Render ── */
+function renderAll(data, fromCache) {
+  SERIES.forEach(s => {
+    const d = data[s.id];
+    if (!d) return;
+
+    const valEl   = document.getElementById(s.valueId);
+    const dateEl  = document.getElementById(s.dateId);
+    const trendEl = document.getElementById(s.trendId);
+
+    if (valEl) {
+      valEl.classList.remove('loading');
+      valEl.textContent = d.yoy + '%';
+    }
+    if (dateEl) dateEl.textContent = d.date;
+
+    if (trendEl && d.delta !== null) {
+      const delta   = parseFloat(d.delta);
+      const abs     = Math.abs(delta);
+      const sign    = delta > 0 ? '+' : '';
+
+      if (abs < 0.05) {
+        trendEl.innerHTML =
+          '<span class="trend-flat"><i class="fas fa-minus"></i> flat</span>';
+      } else if (delta > 0) {
+        // Rising inflation → hawkish signal → shown in red
+        trendEl.innerHTML =
+          `<span class="trend-up"><i class="fas fa-arrow-trend-up"></i> ${sign}${d.delta}pp</span>`;
+      } else {
+        // Cooling inflation → dovish signal → shown in green
+        trendEl.innerHTML =
+          `<span class="trend-down"><i class="fas fa-arrow-trend-down"></i> ${d.delta}pp</span>`;
+      }
+    }
+  });
+
+  // Timestamp
+  const stamp = document.getElementById('econ-last-updated');
+  if (stamp) {
+    if (fromCache) {
+      stamp.textContent = 'Data from local cache';
+    } else {
+      const now = new Date();
+      stamp.textContent = `Updated ${now.toLocaleString('en-US', {
+        month: 'short', day: 'numeric', year: 'numeric',
+        hour: '2-digit', minute: '2-digit',
+      })}`;
     }
   }
-})(); 
+}
+
+function renderError() {
+  SERIES.forEach(s => {
+    const valEl  = document.getElementById(s.valueId);
+    const dateEl = document.getElementById(s.dateId);
+    if (valEl)  { valEl.classList.remove('loading'); valEl.textContent = 'N/A'; }
+    if (dateEl) dateEl.textContent = 'Unavailable';
+  });
+  const stamp = document.getElementById('econ-last-updated');
+  if (stamp) stamp.textContent = 'Data unavailable — check BLS API';
+}
+
+/* ── Cache helpers ── */
+function getCache() {
+  try {
+    const raw = sessionStorage.getItem(CACHE_KEY);
+    if (!raw) return null;
+    const obj = JSON.parse(raw);
+    if (Date.now() - obj.ts > CACHE_TTL) return null;
+    return obj.data;
+  } catch { return null; }
+}
+
+function setCache(data) {
+  try {
+    sessionStorage.setItem(CACHE_KEY, JSON.stringify({ ts: Date.now(), data }));
+  } catch { /* storage full */ }
+}

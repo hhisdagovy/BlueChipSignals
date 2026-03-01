@@ -7,171 +7,19 @@
     <meta name="description" content="Learn why fighting TSLA trends is costly. Our signals join strong momentum moves instead of trying to pick tops and bottoms.">
     
     <!-- Font Awesome -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     
     <link rel="icon" type="image/png" href="../../assets/images/logo.png">
     <link rel="stylesheet" href="../../assets/css/signal-style.css">
+    <link rel="stylesheet" href="../../assets/css/guide-style.css">
     <style>
 
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-        }
-
-        body {
-            background: var(--darker-bg);
-            color: var(--light-text);
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-        }
-
-        .guide-hero {
-            margin-top: 100px;
-            padding: 4rem 2rem 3rem;
-            text-align: center;
-            background: radial-gradient(circle at 50% 50%, rgba(201, 176, 55, 0.15), transparent 70%);
-            position: relative;
-        }
-
-        .guide-hero::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: radial-gradient(circle at 30% 40%, rgba(201, 176, 55, 0.08), transparent 50%);
-            z-index: 0;
-        }
-
-        .guide-hero-content {
-            max-width: 900px;
-            margin: 0 auto;
-            position: relative;
-            z-index: 1;
-        }
-
-        .guide-badge {
-            display: inline-block;
-            background: linear-gradient(135deg, var(--primary-gold), var(--secondary-gold));
-            color: var(--darker-bg);
-            padding: 0.4rem 1.2rem;
-            border-radius: 20px;
-            font-weight: 700;
-            font-size: 0.8rem;
-            letter-spacing: 1px;
-            margin-bottom: 1.5rem;
-            text-transform: uppercase;
-        }
-
-        .guide-title {
-            font-size: 2.8rem;
-            font-weight: 800;
-            margin: 0 0 1rem 0;
-            line-height: 1.2;
-            color: var(--light-text);
-        }
-
-        .guide-subtitle {
-            font-size: 1.2rem;
-            color: var(--gray-text);
-            line-height: 1.6;
-            margin: 0;
-        }
-
-        .guide-content {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 3rem 2rem;
-        }
-
-        .content-section {
-            background: var(--dark-bg);
-            border: 1px solid rgba(201, 176, 55, 0.2);
-            border-radius: 15px;
-            padding: 2.5rem;
-            margin-bottom: 2rem;
-        }
-
-        .content-section h2 {
-            color: var(--primary-gold);
-            font-size: 1.8rem;
-            margin-bottom: 1rem;
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-        }
-
-        .content-section h2 i {
-            font-size: 1.5rem;
-        }
-
-        .content-section h3 {
-            color: var(--light-text);
-            font-size: 1.4rem;
-            margin-bottom: 1rem;
-        }
-
-        .content-section h4 {
-            color: var(--primary-gold);
-            font-size: 1.2rem;
-            margin-bottom: 1rem;
-        }
-
-        .content-section p {
-            color: var(--gray-text);
-            line-height: 1.8;
-            margin-bottom: 1rem;
-        }
-
-        .content-section ul {
-            color: var(--light-text);
-            line-height: 1.8;
-            margin: 1rem 0;
-            padding-left: 1.5rem;
-        }
-
-        .content-section ul li {
-            margin-bottom: 0.75rem;
-        }
-
-        .content-section strong {
-            color: var(--light-text);
-        }
-
-        .login-btn {
-            background: linear-gradient(135deg, var(--primary-gold), var(--secondary-gold)) !important;
-            color: var(--darker-bg) !important;
-            padding: 0.5rem 1.2rem;
-            border-radius: 20px;
-            font-weight: 600;
-            font-size: 0.95rem;
-            transition: transform 0.3s, box-shadow 0.3s;
-            display: inline-block;
-        }
-
-        .login-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(201, 176, 55, 0.3);
-            color: var(--darker-bg) !important;
-        }
-
-        .back-button {
-            display: inline-flex;
-            align-items: center;
-            gap: 0.5rem;
-            color: var(--primary-gold);
-            text-decoration: none;
-            font-weight: 600;
-            margin-bottom: 2rem;
-            transition: all 0.3s ease;
-        }
-
-        .back-button:hover {
-            transform: translateX(-5px);
         }
 
         /* Tesla-specific styling */
@@ -427,19 +275,7 @@
             border-bottom: none;
         }
 
-
         @media (max-width: 768px) {
-            .guide-title {
-                font-size: 2rem;
-            }
-
-            .guide-subtitle {
-                font-size: 1rem;
-            }
-
-            .content-section {
-                padding: 1.5rem;
-            }
 
             .calculator-input-group,
             .trend-metrics,
@@ -641,16 +477,44 @@
             </div>
         </section>
 
+        <!-- Managing Volatility (merged from tsla-embrace-volatility) -->
+        <section class="content-section">
+            <h2><i class="fas fa-bolt"></i> Managing TSLA's Volatility While Trend Following</h2>
+            <p>TSLA's trends are powerful but come with extreme volatility. The traders who consistently profit aren't those who avoid volatility — they're the ones who <strong>size positions correctly and stay in the trend</strong>.</p>
+
+            <h3>Volatility-Aware Position Sizing</h3>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 1.25rem; margin: 1.5rem 0;">
+                <div style="background: rgba(42,87,31,0.2); border: 1px solid rgba(42,87,31,0.4); border-radius: 10px; padding: 1.25rem; text-align: center;">
+                    <div style="font-size: 1.8rem; font-weight: 700; color: var(--primary-gold); margin-bottom: 0.5rem;">Low VIX</div>
+                    <p style="color: var(--gray-text); font-size: 0.9rem; margin: 0;">Normal market conditions — use full planned position size</p>
+                </div>
+                <div style="background: rgba(255,193,7,0.1); border: 1px solid rgba(255,193,7,0.3); border-radius: 10px; padding: 1.25rem; text-align: center;">
+                    <div style="font-size: 1.8rem; font-weight: 700; color: var(--primary-gold); margin-bottom: 0.5rem;">Mid VIX</div>
+                    <p style="color: var(--gray-text); font-size: 0.9rem; margin: 0;">Elevated risk — reduce position size by 25–30%</p>
+                </div>
+                <div style="background: rgba(255,59,59,0.1); border: 1px solid rgba(255,59,59,0.3); border-radius: 10px; padding: 1.25rem; text-align: center;">
+                    <div style="font-size: 1.8rem; font-weight: 700; color: #ff4444; margin-bottom: 0.5rem;">High VIX</div>
+                    <p style="color: var(--gray-text); font-size: 0.9rem; margin: 0;">Extreme risk — reduce by 50% or wait for calmer conditions</p>
+                </div>
+            </div>
+
+            <h3>Critical Rules for Staying in a Volatile Trend</h3>
+            <ul>
+                <li><strong>Widen stops proportionally:</strong> In high-volatility conditions use ATR-based stops rather than fixed percentages — TSLA's normal daily swing can trigger a tight stop without the trend reversing.</li>
+                <li><strong>Scale in, not all at once:</strong> Enter 50% at trend confirmation, add the second half on a pullback to the 20-day EMA or VWAP.</li>
+                <li><strong>Respect the daily close:</strong> A close below the 20-day EMA in an uptrend is the earliest warning sign — don't wait for a deeper break.</li>
+                <li><strong>Elon risk:</strong> A tweet or PR event can spike TSLA 5–8% intraday. Always have a pre-defined response plan (partial exit or hold) before entering a trend trade.</li>
+                <li><strong>Never average down against the trend:</strong> If TSLA is breaking the trend, exit and wait for re-entry — the move almost always continues further than expected.</li>
+            </ul>
+
+            <div class="alert-box">
+                <i class="fas fa-exclamation-triangle alert-icon"></i>
+                <strong>Volatility ≠ Reversal:</strong> TSLA can drop 5–8% intraday and still close near highs, continuing the uptrend. Use wider stops and smaller size so a single volatile candle doesn't shake you out of a strong trend.
+            </div>
+        </section>
+
 
     </div>
-
-    <!-- Floating CTA -->
-    <div class="floating-cta">
-        <a href="https://calendly.com/bluechipsignals/30min" target="_blank" rel="noopener" class="cta-button">
-            <i class="fas fa-rocket"></i> Get TSLA Signals
-        </a>
-    </div>
-
     <!-- Footer -->
     <div id="footer-placeholder" data-footer-type="standard-social" data-base="../../"></div>
     <script src="../../assets/js/footer-component.js"></script>
@@ -837,5 +701,26 @@
         requireAuth('../../book-demo.html');
         updateAuthButton('../../login.html');
     </script>
+
+    <script>
+        /* Guide page scroll-reveal */
+        (function() {
+            var sections = document.querySelectorAll('.content-section');
+            if (!sections.length) return;
+            var observer = new IntersectionObserver(function(entries) {
+                entries.forEach(function(entry) {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('gp-visible');
+                        observer.unobserve(entry.target);
+                    }
+                });
+            }, { threshold: 0.08 });
+            sections.forEach(function(el) {
+                el.classList.add('gp-reveal');
+                observer.observe(el);
+            });
+        })();
+    </script>
+<script src="../../assets/js/guide-nav.js"></script>
 </body>
 </html> 

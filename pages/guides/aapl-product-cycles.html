@@ -8,180 +8,8 @@
     <link rel="icon" type="image/png" href="../../assets/images/logo.png">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="../../assets/css/signal-style.css">
-    <style>
-
-        body {
-            background: var(--darker-bg);
-            color: var(--light-text);
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-        }
-
-        .guide-hero {
-            margin-top: 100px;
-            padding: 4rem 2rem 3rem;
-            text-align: center;
-            background: radial-gradient(circle at 50% 50%, rgba(201, 176, 55, 0.15), transparent 70%);
-            position: relative;
-        }
-
-        .guide-hero::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: radial-gradient(circle at 30% 40%, rgba(201, 176, 55, 0.08), transparent 50%);
-            z-index: 0;
-        }
-
-        .guide-hero-content {
-            max-width: 900px;
-            margin: 0 auto;
-            position: relative;
-            z-index: 1;
-        }
-
-        .guide-badge {
-            display: inline-block;
-            background: linear-gradient(135deg, var(--primary-gold), var(--secondary-gold));
-            color: var(--darker-bg);
-            padding: 0.4rem 1.2rem;
-            border-radius: 20px;
-            font-weight: 700;
-            font-size: 0.8rem;
-            letter-spacing: 1px;
-            margin-bottom: 1.5rem;
-            text-transform: uppercase;
-        }
-
-        .guide-title {
-            font-size: 2.8rem;
-            font-weight: 800;
-            margin: 0 0 1rem 0;
-            line-height: 1.2;
-            color: var(--light-text);
-        }
-
-        .guide-subtitle {
-            font-size: 1.2rem;
-            color: var(--gray-text);
-            line-height: 1.6;
-            margin: 0;
-        }
-
-        .guide-content {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 3rem 2rem;
-        }
-
-        .content-section {
-            background: var(--dark-bg);
-            border: 1px solid rgba(201, 176, 55, 0.2);
-            border-radius: 15px;
-            padding: 2.5rem;
-            margin-bottom: 2rem;
-        }
-
-        .content-section h2 {
-            color: var(--primary-gold);
-            font-size: 1.8rem;
-            margin-bottom: 1rem;
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-        }
-
-        .content-section h2 i {
-            font-size: 1.5rem;
-        }
-
-        .content-section h3 {
-            color: var(--light-text);
-            font-size: 1.4rem;
-            margin-bottom: 1rem;
-        }
-
-        .content-section h4 {
-            color: var(--primary-gold);
-            font-size: 1.2rem;
-            margin-bottom: 1rem;
-        }
-
-        .content-section h5 {
-            color: var(--secondary-gold);
-            font-size: 1rem;
-            margin-bottom: 0.75rem;
-        }
-
-        .content-section p {
-            color: var(--gray-text);
-            line-height: 1.8;
-            margin-bottom: 1rem;
-        }
-
-        .content-section ul {
-            color: var(--light-text);
-            line-height: 1.8;
-            margin: 1rem 0;
-            padding-left: 1.5rem;
-        }
-
-        .content-section ul li {
-            margin-bottom: 0.75rem;
-        }
-
-        .content-section strong {
-            color: var(--light-text);
-        }
-
-        .login-btn {
-            background: linear-gradient(135deg, var(--primary-gold), var(--secondary-gold)) !important;
-            color: var(--darker-bg) !important;
-            padding: 0.5rem 1.2rem;
-            border-radius: 20px;
-            font-weight: 600;
-            font-size: 0.95rem;
-            transition: transform 0.3s, box-shadow 0.3s;
-            display: inline-block;
-        }
-
-        .login-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(201, 176, 55, 0.3);
-            color: var(--darker-bg) !important;
-        }
-
-        .back-button {
-            display: inline-flex;
-            align-items: center;
-            gap: 0.5rem;
-            color: var(--primary-gold);
-            text-decoration: none;
-            font-weight: 600;
-            margin-bottom: 2rem;
-            transition: all 0.3s ease;
-        }
-
-        .back-button:hover {
-            transform: translateX(-5px);
-        }
-
-        @media (max-width: 768px) {
-            .guide-title {
-                font-size: 2rem;
-            }
-
-            .guide-subtitle {
-                font-size: 1rem;
-            }
-
-            .content-section {
-                padding: 1.5rem;
-            }
-        }
-    </style>
+    <link rel="stylesheet" href="../../assets/css/guide-style.css">
+    
 </head>
 <body>
     <div id="nav-placeholder" data-nav-type="public" data-base="../../"></div>
@@ -772,15 +600,50 @@
             </div>
         </section>
 
-    </div>
+        <!-- Supplier Signals (merged from aapl-supplier-news) -->
+        <section class="content-section">
+            <h2><i class="fas fa-industry"></i> Supplier Signals: Early Production Clues</h2>
+            <p>Apple's supply chain partners often surface production data <strong>weeks before Apple confirms anything</strong>. Monitoring these tier-1 suppliers gives you an informational edge on upcoming iPhone and Mac production cycles.</p>
 
-    <!-- Floating CTA -->
-    <div class="floating-cta">
-        <a href="https://calendly.com/bluechipsignals/30min" target="_blank" rel="noopener" class="cta-button">
-            <i class="fas fa-rocket"></i> Get AAPL Signals
-        </a>
-    </div>
+            <div class="alert-box">
+                <i class="fas fa-lightbulb alert-icon" style="color: var(--primary-gold);"></i>
+                <strong>Key Insight:</strong> Set Google Alerts for "TSMC Apple," "Foxconn guidance," and "iPhone production" to catch breaking supplier news quickly. First-mover edge typically lasts 30–60 minutes.
+            </div>
 
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.5rem; margin: 2rem 0;">
+                <div style="background: linear-gradient(135deg, rgba(179,161,125,0.1), rgba(179,161,125,0.05)); border: 1px solid rgba(179,161,125,0.2); border-radius: 12px; padding: 1.5rem;">
+                    <h4 style="display:flex; align-items:center; gap:0.5rem; color:var(--light-text);"><i class="fas fa-microchip" style="color:var(--primary-gold);"></i> TSMC (2330.TW)</h4>
+                    <p style="font-size:0.9rem; color:var(--gray-text); margin-bottom:0.75rem;">Primary chip manufacturer — wafer orders, 3nm capacity, yield rates</p>
+                    <p style="font-size:0.85rem; color:var(--light-text); margin:0;"><strong>Impact:</strong> Very High — direct signal for iPhone/Mac production capacity</p>
+                </div>
+                <div style="background: linear-gradient(135deg, rgba(179,161,125,0.1), rgba(179,161,125,0.05)); border: 1px solid rgba(179,161,125,0.2); border-radius: 12px; padding: 1.5rem;">
+                    <h4 style="display:flex; align-items:center; gap:0.5rem; color:var(--light-text);"><i class="fas fa-wrench" style="color:var(--primary-gold);"></i> Foxconn (2317.TW)</h4>
+                    <p style="font-size:0.9rem; color:var(--gray-text); margin-bottom:0.75rem;">Assembly & manufacturing — factory output, labor issues, guidance</p>
+                    <p style="font-size:0.85rem; color:var(--light-text); margin:0;"><strong>Impact:</strong> Very High — assembly bottlenecks directly affect iPhone availability</p>
+                </div>
+                <div style="background: linear-gradient(135deg, rgba(179,161,125,0.1), rgba(179,161,125,0.05)); border: 1px solid rgba(179,161,125,0.2); border-radius: 12px; padding: 1.5rem;">
+                    <h4 style="display:flex; align-items:center; gap:0.5rem; color:var(--light-text);"><i class="fas fa-tv" style="color:var(--primary-gold);"></i> LG Display</h4>
+                    <p style="font-size:0.9rem; color:var(--gray-text); margin-bottom:0.75rem;">OLED displays — panel shipments, quality issues, capacity plans</p>
+                    <p style="font-size:0.85rem; color:var(--light-text); margin:0;"><strong>Impact:</strong> High — display shortages constrain premium iPhone models</p>
+                </div>
+                <div style="background: linear-gradient(135deg, rgba(179,161,125,0.1), rgba(179,161,125,0.05)); border: 1px solid rgba(179,161,125,0.2); border-radius: 12px; padding: 1.5rem;">
+                    <h4 style="display:flex; align-items:center; gap:0.5rem; color:var(--light-text);"><i class="fas fa-satellite-dish" style="color:var(--primary-gold);"></i> Broadcom</h4>
+                    <p style="font-size:0.9rem; color:var(--gray-text); margin-bottom:0.75rem;">RF & wireless chips — 5G components, WiFi, custom silicon</p>
+                    <p style="font-size:0.85rem; color:var(--light-text); margin:0;"><strong>Impact:</strong> Medium — critical for connectivity features in new devices</p>
+                </div>
+            </div>
+
+            <h3>How to Trade Supplier News</h3>
+            <ul>
+                <li><strong>Size threshold:</strong> Focus on 5–10%+ guidance changes. Smaller adjustments are usually priced in.</li>
+                <li><strong>Source credibility:</strong> Prioritize regulatory filings and earnings calls over anonymous reports.</li>
+                <li><strong>Cross-validation:</strong> Wait for two independent confirmations before sizing up.</li>
+                <li><strong>Timing edge:</strong> The first 30–60 minutes after credible news is the highest-edge window.</li>
+                <li><strong>Earnings blackout:</strong> Avoid supplier-based trades the week before AAPL earnings.</li>
+            </ul>
+        </section>
+
+    </div>
     <!-- Footer -->
     <div id="footer-placeholder" data-footer-type="standard-social" data-base="../../"></div>
     <script src="../../assets/js/footer-component.js"></script>
@@ -790,5 +653,26 @@
         requireAuth('../../book-demo.html');
         updateAuthButton('../../login.html');
     </script>
+
+    <script>
+        /* Guide page scroll-reveal */
+        (function() {
+            var sections = document.querySelectorAll('.content-section');
+            if (!sections.length) return;
+            var observer = new IntersectionObserver(function(entries) {
+                entries.forEach(function(entry) {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('gp-visible');
+                        observer.unobserve(entry.target);
+                    }
+                });
+            }, { threshold: 0.08 });
+            sections.forEach(function(el) {
+                el.classList.add('gp-reveal');
+                observer.observe(el);
+            });
+        })();
+    </script>
+<script src="../../assets/js/guide-nav.js"></script>
 </body>
 </html>

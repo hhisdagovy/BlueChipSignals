@@ -42,6 +42,7 @@
             navLinks.classList.remove('active');
             navLinks.classList.remove('stocks-open');
             hamburger.classList.remove('is-open');
+            nav.classList.remove('menu-open');
             if (subPanelEl) subPanelEl.classList.remove('active');
             unlockBodyScroll();
         }
@@ -51,6 +52,7 @@
         hamburger.addEventListener('click', function () {
             var isOpen = navLinks.classList.toggle('active');
             hamburger.classList.toggle('is-open', isOpen);
+            nav.classList.toggle('menu-open', isOpen);
             if (isOpen) {
                 lockBodyScroll();
             } else {

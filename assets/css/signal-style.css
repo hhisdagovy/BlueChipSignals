@@ -1802,6 +1802,7 @@ stripe-buy-button {
     max-width: 1200px;
     margin: 0 auto 4rem;
     padding: 0 2rem;
+    overflow: hidden;
 }
 
 .sp-mockup-wrap {
@@ -2124,16 +2125,36 @@ stripe-buy-button {
     .sp-hero { margin-top: 90px; padding: 3rem 1.25rem 2rem; }
     .sp-hero-inner { padding: 0; gap: 2rem; }
     .sp-ticker { font-size: clamp(3rem, 14vw, 4.5rem); }
-    .sp-phone { width: 260px; }
+    /* Phone mockup: fluid width so it never bleeds outside the viewport */
+    .sp-phone {
+        width: min(260px, calc(100vw - 4rem));
+    }
+    .sp-phone-glow {
+        width: min(280px, calc(100vw - 3rem));
+        height: min(280px, calc(100vw - 3rem));
+    }
+    /* Mockup wrap: stack vertically and contain width */
+    .sp-mockup-wrap {
+        flex-direction: column;
+        align-items: center;
+        gap: 2rem;
+        overflow: hidden;
+    }
+    .sp-hero-right,
+    .sp-example .sp-hero-right {
+        width: 100%;
+        display: flex;
+        justify-content: center;
+        overflow: hidden;
+    }
     .sp-why-grid { grid-template-columns: 1fr; }
     .sp-metrics-grid { grid-template-columns: repeat(2, 1fr); }
-    .sp-mockup-wrap { gap: 2rem; }
     .sp-cta-card { padding: 2.5rem 1.5rem; }
     .sp-cta-card h2 { font-size: 1.5rem; }
     .sp-section-header h2 { font-size: 1.4rem; }
     .sp-why { padding: 0 1.25rem; }
     .sp-metrics { padding: 0 1.25rem; }
-    .sp-example { padding: 0 1.25rem; }
+    .sp-example { padding: 0 1.25rem; overflow: hidden; }
     .sp-strategy { padding: 0 1.25rem; }
     .sp-tools { padding: 0 1.25rem; }
     .sp-cta-section { padding: 0 1.25rem; }

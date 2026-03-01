@@ -3,9 +3,9 @@ import { POLYGON_API_KEY } from './config.js';
 document.addEventListener('DOMContentLoaded', () => {
     const polygonApiKey = POLYGON_API_KEY;
 
-    // This logic is only needed for the bot pages.
-    if (document.querySelector('.bot-symbol')) {
-        const symbol = document.querySelector('.bot-symbol').textContent;
+    // This logic is only needed for the signal pages.
+    if (document.querySelector('.signal-symbol')) {
+        const symbol = document.querySelector('.signal-symbol').textContent;
         updateNews(symbol);
     }
 

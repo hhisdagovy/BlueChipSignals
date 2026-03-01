@@ -105,12 +105,12 @@
        via redirectIfLoggedIn() on each page. */
     function publicNav() {
         var stocks = [
-            { sym: 'SPY',  name: 'S&amp;P 500 ETF',   path: 'pages/bots/spy-bot.html'  },
-            { sym: 'META', name: 'Meta Platforms',     path: 'pages/bots/meta-bot.html' },
-            { sym: 'AAPL', name: 'Apple Inc.',         path: 'pages/bots/aapl-bot.html' },
-            { sym: 'TSLA', name: 'Tesla Inc.',         path: 'pages/bots/tsla-bot.html' },
-            { sym: 'NVDA', name: 'NVIDIA Corp.',       path: 'pages/bots/nvda-bot.html' },
-            { sym: 'AMZN', name: 'Amazon.com',         path: 'pages/bots/amzn-bot.html' }
+            { sym: 'SPY',  name: 'S&amp;P 500 ETF',   path: 'pages/signals/spy-signal.html'  },
+            { sym: 'META', name: 'Meta Platforms',     path: 'pages/signals/meta-signal.html' },
+            { sym: 'AAPL', name: 'Apple Inc.',         path: 'pages/signals/aapl-signal.html' },
+            { sym: 'TSLA', name: 'Tesla Inc.',         path: 'pages/signals/tsla-signal.html' },
+            { sym: 'NVDA', name: 'NVIDIA Corp.',       path: 'pages/signals/nvda-signal.html' },
+            { sym: 'AMZN', name: 'Amazon.com',         path: 'pages/signals/amzn-signal.html' }
         ];
 
         var desktopDropdownItems = stocks.map(function(s) {

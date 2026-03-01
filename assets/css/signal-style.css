@@ -1633,14 +1633,14 @@ stripe-buy-button {
 .sp-contract h5 i { display: none; } /* hide icon inside phone mockup to save space */
 
 .sp-contract-row {
-    display: flex;
-    justify-content: space-between;
-    gap: 0.25rem;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.5rem 0.75rem;
 }
 
-.sp-contract-row > div { flex: 1; min-width: 0; }
-.sp-contract-row label { color: var(--gray-text); font-size: 0.55rem; display: block; margin-bottom: 0.1rem; white-space: nowrap; }
-.sp-contract-row strong { color: #fff; font-size: 0.75rem; white-space: nowrap; }
+.sp-contract-row > div { min-width: 0; }
+.sp-contract-row label { color: var(--gray-text); font-size: 0.6rem; display: block; margin-bottom: 0.15rem; text-transform: uppercase; letter-spacing: 0.03em; }
+.sp-contract-row strong { color: #fff; font-size: 0.88rem; font-weight: 700; }
 
 .sp-tg-footer {
     text-align: center;

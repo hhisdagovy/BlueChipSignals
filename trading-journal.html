@@ -966,7 +966,45 @@
             renderTradesList();
             updateStats();
             renderCharts();
+            prefillFromPlanner();
         });
+
+        // Pre-fill trade form from Trade Planner "Push to Journal" flow
+        function prefillFromPlanner() {
+            const raw = localStorage.getItem('bcs_pending_journal_trade');
+            if (!raw) return;
+            try {
+                const pending = JSON.parse(raw);
+                localStorage.removeItem('bcs_pending_journal_trade');
+
+                // Set trade type and direction
+                document.getElementById('tradeType').value = pending.tradeType || 'Stock';
+                toggleTradeTypeFields();
+                document.getElementById('ticker').value     = pending.ticker    || '';
+                document.getElementById('direction').value  = pending.direction  || '';
+
+                if (pending.tradeType === 'Option' && pending.optionType) {
+                    document.getElementById('optionType').value = pending.optionType;
+                }
+
+                if (pending.entryPrice) {
+                    document.getElementById('entryPrice').value = pending.entryPrice;
+                }
+
+                if (pending.notes) {
+                    document.getElementById('entryReason').value = pending.notes;
+                }
+
+                document.getElementById('modalTitle').textContent = 'New Trade (from Planner)';
+                openTradeModal();
+
+                // Switch to the Trades tab so it's visible when the modal closes
+                const tradesTabBtn = document.querySelector('.tab-btn:nth-child(2)');
+                if (tradesTabBtn) switchTab('trades', tradesTabBtn);
+            } catch (err) {
+                console.error('Error prefilling from planner:', err);
+            }
+        }
 
         // Toggle trade type fields
         window.toggleTradeTypeFields = function() {

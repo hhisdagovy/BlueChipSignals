@@ -1,0 +1,1224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trade Planner - Blue Chip Signals</title>
+    <link rel="icon" type="image/png" href="assets/images/logo.png">
+    <link rel="stylesheet" href="assets/css/global.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary-gold: #b3a17d;
+            --secondary-gold: #E2CFB5;
+            --dark-bg: #080B0F;
+            --darker-bg: #050810;
+            --light-text: #FFFFFF;
+            --gray-text: #A0A0A0;
+            --card-bg: rgba(18, 22, 32, 0.72);
+            --success-green: #2a571f;
+            --danger-red: #ef4444;
+            --border-color: rgba(201, 176, 55, 0.25);
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background: radial-gradient(1200px 800px at -10% -10%, rgba(201, 176, 55, 0.25), transparent 55%),
+                        radial-gradient(900px 900px at 110% 10%, rgba(59, 130, 246, 0.15), transparent 60%),
+                        linear-gradient(160deg, rgba(5, 8, 16, 0.92) 25%, rgba(8, 12, 22, 0.98) 70%);
+            pointer-events: none;
+            z-index: -2;
+        }
+
+        body::after {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background: repeating-linear-gradient(135deg, rgba(255,255,255,0.03) 0px, rgba(255,255,255,0.03) 2px, transparent 2px, transparent 6px);
+            opacity: 0.6;
+            pointer-events: none;
+            z-index: -1;
+            mix-blend-mode: lighten;
+        }
+
+        /* ---- Planner Hero ---- */
+        .planner-hero {
+            margin-top: 100px;
+            padding: 2rem 2rem 1.5rem;
+            max-width: 1200px;
+            margin-left: auto;
+            margin-right: auto;
+            display: flex;
+            align-items: center;
+            gap: 2rem;
+            flex-wrap: wrap;
+        }
+
+        .planner-hero-left { flex: 1; min-width: 180px; }
+
+        .planner-hero-left h1 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--primary-gold), var(--secondary-gold));
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 0.25rem;
+        }
+
+        .planner-hero-left p {
+            color: var(--gray-text);
+            font-size: 0.88rem;
+        }
+
+        .planner-hero-center {
+            text-align: center;
+            flex: 1;
+            min-width: 160px;
+        }
+
+        .hero-rr-label {
+            font-size: 0.72rem;
+            text-transform: uppercase;
+            letter-spacing: 0.12em;
+            color: var(--gray-text);
+            margin-bottom: 0.2rem;
+        }
+
+        .hero-rr-number {
+            font-size: 2.5rem;
+            font-weight: 800;
+            letter-spacing: -0.03em;
+            color: var(--primary-gold);
+            transition: color 0.3s;
+        }
+
+        .hero-rr-number.good { color: #4ade80; }
+        .planner-hero-right { flex-shrink: 0; }
+
+        /* ---- Container ---- */
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 2rem 3rem;
+        }
+
+        /* ---- Stats Row ---- */
+        .stats-row {
+            display: flex;
+            gap: 2.5rem;
+            flex-wrap: wrap;
+            margin-bottom: 1.5rem;
+            padding: 1rem 0;
+            border-bottom: 1px solid rgba(201, 176, 55, 0.1);
+        }
+
+        .stat-chip {
+            display: flex;
+            flex-direction: column;
+            gap: 0.1rem;
+        }
+
+        .stat-chip-label {
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: var(--gray-text);
+        }
+
+        .stat-chip-value {
+            font-size: 1.15rem;
+            font-weight: 700;
+            color: var(--light-text);
+        }
+
+        /* ---- Tab Bar ---- */
+        .tab-bar {
+            display: flex;
+            gap: 0;
+            margin-bottom: 1.5rem;
+            border-bottom: 1px solid rgba(201, 176, 55, 0.12);
+        }
+
+        .tab-btn {
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 0.65rem 1.3rem;
+            font-size: 0.88rem;
+            font-weight: 600;
+            color: var(--gray-text);
+            font-family: inherit;
+            transition: color 0.2s;
+            border-bottom: 2px solid transparent;
+            margin-bottom: -1px;
+        }
+
+        .tab-btn:hover { color: var(--light-text); }
+
+        .tab-btn.active {
+            color: var(--primary-gold);
+            border-bottom-color: var(--primary-gold);
+        }
+
+        /* ---- Tab Panels ---- */
+        .tab-panel { display: none; }
+        .tab-panel.active { display: block; }
+
+        /* ---- Plan Row ---- */
+        .plan-row {
+            background: rgba(10, 14, 22, 0.5);
+            border: 1px solid rgba(201, 176, 55, 0.1);
+            border-radius: 12px;
+            margin-bottom: 0.5rem;
+            overflow: hidden;
+            transition: border-color 0.2s;
+        }
+
+        .plan-row:hover { border-color: rgba(201, 176, 55, 0.25); }
+
+        .plan-row-main {
+            display: flex;
+            align-items: center;
+            padding: 0.75rem 1rem;
+            gap: 0.75rem;
+            cursor: pointer;
+            user-select: none;
+            flex-wrap: nowrap;
+        }
+
+        .plan-ticker-icon {
+            width: 34px;
+            height: 34px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.6rem;
+            font-weight: 800;
+            letter-spacing: 0.02em;
+            flex-shrink: 0;
+            border: 1px solid rgba(255,255,255,0.08);
+        }
+
+        .plan-ticker-icon.spy  { background: rgba(179,161,125,0.15); color: var(--primary-gold); }
+        .plan-ticker-icon.tsla { background: rgba(255,102,102,0.12); color: #ff6666; }
+        .plan-ticker-icon.meta { background: rgba(91,158,255,0.12);  color: #5b9eff; }
+        .plan-ticker-icon.aapl { background: rgba(179,179,179,0.12); color: #b3b3b3; }
+        .plan-ticker-icon.nvda { background: rgba(143,219,47,0.12);  color: #8fdb2f; }
+        .plan-ticker-icon.amzn { background: rgba(255,170,51,0.12);  color: #ffaa33; }
+        .plan-ticker-icon.other { background: rgba(201,176,55,0.12); color: var(--primary-gold); }
+
+        .plan-info { flex: 0 0 auto; min-width: 56px; }
+        .plan-ticker-name { font-size: 0.88rem; font-weight: 700; color: var(--light-text); }
+        .plan-date { font-size: 0.7rem; color: var(--gray-text); }
+
+        .plan-prices {
+            display: flex;
+            align-items: center;
+            gap: 0.45rem;
+            flex: 1;
+            font-size: 0.8rem;
+            color: var(--gray-text);
+            min-width: 0;
+            overflow: hidden;
+        }
+
+        .plan-price-entry  { color: var(--light-text); font-weight: 600; white-space: nowrap; }
+        .plan-price-target { color: #4ade80; white-space: nowrap; }
+        .plan-price-stop   { color: var(--danger-red); white-space: nowrap; }
+        .plan-price-arrow  { color: rgba(255,255,255,0.2); font-size: 0.65rem; }
+
+        .plan-badge {
+            padding: 0.2rem 0.55rem;
+            border-radius: 20px;
+            font-size: 0.68rem;
+            font-weight: 700;
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+
+        .plan-badge.long  { background: rgba(74,222,128,0.12);  color: #4ade80; }
+        .plan-badge.short { background: rgba(239,68,68,0.12);   color: #ef4444; }
+        .plan-badge.call  { background: rgba(91,158,255,0.12);  color: #5b9eff; }
+        .plan-badge.put   { background: rgba(251,146,60,0.12);  color: #fb923c; }
+
+        .plan-status-badge {
+            padding: 0.2rem 0.55rem;
+            border-radius: 20px;
+            font-size: 0.68rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+
+        .plan-status-badge.active   { background: rgba(201,176,55,0.15);  color: var(--primary-gold); }
+        .plan-status-badge.watching { background: rgba(91,158,255,0.12);  color: #5b9eff; }
+        .plan-status-badge.closed   { background: rgba(107,114,128,0.2);  color: #9ca3af; }
+
+        .rr-badge {
+            padding: 0.2rem 0.6rem;
+            border-radius: 20px;
+            background: rgba(201,176,55,0.1);
+            color: var(--primary-gold);
+            font-size: 0.72rem;
+            font-weight: 700;
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+
+        .plan-chevron {
+            color: var(--gray-text);
+            font-size: 0.75rem;
+            transition: transform 0.2s;
+            flex-shrink: 0;
+            margin-left: auto;
+        }
+
+        .plan-row.expanded .plan-chevron { transform: rotate(180deg); }
+
+        /* ---- Plan Row Detail ---- */
+        .plan-row-detail {
+            display: none;
+            padding: 0 1rem 1rem;
+            border-top: 1px solid rgba(201, 176, 55, 0.08);
+        }
+
+        .plan-row.expanded .plan-row-detail { display: block; }
+
+        .plan-detail-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
+            gap: 0.75rem;
+            padding: 0.75rem 0;
+        }
+
+        .plan-detail-label {
+            font-size: 0.68rem;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: var(--gray-text);
+            margin-bottom: 0.2rem;
+        }
+
+        .plan-detail-value {
+            font-size: 0.92rem;
+            font-weight: 600;
+            color: var(--light-text);
+        }
+
+        .plan-detail-notes {
+            font-size: 0.82rem;
+            color: var(--gray-text);
+            line-height: 1.6;
+            padding: 0.5rem 0;
+            border-top: 1px solid rgba(255,255,255,0.04);
+            margin-top: 0.25rem;
+        }
+
+        .plan-detail-actions {
+            display: flex;
+            gap: 0.5rem;
+            margin-top: 0.75rem;
+            flex-wrap: wrap;
+        }
+
+        /* ---- Buttons ---- */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            padding: 0.6rem 1.2rem;
+            border-radius: 10px;
+            font-size: 0.88rem;
+            font-weight: 600;
+            font-family: inherit;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: none;
+            text-decoration: none;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary-gold), var(--secondary-gold));
+            color: #080B0F;
+        }
+
+        .btn-primary:hover { opacity: 0.9; transform: translateY(-1px); }
+
+        .btn-secondary {
+            background: rgba(255,255,255,0.06);
+            color: var(--gray-text);
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .btn-secondary:hover { background: rgba(255,255,255,0.1); color: var(--light-text); }
+
+        .btn-danger {
+            background: rgba(239,68,68,0.1);
+            color: #ef4444;
+            border: 1px solid rgba(239,68,68,0.2);
+        }
+
+        .btn-danger:hover { background: rgba(239,68,68,0.2); }
+
+        .btn-journal {
+            background: rgba(74,222,128,0.1);
+            color: #4ade80;
+            border: 1px solid rgba(74,222,128,0.2);
+        }
+
+        .btn-journal:hover { background: rgba(74,222,128,0.2); }
+
+        .btn-sm { padding: 0.38rem 0.8rem; font-size: 0.8rem; border-radius: 8px; }
+
+        /* ---- Empty State ---- */
+        .empty-state {
+            text-align: center;
+            padding: 3rem 1rem;
+            color: var(--gray-text);
+        }
+
+        .empty-state i {
+            font-size: 2.5rem;
+            opacity: 0.3;
+            margin-bottom: 0.75rem;
+            display: block;
+        }
+
+        .empty-state p { font-size: 0.9rem; }
+
+        /* ---- Modal ---- */
+        .modal {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.75);
+            z-index: 1000;
+            backdrop-filter: blur(6px);
+            overflow-y: auto;
+            padding: 2rem 1rem;
+        }
+
+        .modal.active { display: flex; align-items: flex-start; justify-content: center; }
+
+        .modal-content {
+            background: rgba(12, 16, 26, 0.98);
+            border: 1px solid rgba(201, 176, 55, 0.25);
+            border-radius: 20px;
+            padding: 2rem;
+            width: 100%;
+            max-width: 600px;
+            box-shadow: 0 24px 80px rgba(0,0,0,0.6);
+        }
+
+        .modal-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 1.5rem;
+        }
+
+        .modal-title {
+            font-size: 1.15rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--primary-gold), var(--secondary-gold));
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .close-modal {
+            background: rgba(255,255,255,0.06);
+            border: none;
+            color: var(--gray-text);
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+        }
+
+        .close-modal:hover { background: rgba(255,255,255,0.12); color: var(--light-text); }
+
+        /* ---- Form ---- */
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            margin-bottom: 1.25rem;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.35rem;
+        }
+
+        .form-group.full-width { grid-column: 1 / -1; }
+
+        .form-group label {
+            font-size: 0.78rem;
+            font-weight: 600;
+            color: var(--gray-text);
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            background: rgba(10, 14, 22, 0.8);
+            border: 1px solid rgba(201, 176, 55, 0.18);
+            border-radius: 10px;
+            padding: 0.6rem 0.9rem;
+            color: var(--light-text);
+            font-size: 0.9rem;
+            font-family: inherit;
+            transition: border-color 0.2s;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: var(--primary-gold);
+        }
+
+        .form-group textarea {
+            resize: vertical;
+            min-height: 70px;
+        }
+
+        /* ---- Live Calc Preview ---- */
+        .calc-preview {
+            background: rgba(201, 176, 55, 0.05);
+            border: 1px solid rgba(201, 176, 55, 0.18);
+            border-radius: 12px;
+            padding: 1rem 1.25rem;
+            margin-bottom: 1.25rem;
+        }
+
+        .calc-preview-title {
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: var(--primary-gold);
+            margin-bottom: 0.75rem;
+            font-weight: 600;
+        }
+
+        .calc-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 0.75rem;
+        }
+
+        .calc-item { text-align: center; }
+
+        .calc-label {
+            font-size: 0.65rem;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: var(--gray-text);
+            margin-bottom: 0.2rem;
+        }
+
+        .calc-value {
+            font-size: 0.95rem;
+            font-weight: 700;
+            color: var(--light-text);
+        }
+
+        .calc-value.rr-good { color: #4ade80; }
+        .calc-value.rr-bad  { color: var(--danger-red); }
+
+        /* ---- Responsive ---- */
+        @media (max-width: 768px) {
+            .planner-hero { margin-top: 90px; padding: 1.5rem 1rem 1rem; gap: 1rem; }
+            .planner-hero-center { display: none; }
+            .container { padding: 0 1rem 3rem; }
+            .stats-row { gap: 1.5rem; }
+            .form-grid { grid-template-columns: 1fr; }
+            .calc-grid { grid-template-columns: repeat(2, 1fr); }
+            .plan-prices { display: none; }
+            .modal-content { padding: 1.5rem 1rem; }
+        }
+
+        @media (max-width: 480px) {
+            .stats-row { gap: 1rem; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Navigation -->
+    <div id="nav-placeholder" data-nav-type="loggedin" data-base=""></div>
+    <script src="assets/js/nav-component.js"></script>
+
+    <!-- Planner Hero -->
+    <div class="planner-hero">
+        <div class="planner-hero-left">
+            <h1><i class="fas fa-crosshairs"></i> Trade Planner</h1>
+            <p>Plan your trades before you place them</p>
+        </div>
+        <div class="planner-hero-center">
+            <div class="hero-rr-label">Average R:R</div>
+            <div class="hero-rr-number" id="heroAvgRR">—</div>
+        </div>
+        <div class="planner-hero-right">
+            <button class="btn btn-primary" onclick="openPlanModal()">
+                <i class="fas fa-plus"></i> New Plan
+            </button>
+        </div>
+    </div>
+
+    <!-- Main Container -->
+    <div class="container">
+
+        <!-- Stats Row -->
+        <div class="stats-row">
+            <div class="stat-chip">
+                <span class="stat-chip-label">Total Plans</span>
+                <span class="stat-chip-value" id="totalPlans">0</span>
+            </div>
+            <div class="stat-chip">
+                <span class="stat-chip-label">Active</span>
+                <span class="stat-chip-value" id="activePlansCount">0</span>
+            </div>
+            <div class="stat-chip">
+                <span class="stat-chip-label">Hit Target</span>
+                <span class="stat-chip-value" id="hitTargetPct">—</span>
+            </div>
+            <div class="stat-chip">
+                <span class="stat-chip-label">Avg R:R</span>
+                <span class="stat-chip-value" id="avgRR">—</span>
+            </div>
+        </div>
+
+        <!-- Tab Bar -->
+        <div class="tab-bar">
+            <button class="tab-btn active" onclick="switchTab('active', this)">Active</button>
+            <button class="tab-btn" onclick="switchTab('watching', this)">Watching</button>
+            <button class="tab-btn" onclick="switchTab('closed', this)">Closed</button>
+        </div>
+
+        <!-- Active Tab -->
+        <div class="tab-panel active" id="tab-active">
+            <div id="activePlansContainer"></div>
+        </div>
+
+        <!-- Watching Tab -->
+        <div class="tab-panel" id="tab-watching">
+            <div id="watchingPlansContainer"></div>
+        </div>
+
+        <!-- Closed Tab -->
+        <div class="tab-panel" id="tab-closed">
+            <div id="closedPlansContainer"></div>
+        </div>
+
+    </div>
+
+    <!-- Create / Edit Plan Modal -->
+    <div class="modal" id="planModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">
+                    <i class="fas fa-crosshairs"></i>
+                    <span id="modalTitle">New Trade Plan</span>
+                </h2>
+                <button class="close-modal" onclick="closePlanModal()"><i class="fas fa-times"></i></button>
+            </div>
+            <form id="planForm">
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="planTradeType">Trade Type</label>
+                        <select id="planTradeType" required onchange="togglePlanTradeType()">
+                            <option value="Stock">Stock</option>
+                            <option value="Option">Option</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="planTicker">Ticker</label>
+                        <select id="planTicker" required>
+                            <option value="">Select Ticker</option>
+                            <option value="SPY">SPY</option>
+                            <option value="AAPL">AAPL</option>
+                            <option value="TSLA">TSLA</option>
+                            <option value="META">META</option>
+                            <option value="NVDA">NVDA</option>
+                            <option value="AMZN">AMZN</option>
+                            <option value="Other">Other</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="planDirection">Direction</label>
+                        <select id="planDirection" required>
+                            <option value="">Select Direction</option>
+                            <option value="Long">Long</option>
+                            <option value="Short">Short</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="planStatus">Status</label>
+                        <select id="planStatus" required>
+                            <option value="Watching">Watching</option>
+                            <option value="Active">Active</option>
+                            <option value="Closed">Closed</option>
+                        </select>
+                    </div>
+
+                    <!-- Option-specific fields (hidden for stocks) -->
+                    <div class="form-group option-only" style="display:none;">
+                        <label for="planOptionType">Option Type</label>
+                        <select id="planOptionType">
+                            <option value="">Select Type</option>
+                            <option value="Call">Call</option>
+                            <option value="Put">Put</option>
+                        </select>
+                    </div>
+                    <div class="form-group option-only" style="display:none;">
+                        <label for="planStrike">Strike Price ($)</label>
+                        <input type="number" id="planStrike" step="0.50" min="0" placeholder="e.g. 200">
+                    </div>
+                    <div class="form-group option-only" style="display:none;">
+                        <label for="planExpiry">Expiry Date</label>
+                        <input type="date" id="planExpiry">
+                    </div>
+                    <div class="form-group option-only" style="display:none;">
+                        <label for="planContracts">Contracts</label>
+                        <input type="number" id="planContracts" step="1" min="1" placeholder="e.g. 2" oninput="updateLiveCalc()">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="planEntry" id="planEntryLabel">Entry Price ($)</label>
+                        <input type="number" id="planEntry" step="0.01" min="0" required oninput="updateLiveCalc()">
+                    </div>
+                    <div class="form-group">
+                        <label for="planTarget" id="planTargetLabel">Target Price ($)</label>
+                        <input type="number" id="planTarget" step="0.01" min="0" required oninput="updateLiveCalc()">
+                    </div>
+                    <div class="form-group">
+                        <label for="planStop" id="planStopLabel">Stop Loss ($)</label>
+                        <input type="number" id="planStop" step="0.01" min="0" required oninput="updateLiveCalc()">
+                    </div>
+                    <div class="form-group">
+                        <label for="planOutcome">Outcome (if Closed)</label>
+                        <select id="planOutcome">
+                            <option value="">N/A</option>
+                            <option value="Hit Target">Hit Target</option>
+                            <option value="Stopped Out">Stopped Out</option>
+                            <option value="Manually Closed">Manually Closed</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="planAccountSize">Account Size ($)</label>
+                        <input type="number" id="planAccountSize" step="100" min="0" placeholder="e.g. 10000" oninput="updateLiveCalc()">
+                    </div>
+                    <div class="form-group">
+                        <label for="planRiskPct">Risk % (default 1%)</label>
+                        <input type="number" id="planRiskPct" step="0.1" min="0.1" max="100" value="1" oninput="updateLiveCalc()">
+                    </div>
+                    <div class="form-group full-width">
+                        <label for="planNotes">Notes / Thesis</label>
+                        <textarea id="planNotes" placeholder="Why are you taking this trade? What's your thesis?"></textarea>
+                    </div>
+                </div>
+
+                <!-- Live Calculations -->
+                <div class="calc-preview">
+                    <div class="calc-preview-title"><i class="fas fa-calculator"></i> Live Calculations</div>
+                    <div class="calc-grid">
+                        <div class="calc-item">
+                            <div class="calc-label">R:R Ratio</div>
+                            <div class="calc-value" id="calcRR">—</div>
+                        </div>
+                        <div class="calc-item">
+                            <div class="calc-label">Max Risk</div>
+                            <div class="calc-value" id="calcMaxRisk">—</div>
+                        </div>
+                        <div class="calc-item">
+                            <div class="calc-label" id="calcPosLabel">Position Size</div>
+                            <div class="calc-value" id="calcPositionSize">—</div>
+                        </div>
+                        <div class="calc-item">
+                            <div class="calc-label">Potential Profit</div>
+                            <div class="calc-value" id="calcPotentialProfit">—</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div style="display:flex;gap:0.75rem;align-items:center;">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save"></i> <span id="submitBtnText">Save Plan</span>
+                    </button>
+                    <button type="button" class="btn btn-secondary" onclick="resetPlanForm()">
+                        <i class="fas fa-redo"></i> Reset
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <div id="footer-placeholder" data-footer-type="standard-social" data-base=""></div>
+    <script src="assets/js/footer-component.js"></script>
+
+    <script type="module">
+        import { auth, db, onAuthStateChanged, doc, getDoc, updateDoc } from './assets/js/firebase-config.js';
+
+        let plans = [];
+        let editingPlanId = null;
+        let currentUserId = null;
+
+        const TICKER_COLORS = {
+            SPY: 'spy', TSLA: 'tsla', META: 'meta',
+            AAPL: 'aapl', NVDA: 'nvda', AMZN: 'amzn'
+        };
+
+        document.addEventListener('DOMContentLoaded', function () {
+            renderAllPlans();
+            updateStats();
+        });
+
+        /* ---- Trade Type Toggle ---- */
+        window.togglePlanTradeType = function () {
+            const isOption = document.getElementById('planTradeType').value === 'Option';
+            document.querySelectorAll('.option-only').forEach(el => {
+                el.style.display = isOption ? 'flex' : 'none';
+            });
+            document.getElementById('planEntryLabel').textContent  = isOption ? 'Entry Premium ($)' : 'Entry Price ($)';
+            document.getElementById('planTargetLabel').textContent = isOption ? 'Target Premium ($)' : 'Target Price ($)';
+            document.getElementById('planStopLabel').textContent   = isOption ? 'Stop Premium ($)'  : 'Stop Loss ($)';
+            document.getElementById('calcPosLabel').textContent    = isOption ? 'Contracts'         : 'Position Size';
+            updateLiveCalc();
+        };
+
+        /* ---- Live Calculations ---- */
+        window.updateLiveCalc = function () {
+            const entry       = parseFloat(document.getElementById('planEntry').value)       || 0;
+            const target      = parseFloat(document.getElementById('planTarget').value)      || 0;
+            const stop        = parseFloat(document.getElementById('planStop').value)        || 0;
+            const accountSize = parseFloat(document.getElementById('planAccountSize').value) || 0;
+            const riskPct     = parseFloat(document.getElementById('planRiskPct').value)     || 1;
+            const isOption    = document.getElementById('planTradeType').value === 'Option';
+
+            const rrEl     = document.getElementById('calcRR');
+            const riskEl   = document.getElementById('calcMaxRisk');
+            const posEl    = document.getElementById('calcPositionSize');
+            const profitEl = document.getElementById('calcPotentialProfit');
+
+            if (entry > 0 && target > 0 && stop > 0 && entry !== stop && target !== stop) {
+                const reward = Math.abs(target - entry);
+                const risk   = Math.abs(entry - stop);
+
+                if (reward > 0 && risk > 0) {
+                    const rr = (reward / risk).toFixed(2);
+                    rrEl.textContent  = rr + ':1';
+                    rrEl.className    = 'calc-value ' + (parseFloat(rr) >= 2 ? 'rr-good' : 'rr-bad');
+                } else {
+                    rrEl.textContent = 'N/A';
+                    rrEl.className   = 'calc-value';
+                }
+
+                if (accountSize > 0) {
+                    const maxRisk = accountSize * riskPct / 100;
+                    riskEl.textContent = '$' + maxRisk.toFixed(2);
+
+                    if (isOption) {
+                        // Options: risk per contract = risk-per-share * 100
+                        const riskPerContract = risk * 100;
+                        const contracts       = riskPerContract > 0 ? Math.floor(maxRisk / riskPerContract) : 0;
+                        const potProfit       = reward * contracts * 100;
+                        posEl.textContent    = contracts > 0 ? contracts + ' contracts' : '—';
+                        profitEl.textContent = potProfit > 0 ? '$' + potProfit.toFixed(2) : '—';
+                    } else {
+                        const positionSize   = risk > 0 ? Math.floor(maxRisk / risk) : 0;
+                        const potProfit      = reward * positionSize;
+                        posEl.textContent    = positionSize > 0 ? positionSize + ' shares' : '—';
+                        profitEl.textContent = potProfit > 0 ? '$' + potProfit.toFixed(2) : '—';
+                    }
+                } else {
+                    riskEl.textContent   = '—';
+                    posEl.textContent    = '—';
+                    profitEl.textContent = '—';
+                }
+            } else {
+                rrEl.textContent     = '—';
+                rrEl.className       = 'calc-value';
+                riskEl.textContent   = '—';
+                posEl.textContent    = '—';
+                profitEl.textContent = '—';
+            }
+        };
+
+        /* ---- Form Submit ---- */
+        document.getElementById('planForm').addEventListener('submit', async function (e) {
+            e.preventDefault();
+
+            const entry       = parseFloat(document.getElementById('planEntry').value);
+            const target      = parseFloat(document.getElementById('planTarget').value);
+            const stop        = parseFloat(document.getElementById('planStop').value);
+            const accountSize = parseFloat(document.getElementById('planAccountSize').value) || 0;
+            const riskPct     = parseFloat(document.getElementById('planRiskPct').value) || 1;
+            const isOption    = document.getElementById('planTradeType').value === 'Option';
+
+            const reward   = Math.abs(target - entry);
+            const risk     = Math.abs(entry - stop);
+            const rr       = (reward > 0 && risk > 0) ? parseFloat((reward / risk).toFixed(2)) : 0;
+            const maxRisk  = accountSize > 0 ? parseFloat((accountSize * riskPct / 100).toFixed(2)) : 0;
+
+            let positionSize, potProfit;
+            if (isOption) {
+                const riskPerContract = risk * 100;
+                positionSize = (maxRisk > 0 && riskPerContract > 0) ? Math.floor(maxRisk / riskPerContract) : 0;
+                potProfit    = positionSize > 0 ? parseFloat((reward * positionSize * 100).toFixed(2)) : 0;
+            } else {
+                positionSize = (maxRisk > 0 && risk > 0) ? Math.floor(maxRisk / risk) : 0;
+                potProfit    = positionSize > 0 ? parseFloat((reward * positionSize).toFixed(2)) : 0;
+            }
+
+            const plan = {
+                id:              editingPlanId || Date.now().toString(),
+                tradeType:       document.getElementById('planTradeType').value,
+                ticker:          document.getElementById('planTicker').value,
+                direction:       document.getElementById('planDirection').value,
+                optionType:      isOption ? (document.getElementById('planOptionType').value || null) : null,
+                strikePrice:     isOption ? (parseFloat(document.getElementById('planStrike').value) || null) : null,
+                expiryDate:      isOption ? (document.getElementById('planExpiry').value || null) : null,
+                contracts:       isOption ? (parseInt(document.getElementById('planContracts').value) || null) : null,
+                status:          document.getElementById('planStatus').value,
+                outcome:         document.getElementById('planOutcome').value || null,
+                entryPrice:      entry,
+                targetPrice:     target,
+                stopPrice:       stop,
+                accountSize:     accountSize,
+                riskPct:         riskPct,
+                rr:              rr,
+                maxRisk:         maxRisk,
+                positionSize:    positionSize,
+                potentialProfit: potProfit,
+                notes:           document.getElementById('planNotes').value,
+                createdAt:       editingPlanId
+                                    ? (plans.find(p => p.id === editingPlanId)?.createdAt || new Date().toISOString())
+                                    : new Date().toISOString()
+            };
+
+            if (editingPlanId) {
+                const idx = plans.findIndex(p => p.id === editingPlanId);
+                if (idx !== -1) plans[idx] = plan;
+                editingPlanId = null;
+            } else {
+                plans.unshift(plan);
+            }
+
+            await savePlans();
+            resetPlanForm();
+            closePlanModal();
+            renderAllPlans();
+            updateStats();
+        });
+
+        /* ---- Firestore Persistence ---- */
+        async function savePlans() {
+            localStorage.setItem('bcs_trade_plans', JSON.stringify(plans));
+            if (!currentUserId) return;
+            try {
+                const userRef = doc(db, 'users', currentUserId);
+                await updateDoc(userRef, {
+                    tradePlans:        plans,
+                    tradePlansUpdated: new Date().toISOString()
+                });
+            } catch (err) {
+                console.error('Error saving plans:', err);
+            }
+        }
+
+        async function loadPlans() {
+            if (!currentUserId) return;
+            try {
+                const userRef = doc(db, 'users', currentUserId);
+                const userDoc = await getDoc(userRef);
+
+                if (userDoc.exists() && userDoc.data().tradePlans) {
+                    plans = userDoc.data().tradePlans;
+                } else {
+                    plans = JSON.parse(localStorage.getItem('bcs_trade_plans') || '[]');
+                    if (plans.length > 0) await savePlans();
+                }
+            } catch (err) {
+                console.error('Error loading plans:', err);
+                plans = JSON.parse(localStorage.getItem('bcs_trade_plans') || '[]');
+            }
+            renderAllPlans();
+            updateStats();
+        }
+
+        /* ---- Form Helpers ---- */
+        function resetPlanForm() {
+            document.getElementById('planForm').reset();
+            document.getElementById('planRiskPct').value  = '1';
+            document.getElementById('planTradeType').value = 'Stock';
+            togglePlanTradeType();
+            editingPlanId = null;
+            document.getElementById('submitBtnText').textContent = 'Save Plan';
+            document.getElementById('modalTitle').textContent    = 'New Trade Plan';
+        }
+        window.resetPlanForm = resetPlanForm;
+
+        /* ---- CRUD Actions ---- */
+        window.editPlan = function (id) {
+            const plan = plans.find(p => p.id === id);
+            if (!plan) return;
+
+            document.getElementById('planTradeType').value   = plan.tradeType || 'Stock';
+            togglePlanTradeType();
+            document.getElementById('planTicker').value      = plan.ticker;
+            document.getElementById('planDirection').value   = plan.direction;
+            document.getElementById('planStatus').value      = plan.status;
+            document.getElementById('planOutcome').value     = plan.outcome || '';
+            document.getElementById('planEntry').value       = plan.entryPrice;
+            document.getElementById('planTarget').value      = plan.targetPrice;
+            document.getElementById('planStop').value        = plan.stopPrice;
+            document.getElementById('planAccountSize').value = plan.accountSize || '';
+            document.getElementById('planRiskPct').value     = plan.riskPct || 1;
+            document.getElementById('planNotes').value       = plan.notes || '';
+
+            if (plan.tradeType === 'Option') {
+                document.getElementById('planOptionType').value = plan.optionType  || '';
+                document.getElementById('planStrike').value     = plan.strikePrice || '';
+                document.getElementById('planExpiry').value     = plan.expiryDate  || '';
+                document.getElementById('planContracts').value  = plan.contracts   || '';
+            }
+
+            editingPlanId = id;
+            document.getElementById('submitBtnText').textContent = 'Update Plan';
+            document.getElementById('modalTitle').textContent    = 'Edit Trade Plan';
+            updateLiveCalc();
+            openPlanModal();
+        };
+
+        window.deletePlan = async function (id) {
+            if (confirm('Delete this trade plan?')) {
+                plans = plans.filter(p => p.id !== id);
+                await savePlans();
+                renderAllPlans();
+                updateStats();
+            }
+        };
+
+        /* ---- Push to Journal ---- */
+        window.pushToJournal = function (id) {
+            const plan = plans.find(p => p.id === id);
+            if (!plan) return;
+
+            const pending = {
+                ticker:     plan.ticker,
+                tradeType:  plan.tradeType  || 'Stock',
+                direction:  plan.direction,
+                optionType: plan.optionType || null,
+                entryPrice: plan.entryPrice,
+                notes:      plan.notes || ''
+            };
+
+            localStorage.setItem('bcs_pending_journal_trade', JSON.stringify(pending));
+            window.location.href = 'trading-journal.html';
+        };
+
+        /* ---- Modal Controls ---- */
+        window.openPlanModal = function () {
+            document.getElementById('planModal').classList.add('active');
+            document.body.style.overflow = 'hidden';
+        };
+
+        window.closePlanModal = function () {
+            document.getElementById('planModal').classList.remove('active');
+            document.body.style.overflow = '';
+            resetPlanForm();
+        };
+
+        document.getElementById('planModal').addEventListener('click', function (e) {
+            if (e.target === this) closePlanModal();
+        });
+
+        /* ---- Tab Switching ---- */
+        window.switchTab = function (tabName, btnEl) {
+            document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            document.getElementById('tab-' + tabName).classList.add('active');
+            if (btnEl) btnEl.classList.add('active');
+        };
+
+        /* ---- Render Plans ---- */
+        function renderAllPlans() {
+            renderPlansByStatus('Active',   'activePlansContainer',   false);
+            renderPlansByStatus('Watching', 'watchingPlansContainer', false);
+            renderPlansByStatus('Closed',   'closedPlansContainer',   true);
+        }
+
+        function renderPlansByStatus(status, containerId, showPushBtn) {
+            const container = document.getElementById(containerId);
+            const filtered  = plans.filter(p => p.status === status);
+
+            if (filtered.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <i class="fas fa-clipboard-list"></i>
+                        <p>No ${status.toLowerCase()} plans yet. Click <strong>New Plan</strong> to get started!</p>
+                    </div>`;
+                return;
+            }
+
+            const rows = filtered.map(plan => {
+                const colorClass = TICKER_COLORS[plan.ticker] || 'other';
+                const dirClass   = plan.direction.toLowerCase();
+                const statClass  = plan.status.toLowerCase();
+                const dateStr    = new Date(plan.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+                const rrStr      = plan.rr > 0 ? plan.rr + ':1' : '—';
+
+                const isOpt      = plan.tradeType === 'Option';
+                const posLabel   = isOpt ? 'Contracts' : 'Position Size';
+                const posValue   = isOpt
+                    ? (plan.positionSize > 0 ? plan.positionSize + ' contracts' : null)
+                    : (plan.positionSize > 0 ? plan.positionSize + ' shares' : null);
+
+                const detailItems = [
+                    `<div><div class="plan-detail-label">Type</div><div class="plan-detail-value">${plan.tradeType || 'Stock'}</div></div>`,
+                    isOpt && plan.optionType  ? `<div><div class="plan-detail-label">Option Type</div><div class="plan-detail-value">${plan.optionType}</div></div>`  : '',
+                    isOpt && plan.strikePrice ? `<div><div class="plan-detail-label">Strike</div><div class="plan-detail-value">$${plan.strikePrice}</div></div>`        : '',
+                    isOpt && plan.expiryDate  ? `<div><div class="plan-detail-label">Expiry</div><div class="plan-detail-value">${plan.expiryDate}</div></div>`           : '',
+                    plan.rr > 0          ? `<div><div class="plan-detail-label">R:R Ratio</div><div class="plan-detail-value" style="color:${plan.rr >= 2 ? '#4ade80' : 'var(--primary-gold)'}">${plan.rr}:1</div></div>` : '',
+                    plan.accountSize > 0 ? `<div><div class="plan-detail-label">Account Size</div><div class="plan-detail-value">$${plan.accountSize.toLocaleString()}</div></div>` : '',
+                    plan.riskPct         ? `<div><div class="plan-detail-label">Risk %</div><div class="plan-detail-value">${plan.riskPct}%</div></div>` : '',
+                    plan.maxRisk > 0     ? `<div><div class="plan-detail-label">Max Risk</div><div class="plan-detail-value" style="color:#ef4444">$${plan.maxRisk.toFixed(2)}</div></div>` : '',
+                    posValue             ? `<div><div class="plan-detail-label">${posLabel}</div><div class="plan-detail-value">${posValue}</div></div>` : '',
+                    plan.potentialProfit > 0 ? `<div><div class="plan-detail-label">Potential Profit</div><div class="plan-detail-value" style="color:#4ade80">$${plan.potentialProfit.toFixed(2)}</div></div>` : '',
+                    plan.outcome         ? `<div><div class="plan-detail-label">Outcome</div><div class="plan-detail-value">${plan.outcome}</div></div>` : ''
+                ].filter(Boolean).join('');
+
+                const notesHTML  = plan.notes ? `<div class="plan-detail-notes"><strong>Notes:</strong> ${plan.notes}</div>` : '';
+                const pushBtnHTML = showPushBtn
+                    ? `<button class="btn btn-journal btn-sm" onclick="pushToJournal('${plan.id}')"><i class="fas fa-arrow-right"></i> Push to Journal</button>`
+                    : '';
+
+                return `
+                <div class="plan-row" id="plan-${plan.id}">
+                    <div class="plan-row-main" onclick="togglePlanRow('${plan.id}')">
+                        <div class="plan-ticker-icon ${colorClass}">${plan.ticker.slice(0, 4)}</div>
+                        <div class="plan-info">
+                            <div class="plan-ticker-name">${plan.ticker}</div>
+                            <div class="plan-date">${dateStr}</div>
+                        </div>
+                        <span class="plan-badge ${dirClass}">${plan.direction}</span>
+                        <div class="plan-prices">
+                            <span class="plan-price-entry">$${plan.entryPrice.toFixed(2)}</span>
+                            <span class="plan-price-arrow">&#8594;</span>
+                            <span class="plan-price-target">$${plan.targetPrice.toFixed(2)}</span>
+                            <span class="plan-price-arrow">&#8594;</span>
+                            <span class="plan-price-stop">$${plan.stopPrice.toFixed(2)}</span>
+                        </div>
+                        <span class="rr-badge">R:R ${rrStr}</span>
+                        <span class="plan-status-badge ${statClass}">${plan.status}</span>
+                        <i class="fas fa-chevron-down plan-chevron"></i>
+                    </div>
+                    <div class="plan-row-detail">
+                        <div class="plan-detail-grid">${detailItems}</div>
+                        ${notesHTML}
+                        <div class="plan-detail-actions">
+                            <button class="btn btn-secondary btn-sm" onclick="editPlan('${plan.id}')">
+                                <i class="fas fa-edit"></i> Edit
+                            </button>
+                            <button class="btn btn-danger btn-sm" onclick="deletePlan('${plan.id}')">
+                                <i class="fas fa-trash"></i> Delete
+                            </button>
+                            ${pushBtnHTML}
+                        </div>
+                    </div>
+                </div>`;
+            }).join('');
+
+            container.innerHTML = rows;
+        }
+
+        window.togglePlanRow = function (id) {
+            const row = document.getElementById('plan-' + id);
+            if (row) row.classList.toggle('expanded');
+        };
+
+        /* ---- Stats ---- */
+        function updateStats() {
+            const total    = plans.length;
+            const active   = plans.filter(p => p.status === 'Active').length;
+            const closed   = plans.filter(p => p.status === 'Closed');
+            const hitCount = closed.filter(p => p.outcome === 'Hit Target').length;
+            const hitPct   = closed.length > 0 ? ((hitCount / closed.length) * 100).toFixed(0) + '%' : '—';
+
+            const plansWithRR = plans.filter(p => p.rr > 0);
+            const avgRRVal    = plansWithRR.length > 0
+                ? (plansWithRR.reduce((s, p) => s + p.rr, 0) / plansWithRR.length).toFixed(2)
+                : null;
+
+            document.getElementById('totalPlans').textContent      = total;
+            document.getElementById('activePlansCount').textContent = active;
+            document.getElementById('hitTargetPct').textContent     = hitPct;
+            document.getElementById('avgRR').textContent            = avgRRVal ? avgRRVal + ':1' : '—';
+
+            const heroEl = document.getElementById('heroAvgRR');
+            if (avgRRVal) {
+                heroEl.textContent = avgRRVal + ':1';
+                heroEl.className   = 'hero-rr-number' + (parseFloat(avgRRVal) >= 2 ? ' good' : '');
+            } else {
+                heroEl.textContent = '—';
+                heroEl.className   = 'hero-rr-number';
+            }
+        }
+
+        /* ---- Auth ---- */
+        window.logout = async function () {
+            try {
+                await auth.signOut();
+                localStorage.clear();
+                sessionStorage.clear();
+                window.location.href = 'login.html';
+            } catch (err) {
+                console.error('Logout error:', err);
+            }
+        };
+
+        onAuthStateChanged(auth, async (user) => {
+            if (!user) {
+                window.location.href = 'login.html';
+            } else {
+                currentUserId = user.uid;
+                await loadPlans();
+                updateAuthButton();
+            }
+        });
+
+        function updateAuthButton() {
+            const authButton = document.getElementById('authButton');
+            if (authButton && authButton.parentElement) {
+                const logoutBtn     = document.createElement('button');
+                logoutBtn.className = 'logout-btn';
+                logoutBtn.innerHTML = '<i class="fas fa-sign-out-alt"></i> Logout';
+                logoutBtn.onclick   = window.logout;
+                authButton.parentElement.replaceChild(logoutBtn, authButton);
+            }
+        }
+    </script>
+</body>
+</html>

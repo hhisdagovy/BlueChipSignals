@@ -170,9 +170,10 @@
                 '<span class="bar"></span>' +
             '</button>' +
             '<ul class="nav-links">' +
-                '<li><a href="' + base + 'contact.html">Contact</a></li>' +
+                '<li><a href="' + base + 'trading-journal.html">JOURNAL</a></li>' +
+                '<li><a href="' + base + 'trade-planner.html">PLANNER</a></li>' +
+                '<li><a href="' + base + 'contact.html">CONTACT</a></li>' +
                 '<li><a href="' + base + 'faq.html">FAQ</a></li>' +
-                '<li><a href="' + base + 'about.html">About Us</a></li>' +
                 '<li>' +
                     '<a href="#" class="login-btn" id="authButton" ' +
                        'onclick="if(window.logout){logout();}return false;" ' +
@@ -185,7 +186,7 @@
     }
 
     /* Internal nav — used by account.html.
-       Simple links to Dashboard, Account, Journal + Logout. */
+       Simple links to Dashboard, Journal, Planner, Account + Logout. */
     function internalNav() {
         return '<div class="nav-container">' +
             '<div class="logo">' +
@@ -197,8 +198,10 @@
                 '<span class="bar"></span>' +
             '</button>' +
             '<ul class="nav-links">' +
-                '<li><a href="' + base + 'dashboard.html"><i class="fas fa-tachometer-alt"></i> Dashboard</a></li>' +
-                '<li><a href="' + base + 'account.html"><i class="fas fa-user-cog"></i> Account</a></li>' +
+                '<li><a href="' + base + 'dashboard.html">DASHBOARD</a></li>' +
+                '<li><a href="' + base + 'trading-journal.html">JOURNAL</a></li>' +
+                '<li><a href="' + base + 'trade-planner.html">PLANNER</a></li>' +
+                '<li><a href="' + base + 'account.html">ACCOUNT</a></li>' +
                 '<li>' +
                     '<button class="logout-btn" onclick="logout()">' +
                         '<i class="fas fa-sign-out-alt"></i> Logout' +

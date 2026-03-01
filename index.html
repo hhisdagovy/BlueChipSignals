@@ -34,7 +34,7 @@
 
         /* Hero Section */
         .hero {
-            margin-top: 94px;
+            margin-top: 0;
             padding: 4rem 2rem;
             min-height: 80vh;
             display: flex;
@@ -573,13 +573,39 @@
             border-top: 1px solid rgba(201, 176, 55, 0.2);
         }
 
+        /* ---- Index Ticker Bar ---- */
+        .index-ticker-wrap {
+            position: relative;
+            width: 100%;
+            margin-top: 86px;
+            overflow: hidden;
+            background: rgba(8,11,15,0.95);
+            border-bottom: 1px solid rgba(201,176,55,0.12);
+            border-top: 1px solid rgba(201,176,55,0.08);
+            padding: 0.4rem 0;
+            -webkit-mask-image: linear-gradient(to right, transparent 0%, black 6%, black 94%, transparent 100%);
+            mask-image:         linear-gradient(to right, transparent 0%, black 6%, black 94%, transparent 100%);
+        }
+        .index-ticker-wrap .ticker-track { display:flex; width:max-content; animation: ticker-scroll 48s linear infinite; }
+        .index-ticker-wrap .ticker-track:hover { animation-play-state: paused; }
+        @keyframes ticker-scroll { from{transform:translateX(0)} to{transform:translateX(-50%)} }
+        .index-ticker-item { display:inline-flex; align-items:center; gap:0.45rem; padding:0.25rem 1.5rem; font-size:0.78rem; font-weight:600; white-space:nowrap; border-right:1px solid rgba(255,255,255,0.06); text-decoration:none; color:inherit; }
+        .index-ticker-item:hover { background:rgba(201,176,55,0.06); border-radius:6px; }
+        .index-ticker-dot    { width:5px; height:5px; border-radius:50%; flex-shrink:0; }
+        .index-ticker-sym    { color:#fff; letter-spacing:0.04em; }
+        .index-ticker-price  { color:#A0A0A0; }
+        .index-ticker-change.up   { color:#4ade80; }
+        .index-ticker-change.down { color:#ef4444; }
+        .index-ticker-dot.up      { background:#4ade80; }
+        .index-ticker-dot.down    { background:#ef4444; }
+
         /* Responsive */
         @media (max-width: 768px) {
             /* Mobile refinements: faster reveals, no snap, ensure visibility */
             body { scroll-snap-type: none; }
             .panel { min-height: auto; padding: 2.25rem 0; }
             .panel-card { opacity: 1; transform: none; transition-duration: 300ms; }
-            .hero { padding: 2.2rem 1.25rem; }
+            .hero { padding: 2.2rem 1.25rem; margin-top: 0; }
             .hero-container {
                 grid-template-columns: 1fr;
                 text-align: center;
@@ -973,6 +999,13 @@
     <!-- Navigation -->
     <div id="nav-placeholder" data-nav-type="public"></div>
     <script src="assets/js/nav-component.js"></script>
+
+    <!-- Live Ticker Bar -->
+    <div class="index-ticker-wrap">
+        <div class="ticker-track" id="indexTickerTrack">
+            <div class="index-ticker-item"><span class="index-ticker-dot"></span><span class="index-ticker-sym">Loading...</span></div>
+        </div>
+    </div>
 
     <!-- Hero Section -->
     <section class="hero panel">
@@ -1657,6 +1690,66 @@
         import { redirectIfLoggedIn, updateAuthButton } from './assets/js/firebase-auth-check.js';
         redirectIfLoggedIn('dashboard.html');
         updateAuthButton('login.html');
+    </script>
+
+    <!-- Live Index Ticker Bar -->
+    <script>
+    (function () {
+        var FINNHUB_KEY = 'd0lumg9r01qpni31glsgd0lumg9r01qpni31glt0';
+        var TICKERS     = ['SPY', 'TSLA', 'META', 'AAPL', 'NVDA', 'AMZN', 'GOOGL', 'MSFT', 'AVGO', 'BRK.B'];
+        var GUIDE_PATHS = {
+            SPY:   'pages/bots/spy-bot.html',
+            TSLA:  'pages/bots/tsla-bot.html',
+            META:  'pages/bots/meta-bot.html',
+            AAPL:  'pages/bots/aapl-bot.html',
+            NVDA:  'pages/bots/nvda-bot.html',
+            AMZN:  'pages/bots/amzn-bot.html',
+            GOOGL: '#',
+            MSFT:  '#',
+            AVGO:  '#',
+            'BRK.B': '#'
+        };
+
+        function fetchQuotes() {
+            return Promise.all(
+                TICKERS.map(function (sym) {
+                    return fetch('https://finnhub.io/api/v1/quote?symbol=' + sym + '&token=' + FINNHUB_KEY)
+                        .then(function (r) { return r.json(); })
+                        .then(function (d) { return { sym: sym, price: d.c, change: d.dp }; })
+                        .catch(function ()  { return { sym: sym, price: null, change: null }; });
+                })
+            );
+        }
+
+        function buildHTML(quotes) {
+            var items = quotes.map(function (q) {
+                var dir   = (q.change == null || q.change >= 0) ? 'up' : 'down';
+                var sign  = (q.change != null && q.change >= 0) ? '+' : '';
+                var price = q.price  != null ? '$' + q.price.toFixed(2)         : '—';
+                var chg   = q.change != null ? sign + q.change.toFixed(2) + '%' : '—';
+                var href  = GUIDE_PATHS[q.sym] || '#';
+                return '<a class="index-ticker-item" href="' + href + '">' +
+                    '<span class="index-ticker-dot ' + dir + '"></span>' +
+                    '<span class="index-ticker-sym">'                    + q.sym  + '</span>' +
+                    '<span class="index-ticker-price">'                  + price  + '</span>' +
+                    '<span class="index-ticker-change ' + dir + '">'     + chg    + '</span>' +
+                '</a>';
+            }).join('');
+            return items + items;
+        }
+
+        function refresh() {
+            fetchQuotes().then(function (quotes) {
+                var track = document.getElementById('indexTickerTrack');
+                if (track) track.innerHTML = buildHTML(quotes);
+            });
+        }
+
+        document.addEventListener('DOMContentLoaded', function () {
+            refresh();
+            setInterval(refresh, 60000);
+        });
+    })();
     </script>
 </body>
 </html>

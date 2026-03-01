@@ -8,6 +8,8 @@
     <link rel="stylesheet" href="assets/css/global.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
+        body { overflow-x: hidden; }
+
         .main-content {
             margin-top: 110px;
             padding: 0 2rem 2rem;
@@ -80,7 +82,7 @@
         .bento-card-title i { font-size: 0.95rem; }
 
         /* ---- Stock table ---- */
-        .card-stocks { grid-column: 1; grid-row: 1; }
+        .card-stocks { grid-column: 1; grid-row: 1; overflow: hidden; }
 
         .stock-row {
             display: flex;
@@ -168,13 +170,13 @@
         /* ---- Journal card ---- */
         .card-journal {
             grid-column: 2;
-            grid-row: 1 / 3;
+            grid-row: 1;
             display: flex;
             flex-direction: column;
             align-items: center;
             text-align: center;
             justify-content: center;
-            gap: 1rem;
+            gap: 0.85rem;
         }
 
         .journal-icon {
@@ -234,10 +236,126 @@
             box-shadow: 0 6px 20px rgba(201, 176, 55, 0.4);
         }
 
+        /* ---- Planner card ---- */
+        .card-planner {
+            grid-column: 2;
+            grid-row: 2;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            justify-content: center;
+            gap: 0.85rem;
+        }
+
+        .planner-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            background: linear-gradient(135deg, #D4AF37, #f4d03f);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            color: #0a0a0a;
+        }
+
+        .planner-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.3rem;
+            background: linear-gradient(135deg, #D4AF37, #f4d03f);
+            color: #0a0a0a;
+            padding: 0.25rem 0.65rem;
+            border-radius: 12px;
+            font-size: 0.7rem;
+            font-weight: 700;
+        }
+
+        .card-planner h3 {
+            font-size: 1.05rem;
+            font-weight: 700;
+            color: var(--light-text);
+            margin: 0;
+        }
+
+        .card-planner .planner-desc {
+            font-size: 0.82rem;
+            color: var(--gray-text);
+            line-height: 1.5;
+        }
+
+        .planner-open-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            padding: 0.55rem 1.4rem;
+            border-radius: 50px;
+            background: linear-gradient(135deg, var(--primary-gold), var(--secondary-gold));
+            color: var(--darker-bg);
+            font-weight: 700;
+            font-size: 0.85rem;
+            text-decoration: none;
+            transition: transform 0.2s, box-shadow 0.2s;
+            box-shadow: 0 4px 14px rgba(201, 176, 55, 0.25);
+        }
+
+        .planner-open-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(201, 176, 55, 0.4);
+        }
+
+        /* ---- Live ticker strip ---- */
+        .ticker-strip {
+            overflow: hidden;
+            margin-bottom: 1rem;
+            -webkit-mask-image: linear-gradient(to right, transparent 0%, black 6%, black 94%, transparent 100%);
+            mask-image: linear-gradient(to right, transparent 0%, black 6%, black 94%, transparent 100%);
+            border-top: 1px solid rgba(201, 176, 55, 0.1);
+            border-bottom: 1px solid rgba(201, 176, 55, 0.1);
+            padding: 0.4rem 0;
+        }
+
+        .ticker-track {
+            display: flex;
+            gap: 0;
+            width: max-content;
+            animation: ticker-scroll 48s linear infinite;
+        }
+
+        .ticker-track:hover { animation-play-state: paused; }
+
+        @keyframes ticker-scroll {
+            from { transform: translateX(0); }
+            to   { transform: translateX(-50%); }
+        }
+
+        .ticker-item {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.45rem;
+            padding: 0 1.5rem;
+            font-size: 0.78rem;
+            font-weight: 600;
+            white-space: nowrap;
+            border-right: 1px solid rgba(255, 255, 255, 0.06);
+        }
+
+        .ticker-dot { width: 5px; height: 5px; border-radius: 50%; flex-shrink: 0; }
+        .ticker-sym { color: var(--light-text); letter-spacing: 0.04em; }
+        .ticker-price { color: var(--gray-text); }
+        .ticker-change.up   { color: #4ade80; }
+        .ticker-change.down { color: #ef4444; }
+        .ticker-dot.up   { background: #4ade80; }
+        .ticker-dot.down { background: #ef4444; }
+        a.ticker-item { text-decoration: none; }
+        a.ticker-item:hover { background: rgba(201,176,55,0.06); border-radius: 6px; }
+
         /* ---- Quick links (slim strip) ---- */
         .card-links {
             grid-column: 1;
             grid-row: 2;
+            align-self: start;
             padding: 0.9rem 1.2rem;
             background: rgba(10, 14, 22, 0.5);
             border-color: rgba(201, 176, 55, 0.1);
@@ -313,8 +431,9 @@
                 grid-template-rows: auto;
             }
 
-            .card-stocks { grid-column: 1; grid-row: auto; }
+            .card-stocks  { grid-column: 1; grid-row: auto; }
             .card-journal { grid-column: 1; grid-row: auto; padding: 2rem 1.5rem; }
+            .card-planner { grid-column: 1; grid-row: auto; padding: 2rem 1.5rem; }
             .card-links   { grid-column: 1; grid-row: auto; }
 
             .stock-row { flex-wrap: wrap; }
@@ -347,6 +466,16 @@
             <!-- Stock Channels Table -->
             <div class="bento-card card-stocks">
                 <div class="bento-card-title"><i class="fas fa-chart-line"></i> Your Signal Channels</div>
+
+                <!-- Live Ticker Strip -->
+                <div class="ticker-strip">
+                    <div class="ticker-track" id="tickerTrack">
+                        <div class="ticker-item">
+                            <span class="ticker-dot"></span>
+                            <span class="ticker-sym">Loading...</span>
+                        </div>
+                    </div>
+                </div>
 
                 <div class="stock-row">
                     <div class="stock-ticker-icon" style="background:rgba(179,161,125,0.15);color:var(--primary-gold);">SPY</div>
@@ -414,6 +543,17 @@
                 <a href="trading-journal.html" class="journal-open-btn">Open Journal <i class="fas fa-arrow-right"></i></a>
             </div>
 
+            <!-- Trade Planner -->
+            <div class="bento-card card-planner">
+                <div class="planner-icon"><i class="fas fa-crosshairs"></i></div>
+                <div>
+                    <h3>Trade Planner</h3>
+                    <span class="planner-badge"><i class="fas fa-star"></i> New Feature</span>
+                </div>
+                <p class="planner-desc">Plan before you trade. Calculate R:R, position size &amp; max risk.</p>
+                <a href="trade-planner.html" class="planner-open-btn">Open Planner <i class="fas fa-arrow-right"></i></a>
+            </div>
+
             <!-- Quick Links -->
             <div class="bento-card card-links">
                 <div class="bento-card-title"><i class="fas fa-link"></i> Quick Links</div>
@@ -445,6 +585,66 @@
     <!-- Footer -->
     <div id="footer-placeholder" data-footer-type="standard-social" data-base=""></div>
     <script src="assets/js/footer-component.js"></script>
+
+    <!-- Live Ticker Bar -->
+    <script>
+    (function () {
+        const FINNHUB_KEY = 'd0lumg9r01qpni31glsgd0lumg9r01qpni31glt0';
+        const TICKERS     = ['SPY', 'TSLA', 'META', 'AAPL', 'NVDA', 'AMZN', 'GOOGL', 'MSFT', 'AVGO', 'BRK.B'];
+        const GUIDE_PATHS = {
+            SPY:   'pages/bots/spy-bot.html',
+            TSLA:  'pages/bots/tsla-bot.html',
+            META:  'pages/bots/meta-bot.html',
+            AAPL:  'pages/bots/aapl-bot.html',
+            NVDA:  'pages/bots/nvda-bot.html',
+            AMZN:  'pages/bots/amzn-bot.html',
+            GOOGL: '#',
+            MSFT:  '#',
+            AVGO:  '#',
+            'BRK.B': '#'
+        };
+
+        async function fetchQuotes() {
+            const results = await Promise.all(
+                TICKERS.map(sym =>
+                    fetch('https://finnhub.io/api/v1/quote?symbol=' + sym + '&token=' + FINNHUB_KEY)
+                        .then(function (r) { return r.json(); })
+                        .then(function (d) { return { sym: sym, price: d.c, change: d.dp }; })
+                        .catch(function ()  { return { sym: sym, price: null, change: null }; })
+                )
+            );
+            return results;
+        }
+
+        function buildHTML(quotes) {
+            var items = quotes.map(function (q) {
+                var dir   = (q.change == null || q.change >= 0) ? 'up' : 'down';
+                var sign  = (q.change != null && q.change >= 0) ? '+' : '';
+                var price = q.price  != null ? '$' + q.price.toFixed(2)         : '—';
+                var chg   = q.change != null ? sign + q.change.toFixed(2) + '%' : '—';
+                var href  = GUIDE_PATHS[q.sym] || '#';
+                return '<a class="ticker-item" href="' + href + '">' +
+                    '<span class="ticker-dot ' + dir + '"></span>' +
+                    '<span class="ticker-sym">'                     + q.sym  + '</span>' +
+                    '<span class="ticker-price">'                   + price  + '</span>' +
+                    '<span class="ticker-change ' + dir + '">'      + chg    + '</span>' +
+                '</a>';
+            }).join('');
+            return items + items; /* duplicate for seamless loop */
+        }
+
+        async function refresh() {
+            var quotes = await fetchQuotes();
+            var track  = document.getElementById('tickerTrack');
+            if (track) track.innerHTML = buildHTML(quotes);
+        }
+
+        document.addEventListener('DOMContentLoaded', function () {
+            refresh();
+            setInterval(refresh, 60000);
+        });
+    })();
+    </script>
 
     <!-- Firebase Authentication -->
     <script type="module">

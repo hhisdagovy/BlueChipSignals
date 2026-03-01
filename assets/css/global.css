@@ -372,3 +372,199 @@ footer p a:hover {
 .social-media a:hover {
     color: var(--secondary-gold);
 }
+
+/* ============================================================
+   Supported Stocks Nav Dropdown
+   ============================================================ */
+
+/* Base-level hides — apply at all viewport widths */
+.nav-stocks-dropdown {
+    display: none;
+}
+
+.nav-sub-panel {
+    display: none;
+}
+
+/* --- Desktop dropdown (≥769px) --- */
+@media screen and (min-width: 769px) {
+    .nav-stocks-item {
+        position: relative;
+    }
+
+    /* Hide the mobile-only li and button on desktop */
+    .nav-stocks-mobile-li {
+        display: none;
+    }
+
+    .nav-stocks-mobile-btn {
+        display: none;
+    }
+
+    .nav-stocks-trigger {
+        display: flex;
+        align-items: center;
+        gap: 0.3rem;
+        cursor: default;
+    }
+
+    .stocks-caret {
+        font-size: 0.6rem;
+        opacity: 0.7;
+        transition: transform 0.25s ease;
+    }
+
+    .nav-stocks-item:hover .stocks-caret {
+        transform: rotate(180deg);
+    }
+
+    .nav-stocks-dropdown {
+        position: absolute;
+        top: 100%;
+        left: 50%;
+        transform: translateX(-50%);
+        min-width: 230px;
+        background: rgba(5, 8, 16, 0.98);
+        border: 1px solid rgba(201, 176, 55, 0.25);
+        border-radius: 12px;
+        padding: 10px 0 0.5rem;
+        box-shadow: 0 12px 32px rgba(0, 0, 0, 0.55);
+        list-style: none;
+        z-index: 2000;
+    }
+
+    .nav-stocks-item:hover .nav-stocks-dropdown {
+        display: block;
+    }
+
+    .nav-stocks-dropdown li a {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 0.6rem 1.2rem;
+        color: var(--light-text);
+        text-transform: none;
+        font-size: 0.9rem;
+        transition: background 0.2s;
+    }
+
+    .nav-stocks-dropdown li a::after {
+        display: none;
+    }
+
+    .nav-stocks-dropdown li a:hover {
+        background: rgba(201, 176, 55, 0.08);
+    }
+
+}
+
+/* --- Mobile sub-panel (≤768px) --- */
+@media screen and (max-width: 768px) {
+    /* Hide the desktop dropdown li entirely on mobile */
+    .nav-stocks-item {
+        display: none;
+    }
+
+    .nav-stocks-mobile-btn {
+        background: none;
+        border: none;
+        cursor: pointer;
+        color: var(--light-text);
+        font-size: clamp(1.05rem, 4.5vw, 1.3rem);
+        font-weight: 600;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        width: 100%;
+        padding: 0.45rem 0;
+        font-family: inherit;
+    }
+
+    .nav-stocks-mobile-btn span {
+        font-size: 1.4rem;
+        color: var(--primary-gold);
+        line-height: 1;
+    }
+
+    /* Hide main menu items when sub-panel is open
+       Both selectors needed: .active.stocks-open beats the nth-child stagger rules (specificity 0,3,1) */
+    .nav-links.stocks-open > li,
+    .nav-links.active.stocks-open > li {
+        opacity: 0 !important;
+        pointer-events: none;
+        transition: opacity 0.2s ease;
+    }
+
+    /* Mobile sub-panel — full-screen fixed overlay, above nav-links overlay (z-index 1060) */
+    .nav-sub-panel {
+        display: block;
+        position: fixed;
+        inset: 0;
+        z-index: 1070;
+        background: rgba(5, 8, 16, 0.97);
+        backdrop-filter: blur(24px);
+        -webkit-backdrop-filter: blur(24px);
+        padding: 5rem 2.5rem 3rem;
+        opacity: 0;
+        visibility: hidden;
+        pointer-events: none;
+        transition: opacity 0.35s ease, visibility 0s linear 0.35s;
+    }
+
+    .nav-sub-panel.active {
+        opacity: 1;
+        visibility: visible;
+        pointer-events: all;
+        transition: opacity 0.35s ease, visibility 0s linear 0s;
+    }
+
+    .sub-panel-back {
+        background: none;
+        border: none;
+        color: var(--primary-gold);
+        font-size: 1rem;
+        font-family: inherit;
+        cursor: pointer;
+        margin-bottom: 2rem;
+        padding: 0;
+        display: flex;
+        align-items: center;
+        gap: 0.4rem;
+        letter-spacing: 0.03em;
+    }
+
+    .sub-panel-list {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+
+    .sub-panel-list li a {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        padding: 0.85rem 0;
+        border-bottom: 1px solid rgba(201, 176, 55, 0.1);
+        color: var(--light-text);
+        text-decoration: none;
+        transition: color 0.2s;
+    }
+
+    .sub-panel-list li a:hover {
+        color: var(--primary-gold);
+    }
+}
+
+/* Shared ticker / name styles (both desktop dropdown and mobile sub-panel) */
+.sd-ticker {
+    color: var(--primary-gold);
+    font-weight: 700;
+    font-size: 0.95rem;
+    min-width: 46px;
+    letter-spacing: 0.03em;
+}
+
+.sd-name {
+    color: var(--gray-text);
+    font-size: 0.85rem;
+}

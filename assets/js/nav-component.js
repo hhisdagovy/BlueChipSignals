@@ -32,17 +32,20 @@
         window.scrollTo(0, savedY);
     }
 
+    /* ---------- Hamburger toggle ---------- */
+    var hamburger   = nav.querySelector('.hamburger-menu');
+    var navLinks    = nav.querySelector('.nav-links');
+    var subPanelEl  = nav.querySelector('.nav-sub-panel');
+
     function closeMenu() {
-        if (navLinks.classList.contains('active')) {
+        if (navLinks && navLinks.classList.contains('active')) {
             navLinks.classList.remove('active');
+            navLinks.classList.remove('stocks-open');
             hamburger.classList.remove('is-open');
+            if (subPanelEl) subPanelEl.classList.remove('active');
             unlockBodyScroll();
         }
     }
-
-    /* ---------- Hamburger toggle ---------- */
-    var hamburger = nav.querySelector('.hamburger-menu');
-    var navLinks   = nav.querySelector('.nav-links');
 
     if (hamburger && navLinks) {
         hamburger.addEventListener('click', function () {
@@ -51,6 +54,8 @@
             if (isOpen) {
                 lockBodyScroll();
             } else {
+                if (subPanelEl) subPanelEl.classList.remove('active');
+                navLinks.classList.remove('stocks-open');
                 unlockBodyScroll();
             }
         });
@@ -60,6 +65,24 @@
             if (e.target.tagName === 'A' && window.innerWidth <= 768) {
                 closeMenu();
             }
+        });
+    }
+
+    /* ---------- Mobile stocks sub-panel ---------- */
+    var mobileStocksBtn = nav.querySelector('.nav-stocks-mobile-btn');
+    var subPanelBack    = nav.querySelector('.sub-panel-back');
+
+    if (mobileStocksBtn && subPanelEl) {
+        mobileStocksBtn.addEventListener('click', function () {
+            subPanelEl.classList.add('active');
+            navLinks.classList.add('stocks-open');
+        });
+    }
+
+    if (subPanelBack && subPanelEl) {
+        subPanelBack.addEventListener('click', function () {
+            subPanelEl.classList.remove('active');
+            navLinks.classList.remove('stocks-open');
         });
     }
 
@@ -76,9 +99,32 @@
         }
     }
 
-    /* Standard public nav — auth scripts on each page update #authButton
-       and show #dashboardLink once Firebase confirms the user is logged in. */
+    /* Standard public nav — logo click redirects logged-in users to dashboard
+       via redirectIfLoggedIn() on each page. */
     function publicNav() {
+        var stocks = [
+            { sym: 'SPY',  name: 'S&amp;P 500 ETF',   path: 'pages/bots/spy-bot.html'  },
+            { sym: 'META', name: 'Meta Platforms',     path: 'pages/bots/meta-bot.html' },
+            { sym: 'AAPL', name: 'Apple Inc.',         path: 'pages/bots/aapl-bot.html' },
+            { sym: 'TSLA', name: 'Tesla Inc.',         path: 'pages/bots/tsla-bot.html' },
+            { sym: 'NVDA', name: 'NVIDIA Corp.',       path: 'pages/bots/nvda-bot.html' },
+            { sym: 'AMZN', name: 'Amazon.com',         path: 'pages/bots/amzn-bot.html' }
+        ];
+
+        var desktopDropdownItems = stocks.map(function(s) {
+            return '<li><a href="' + base + s.path + '">' +
+                '<span class="sd-ticker">' + s.sym + '</span>' +
+                '<span class="sd-name">'   + s.name + '</span>' +
+            '</a></li>';
+        }).join('');
+
+        var mobileSubPanelItems = stocks.map(function(s) {
+            return '<li><a href="' + base + s.path + '">' +
+                '<span class="sd-ticker">' + s.sym + '</span>' +
+                '<span class="sd-name">'   + s.name + '</span>' +
+            '</a></li>';
+        }).join('');
+
         return '<div class="nav-container">' +
             '<div class="logo">' +
                 '<a href="' + base + 'index.html"><img src="' + base + 'assets/images/logo.png" alt="Blue Chip Signals Logo"></a>' +
@@ -89,26 +135,27 @@
                 '<span class="bar"></span>' +
             '</button>' +
             '<ul class="nav-links">' +
-                '<li id="dashboardLink" style="display:none;">' +
-                    '<a href="' + base + 'dashboard.html" class="nav-dashboard-link">' +
-                        '<i class="fas fa-tachometer-alt"></i> Dashboard' +
-                    '</a>' +
+                '<li class="nav-stocks-item">' +
+                    '<a href="#" class="nav-stocks-trigger">SUPPORTED STOCKS <span class="stocks-caret">&#9660;</span></a>' +
+                    '<ul class="nav-stocks-dropdown">' + desktopDropdownItems + '</ul>' +
                 '</li>' +
-                '<li><a href="' + base + 'index.html#features">Features</a></li>' +
-                '<li><a href="' + base + 'index.html#bots">Supported Stocks</a></li>' +
-                '<li><a href="' + base + 'book-demo.html">Book a Demo</a></li>' +
-                '<li><a href="' + base + 'contact.html">Contact</a></li>' +
+                '<li class="nav-stocks-mobile-li"><button class="nav-stocks-mobile-btn">SUPPORTED STOCKS <span>&#8250;</span></button></li>' +
+                '<li><a href="' + base + 'contact.html">CONTACT</a></li>' +
                 '<li><a href="' + base + 'faq.html">FAQ</a></li>' +
-                '<li><a href="' + base + 'about.html">About Us</a></li>' +
+                '<li><a href="' + base + 'about.html">ABOUT US</a></li>' +
                 '<li><a href="' + base + 'login.html" class="login-btn" id="authButton">' +
                     '<i class="fas fa-sign-in-alt"></i> Login' +
                 '</a></li>' +
             '</ul>' +
+            '<div class="nav-sub-panel">' +
+                '<button class="sub-panel-back">&#8592; Back</button>' +
+                '<ul class="sub-panel-list">' + mobileSubPanelItems + '</ul>' +
+            '</div>' +
         '</div>';
     }
 
     /* Always-logged-in nav — used by dashboard.html.
-       Dashboard link is always visible; button always shows Logout.
+       Logo click redirects to index.html which bounces back to dashboard.
        Calls window.logout() which each protected page defines. */
     function loggedinNav() {
         return '<div class="nav-container">' +
@@ -121,14 +168,6 @@
                 '<span class="bar"></span>' +
             '</button>' +
             '<ul class="nav-links">' +
-                '<li>' +
-                    '<a href="' + base + 'dashboard.html" class="nav-dashboard-link">' +
-                        '<i class="fas fa-tachometer-alt"></i> Dashboard' +
-                    '</a>' +
-                '</li>' +
-                '<li><a href="' + base + 'index.html#features">Features</a></li>' +
-                '<li><a href="' + base + 'index.html#bots">Supported Stocks</a></li>' +
-                '<li><a href="' + base + 'book-demo.html">Book a Demo</a></li>' +
                 '<li><a href="' + base + 'contact.html">Contact</a></li>' +
                 '<li><a href="' + base + 'faq.html">FAQ</a></li>' +
                 '<li><a href="' + base + 'about.html">About Us</a></li>' +

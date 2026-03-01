@@ -2101,6 +2101,26 @@ stripe-buy-button {
 }
 
 @media (max-width: 768px) {
+    /* Hide hero phone mockup on mobile — it appears in the dedicated section below */
+    .sp-hero .sp-hero-right { display: none; }
+
+    /* Crest logo watermark behind the hero text on mobile */
+    .sp-hero::after {
+        content: '';
+        position: absolute;
+        top: 50%; left: 50%;
+        transform: translate(-50%, -50%);
+        width: 88%;
+        aspect-ratio: 1;
+        background: url('../images/Crest logo.png') center / contain no-repeat;
+        opacity: 0.04;
+        pointer-events: none;
+        filter: brightness(1.5);
+        z-index: 0;
+    }
+
+    .sp-hero-left { position: relative; z-index: 1; }
+
     .sp-hero { margin-top: 90px; padding: 3rem 1.25rem 2rem; }
     .sp-hero-inner { padding: 0; gap: 2rem; }
     .sp-ticker { font-size: clamp(3rem, 14vw, 4.5rem); }

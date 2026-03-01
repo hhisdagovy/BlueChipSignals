@@ -21,7 +21,6 @@
             label: 'TSLA Guides',
             signalPage: '../signals/tsla-signal.html',
             guides: [
-                { icon: 'fas fa-user-tie',      title: 'Elon Musk Tracker',        desc: 'Monitor Elon\'s communications for early price-moving announcements.',        path: '../guides/tsla-elon-communications.html' },
                 { icon: 'fas fa-truck',         title: 'Delivery Report Calendar', desc: 'Tesla\'s quarterly delivery numbers — the biggest recurring catalyst.',        path: '../guides/tsla-delivery-production.html' },
                 { icon: 'fas fa-chart-line',    title: 'Trend Analyzer',           desc: 'Identify TSLA\'s trend direction and manage volatility in winning trades.',    path: '../guides/tsla-trend-following.html' }
             ]

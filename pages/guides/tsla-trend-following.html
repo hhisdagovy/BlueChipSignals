@@ -22,169 +22,224 @@
             box-sizing: border-box;
         }
 
-        /* Tesla-specific styling */
-        .tesla-highlight {
-            color: #e31e24;
-        }
+        /* ── Live Trend Analyzer ───────────────────────────────── */
+        #ta-container { margin-top: 1.5rem; }
 
-        /* Trend Analysis Calculator */
-        .trend-calculator {
-            background: var(--dark-bg);
-            border: 1px solid rgba(227, 30, 36, 0.3);
-            border-radius: 12px;
-            padding: 2rem;
-            margin: 2rem 0;
-        }
-
-        .calculator-input-group {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 1.5rem;
-            margin-bottom: 2rem;
-        }
-
-        .input-field {
-            display: flex;
-            flex-direction: column;
-        }
-
-        .input-field label {
-            color: var(--light-text);
-            font-weight: 500;
-            margin-bottom: 0.5rem;
-            font-size: 0.9rem;
-        }
-
-        .input-field input, .input-field select {
-            background: var(--dark-bg);
-            border: 1px solid rgba(179, 161, 125, 0.3);
-            border-radius: 6px;
-            padding: 0.8rem;
-            color: var(--light-text);
-            font-size: 1rem;
-        }
-
-        .input-field input:focus, .input-field select:focus {
-            outline: none;
-            border-color: #e31e24;
-            box-shadow: 0 0 0 2px rgba(227, 30, 36, 0.2);
-        }
-
-        .calculator-button {
-            background: linear-gradient(135deg, #e31e24, #b71c1c);
-            color: white;
-            border: none;
-            padding: 1rem 2rem;
-            border-radius: 8px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            font-size: 1rem;
-            width: 100%;
-        }
-
-        .calculator-button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(227, 30, 36, 0.3);
-        }
-
-        .calculation-result {
-            margin-top: 2rem;
-            padding: 1.5rem;
-            background: var(--dark-bg);
-            border-radius: 8px;
-            border: 1px solid rgba(179, 161, 125, 0.2);
-            display: none;
-        }
-
-        .result-header {
+        /* Loading */
+        .ta-loading {
             display: flex;
             align-items: center;
-            margin-bottom: 1rem;
+            gap: 1rem;
+            padding: 2rem;
+            color: var(--gray-text);
+            font-size: 0.95rem;
+        }
+        .ta-spinner {
+            width: 22px; height: 22px;
+            border: 3px solid rgba(201,176,55,0.2);
+            border-top-color: var(--primary-gold);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            flex-shrink: 0;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* Error */
+        .ta-error {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 1.25rem 1.5rem;
+            background: rgba(244,67,54,0.08);
+            border: 1px solid rgba(244,67,54,0.25);
+            border-radius: 10px;
+            color: #f44336;
+            font-size: 0.9rem;
         }
 
-        .result-icon {
-            font-size: 1.5rem;
-            margin-right: 0.5rem;
-        }
-
-        .result-bullish { color: #4CAF50; }
-        .result-bearish { color: #f44336; }
-        .result-neutral { color: var(--primary-gold); }
-
-        /* Trend Metrics */
-        .trend-metrics {
+        /* Metric row */
+        .ta-metrics {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 1.5rem;
-            margin: 2rem 0;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 1rem;
+            margin-bottom: 1.5rem;
         }
-
-        .metric-card {
-            background: var(--dark-bg);
-            border: 1px solid rgba(201, 176, 55, 0.2);
-            border-radius: 8px;
-            padding: 1.5rem;
+        .ta-metric {
+            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(201,176,55,0.15);
+            border-radius: 10px;
+            padding: 1rem;
             text-align: center;
         }
-
-        .metric-value {
-            font-size: 2rem;
+        .ta-metric-val {
+            font-size: 1.45rem;
             font-weight: 700;
-            color: var(--primary-gold);
-            margin-bottom: 0.5rem;
+            color: var(--light-text);
+            margin-bottom: 0.35rem;
+            line-height: 1.1;
         }
-
-        .metric-label {
+        .ta-metric-label {
+            font-size: 0.75rem;
             color: var(--gray-text);
-            font-size: 0.9rem;
             text-transform: uppercase;
-            font-weight: 500;
+            letter-spacing: 0.04em;
         }
 
-        .metric-change {
-            font-size: 0.8rem;
-            margin-top: 0.5rem;
-        }
+        /* Colour helpers */
+        .ta-bull  { color: #4caf50; }
+        .ta-bear  { color: #f44336; }
+        .ta-warn  { color: #ff9800; }
+        .ta-neutral { color: var(--primary-gold); }
 
-        .positive { color: #4CAF50; }
-        .negative { color: #f44336; }
-
-        /* Trend Strength Indicator */
-        .trend-strength {
-            background: rgba(179, 161, 125, 0.1);
-            border: 1px solid rgba(179, 161, 125, 0.2);
-            border-radius: 12px;
-            padding: 2rem;
-            margin: 2rem 0;
-        }
-
-        .strength-bars {
+        /* Verdict banner */
+        .ta-verdict {
             display: flex;
-            gap: 0.5rem;
-            align-items: end;
-            height: 100px;
-            margin: 1.5rem 0;
-        }
-
-        .strength-bar {
-            flex: 1;
-            background: rgba(201, 176, 55, 0.2);
-            border-radius: 4px 4px 0 0;
-            position: relative;
-            transition: all 0.3s ease;
-        }
-
-        .strength-bar.active {
-            background: linear-gradient(to top, var(--tesla-red), #ff4444);
-        }
-
-        .strength-labels {
-            display: flex;
+            align-items: center;
             justify-content: space-between;
+            gap: 1rem;
+            padding: 1.25rem 1.5rem;
+            border-radius: 12px;
+            border: 1px solid currentColor;
+            background: rgba(255,255,255,0.03);
+            margin-bottom: 1.25rem;
+        }
+        .ta-verdict-left {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        .ta-verdict-icon { font-size: 1.6rem; }
+        .ta-verdict-label {
+            font-size: 1.1rem;
+            font-weight: 800;
+            letter-spacing: 0.03em;
+        }
+        .ta-verdict-score {
+            font-size: 0.82rem;
+            color: var(--gray-text);
+            margin-top: 0.15rem;
+        }
+        .ta-score-ring { flex-shrink: 0; }
+
+        /* Analysis rows */
+        .ta-analysis {
+            display: flex;
+            flex-direction: column;
+            gap: 0.55rem;
+            margin-bottom: 1.25rem;
+        }
+        .ta-analysis-row {
+            display: flex;
+            align-items: flex-start;
+            gap: 0.65rem;
+            font-size: 0.88rem;
+            color: var(--light-text);
+            line-height: 1.45;
+        }
+        .ta-analysis-row i { margin-top: 0.1rem; flex-shrink: 0; }
+
+        /* Footer */
+        .ta-footer {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 0.78rem;
+            color: var(--gray-text);
+            padding-top: 0.75rem;
+            border-top: 1px solid rgba(201,176,55,0.1);
+        }
+        .ta-footer i { margin-right: 0.35rem; }
+        .ta-refresh-btn {
+            background: rgba(201,176,55,0.08);
+            border: 1px solid rgba(201,176,55,0.3);
+            color: var(--primary-gold);
+            padding: 0.3rem 0.85rem;
+            border-radius: 20px;
+            font-size: 0.78rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .ta-refresh-btn:hover { background: rgba(201,176,55,0.16); }
+
+        /* Multi-Timeframe Momentum Grid */
+        .tf-momentum-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 0.8rem;
+            margin: 1.75rem 0;
+        }
+
+        .tf-row {
+            display: grid;
+            grid-template-columns: 62px 1fr auto;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .tf-label {
             font-size: 0.8rem;
             color: var(--gray-text);
-            margin-top: 0.5rem;
+            font-weight: 600;
+            text-align: right;
+            white-space: nowrap;
+        }
+
+        .tf-bar-track {
+            height: 9px;
+            background: rgba(255, 255, 255, 0.06);
+            border-radius: 6px;
+            overflow: hidden;
+        }
+
+        .tf-bar-fill {
+            height: 100%;
+            border-radius: 6px;
+            background: linear-gradient(90deg, var(--primary-gold), var(--secondary-gold));
+            animation: tfGrow 1.2s cubic-bezier(0.22, 1, 0.36, 1) both;
+        }
+
+        @keyframes tfGrow {
+            from { width: 0 !important; }
+        }
+
+        .tf-badge {
+            font-size: 0.7rem;
+            font-weight: 700;
+            letter-spacing: 0.04em;
+            padding: 0.22rem 0.6rem;
+            border-radius: 20px;
+            text-align: center;
+            text-transform: uppercase;
+            white-space: nowrap;
+        }
+
+        .tf-badge.tf-strong {
+            background: rgba(201, 176, 55, 0.13);
+            color: var(--primary-gold);
+            border: 1px solid rgba(201, 176, 55, 0.35);
+        }
+
+        .tf-badge.tf-mod {
+            background: rgba(201, 176, 55, 0.06);
+            color: var(--secondary-gold);
+            border: 1px solid rgba(201, 176, 55, 0.2);
+        }
+
+        .tf-badge.tf-weak {
+            background: rgba(255, 255, 255, 0.04);
+            color: var(--gray-text);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .tf-note {
+            font-size: 0.82rem;
+            color: var(--gray-text);
+            margin-top: 1rem;
+            display: flex;
+            align-items: flex-start;
+            gap: 0.5rem;
+            line-height: 1.5;
         }
 
         /* Strategy Cards */
@@ -196,30 +251,39 @@
         }
 
         .strategy-card {
-            background: var(--dark-bg);
+            background: rgba(26, 31, 46, 0.55);
             border: 1px solid rgba(201, 176, 55, 0.2);
+            border-top: 3px solid var(--primary-gold);
             border-radius: 12px;
             padding: 2rem;
             position: relative;
+            transition: border-color 0.25s, box-shadow 0.25s;
+        }
+
+        .strategy-card:hover {
+            border-color: rgba(201, 176, 55, 0.5);
+            border-top-color: var(--primary-gold);
+            box-shadow: 0 8px 28px rgba(0, 0, 0, 0.25);
         }
 
         .strategy-badge {
-            position: absolute;
-            top: -10px;
-            left: 1.5rem;
-            background: var(--tesla-red);
-            color: white;
-            padding: 0.4rem 1rem;
-            border-radius: 15px;
-            font-size: 0.8rem;
-            font-weight: 600;
+            display: inline-block;
+            background: rgba(201, 176, 55, 0.1);
+            border: 1px solid rgba(201, 176, 55, 0.35);
+            color: var(--primary-gold);
+            padding: 0.28rem 0.85rem;
+            border-radius: 20px;
+            font-size: 0.7rem;
+            font-weight: 700;
+            letter-spacing: 0.07em;
+            margin-bottom: 0.85rem;
         }
 
         .strategy-title {
             color: var(--primary-gold);
             font-size: 1.3rem;
             font-weight: 600;
-            margin: 1rem 0;
+            margin: 0 0 0.75rem 0;
         }
 
         .strategy-description {
@@ -245,7 +309,7 @@
             content: "→";
             position: absolute;
             left: 0;
-            color: var(--tesla-red);
+            color: var(--primary-gold);
             font-weight: bold;
         }
 
@@ -276,12 +340,8 @@
         }
 
         @media (max-width: 768px) {
-
-            .calculator-input-group,
-            .trend-metrics,
-            .strategy-grid {
-                grid-template-columns: 1fr;
-            }
+            .strategy-grid { grid-template-columns: 1fr; }
+            .ta-metrics    { grid-template-columns: repeat(2, 1fr); }
         }
     </style>
 </head>
@@ -304,115 +364,65 @@
             <i class="fas fa-arrow-left"></i> Back to TSLA Signals
         </a>
 
-        <!-- Trend Analysis Calculator -->
+        <!-- Live Trend Strength Analyzer -->
         <section class="content-section">
-            <h2><i class="fas fa-chart-line"></i> Trend Strength Analyzer</h2>
-            <p>Assess current trend strength and determine optimal entry strategy:</p>
-            
-            <div class="trend-calculator">
-                <div class="calculator-input-group">
-                    <div class="input-field">
-                        <label for="current-price">Current TSLA Price ($)</label>
-                        <input type="number" id="current-price" placeholder="e.g., 425.50" min="0" step="0.01">
-                    </div>
-                    <div class="input-field">
-                        <label for="ma20">20-Day Moving Average ($)</label>
-                        <input type="number" id="ma20" placeholder="e.g., 415.20" min="0" step="0.01">
-                    </div>
-                    <div class="input-field">
-                        <label for="ma50">50-Day Moving Average ($)</label>
-                        <input type="number" id="ma50" placeholder="e.g., 395.80" min="0" step="0.01">
-                    </div>
-                    <div class="input-field">
-                        <label for="volume-trend">Volume Trend</label>
-                        <select id="volume-trend">
-                            <option value="">Select Volume Trend</option>
-                            <option value="increasing">Increasing (Bullish)</option>
-                            <option value="decreasing">Decreasing (Bearish)</option>
-                            <option value="stable">Stable (Neutral)</option>
-                        </select>
-                    </div>
-                    <div class="input-field">
-                        <label for="rsi">RSI Level</label>
-                        <input type="number" id="rsi" placeholder="e.g., 65" min="0" max="100" step="1">
-                    </div>
-                    <div class="input-field">
-                        <label for="trend-duration">Trend Duration (Days)</label>
-                        <input type="number" id="trend-duration" placeholder="e.g., 12" min="1" step="1">
-                    </div>
-                </div>
-                
-                <button class="calculator-button" onclick="analyzeTrend()">
-                    <i class="fas fa-chart-line" style="margin-right: 0.5rem;"></i>
-                    Analyze Trend Strength
-                </button>
-
-                <div class="calculation-result" id="calculation-result">
-                    <div class="result-header">
-                        <div class="result-icon" id="result-icon"></div>
-                        <h4 id="result-title" style="margin: 0; color: var(--light-text);"></h4>
-                    </div>
-                    <div id="result-content"></div>
-                </div>
-            </div>
+            <h2><i class="fas fa-chart-line"></i> Live Trend Strength Analyzer</h2>
+            <p>All indicators are fetched automatically — no manual input needed. SMA20, SMA50, RSI, and Volume Trend are computed from live daily candle data.</p>
+            <div id="ta-container"></div>
         </section>
 
-        <!-- Current Trend Metrics -->
+        <!-- Multi-Timeframe Trend Strength -->
         <section class="content-section">
-            <h2><i class="fas fa-tachometer-alt"></i> Current TSLA Trend Metrics</h2>
-            <p>Real-time trend indicators and momentum measurements:</p>
-            
-            <div class="trend-metrics">
-                <div class="metric-card">
-                    <div class="metric-value" id="price-vs-ma20">+2.4%</div>
-                    <div class="metric-label">Price vs 20-Day MA</div>
-                    <div class="metric-change positive">Above trend line</div>
-                </div>
-                <div class="metric-card">
-                    <div class="metric-value" id="price-vs-ma50">+7.5%</div>
-                    <div class="metric-label">Price vs 50-Day MA</div>
-                    <div class="metric-change positive">Strong uptrend</div>
-                </div>
-                <div class="metric-card">
-                    <div class="metric-value" id="trend-strength">78%</div>
-                    <div class="metric-label">Trend Strength</div>
-                    <div class="metric-change positive">High momentum</div>
-                </div>
-                <div class="metric-card">
-                    <div class="metric-value" id="volume-ratio">1.3x</div>
-                    <div class="metric-label">Volume vs Average</div>
-                    <div class="metric-change positive">Above normal</div>
-                </div>
-            </div>
-        </section>
+            <h2><i class="fas fa-signal"></i> Multi-Timeframe Trend Alignment</h2>
+            <p>When higher timeframes are all aligned, the trend is at its strongest. Trade with the Daily/Weekly bias — lower timeframes provide timing.</p>
 
-        <!-- Trend Strength Indicator -->
-        <section class="content-section">
-            <h2><i class="fas fa-signal"></i> Visual Trend Strength</h2>
-            <p>Current trend momentum across multiple timeframes:</p>
-            
-            <div class="trend-strength">
-                <div class="strength-bars">
-                    <div class="strength-bar active" style="height: 20%;"></div>
-                    <div class="strength-bar active" style="height: 35%;"></div>
-                    <div class="strength-bar active" style="height: 55%;"></div>
-                    <div class="strength-bar active" style="height: 78%;"></div>
-                    <div class="strength-bar active" style="height: 85%;"></div>
-                    <div class="strength-bar" style="height: 65%;"></div>
-                    <div class="strength-bar" style="height: 45%;"></div>
-                    <div class="strength-bar" style="height: 25%;"></div>
+            <div class="tf-momentum-grid">
+                <div class="tf-row">
+                    <span class="tf-label">1 min</span>
+                    <div class="tf-bar-track"><div class="tf-bar-fill" style="width:18%"></div></div>
+                    <span class="tf-badge tf-weak">Noise</span>
                 </div>
-                <div class="strength-labels">
-                    <span>1min</span>
-                    <span>5min</span>
-                    <span>15min</span>
-                    <span>1hr</span>
-                    <span>4hr</span>
-                    <span>Daily</span>
-                    <span>Weekly</span>
-                    <span>Monthly</span>
+                <div class="tf-row">
+                    <span class="tf-label">5 min</span>
+                    <div class="tf-bar-track"><div class="tf-bar-fill" style="width:28%"></div></div>
+                    <span class="tf-badge tf-weak">Weak</span>
+                </div>
+                <div class="tf-row">
+                    <span class="tf-label">15 min</span>
+                    <div class="tf-bar-track"><div class="tf-bar-fill" style="width:46%"></div></div>
+                    <span class="tf-badge tf-mod">Moderate</span>
+                </div>
+                <div class="tf-row">
+                    <span class="tf-label">1 hr</span>
+                    <div class="tf-bar-track"><div class="tf-bar-fill" style="width:62%"></div></div>
+                    <span class="tf-badge tf-mod">Moderate</span>
+                </div>
+                <div class="tf-row">
+                    <span class="tf-label">4 hr</span>
+                    <div class="tf-bar-track"><div class="tf-bar-fill" style="width:75%"></div></div>
+                    <span class="tf-badge tf-strong">Strong</span>
+                </div>
+                <div class="tf-row">
+                    <span class="tf-label">Daily</span>
+                    <div class="tf-bar-track"><div class="tf-bar-fill" style="width:86%"></div></div>
+                    <span class="tf-badge tf-strong">Very Strong</span>
+                </div>
+                <div class="tf-row">
+                    <span class="tf-label">Weekly</span>
+                    <div class="tf-bar-track"><div class="tf-bar-fill" style="width:78%"></div></div>
+                    <span class="tf-badge tf-strong">Strong</span>
+                </div>
+                <div class="tf-row">
+                    <span class="tf-label">Monthly</span>
+                    <div class="tf-bar-track"><div class="tf-bar-fill" style="width:65%"></div></div>
+                    <span class="tf-badge tf-mod">Moderate</span>
                 </div>
             </div>
+
+            <p class="tf-note">
+                <i class="fas fa-info-circle" style="color:var(--primary-gold);margin-top:0.15rem;flex-shrink:0;"></i>
+                This illustrates a typical TSLA uptrend alignment. Lower timeframes (1 min–15 min) fluctuate constantly and should only be used for entry timing — never for trend direction.
+            </p>
         </section>
 
         <!-- Trend Following Strategies -->
@@ -519,187 +529,12 @@
     <div id="footer-placeholder" data-footer-type="standard-social" data-base="../../"></div>
     <script src="../../assets/js/footer-component.js"></script>
 
-    <script>
-        let currentTSLAPrice = 0;
-        
-        // Fetch real-time TSLA price from Finnhub API
-        async function fetchTSLAPrice() {
-            try {
-                const response = await fetch('https://finnhub.io/api/v1/quote?symbol=TSLA&token=ctrlh6hr01qhlbactc50ctrlh6hr01qhlbactc5g');
-                const data = await response.json();
-                
-                if (data && data.c) {
-                    currentTSLAPrice = data.c;
-                    updateTrendMetrics(currentTSLAPrice);
-                    
-                    // Update current price in calculator
-                    document.getElementById('current-price').placeholder = `e.g., ${currentTSLAPrice.toFixed(2)}`;
-                    
-                    console.log('TSLA Price updated:', currentTSLAPrice);
-                } else {
-                    console.error('Invalid price data received');
-                    // Fallback to default price
-                    currentTSLAPrice = 425.50;
-                    updateTrendMetrics(currentTSLAPrice);
-                }
-            } catch (error) {
-                console.error('Error fetching TSLA price:', error);
-                // Fallback to default price
-                currentTSLAPrice = 425.50;
-                updateTrendMetrics(currentTSLAPrice);
-            }
-        }
-        
-        // Update trend metrics with live data
-        function updateTrendMetrics(price) {
-            const ma20 = price * 0.976; // Approximate 20-day MA
-            const ma50 = price * 0.930; // Approximate 50-day MA
-            
-            const priceVsMa20 = ((price - ma20) / ma20 * 100);
-            const priceVsMa50 = ((price - ma50) / ma50 * 100);
-            
-            document.getElementById('price-vs-ma20').textContent = `${priceVsMa20 > 0 ? '+' : ''}${priceVsMa20.toFixed(1)}%`;
-            document.getElementById('price-vs-ma50').textContent = `${priceVsMa50 > 0 ? '+' : ''}${priceVsMa50.toFixed(1)}%`;
-            
-            // Update MA placeholders in calculator
-            document.getElementById('ma20').placeholder = `e.g., ${ma20.toFixed(2)}`;
-            document.getElementById('ma50').placeholder = `e.g., ${ma50.toFixed(2)}`;
-        }
-        
-        // Trend Analysis Calculator
-        function analyzeTrend() {
-            const currentPrice = parseFloat(document.getElementById('current-price').value);
-            const ma20 = parseFloat(document.getElementById('ma20').value);
-            const ma50 = parseFloat(document.getElementById('ma50').value);
-            const volumeTrend = document.getElementById('volume-trend').value;
-            const rsi = parseFloat(document.getElementById('rsi').value);
-            const trendDuration = parseFloat(document.getElementById('trend-duration').value);
-            
-            if (!currentPrice || !ma20 || !ma50 || !volumeTrend || !rsi || !trendDuration) {
-                alert('Please fill in all fields');
-                return;
-            }
-            
-            let trendScore = 0;
-            let analysis = [];
-            
-            // Price vs Moving Averages
-            if (currentPrice > ma20 && ma20 > ma50) {
-                trendScore += 30;
-                analysis.push("✓ Strong bullish alignment (Price > 20MA > 50MA)");
-            } else if (currentPrice < ma20 && ma20 < ma50) {
-                trendScore += 30;
-                analysis.push("✓ Strong bearish alignment (Price < 20MA < 50MA)");
-            } else {
-                trendScore += 10;
-                analysis.push("⚠ Mixed moving average signals");
-            }
-            
-            // Volume Trend
-            if (volumeTrend === 'increasing') {
-                trendScore += 25;
-                analysis.push("✓ Volume supporting trend direction");
-            } else if (volumeTrend === 'stable') {
-                trendScore += 15;
-                analysis.push("⚠ Stable volume - trend may be maturing");
-            } else {
-                trendScore += 5;
-                analysis.push("⚠ Decreasing volume - trend weakening");
-            }
-            
-            // RSI Analysis
-            if ((rsi > 50 && currentPrice > ma20) || (rsi < 50 && currentPrice < ma20)) {
-                trendScore += 20;
-                analysis.push("✓ RSI confirms trend direction");
-            } else {
-                trendScore += 5;
-                analysis.push("⚠ RSI showing potential divergence");
-            }
-            
-            // Trend Duration
-            if (trendDuration >= 5 && trendDuration <= 20) {
-                trendScore += 15;
-                analysis.push("✓ Optimal trend duration for continuation");
-            } else if (trendDuration > 20) {
-                trendScore += 5;
-                analysis.push("⚠ Extended trend - watch for reversal signals");
-            } else {
-                trendScore += 10;
-                analysis.push("⚠ Young trend - needs confirmation");
-            }
-            
-            // Distance from MA
-            const ma20Distance = Math.abs((currentPrice - ma20) / ma20 * 100);
-            if (ma20Distance < 5) {
-                trendScore += 10;
-                analysis.push("✓ Price near trend line - good entry opportunity");
-            } else if (ma20Distance > 10) {
-                trendScore -= 5;
-                analysis.push("⚠ Price extended from trend line - wait for pullback");
-            }
-            
-            let resultClass, resultIcon, resultTitle, recommendation;
-            
-            if (trendScore >= 80) {
-                resultClass = 'result-bullish';
-                resultIcon = '🚀';
-                resultTitle = 'STRONG TREND - High Confidence';
-                recommendation = currentPrice > ma20 ? 
-                    'Strong uptrend confirmed. Enter on any pullback to 20MA. Trail stops aggressively.' :
-                    'Strong downtrend confirmed. Enter short positions. Trail stops aggressively.';
-            } else if (trendScore >= 60) {
-                resultClass = 'result-neutral';
-                resultIcon = '📈';
-                resultTitle = 'MODERATE TREND - Proceed with Caution';
-                recommendation = 'Trend present but not fully confirmed. Wait for additional confirmation signals before entering.';
-            } else {
-                resultClass = 'result-bearish';
-                resultIcon = '⚠️';
-                resultTitle = 'WEAK/NO TREND - Avoid Trading';
-                recommendation = 'No clear trend identified. Avoid trend-following strategies. Wait for clearer directional bias.';
-            }
-            
-            const resultDiv = document.getElementById('calculation-result');
-            const resultIcon_el = document.getElementById('result-icon');
-            const resultTitle_el = document.getElementById('result-title');
-            const resultContent = document.getElementById('result-content');
-            
-            resultIcon_el.className = `result-icon ${resultClass}`;
-            resultIcon_el.innerHTML = resultIcon;
-            resultTitle_el.textContent = resultTitle;
-            
-            resultContent.innerHTML = `
-                <div style="margin-bottom: 1rem;">
-                    <strong>Trend Score: ${trendScore}/100</strong>
-                </div>
-                <div style="margin-bottom: 1rem;">
-                    <strong>Recommendation:</strong> ${recommendation}
-                </div>
-                <div>
-                    <strong>Analysis:</strong>
-                    <ul style="margin: 0.5rem 0; padding-left: 1.5rem;">
-                        ${analysis.map(item => `<li>${item}</li>`).join('')}
-                    </ul>
-                </div>
-            `;
-            
-            resultDiv.style.display = 'block';
-        }
-        
-        // Initialize on page load
-        document.addEventListener('DOMContentLoaded', function() {
-            fetchTSLAPrice();
-            
-            // Update price every 30 seconds
-            setInterval(fetchTSLAPrice, 30000);
-        });
-        });
-    </script>
-
     <script type="module">
         import { requireAuth, updateAuthButton } from '../../assets/js/firebase-auth-check.js';
+        import { renderTrendAnalyzer } from '../../assets/js/tsla-trend.js';
         requireAuth('../../book-demo.html');
         updateAuthButton('../../login.html');
+        renderTrendAnalyzer('ta-container');
     </script>
 
     <script>

@@ -9,7 +9,239 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="../../assets/css/signal-style.css">
     <link rel="stylesheet" href="../../assets/css/guide-style.css">
-    
+    <style>
+        /* ── Phase Detector ───────────────────────────────────────── */
+        #phase-detector {
+            background: rgba(26, 31, 46, 0.45);
+            border: 1px solid rgba(201, 176, 55, 0.2);
+            border-radius: 16px;
+            padding: 2.5rem;
+            margin: 2rem 0;
+        }
+
+        /* Questions — only .active is visible */
+        .detector-question {
+            display: none;
+        }
+        .detector-question.active {
+            display: block;
+            animation: sp-fade-up 0.4s cubic-bezier(0.22, 1, 0.36, 1) both;
+        }
+
+        .detector-question h4 {
+            color: var(--primary-gold);
+            font-size: 1.1rem;
+            font-weight: 700;
+            margin-bottom: 1.75rem;
+            text-align: center;
+        }
+
+        /* Choice buttons */
+        .detector-btn-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+            gap: 1rem;
+        }
+
+        .detector-btn {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 1.4rem 1rem;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(201, 176, 55, 0.2);
+            border-radius: 14px;
+            cursor: pointer;
+            text-align: center;
+            transition: background 0.2s, border-color 0.2s, transform 0.2s;
+            color: var(--light-text);
+            font-family: inherit;
+        }
+        .detector-btn:hover {
+            background: rgba(201, 176, 55, 0.08);
+            border-color: rgba(201, 176, 55, 0.45);
+            transform: translateY(-2px);
+        }
+        .detector-btn i {
+            font-size: 1.5rem;
+            margin-bottom: 0.25rem;
+        }
+        .detector-btn strong {
+            font-size: 0.95rem;
+            font-weight: 700;
+            display: block;
+        }
+        .detector-btn small {
+            font-size: 0.78rem;
+            color: var(--gray-text);
+            display: block;
+            line-height: 1.4;
+        }
+
+        /* Progress breadcrumb */
+        #detector-progress {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.78rem;
+            color: var(--gray-text);
+            margin-bottom: 1.5rem;
+            flex-wrap: wrap;
+        }
+        #detector-progress span {
+            color: var(--primary-gold);
+            font-weight: 600;
+        }
+        #detector-progress .sep { color: rgba(255,255,255,0.2); }
+
+        /* Result cards */
+        .detector-result {
+            display: none;
+            animation: sp-fade-up 0.45s cubic-bezier(0.22, 1, 0.36, 1) both;
+        }
+        .detector-result.active {
+            display: block;
+        }
+
+        .result-phase-banner {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 1.25rem 1.5rem;
+            border-radius: 12px;
+            margin-bottom: 1.5rem;
+            border: 1px solid;
+        }
+        .result-phase-banner i { font-size: 1.6rem; flex-shrink: 0; }
+        .result-phase-banner h4 { margin: 0 0 0.3rem 0; font-size: 1rem; font-weight: 800; }
+        .result-phase-banner p  { margin: 0; font-size: 0.88rem; color: var(--light-text); line-height: 1.5; }
+
+        .result-col-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.25rem;
+            margin-bottom: 1.5rem;
+        }
+        .result-col {
+            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(201,176,55,0.15);
+            border-radius: 10px;
+            padding: 1.25rem;
+        }
+        .result-col h5 {
+            color: var(--secondary-gold);
+            font-size: 0.85rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 0.75rem;
+        }
+        .result-col ul {
+            margin: 0;
+            padding-left: 1.1rem;
+            color: var(--light-text);
+            font-size: 0.88rem;
+            line-height: 1.7;
+        }
+        .result-col p {
+            margin: 0;
+            color: var(--light-text);
+            font-size: 0.88rem;
+            line-height: 1.6;
+        }
+
+        /* Restart button */
+        #restart-detector {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: rgba(201, 176, 55, 0.08);
+            color: var(--primary-gold);
+            border: 1px solid rgba(201, 176, 55, 0.35);
+            padding: 0.65rem 1.4rem;
+            border-radius: 30px;
+            cursor: pointer;
+            font-size: 0.88rem;
+            font-weight: 600;
+            font-family: inherit;
+            transition: background 0.2s;
+            margin-top: 0.5rem;
+        }
+        #restart-detector:hover { background: rgba(201, 176, 55, 0.16); }
+
+        /* Content section card overrides for this page */
+        .phase-card {
+            background: rgba(26, 31, 46, 0.45);
+            border-radius: 14px;
+            padding: 1.75rem;
+            border: 1px solid rgba(201, 176, 55, 0.15);
+        }
+        .phase-card h4 {
+            font-size: 1.05rem;
+            font-weight: 700;
+            margin-bottom: 1.25rem;
+        }
+        .phase-card ul {
+            margin: 0;
+            padding-left: 1.2rem;
+            color: var(--light-text);
+            line-height: 1.8;
+            font-size: 0.92rem;
+        }
+        .phase-card li { margin-bottom: 0.5rem; }
+        .phase-card .card-tip {
+            margin-top: 1.25rem;
+            padding: 1rem 1.25rem;
+            border-radius: 8px;
+            font-size: 0.88rem;
+            line-height: 1.55;
+        }
+
+        .timeline-card {
+            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(201,176,55,0.15);
+            border-radius: 10px;
+            padding: 1.25rem;
+        }
+        .timeline-card h5 {
+            color: var(--secondary-gold);
+            font-size: 0.88rem;
+            font-weight: 700;
+            margin-bottom: 0.75rem;
+        }
+        .timeline-card ul {
+            margin: 0;
+            padding-left: 1rem;
+            color: var(--light-text);
+            font-size: 0.88rem;
+            line-height: 1.65;
+        }
+
+        .supplier-card {
+            background: linear-gradient(135deg, rgba(179,161,125,0.1), rgba(179,161,125,0.04));
+            border: 1px solid rgba(179,161,125,0.2);
+            border-radius: 12px;
+            padding: 1.5rem;
+        }
+        .supplier-card h4 {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--light-text);
+            font-size: 0.95rem;
+            margin-bottom: 0.5rem;
+        }
+        .supplier-card p { margin: 0; font-size: 0.85rem; line-height: 1.5; }
+
+        @media (max-width: 768px) {
+            .result-col-grid { grid-template-columns: 1fr; }
+            .detector-btn-grid { grid-template-columns: 1fr 1fr; }
+        }
+        @media (max-width: 480px) {
+            .detector-btn-grid { grid-template-columns: 1fr; }
+        }
+    </style>
 </head>
 <body>
     <div id="nav-placeholder" data-nav-type="public" data-base="../../"></div>
@@ -34,321 +266,346 @@
             <h2><i class="fas fa-compass"></i> Product Cycle Phase Detector</h2>
             <p>Answer a few questions about the current market situation to identify which phase of Apple's product cycle we're in and get personalized trading strategies:</p>
             
-            <div id="phase-detector" style="background: rgba(26, 31, 46, 0.3); padding: 2.5rem; border-radius: 12px; margin: 2.5rem 0; border: 1px solid rgba(255, 193, 7, 0.2);">
+            <div id="phase-detector">
+                <!-- Progress breadcrumb -->
+                <div id="detector-progress"></div>
+
+                <!-- Questions -->
                 <div id="detector-question-container">
                     <div class="detector-question active" data-question="1">
-                        <h4 style="color: var(--primary-gold); margin-bottom: 2rem; text-align: center;"><i class="fas fa-calendar-alt"></i> What's the current time of year?</h4>
-                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.5rem;">
-                            <button class="detector-btn" data-answer="spring" data-next="2a">
-                                <i class="fas fa-seedling" style="color: #00ff88;"></i>
-                                <strong>Spring (Mar-May)</strong>
+                        <h4><i class="fas fa-calendar-alt"></i> What's the current time of year?</h4>
+                        <div class="detector-btn-grid">
+                            <button class="detector-btn" data-next="2a">
+                                <i class="fas fa-seedling" style="color:#4caf50;"></i>
+                                <strong>Spring (Mar–May)</strong>
                                 <small>Early rumors typically emerge</small>
                             </button>
-                            <button class="detector-btn" data-answer="summer" data-next="2b">
-                                <i class="fas fa-sun" style="color: #ffa500;"></i>
-                                <strong>Summer (Jun-Aug)</strong>
+                            <button class="detector-btn" data-next="2b">
+                                <i class="fas fa-sun" style="color:#ffa500;"></i>
+                                <strong>Summer (Jun–Aug)</strong>
                                 <small>WWDC and build-up period</small>
                             </button>
-                            <button class="detector-btn" data-answer="fall" data-next="2c">
-                                <i class="fas fa-leaf" style="color: var(--primary-gold);"></i>
-                                <strong>Fall (Sep-Nov)</strong>
+                            <button class="detector-btn" data-next="2c">
+                                <i class="fas fa-leaf" style="color:var(--primary-gold);"></i>
+                                <strong>Fall (Sep–Nov)</strong>
                                 <small>Event season and launches</small>
                             </button>
-                            <button class="detector-btn" data-answer="winter" data-next="2d">
-                                <i class="fas fa-snowflake" style="color: #87ceeb;"></i>
-                                <strong>Winter (Dec-Feb)</strong>
+                            <button class="detector-btn" data-next="2d">
+                                <i class="fas fa-snowflake" style="color:#87ceeb;"></i>
+                                <strong>Winter (Dec–Feb)</strong>
                                 <small>Earnings and sales data</small>
                             </button>
                         </div>
                     </div>
-                    
+
                     <div class="detector-question" data-question="2a">
-                        <h4 style="color: var(--primary-gold); margin-bottom: 2rem; text-align: center;"><i class="fas fa-newspaper"></i> Are there any iPhone rumors circulating?</h4>
-                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem;">
-                            <button class="detector-btn" data-answer="early-rumors" data-next="result-spring-rumors">
-                                <i class="fas fa-search" style="color: #00ff88;"></i>
+                        <h4><i class="fas fa-newspaper"></i> Are there any iPhone rumors circulating?</h4>
+                        <div class="detector-btn-grid">
+                            <button class="detector-btn" data-next="result-spring-rumors">
+                                <i class="fas fa-magnifying-glass" style="color:#4caf50;"></i>
                                 <strong>Yes, Early Leaks</strong>
                                 <small>Supply chain reports emerging</small>
                             </button>
-                            <button class="detector-btn" data-answer="no-rumors" data-next="result-spring-quiet">
-                                <i class="fas fa-pause" style="color: #ffa500;"></i>
+                            <button class="detector-btn" data-next="result-spring-quiet">
+                                <i class="fas fa-pause" style="color:#ffa500;"></i>
                                 <strong>Quiet Period</strong>
                                 <small>No major rumors yet</small>
                             </button>
                         </div>
                     </div>
-                    
+
                     <div class="detector-question" data-question="2b">
-                        <h4 style="color: var(--primary-gold); margin-bottom: 2rem; text-align: center;"><i class="fas fa-microphone"></i> Has WWDC happened yet?</h4>
-                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem;">
-                            <button class="detector-btn" data-answer="pre-wwdc" data-next="3a">
-                                <i class="fas fa-clock" style="color: #ffa500;"></i>
+                        <h4><i class="fas fa-microphone"></i> Has WWDC happened yet?</h4>
+                        <div class="detector-btn-grid">
+                            <button class="detector-btn" data-next="3a">
+                                <i class="fas fa-clock" style="color:#ffa500;"></i>
                                 <strong>Before WWDC</strong>
                                 <small>June event approaching</small>
                             </button>
-                            <button class="detector-btn" data-answer="post-wwdc" data-next="3b">
-                                <i class="fas fa-check-circle" style="color: #00ff88;"></i>
+                            <button class="detector-btn" data-next="3b">
+                                <i class="fas fa-circle-check" style="color:#4caf50;"></i>
                                 <strong>After WWDC</strong>
                                 <small>Software revealed, hardware rumors building</small>
                             </button>
                         </div>
                     </div>
-                    
+
                     <div class="detector-question" data-question="2c">
-                        <h4 style="color: var(--primary-gold); margin-bottom: 2rem; text-align: center;"><i class="fas fa-calendar-day"></i> What's the September event status?</h4>
-                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.5rem;">
-                            <button class="detector-btn" data-answer="pre-event" data-next="result-fall-pre-event">
-                                <i class="fas fa-hourglass-half" style="color: #ffa500;"></i>
+                        <h4><i class="fas fa-calendar-day"></i> What's the September event status?</h4>
+                        <div class="detector-btn-grid">
+                            <button class="detector-btn" data-next="result-fall-pre-event">
+                                <i class="fas fa-hourglass-half" style="color:#ffa500;"></i>
                                 <strong>Before Event</strong>
                                 <small>Anticipation building</small>
                             </button>
-                            <button class="detector-btn" data-answer="event-week" data-next="result-fall-event-week">
-                                <i class="fas fa-fire" style="color: #ff4444;"></i>
+                            <button class="detector-btn" data-next="result-fall-event-week">
+                                <i class="fas fa-fire" style="color:#f44336;"></i>
                                 <strong>Event Week</strong>
                                 <small>High volatility period</small>
                             </button>
-                            <button class="detector-btn" data-answer="post-event" data-next="3c">
-                                <i class="fas fa-rocket" style="color: var(--primary-gold);"></i>
+                            <button class="detector-btn" data-next="3c">
+                                <i class="fas fa-rocket" style="color:var(--primary-gold);"></i>
                                 <strong>After Event</strong>
                                 <small>Launch phase beginning</small>
                             </button>
                         </div>
                     </div>
-                    
+
                     <div class="detector-question" data-question="2d">
-                        <h4 style="color: var(--primary-gold); margin-bottom: 2rem; text-align: center;"><i class="fas fa-chart-bar"></i> What's the earnings situation?</h4>
-                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem;">
-                            <button class="detector-btn" data-answer="pre-earnings" data-next="result-winter-pre-earnings">
-                                <i class="fas fa-hourglass" style="color: #ffa500;"></i>
+                        <h4><i class="fas fa-chart-bar"></i> What's the earnings situation?</h4>
+                        <div class="detector-btn-grid">
+                            <button class="detector-btn" data-next="result-winter-pre-earnings">
+                                <i class="fas fa-hourglass" style="color:#ffa500;"></i>
                                 <strong>Before Q1 Earnings</strong>
                                 <small>Awaiting iPhone sales data</small>
                             </button>
-                            <button class="detector-btn" data-answer="post-earnings" data-next="result-winter-post-earnings">
-                                <i class="fas fa-chart-line" style="color: #00ff88;"></i>
+                            <button class="detector-btn" data-next="result-winter-post-earnings">
+                                <i class="fas fa-chart-line" style="color:#4caf50;"></i>
                                 <strong>After Q1 Earnings</strong>
                                 <small>Results are in, planning next cycle</small>
                             </button>
                         </div>
                     </div>
-                    
+
                     <div class="detector-question" data-question="3a">
-                        <h4 style="color: var(--primary-gold); margin-bottom: 2rem; text-align: center;"><i class="fas fa-volume-up"></i> How strong are the iPhone rumors?</h4>
-                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem;">
-                            <button class="detector-btn" data-answer="strong-rumors" data-next="result-summer-strong-rumors">
-                                <i class="fas fa-bullhorn" style="color: #00ff88;"></i>
+                        <h4><i class="fas fa-volume-high"></i> How strong are the iPhone rumors?</h4>
+                        <div class="detector-btn-grid">
+                            <button class="detector-btn" data-next="result-summer-strong-rumors">
+                                <i class="fas fa-bullhorn" style="color:#4caf50;"></i>
                                 <strong>Very Strong</strong>
                                 <small>Detailed leaks and analyst reports</small>
                             </button>
-                            <button class="detector-btn" data-answer="weak-rumors" data-next="result-summer-weak-rumors">
-                                <i class="fas fa-question" style="color: #ffa500;"></i>
-                                <strong>Moderate/Weak</strong>
+                            <button class="detector-btn" data-next="result-summer-weak-rumors">
+                                <i class="fas fa-question" style="color:#ffa500;"></i>
+                                <strong>Moderate / Weak</strong>
                                 <small>Limited information available</small>
                             </button>
                         </div>
                     </div>
-                    
+
                     <div class="detector-question" data-question="3b">
-                        <h4 style="color: var(--primary-gold); margin-bottom: 2rem; text-align: center;"><i class="fas fa-tachometer-alt"></i> How's AAPL's momentum?</h4>
-                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem;">
-                            <button class="detector-btn" data-answer="strong-momentum" data-next="result-summer-strong-momentum">
-                                <i class="fas fa-arrow-up" style="color: #00ff88;"></i>
+                        <h4><i class="fas fa-gauge-high"></i> How's AAPL's momentum?</h4>
+                        <div class="detector-btn-grid">
+                            <button class="detector-btn" data-next="result-summer-strong-momentum">
+                                <i class="fas fa-arrow-trend-up" style="color:#4caf50;"></i>
                                 <strong>Strong Uptrend</strong>
                                 <small>Breaking new highs</small>
                             </button>
-                            <button class="detector-btn" data-answer="weak-momentum" data-next="result-summer-weak-momentum">
-                                <i class="fas fa-minus" style="color: #ff4444;"></i>
-                                <strong>Sideways/Down</strong>
+                            <button class="detector-btn" data-next="result-summer-weak-momentum">
+                                <i class="fas fa-minus" style="color:#f44336;"></i>
+                                <strong>Sideways / Down</strong>
                                 <small>Consolidating or declining</small>
                             </button>
                         </div>
                     </div>
-                    
+
                     <div class="detector-question" data-question="3c">
-                        <h4 style="color: var(--primary-gold); margin-bottom: 2rem; text-align: center;"><i class="fas fa-shopping-cart"></i> How are early sales reports?</h4>
-                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem;">
-                            <button class="detector-btn" data-answer="strong-sales" data-next="result-fall-strong-sales">
-                                <i class="fas fa-thumbs-up" style="color: #00ff88;"></i>
+                        <h4><i class="fas fa-cart-shopping"></i> How are early sales reports?</h4>
+                        <div class="detector-btn-grid">
+                            <button class="detector-btn" data-next="result-fall-strong-sales">
+                                <i class="fas fa-thumbs-up" style="color:#4caf50;"></i>
                                 <strong>Strong Demand</strong>
                                 <small>Long wait times, positive reviews</small>
                             </button>
-                            <button class="detector-btn" data-answer="weak-sales" data-next="result-fall-weak-sales">
-                                <i class="fas fa-thumbs-down" style="color: #ff4444;"></i>
+                            <button class="detector-btn" data-next="result-fall-weak-sales">
+                                <i class="fas fa-thumbs-down" style="color:#f44336;"></i>
                                 <strong>Weak Demand</strong>
                                 <small>Available quickly, mixed reviews</small>
                             </button>
                         </div>
                     </div>
                 </div>
-                
-                <div id="detector-results-container" style="display: none;">
-                    <!-- Spring Results -->
+
+                <!-- Results -->
+                <div id="detector-results-container" style="display:none;">
+
                     <div class="detector-result" data-result="result-spring-rumors">
-                        <div style="text-align: center; margin-bottom: 2rem;">
-                            <h4 style="color: #00ff88; margin-bottom: 1rem;"><i class="fas fa-search"></i> Phase 1: Early Rumor Season</h4>
-                            <div style="background: rgba(0, 255, 136, 0.1); padding: 1.5rem; border-radius: 8px; border: 1px solid rgba(0, 255, 136, 0.2);">
-                                <p style="margin: 0; color: var(--light-text); line-height: 1.6;"><strong>Current Phase:</strong> You're in the early stages of the anticipation phase. Rumors are building momentum and creating directional bias.</p>
+                        <div class="result-phase-banner" style="background:rgba(76,175,80,0.08); border-color:rgba(76,175,80,0.3); color:#4caf50;">
+                            <i class="fas fa-magnifying-glass"></i>
+                            <div>
+                                <h4>Phase 1: Early Rumor Season</h4>
+                                <p>You're in the early stages of the anticipation phase. Rumors are building momentum and creating directional bias.</p>
                             </div>
                         </div>
-                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;">
-                            <div style="background: rgba(26, 31, 46, 0.2); padding: 1.5rem; border-radius: 8px;">
-                                <h5 style="color: var(--secondary-gold); margin-bottom: 1rem;">Action Plan</h5>
-                                <ul style="color: var(--light-text); font-size: 0.9rem; line-height: 1.6; margin: 0; padding-left: 1rem;">
-                                    <li>Start monitoring Mark Gurman's reports closely</li>
+                        <div class="result-col-grid">
+                            <div class="result-col">
+                                <h5>Action Plan</h5>
+                                <ul>
+                                    <li>Monitor Mark Gurman's reports closely</li>
                                     <li>Begin building small long positions on dips</li>
                                     <li>Consider September/October call options</li>
                                     <li>Track supply chain news from Taiwan</li>
                                 </ul>
                             </div>
-                            <div style="background: rgba(26, 31, 46, 0.2); padding: 1.5rem; border-radius: 8px;">
-                                <h5 style="color: var(--secondary-gold); margin-bottom: 1rem;">Risk Management</h5>
-                                <ul style="color: var(--light-text); font-size: 0.9rem; line-height: 1.6; margin: 0; padding-left: 1rem;">
-                                    <li>Position size: 2-3% of portfolio</li>
+                            <div class="result-col">
+                                <h5>Risk Management</h5>
+                                <ul>
+                                    <li>Position size: 2–3% of portfolio</li>
                                     <li>Stop loss: 5% below entry</li>
                                     <li>Target: Build to 5% by summer</li>
-                                    <li>Time horizon: 4-6 months</li>
+                                    <li>Time horizon: 4–6 months</li>
                                 </ul>
                             </div>
                         </div>
                     </div>
-                    
+
                     <div class="detector-result" data-result="result-spring-quiet">
-                        <div style="text-align: center; margin-bottom: 2rem;">
-                            <h4 style="color: #ffa500; margin-bottom: 1rem;"><i class="fas fa-pause"></i> Quiet Pre-Rumor Period</h4>
-                            <div style="background: rgba(255, 165, 0, 0.1); padding: 1.5rem; border-radius: 8px; border: 1px solid rgba(255, 165, 0, 0.2);">
-                                <p style="margin: 0; color: var(--light-text); line-height: 1.6;"><strong>Current Phase:</strong> Too early for major moves. This is the calm before the storm - perfect time for preparation and planning.</p>
+                        <div class="result-phase-banner" style="background:rgba(255,165,0,0.08); border-color:rgba(255,165,0,0.3); color:#ffa500;">
+                            <i class="fas fa-pause"></i>
+                            <div>
+                                <h4>Quiet Pre-Rumor Period</h4>
+                                <p>Too early for major moves. This is the calm before the storm — perfect time for preparation and planning.</p>
                             </div>
                         </div>
-                        <div style="text-align: center;">
-                            <p style="color: var(--gray-text); font-size: 0.95rem;"><strong>Strategy:</strong> Wait and watch. Set up alerts for major rumor sources. Consider other trading opportunities until iPhone buzz begins.</p>
+                        <div class="result-col">
+                            <h5>Strategy</h5>
+                            <p>Wait and watch. Set up alerts for major rumor sources. Consider other trading opportunities until iPhone buzz begins in earnest.</p>
                         </div>
                     </div>
-                    
-                    <!-- Summer Results -->
+
                     <div class="detector-result" data-result="result-summer-strong-rumors">
-                        <div style="text-align: center; margin-bottom: 2rem;">
-                            <h4 style="color: #00ff88; margin-bottom: 1rem;"><i class="fas fa-bullhorn"></i> Phase 1: Peak Rumor Season</h4>
-                            <div style="background: rgba(0, 255, 136, 0.1); padding: 1.5rem; border-radius: 8px; border: 1px solid rgba(0, 255, 136, 0.2);">
-                                <p style="margin: 0; color: var(--light-text); line-height: 1.6;"><strong>Current Phase:</strong> Maximum anticipation building. Strong rumors create bullish momentum leading into September event.</p>
+                        <div class="result-phase-banner" style="background:rgba(76,175,80,0.08); border-color:rgba(76,175,80,0.3); color:#4caf50;">
+                            <i class="fas fa-bullhorn"></i>
+                            <div>
+                                <h4>Phase 1: Peak Rumor Season</h4>
+                                <p>Maximum anticipation building. Strong rumors create bullish momentum leading into the September event.</p>
                             </div>
                         </div>
-                        <div style="text-align: center;">
-                            <p style="color: var(--gray-text); font-size: 0.95rem;"><strong>Strategy:</strong> Increase position size to 5%. Focus on call options expiring 30-45 days post-event. Watch for any rumor confirmations.</p>
+                        <div class="result-col">
+                            <h5>Strategy</h5>
+                            <p>Increase position size to 5%. Focus on call options expiring 30–45 days post-event. Watch for any rumor confirmations to add to positions.</p>
                         </div>
                     </div>
-                    
+
                     <div class="detector-result" data-result="result-summer-weak-rumors">
-                        <div style="text-align: center; margin-bottom: 2rem;">
-                            <h4 style="color: #ffa500; margin-bottom: 1rem;"><i class="fas fa-question"></i> Uncertain Rumor Environment</h4>
-                            <div style="background: rgba(255, 165, 0, 0.1); padding: 1.5rem; border-radius: 8px; border: 1px solid rgba(255, 165, 0, 0.2);">
-                                <p style="margin: 0; color: var(--light-text); line-height: 1.6;"><strong>Current Phase:</strong> Limited visibility creates uncertainty. Market may lack conviction until clearer signals emerge.</p>
+                        <div class="result-phase-banner" style="background:rgba(255,165,0,0.08); border-color:rgba(255,165,0,0.3); color:#ffa500;">
+                            <i class="fas fa-question"></i>
+                            <div>
+                                <h4>Uncertain Rumor Environment</h4>
+                                <p>Limited visibility creates uncertainty. The market may lack conviction until clearer signals emerge.</p>
                             </div>
                         </div>
-                        <div style="text-align: center;">
-                            <p style="color: var(--gray-text); font-size: 0.95rem;"><strong>Strategy:</strong> Maintain smaller positions (2-3%). Wait for stronger catalysts or more definitive rumors before sizing up.</p>
+                        <div class="result-col">
+                            <h5>Strategy</h5>
+                            <p>Maintain smaller positions (2–3%). Wait for stronger catalysts or more definitive rumors before sizing up.</p>
                         </div>
                     </div>
-                    
+
                     <div class="detector-result" data-result="result-summer-strong-momentum">
-                        <div style="text-align: center; margin-bottom: 2rem;">
-                            <h4 style="color: #00ff88; margin-bottom: 1rem;"><i class="fas fa-rocket"></i> Strong Pre-Event Momentum</h4>
-                            <div style="background: rgba(0, 255, 136, 0.1); padding: 1.5rem; border-radius: 8px; border: 1px solid rgba(0, 255, 136, 0.2);">
-                                <p style="margin: 0; color: var(--light-text); line-height: 1.6;"><strong>Current Phase:</strong> Bullish momentum + strong rumors = ideal setup. Market pricing in positive expectations for September.</p>
+                        <div class="result-phase-banner" style="background:rgba(76,175,80,0.08); border-color:rgba(76,175,80,0.3); color:#4caf50;">
+                            <i class="fas fa-rocket"></i>
+                            <div>
+                                <h4>Strong Pre-Event Momentum</h4>
+                                <p>Bullish momentum + strong rumors = ideal setup. Market pricing in positive expectations for September.</p>
                             </div>
                         </div>
-                        <div style="text-align: center;">
-                            <p style="color: var(--gray-text); font-size: 0.95rem;"><strong>Strategy:</strong> Ride the momentum but prepare for potential "sell the news" reaction. Consider taking some profits before the event.</p>
+                        <div class="result-col">
+                            <h5>Strategy</h5>
+                            <p>Ride the momentum but prepare for a potential "sell the news" reaction. Consider taking some profits before the event date.</p>
                         </div>
                     </div>
-                    
+
                     <div class="detector-result" data-result="result-summer-weak-momentum">
-                        <div style="text-align: center; margin-bottom: 2rem;">
-                            <h4 style="color: #ff4444; margin-bottom: 1rem;"><i class="fas fa-chart-line-down"></i> Weak Pre-Event Setup</h4>
-                            <div style="background: rgba(255, 68, 68, 0.1); padding: 1.5rem; border-radius: 8px; border: 1px solid rgba(255, 68, 68, 0.2);">
-                                <p style="margin: 0; color: var(--light-text); line-height: 1.6;"><strong>Current Phase:</strong> Poor momentum despite good rumors suggests broader market headwinds or sector rotation.</p>
+                        <div class="result-phase-banner" style="background:rgba(244,67,54,0.08); border-color:rgba(244,67,54,0.3); color:#f44336;">
+                            <i class="fas fa-arrow-trend-down"></i>
+                            <div>
+                                <h4>Weak Pre-Event Setup</h4>
+                                <p>Poor momentum despite good rumors suggests broader market headwinds or sector rotation.</p>
                             </div>
                         </div>
-                        <div style="text-align: center;">
-                            <p style="color: var(--gray-text); font-size: 0.95rem;"><strong>Strategy:</strong> Reduce position size or wait for technical improvement. Focus on other opportunities until AAPL shows strength.</p>
+                        <div class="result-col">
+                            <h5>Strategy</h5>
+                            <p>Reduce position size or wait for technical improvement. Focus on other opportunities until AAPL shows renewed strength.</p>
                         </div>
                     </div>
-                    
-                    <!-- Fall Results -->
+
                     <div class="detector-result" data-result="result-fall-pre-event">
-                        <div style="text-align: center; margin-bottom: 2rem;">
-                            <h4 style="color: #ffa500; margin-bottom: 1rem;"><i class="fas fa-hourglass-half"></i> Phase 2: Pre-Event Tension</h4>
-                            <div style="background: rgba(255, 165, 0, 0.1); padding: 1.5rem; border-radius: 8px; border: 1px solid rgba(255, 165, 0, 0.2);">
-                                <p style="margin: 0; color: var(--light-text); line-height: 1.6;"><strong>Current Phase:</strong> Maximum anticipation before the September event. High volatility and position adjustments expected.</p>
+                        <div class="result-phase-banner" style="background:rgba(255,165,0,0.08); border-color:rgba(255,165,0,0.3); color:#ffa500;">
+                            <i class="fas fa-hourglass-half"></i>
+                            <div>
+                                <h4>Phase 2: Pre-Event Tension</h4>
+                                <p>Maximum anticipation before the September event. High volatility and position adjustments are expected.</p>
                             </div>
                         </div>
-                        <div style="text-align: center;">
-                            <p style="color: var(--gray-text); font-size: 0.95rem;"><strong>Strategy:</strong> Reduce position size to 1-2%. Consider straddles to capture volatility. Prepare for "sell the news" reaction.</p>
+                        <div class="result-col">
+                            <h5>Strategy</h5>
+                            <p>Reduce position size to 1–2%. Consider straddles to capture volatility in either direction. Prepare for a "sell the news" reaction.</p>
                         </div>
                     </div>
-                    
+
                     <div class="detector-result" data-result="result-fall-event-week">
-                        <div style="text-align: center; margin-bottom: 2rem;">
-                            <h4 style="color: #ff4444; margin-bottom: 1rem;"><i class="fas fa-fire"></i> Phase 2: Event Week - High Alert</h4>
-                            <div style="background: rgba(255, 68, 68, 0.1); padding: 1.5rem; border-radius: 8px; border: 1px solid rgba(255, 68, 68, 0.2);">
-                                <p style="margin: 0; color: var(--light-text); line-height: 1.6;"><strong>Current Phase:</strong> Extreme volatility period. Immediate reactions often wrong - wait 24-48 hours for dust to settle.</p>
+                        <div class="result-phase-banner" style="background:rgba(244,67,54,0.08); border-color:rgba(244,67,54,0.3); color:#f44336;">
+                            <i class="fas fa-fire"></i>
+                            <div>
+                                <h4>Phase 2: Event Week — High Alert</h4>
+                                <p>Extreme volatility. Immediate reactions are often wrong — wait 24–48 hours for the dust to settle.</p>
                             </div>
                         </div>
-                        <div style="text-align: center;">
-                            <p style="color: var(--gray-text); font-size: 0.95rem;"><strong>Strategy:</strong> Minimal positions. Use straddles if positioned. Focus on capturing volatility rather than direction.</p>
+                        <div class="result-col">
+                            <h5>Strategy</h5>
+                            <p>Minimal directional positions. Use straddles if positioned. Focus on capturing volatility rather than committing to a direction.</p>
                         </div>
                     </div>
-                    
+
                     <div class="detector-result" data-result="result-fall-strong-sales">
-                        <div style="text-align: center; margin-bottom: 2rem;">
-                            <h4 style="color: #00ff88; margin-bottom: 1rem;"><i class="fas fa-thumbs-up"></i> Phase 3: Strong Launch Momentum</h4>
-                            <div style="background: rgba(0, 255, 136, 0.1); padding: 1.5rem; border-radius: 8px; border: 1px solid rgba(0, 255, 136, 0.2);">
-                                <p style="margin: 0; color: var(--light-text); line-height: 1.6;"><strong>Current Phase:</strong> Excellent setup for holiday season rally. Strong demand validates bullish thesis.</p>
+                        <div class="result-phase-banner" style="background:rgba(76,175,80,0.08); border-color:rgba(76,175,80,0.3); color:#4caf50;">
+                            <i class="fas fa-thumbs-up"></i>
+                            <div>
+                                <h4>Phase 3: Strong Launch Momentum</h4>
+                                <p>Excellent setup for a holiday season rally. Strong demand validates the bullish thesis.</p>
                             </div>
                         </div>
-                        <div style="text-align: center;">
-                            <p style="color: var(--gray-text); font-size: 0.95rem;"><strong>Strategy:</strong> Re-enter long positions aggressively (5-7%). Target holiday season highs. Trail stops as price advances.</p>
+                        <div class="result-col">
+                            <h5>Strategy</h5>
+                            <p>Re-enter long positions aggressively (5–7%). Target holiday season highs. Trail stops as price advances into December.</p>
                         </div>
                     </div>
-                    
+
                     <div class="detector-result" data-result="result-fall-weak-sales">
-                        <div style="text-align: center; margin-bottom: 2rem;">
-                            <h4 style="color: #ff4444; margin-bottom: 1rem;"><i class="fas fa-thumbs-down"></i> Phase 3: Disappointing Launch</h4>
-                            <div style="background: rgba(255, 68, 68, 0.1); padding: 1.5rem; border-radius: 8px; border: 1px solid rgba(255, 68, 68, 0.2);">
-                                <p style="margin: 0; color: var(--light-text); line-height: 1.6;"><strong>Current Phase:</strong> Weak demand creates headwinds. Consider gap fill trades or avoid until next cycle.</p>
+                        <div class="result-phase-banner" style="background:rgba(244,67,54,0.08); border-color:rgba(244,67,54,0.3); color:#f44336;">
+                            <i class="fas fa-thumbs-down"></i>
+                            <div>
+                                <h4>Phase 3: Disappointing Launch</h4>
+                                <p>Weak demand creates headwinds. Consider gap-fill trades or step aside until the next cycle.</p>
                             </div>
                         </div>
-                        <div style="text-align: center;">
-                            <p style="color: var(--gray-text); font-size: 0.95rem;"><strong>Strategy:</strong> Avoid long positions. Consider shorts on bounces. Focus on January earnings as next major catalyst.</p>
+                        <div class="result-col">
+                            <h5>Strategy</h5>
+                            <p>Avoid new long positions. Consider shorts on bounces. Focus on January earnings as the next major catalyst.</p>
                         </div>
                     </div>
-                    
-                    <!-- Winter Results -->
+
                     <div class="detector-result" data-result="result-winter-pre-earnings">
-                        <div style="text-align: center; margin-bottom: 2rem;">
-                            <h4 style="color: #ffa500; margin-bottom: 1rem;"><i class="fas fa-hourglass"></i> Phase 4: Pre-Earnings Positioning</h4>
-                            <div style="background: rgba(255, 165, 0, 0.1); padding: 1.5rem; border-radius: 8px; border: 1px solid rgba(255, 165, 0, 0.2);">
-                                <p style="margin: 0; color: var(--light-text); line-height: 1.6;"><strong>Current Phase:</strong> Awaiting Q1 earnings to validate iPhone sales cycle. High binary risk/reward setup.</p>
+                        <div class="result-phase-banner" style="background:rgba(255,165,0,0.08); border-color:rgba(255,165,0,0.3); color:#ffa500;">
+                            <i class="fas fa-hourglass"></i>
+                            <div>
+                                <h4>Phase 4: Pre-Earnings Positioning</h4>
+                                <p>Awaiting Q1 earnings to validate the iPhone sales cycle. High binary risk/reward setup.</p>
                             </div>
                         </div>
-                        <div style="text-align: center;">
-                            <p style="color: var(--gray-text); font-size: 0.95rem;"><strong>Strategy:</strong> Use earnings straddles or small directional bets. Never risk more than 1% on binary events. Prepare for next cycle.</p>
+                        <div class="result-col">
+                            <h5>Strategy</h5>
+                            <p>Use earnings straddles or small directional bets. Never risk more than 1% on binary events. Prepare infrastructure for the next cycle.</p>
                         </div>
                     </div>
-                    
+
                     <div class="detector-result" data-result="result-winter-post-earnings">
-                        <div style="text-align: center; margin-bottom: 2rem;">
-                            <h4 style="color: #87ceeb; margin-bottom: 1rem;"><i class="fas fa-chart-line"></i> Cycle Complete - Planning Phase</h4>
-                            <div style="background: rgba(135, 206, 235, 0.1); padding: 1.5rem; border-radius: 8px; border: 1px solid rgba(135, 206, 235, 0.2);">
-                                <p style="margin: 0; color: var(--light-text); line-height: 1.6;"><strong>Current Phase:</strong> Current cycle complete. Time to analyze results and prepare for next year's product cycle.</p>
+                        <div class="result-phase-banner" style="background:rgba(135,206,235,0.08); border-color:rgba(135,206,235,0.3); color:#87ceeb;">
+                            <i class="fas fa-chart-line"></i>
+                            <div>
+                                <h4>Cycle Complete — Planning Phase</h4>
+                                <p>Current cycle complete. Time to analyze results and prepare for next year's product cycle.</p>
                             </div>
                         </div>
-                        <div style="text-align: center;">
-                            <p style="color: var(--gray-text); font-size: 0.95rem;"><strong>Strategy:</strong> Review performance, adjust strategy for next cycle. Begin monitoring early rumors for next iPhone generation.</p>
+                        <div class="result-col">
+                            <h5>Strategy</h5>
+                            <p>Review performance, adjust strategy for the next cycle. Begin monitoring early rumors for the next iPhone generation.</p>
                         </div>
                     </div>
-                    
-                    <div style="text-align: center; margin-top: 2rem;">
-                        <button id="restart-detector" style="background: rgba(255, 193, 7, 0.2); color: var(--primary-gold); border: 1px solid var(--primary-gold); padding: 1rem 2rem; border-radius: 8px; cursor: pointer; font-size: 1rem;">
-                            <i class="fas fa-redo"></i> Analyze Different Scenario
+
+                    <div style="text-align:center; margin-top:1.5rem;">
+                        <button id="restart-detector">
+                            <i class="fas fa-rotate-right"></i> Analyze a Different Scenario
                         </button>
                     </div>
                 </div>
@@ -655,7 +912,62 @@
     </script>
 
     <script>
-        /* Guide page scroll-reveal */
+        /* ── Phase Detector ──────────────────────────────────────── */
+        (function () {
+            const questionContainer = document.getElementById('detector-question-container');
+            const resultsContainer  = document.getElementById('detector-results-container');
+            const progress          = document.getElementById('detector-progress');
+            const restartBtn        = document.getElementById('restart-detector');
+
+            let breadcrumb = [];
+
+            function showQuestion(id) {
+                document.querySelectorAll('.detector-question').forEach(q => q.classList.remove('active'));
+                const target = document.querySelector(`.detector-question[data-question="${id}"]`);
+                if (target) target.classList.add('active');
+            }
+
+            function showResult(id) {
+                questionContainer.style.display = 'none';
+                resultsContainer.style.display  = 'block';
+                document.querySelectorAll('.detector-result').forEach(r => r.classList.remove('active'));
+                const target = document.querySelector(`.detector-result[data-result="${id}"]`);
+                if (target) target.classList.add('active');
+            }
+
+            function updateProgress() {
+                if (!breadcrumb.length) { progress.innerHTML = ''; return; }
+                progress.innerHTML = breadcrumb.map((label, i) =>
+                    `<span>${label}</span>${i < breadcrumb.length - 1 ? '<span class="sep">›</span>' : ''}`
+                ).join('');
+            }
+
+            questionContainer.addEventListener('click', function (e) {
+                const btn = e.target.closest('.detector-btn');
+                if (!btn) return;
+
+                const next  = btn.dataset.next;
+                const label = btn.querySelector('strong')?.textContent || '';
+                breadcrumb.push(label);
+                updateProgress();
+
+                if (next.startsWith('result-')) {
+                    showResult(next);
+                } else {
+                    showQuestion(next);
+                }
+            });
+
+            restartBtn.addEventListener('click', function () {
+                breadcrumb = [];
+                updateProgress();
+                questionContainer.style.display = 'block';
+                resultsContainer.style.display  = 'none';
+                showQuestion('1');
+            });
+        })();
+
+        /* ── Scroll-reveal ───────────────────────────────────────── */
         (function() {
             var sections = document.querySelectorAll('.content-section');
             if (!sections.length) return;

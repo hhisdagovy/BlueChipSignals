@@ -1859,8 +1859,8 @@ stripe-buy-button {
 .sp-example {
     max-width: 1200px;
     margin: 0 auto 4rem;
-    padding: 0 2rem;
-    overflow: hidden;
+    padding: 2rem 2rem;
+    overflow: visible;
 }
 
 .sp-mockup-wrap {
@@ -2234,14 +2234,13 @@ stripe-buy-button {
         flex-direction: column;
         align-items: center;
         gap: 2rem;
-        overflow: hidden;
     }
     .sp-hero-right,
     .sp-example .sp-hero-right {
         width: 100%;
         display: flex;
         justify-content: center;
-        overflow: hidden;
+        padding: 1.5rem 0;
     }
     .sp-why-grid { grid-template-columns: 1fr; }
     .sp-metrics-grid { grid-template-columns: repeat(2, 1fr); }
@@ -2250,7 +2249,7 @@ stripe-buy-button {
     .sp-section-header h2 { font-size: 1.4rem; }
     .sp-why { padding: 0 1.25rem; }
     .sp-metrics { padding: 0 1.25rem; }
-    .sp-example { padding: 0 1.25rem; overflow: hidden; }
+    .sp-example { padding: 1.5rem 1.25rem; }
     .sp-strategy { padding: 0 1.25rem; }
     .sp-tools { padding: 0 1.25rem; }
     .sp-cta-section { padding: 0 1.25rem; }

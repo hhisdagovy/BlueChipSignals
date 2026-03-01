@@ -318,12 +318,13 @@
             display: flex;
             gap: 0;
             width: max-content;
+            will-change: transform;
             animation: marquee-scroll 50s linear infinite;
         }
 
         @keyframes marquee-scroll {
             from { transform: translateX(0); }
-            to   { transform: translateX(-50%); }
+            to   { transform: translateX(var(--marquee-shift, -50%)); }
         }
         /* Individual card */
         .feature-bubble {
@@ -1022,7 +1023,7 @@
                 <h2>Precision signals,<br><em>built to win.</em></h2>
                 <p>Elite Automated Trading Signals</p>
                 <div class="hero-buttons">
-                    <a href="book-demo.html" class="cta-button">Book a Demo</a>
+                    <a href="https://calendly.com/bluechipsignals/30min" class="cta-button">Book a Demo</a>
                     <a href="contact.html" class="cta-button" style="background: none; border: 2px solid var(--primary-gold); color: var(--primary-gold);">Contact Support</a>
                 </div>
             </div>
@@ -1756,6 +1757,34 @@
             refresh();
             setInterval(refresh, 60000);
         });
+    })();
+    </script>
+
+    <script>
+    /* ---- Marquee: compute exact pixel shift so iOS Safari loops correctly ---- */
+    (function () {
+        function setMarqueeShift() {
+            var track = document.querySelector('.features-track');
+            if (!track) return;
+            /* Measure only the first set (non-aria-hidden cards) */
+            var cards = track.querySelectorAll('.feature-bubble:not([aria-hidden])');
+            if (!cards.length) return;
+            var totalPx = 0;
+            cards.forEach(function (card) {
+                var style = window.getComputedStyle(card);
+                totalPx += card.offsetWidth
+                         + parseFloat(style.marginLeft  || 0)
+                         + parseFloat(style.marginRight || 0);
+            });
+            track.style.setProperty('--marquee-shift', '-' + totalPx + 'px');
+        }
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', setMarqueeShift);
+        } else {
+            setMarqueeShift();
+        }
+        /* Re-measure on resize in case of font/zoom changes */
+        window.addEventListener('resize', setMarqueeShift);
     })();
     </script>
 </body>

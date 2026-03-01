@@ -105,14 +105,25 @@
         }
 
         .phone-mockup {
-            background: var(--darker-bg);
-            border: 2px solid var(--primary-gold);
-            border-radius: 30px;
-            padding: 1rem;
-            box-shadow: 0 20px 60px rgba(201, 176, 55, 0.2);
+            background: linear-gradient(160deg, rgba(18,22,36,0.97) 0%, rgba(8,11,20,0.99) 100%);
+            border: 1px solid rgba(201, 176, 55, 0.25);
+            border-radius: 28px;
+            padding: 1.25rem 1rem 2.5rem;
+            box-shadow:
+                0 0 0 1px rgba(255,255,255,0.04) inset,
+                0 30px 80px rgba(0,0,0,0.6),
+                0 0 60px rgba(201,176,55,0.1);
             position: relative;
-            height: 500px;
+            height: 520px;
             overflow: hidden;
+        }
+        .phone-mockup::before {
+            content: '';
+            position: absolute; top: 0; left: 0; right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, transparent, rgba(201,176,55,0.55), transparent);
+            border-radius: 28px 28px 0 0;
+            z-index: 10;
         }
 
         .signal-carousel {
@@ -124,9 +135,12 @@
         }
 
         .signal-preview {
-            background: #1a1f2e;
-            border-radius: 15px;
+            background: rgba(18, 24, 42, 0.88);
+            border: 1px solid rgba(255,255,255,0.07);
+            border-radius: 18px;
             padding: 1.5rem;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.05);
+            backdrop-filter: blur(8px);
             position: absolute;
             width: 90%;
             transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
@@ -192,10 +206,45 @@
         }
 
         .signal-details {
-            background: rgba(0, 0, 0, 0.3);
-            border-radius: 10px;
+            background: rgba(0,0,0,0.22);
+            border: 1px solid rgba(255,255,255,0.06);
+            border-radius: 12px;
             padding: 1rem;
-            font-family: monospace;
+            font-family: inherit;
+            font-size: 0.85rem;
+            color: rgba(255,255,255,0.75);
+        }
+        .signal-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.2rem 0;
+            color: rgba(255,255,255,0.65);
+        }
+        .signal-row span:last-child {
+            color: rgba(255,255,255,0.9);
+            font-weight: 500;
+        }
+        .signal-row .call { color: #4caf50; font-weight: 600; }
+        .signal-contract-label {
+            font-size: 0.75rem;
+            font-weight: 600;
+            letter-spacing: 0.06em;
+            color: var(--primary-gold);
+            text-transform: uppercase;
+            margin: 0.6rem 0 0.4rem;
+            padding-top: 0.6rem;
+            border-top: 1px solid rgba(255,255,255,0.08);
+        }
+        .signal-telegram {
+            margin-top: 0.75rem;
+            text-align: center;
+            font-size: 0.82rem;
+            color: #0088cc;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.4rem;
         }
 
         .carousel-indicators {
@@ -577,6 +626,33 @@
             animation: pulse-glow 2.5s infinite ease-in-out;
         }
 
+        /* Hero badge */
+        .hero-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: rgba(201,176,55,0.08);
+            border: 1px solid rgba(201,176,55,0.25);
+            border-radius: 50px;
+            padding: 0.3rem 0.9rem;
+            font-size: 0.78rem;
+            color: var(--primary-gold);
+            letter-spacing: 0.04em;
+            margin-bottom: 1rem;
+        }
+        .hero-badge-dot {
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            background: #4caf50;
+            box-shadow: 0 0 6px rgba(76,175,80,0.8);
+            animation: pulse-dot 2s infinite;
+            flex-shrink: 0;
+        }
+        @keyframes pulse-dot {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.35; }
+        }
         @keyframes pulse-glow {
             0% {
                 box-shadow: 0 10px 30px rgba(201, 176, 55, 0.3);
@@ -902,7 +978,8 @@
     <section class="hero panel">
         <div class="hero-container panel-card">
             <div class="hero-content">
-                <h2>Elite Trading Signals for Blue-Chip Stocks</h2>
+                <span class="hero-badge"><span class="hero-badge-dot"></span> Daily Signals — Live Market Hours</span>
+                <h2>Elite Trading Signals</h2>
                 <p>Get precise daily signals for SPY, META, AAPL, TSLA, NVDA, AMZN and soon to be more!</p>
                 <div class="hero-buttons">
                     <a href="book-demo.html" class="cta-button">Book a Demo</a>
@@ -914,32 +991,24 @@
                     <div class="signal-carousel">
                         <div class="signal-preview active" data-stock="TSLA">
                             <div class="signal-header">
-                                 <div class="signal-icon tsla"><img src="assets/images/tesla-logo.svg" alt="Tesla Logo"></div>
-                                 <div class="signal-title">
+                                <div class="signal-icon tsla"><img src="assets/images/tesla-logo.svg" alt="Tesla Logo"></div>
+                                <div class="signal-title">
                                     <strong>TSLA Buy Signal</strong><br>
                                     <small style="color: #888;">Momentum Breakout</small>
                                 </div>
                             </div>
                             <div class="signal-details">
-                                <div style="margin-bottom: 1rem;">
-                                    <div>Price: $339.96</div>
-                                    <div>VWAP: $339.39</div>
-                                    <div>MFI: 63.00</div>
-                                </div>
-                                <div style="border-top: 1px solid rgba(255,255,255,0.1); padding-top: 1rem;">
-                                    <strong style="color: var(--primary-gold);">Suggested Contract:</strong>
-                                    <div style="margin-top: 0.5rem;">
-                                        <div>Ticker: TSLA</div>
-                                        <div>C/P: Call</div>
-                                        <div>Strike Price: $337.50</div>
-                                        <div>Premium: $3.48</div>
-                                        <div>Volume: 66367</div>
-                                        <div>Exp: 2025-05-23</div>
-                                    </div>
-                                </div>
-                                <div style="margin-top: 1rem; text-align: center; color: #0088cc; font-size: 0.9rem;">
-                                    📱 Delivered via Telegram
-                                </div>
+                                <div class="signal-row"><span>Price</span><span>$339.96</span></div>
+                                <div class="signal-row"><span>VWAP</span><span>$339.39</span></div>
+                                <div class="signal-row"><span>MFI</span><span>63.00</span></div>
+                                <div class="signal-contract-label">Suggested Contract</div>
+                                <div class="signal-row"><span>Ticker</span><span>TSLA</span></div>
+                                <div class="signal-row"><span>C/P</span><span class="call">Call</span></div>
+                                <div class="signal-row"><span>Strike Price</span><span>$337.50</span></div>
+                                <div class="signal-row"><span>Premium</span><span>$3.48</span></div>
+                                <div class="signal-row"><span>Volume</span><span>66,367</span></div>
+                                <div class="signal-row"><span>Exp</span><span>2025-05-23</span></div>
+                                <div class="signal-telegram"><i class="fab fa-telegram"></i> Delivered via Telegram</div>
                             </div>
                         </div>
                         <div class="signal-preview next" data-stock="META">
@@ -951,25 +1020,17 @@
                                 </div>
                             </div>
                             <div class="signal-details">
-                                <div style="margin-bottom: 1rem;">
-                                    <div>Price: $645.28</div>
-                                    <div>VWAP: $644.01</div>
-                                    <div>MFI: 68.42</div>
-                                </div>
-                                <div style="border-top: 1px solid rgba(255,255,255,0.1); padding-top: 1rem;">
-                                    <strong style="color: var(--primary-gold);">Suggested Contract:</strong>
-                                    <div style="margin-top: 0.5rem;">
-                                        <div>Ticker: META</div>
-                                        <div>C/P: Call</div>
-                                        <div>Strike Price: $642.50</div>
-                                        <div>Premium: $4.75</div>
-                                        <div>Volume: 48293</div>
-                                        <div>Exp: 2025-05-23</div>
-                                    </div>
-                                </div>
-                                <div style="margin-top: 1rem; text-align: center; color: #0088cc; font-size: 0.9rem;">
-                                    📱 Delivered via Telegram
-                                </div>
+                                <div class="signal-row"><span>Price</span><span>$645.28</span></div>
+                                <div class="signal-row"><span>VWAP</span><span>$644.01</span></div>
+                                <div class="signal-row"><span>MFI</span><span>68.42</span></div>
+                                <div class="signal-contract-label">Suggested Contract</div>
+                                <div class="signal-row"><span>Ticker</span><span>META</span></div>
+                                <div class="signal-row"><span>C/P</span><span class="call">Call</span></div>
+                                <div class="signal-row"><span>Strike Price</span><span>$642.50</span></div>
+                                <div class="signal-row"><span>Premium</span><span>$4.75</span></div>
+                                <div class="signal-row"><span>Volume</span><span>48,293</span></div>
+                                <div class="signal-row"><span>Exp</span><span>2025-05-23</span></div>
+                                <div class="signal-telegram"><i class="fab fa-telegram"></i> Delivered via Telegram</div>
                             </div>
                         </div>
                         <div class="signal-preview hidden" data-stock="AAPL">
@@ -981,25 +1042,17 @@
                                 </div>
                             </div>
                             <div class="signal-details">
-                                <div style="margin-bottom: 1rem;">
-                                    <div>Price: $200.09</div>
-                                    <div>VWAP: $199.70</div>
-                                    <div>MFI: 71.18</div>
-                                </div>
-                                <div style="border-top: 1px solid rgba(255,255,255,0.1); padding-top: 1rem;">
-                                    <strong style="color: var(--primary-gold);">Suggested Contract:</strong>
-                                    <div style="margin-top: 0.5rem;">
-                                        <div>Ticker: AAPL</div>
-                                        <div>C/P: Call</div>
-                                        <div>Strike Price: $197.50</div>
-                                        <div>Premium: $2.85</div>
-                                        <div>Volume: 52841</div>
-                                        <div>Exp: 2025-05-23</div>
-                                    </div>
-                                </div>
-                                <div style="margin-top: 1rem; text-align: center; color: #0088cc; font-size: 0.9rem;">
-                                    📱 Delivered via Telegram
-                                </div>
+                                <div class="signal-row"><span>Price</span><span>$200.09</span></div>
+                                <div class="signal-row"><span>VWAP</span><span>$199.70</span></div>
+                                <div class="signal-row"><span>MFI</span><span>71.18</span></div>
+                                <div class="signal-contract-label">Suggested Contract</div>
+                                <div class="signal-row"><span>Ticker</span><span>AAPL</span></div>
+                                <div class="signal-row"><span>C/P</span><span class="call">Call</span></div>
+                                <div class="signal-row"><span>Strike Price</span><span>$197.50</span></div>
+                                <div class="signal-row"><span>Premium</span><span>$2.85</span></div>
+                                <div class="signal-row"><span>Volume</span><span>52,841</span></div>
+                                <div class="signal-row"><span>Exp</span><span>2025-05-23</span></div>
+                                <div class="signal-telegram"><i class="fab fa-telegram"></i> Delivered via Telegram</div>
                             </div>
                         </div>
                         <div class="signal-preview hidden" data-stock="SPY">
@@ -1011,25 +1064,17 @@
                                 </div>
                             </div>
                             <div class="signal-details">
-                                <div style="margin-bottom: 1rem;">
-                                    <div>Price: $590.90</div>
-                                    <div>VWAP: $589.60</div>
-                                    <div>MFI: 73.25</div>
-                                </div>
-                                <div style="border-top: 1px solid rgba(255,255,255,0.1); padding-top: 1rem;">
-                                    <strong style="color: var(--primary-gold);">Suggested Contract:</strong>
-                                    <div style="margin-top: 0.5rem;">
-                                        <div>Ticker: SPY</div>
-                                        <div>C/P: Call</div>
-                                        <div>Strike Price: $587.00</div>
-                                        <div>Premium: $3.25</div>
-                                        <div>Volume: 89476</div>
-                                        <div>Exp: 2025-05-23</div>
-                                    </div>
-                                </div>
-                                <div style="margin-top: 1rem; text-align: center; color: #0088cc; font-size: 0.9rem;">
-                                    📱 Delivered via Telegram
-                                </div>
+                                <div class="signal-row"><span>Price</span><span>$590.90</span></div>
+                                <div class="signal-row"><span>VWAP</span><span>$589.60</span></div>
+                                <div class="signal-row"><span>MFI</span><span>73.25</span></div>
+                                <div class="signal-contract-label">Suggested Contract</div>
+                                <div class="signal-row"><span>Ticker</span><span>SPY</span></div>
+                                <div class="signal-row"><span>C/P</span><span class="call">Call</span></div>
+                                <div class="signal-row"><span>Strike Price</span><span>$587.00</span></div>
+                                <div class="signal-row"><span>Premium</span><span>$3.25</span></div>
+                                <div class="signal-row"><span>Volume</span><span>89,476</span></div>
+                                <div class="signal-row"><span>Exp</span><span>2025-05-23</span></div>
+                                <div class="signal-telegram"><i class="fab fa-telegram"></i> Delivered via Telegram</div>
                             </div>
                         </div>
                         <div class="signal-preview hidden" data-stock="NVDA">
@@ -1041,25 +1086,17 @@
                                 </div>
                             </div>
                             <div class="signal-details">
-                                <div style="margin-bottom: 1rem;">
-                                    <div>Price: $135.30</div>
-                                    <div>VWAP: $134.99</div>
-                                    <div>MFI: 69.87</div>
-                                </div>
-                                <div style="border-top: 1px solid rgba(255,255,255,0.1); padding-top: 1rem;">
-                                    <strong style="color: var(--primary-gold);">Suggested Contract:</strong>
-                                    <div style="margin-top: 0.5rem;">
-                                        <div>Ticker: NVDA</div>
-                                        <div>C/P: Call</div>
-                                        <div>Strike Price: $132.50</div>
-                                        <div>Premium: $2.15</div>
-                                        <div>Volume: 71523</div>
-                                        <div>Exp: 2025-05-23</div>
-                                    </div>
-                                </div>
-                                <div style="margin-top: 1rem; text-align: center; color: #0088cc; font-size: 0.9rem;">
-                                    📱 Delivered via Telegram
-                                </div>
+                                <div class="signal-row"><span>Price</span><span>$135.30</span></div>
+                                <div class="signal-row"><span>VWAP</span><span>$134.99</span></div>
+                                <div class="signal-row"><span>MFI</span><span>69.87</span></div>
+                                <div class="signal-contract-label">Suggested Contract</div>
+                                <div class="signal-row"><span>Ticker</span><span>NVDA</span></div>
+                                <div class="signal-row"><span>C/P</span><span class="call">Call</span></div>
+                                <div class="signal-row"><span>Strike Price</span><span>$132.50</span></div>
+                                <div class="signal-row"><span>Premium</span><span>$2.15</span></div>
+                                <div class="signal-row"><span>Volume</span><span>71,523</span></div>
+                                <div class="signal-row"><span>Exp</span><span>2025-05-23</span></div>
+                                <div class="signal-telegram"><i class="fab fa-telegram"></i> Delivered via Telegram</div>
                             </div>
                         </div>
                         <div class="signal-preview hidden" data-stock="AMZN">
@@ -1071,25 +1108,17 @@
                                 </div>
                             </div>
                             <div class="signal-details">
-                                <div style="margin-bottom: 1rem;">
-                                    <div>Price: $204.91</div>
-                                    <div>VWAP: $204.68</div>
-                                    <div>MFI: 70.55</div>
-                                </div>
-                                <div style="border-top: 1px solid rgba(255,255,255,0.1); padding-top: 1rem;">
-                                    <strong style="color: var(--primary-gold);">Suggested Contract:</strong>
-                                    <div style="margin-top: 0.5rem;">
-                                        <div>Ticker: AMZN</div>
-                                        <div>C/P: Call</div>
-                                        <div>Strike Price: $202.50</div>
-                                        <div>Premium: $3.95</div>
-                                        <div>Volume: 56782</div>
-                                        <div>Exp: 2025-05-23</div>
-                                    </div>
-                                </div>
-                                <div style="margin-top: 1rem; text-align: center; color: #0088cc; font-size: 0.9rem;">
-                                    📱 Delivered via Telegram
-                                </div>
+                                <div class="signal-row"><span>Price</span><span>$204.91</span></div>
+                                <div class="signal-row"><span>VWAP</span><span>$204.68</span></div>
+                                <div class="signal-row"><span>MFI</span><span>70.55</span></div>
+                                <div class="signal-contract-label">Suggested Contract</div>
+                                <div class="signal-row"><span>Ticker</span><span>AMZN</span></div>
+                                <div class="signal-row"><span>C/P</span><span class="call">Call</span></div>
+                                <div class="signal-row"><span>Strike Price</span><span>$202.50</span></div>
+                                <div class="signal-row"><span>Premium</span><span>$3.95</span></div>
+                                <div class="signal-row"><span>Volume</span><span>56,782</span></div>
+                                <div class="signal-row"><span>Exp</span><span>2025-05-23</span></div>
+                                <div class="signal-telegram"><i class="fab fa-telegram"></i> Delivered via Telegram</div>
                             </div>
                         </div>
                     </div>

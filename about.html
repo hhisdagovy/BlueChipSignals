@@ -8,75 +8,595 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="assets/css/bot-style.css">
     <style>
-        /* About Section */
-        .about {
-            padding: 8rem 2rem 4rem;
-            max-width: 1200px;
+        /* ---- Hero ---- */
+        .about-hero {
+            padding: 9rem 2rem 5rem;
+            max-width: 1100px;
+            margin: 0 auto;
+            position: relative;
+        }
+        .about-hero::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 50%; transform: translateX(-50%);
+            width: 700px; height: 500px;
+            background: radial-gradient(ellipse at center, rgba(201,176,55,0.08) 0%, transparent 70%);
+            pointer-events: none;
+            z-index: 0;
+        }
+        .about-hero-inner { position: relative; z-index: 1; }
+        .about-hero-label {
+            display: inline-block;
+            font-size: 0.75rem;
+            font-weight: 700;
+            letter-spacing: 0.14em;
+            text-transform: uppercase;
+            color: var(--primary-gold);
+            background: rgba(201,176,55,0.08);
+            border: 1px solid rgba(201,176,55,0.2);
+            border-radius: 50px;
+            padding: 0.3rem 0.9rem;
+            margin-bottom: 1.5rem;
+        }
+        .about-hero h1 {
+            font-size: clamp(2.4rem, 5.5vw, 4rem);
+            font-weight: 800;
+            color: var(--light-text);
+            line-height: 1.1;
+            margin-bottom: 1.5rem;
+            max-width: 760px;
+        }
+        .about-hero h1 em {
+            font-style: italic;
+            background: linear-gradient(135deg, var(--primary-gold), var(--secondary-gold));
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .about-hero-desc {
+            color: var(--gray-text);
+            font-size: 1.1rem;
+            line-height: 1.7;
+            max-width: 620px;
+        }
+
+        /* ---- Section divider ---- */
+        .section-divider {
+            border: none;
+            border-top: 1px solid rgba(201,176,55,0.1);
+            max-width: 1100px;
             margin: 0 auto;
         }
 
-        .about-grid {
+        /* ---- Timeline ---- */
+        .timeline-section {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 5rem 2rem;
             display: grid;
             grid-template-columns: 1fr 1fr;
             gap: 4rem;
-            align-items: center;
+            align-items: start;
         }
-
-        .about-image img {
-            max-width: 100%;
-            border-radius: 15px;
-            border: 2px solid var(--primary-gold);
-        }
-
-        .section-title {
-            text-align: center;
-            font-size: 2.5rem;
+        .timeline-intro h2 {
+            font-size: 1.9rem;
+            font-weight: 700;
+            color: var(--light-text);
+            line-height: 1.2;
             margin-bottom: 1rem;
-            color: var(--primary-gold);
         }
-        
-        .about-content {
+        .timeline-intro h2 em {
+            font-style: italic;
+            color: var(--primary-gold);
+            -webkit-text-fill-color: var(--primary-gold);
+        }
+        .timeline-intro p {
             color: var(--gray-text);
+            font-size: 0.95rem;
+            line-height: 1.7;
+        }
+        .timeline-list {
+            position: relative;
+            padding-left: 2.5rem;
+        }
+        /* Animated line that draws downward */
+        .timeline-list::before {
+            content: '';
+            position: absolute;
+            left: 4px; top: 8px; bottom: 8px;
+            width: 2px;
+            background: linear-gradient(to bottom, rgba(201,176,55,0.8), rgba(201,176,55,0.08));
+            transform-origin: top;
+            transform: scaleY(0);
+            transition: transform 1.2s cubic-bezier(0.22,1,0.36,1);
+        }
+        .timeline-list.line-drawn::before { transform: scaleY(1); }
+
+        .timeline-item {
+            position: relative;
+            padding-left: 1.75rem;
+            padding-bottom: 2.6rem;
+            opacity: 0;
+            transform: translateX(20px);
+            transition: opacity 0.5s cubic-bezier(0.22,1,0.36,1), transform 0.5s cubic-bezier(0.22,1,0.36,1);
+        }
+        .timeline-item:last-child { padding-bottom: 0; }
+        .timeline-item.item-visible { opacity: 1; transform: translateX(0); }
+
+        .timeline-dot {
+            position: absolute;
+            left: -2.1rem;
+            top: 5px;
+            width: 12px; height: 12px;
+            border-radius: 50%;
+            background: var(--primary-gold);
+            border: 2px solid var(--dark-bg);
+            box-shadow: 0 0 0 4px rgba(201,176,55,0.15);
+            transition: box-shadow 0.3s;
+        }
+        .timeline-item.item-visible .timeline-dot {
+            animation: dot-pulse 2.5s ease-in-out infinite;
+        }
+        @keyframes dot-pulse {
+            0%, 100% { box-shadow: 0 0 0 4px rgba(201,176,55,0.15); }
+            50%       { box-shadow: 0 0 0 8px rgba(201,176,55,0.08), 0 0 14px rgba(201,176,55,0.3); }
         }
 
-        .about-content h3 {
+        .timeline-item-inner {
+            background: rgba(26,31,46,0.45);
+            border: 1px solid rgba(201,176,55,0.1);
+            border-radius: 14px;
+            padding: 1.25rem 1.5rem;
+            transition: border-color 0.25s, background 0.25s;
+        }
+        .timeline-item:hover .timeline-item-inner {
+            border-color: rgba(201,176,55,0.32);
+            background: rgba(26,31,46,0.7);
+        }
+        .timeline-year {
+            font-size: 0.72rem;
+            font-weight: 700;
+            letter-spacing: 0.12em;
             color: var(--primary-gold);
-            font-size: 1.5rem;
-            margin-top: 1.5rem;
-            margin-bottom: 1rem;
+            text-transform: uppercase;
+            margin-bottom: 0.35rem;
+        }
+        .timeline-item h3 {
+            font-size: 1.05rem;
+            font-weight: 700;
+            color: var(--light-text);
+            margin-bottom: 0.4rem;
+        }
+        .timeline-item p {
+            font-size: 0.875rem;
+            color: var(--gray-text);
+            line-height: 1.65;
+            margin: 0;
         }
 
-        .about-content p {
+        /* ---- Founders ---- */
+        .founders-section {
+            background: rgba(5,8,16,0.7);
+            border-top: 1px solid rgba(201,176,55,0.08);
+            border-bottom: 1px solid rgba(201,176,55,0.08);
+            padding: 5rem 2rem;
+        }
+        .founders-inner {
+            max-width: 1100px;
+            margin: 0 auto;
+        }
+        .founders-intro {
+            margin-bottom: 3rem;
+        }
+        .founders-label {
+            font-size: 0.75rem;
+            font-weight: 700;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            color: var(--gray-text);
+            margin-bottom: 0.75rem;
+        }
+        .founders-inner h2 {
+            font-size: 1.9rem;
+            font-weight: 700;
+            color: var(--light-text);
+            margin-bottom: 0.75rem;
+        }
+        .founders-inner > .founders-intro > p {
+            color: var(--gray-text);
+            font-size: 0.95rem;
+            max-width: 560px;
+            line-height: 1.7;
+        }
+
+        /* ---- Split card ---- */
+        .founder-split {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            min-height: 480px;
+            border-radius: 24px;
+            overflow: hidden;
+            border: 1px solid rgba(201,176,55,0.2);
+            box-shadow: 0 24px 64px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.03) inset;
+        }
+        .founder-photo-panel {
+            position: relative;
+            overflow: hidden;
+            background: radial-gradient(ellipse at 60% 40%, rgba(201,176,55,0.08), #050810 70%);
+        }
+        .founder-photo-panel img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            object-position: center top;
+            display: block;
+            transition: transform 6s ease;
+        }
+        .founder-split:hover .founder-photo-panel img {
+            transform: scale(1.03);
+        }
+        /* gold wash at the bottom of the photo */
+        .founder-photo-panel::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(
+                to right,
+                transparent 60%,
+                rgba(26,31,46,0.55) 100%
+            ),
+            linear-gradient(
+                to top,
+                rgba(201,176,55,0.12) 0%,
+                transparent 45%
+            );
+            pointer-events: none;
+        }
+        .founder-content-panel {
+            background: rgba(26,31,46,0.55);
+            padding: 4rem;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            gap: 0;
+            position: relative;
+            overflow: hidden;
+        }
+        .founder-stamp {
+            position: absolute;
+            top: -20px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 80%;
+            height: auto;
+            object-fit: contain;
+            opacity: 0.05;
+            pointer-events: none;
+            user-select: none;
+            filter: brightness(1.5);
+        }
+        .founder-content-panel .founders-label {
             margin-bottom: 1rem;
+        }
+        .founder-name {
+            font-size: 2.2rem;
+            font-weight: 800;
+            color: var(--light-text);
+            line-height: 1.1;
+            margin-bottom: 0.4rem;
+        }
+        .founder-role {
+            font-size: 0.78rem;
+            font-weight: 700;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            color: var(--primary-gold);
+            margin-bottom: 1.5rem;
+        }
+        .founder-bio {
+            font-size: 0.975rem;
+            color: var(--gray-text);
+            line-height: 1.75;
+            max-width: 420px;
+            margin-bottom: 2rem;
+        }
+        .founder-social {
+            display: flex;
+            gap: 0.75rem;
+            flex-wrap: wrap;
+        }
+        .founder-linkedin,
+        .founder-telegram {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.875rem;
+            font-weight: 600;
+            text-decoration: none;
+            border-radius: 50px;
+            padding: 0.5rem 1.2rem;
+            transition: background 0.2s, border-color 0.2s, transform 0.2s;
+        }
+        .founder-linkedin {
+            color: #0a66c2;
+            border: 1px solid rgba(10,102,194,0.35);
+        }
+        .founder-linkedin:hover {
+            background: rgba(10,102,194,0.1);
+            border-color: #0a66c2;
+            transform: translateY(-2px);
+        }
+        .founder-telegram {
+            color: #26a5e4;
+            border: 1px solid rgba(38,165,228,0.35);
+        }
+        .founder-telegram:hover {
+            background: rgba(38,165,228,0.1);
+            border-color: #26a5e4;
+            transform: translateY(-2px);
+        }
+
+        /* ---- Values ---- */
+        .values-section {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 5rem 2rem;
+        }
+        .values-header {
+            margin-bottom: 3rem;
+        }
+        .values-header .section-label {
+            font-size: 0.75rem;
+            font-weight: 700;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            color: var(--gray-text);
+            display: block;
+            margin-bottom: 0.75rem;
+        }
+        .values-header h2 {
+            font-size: 1.9rem;
+            font-weight: 700;
+            color: var(--light-text);
+            max-width: 480px;
+            line-height: 1.2;
+        }
+        .values-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1.25rem;
+        }
+        .value-card {
+            background: rgba(26,31,46,0.55);
+            border: 1px solid rgba(201,176,55,0.14);
+            border-radius: 18px;
+            padding: 1.75rem 1.5rem;
+            position: relative;
+            overflow: hidden;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: border-color 0.25s, box-shadow 0.25s,
+                        opacity 0.5s cubic-bezier(0.22,1,0.36,1),
+                        transform 0.5s cubic-bezier(0.22,1,0.36,1);
+        }
+        .value-card.card-visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        .value-card:hover {
+            border-color: rgba(201,176,55,0.4);
+            transform: translateY(-4px);
+            box-shadow: 0 12px 32px rgba(0,0,0,0.3), 0 0 0 1px rgba(201,176,55,0.08) inset;
+        }
+        .value-card.card-visible:hover {
+            transform: translateY(-4px);
+        }
+        .value-card::before {
+            content: attr(data-index);
+            position: absolute;
+            bottom: -10px;
+            right: 10px;
+            font-size: 5rem;
+            font-weight: 900;
+            color: var(--primary-gold);
+            opacity: 0.07;
+            line-height: 1;
+            pointer-events: none;
+            user-select: none;
+            letter-spacing: -0.02em;
+        }
+        .value-icon {
+            width: 44px; height: 44px;
+            border-radius: 12px;
+            background: linear-gradient(135deg, rgba(201,176,55,0.18), rgba(201,176,55,0.06));
+            border: 1px solid rgba(201,176,55,0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
             font-size: 1.1rem;
+            color: var(--primary-gold);
+            margin-bottom: 1rem;
+        }
+        .value-card h3 {
+            font-size: 0.95rem;
+            font-weight: 700;
+            color: var(--light-text);
+            margin-bottom: 0.5rem;
+        }
+        .value-card p {
+            font-size: 0.85rem;
+            color: var(--gray-text);
+            line-height: 1.6;
         }
 
-        .cta-button {
-            display: inline-block;
+        /* ---- Bottom CTA ---- */
+        .about-cta {
+            background: linear-gradient(135deg, rgba(26,31,46,0.8) 0%, rgba(12,16,28,0.9) 100%);
+            border: 1px solid rgba(201,176,55,0.18);
+            border-radius: 24px;
+            max-width: 1100px;
+            margin: 0 auto 5rem;
+            padding: 4rem 3rem;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+        .cta-stamp {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 60%;
+            opacity: 0.05;
+            pointer-events: none;
+            user-select: none;
+            filter: brightness(1.5);
+            z-index: 0;
+        }
+        .cta-stats {
+            display: flex;
+            justify-content: center;
+            gap: 0.75rem;
+            flex-wrap: wrap;
+            margin-bottom: 1.5rem;
+            position: relative;
+            z-index: 1;
+        }
+        .cta-stat {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            border: 1px solid rgba(201,176,55,0.25);
+            border-radius: 50px;
+            padding: 0.35rem 1rem;
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: var(--primary-gold);
+            background: rgba(201,176,55,0.06);
+            letter-spacing: 0.02em;
+        }
+        .about-cta::before {
+            content: '';
+            position: absolute;
+            top: -60px; left: 50%; transform: translateX(-50%);
+            width: 400px; height: 300px;
+            background: radial-gradient(ellipse, rgba(201,176,55,0.07), transparent 70%);
+            pointer-events: none;
+        }
+        .about-cta h2 {
+            font-size: 2rem;
+            font-weight: 800;
+            color: var(--light-text);
+            margin-bottom: 0.75rem;
+            position: relative;
+            z-index: 1;
+        }
+        .about-cta p {
+            color: var(--gray-text);
+            font-size: 1rem;
+            margin-bottom: 2rem;
+            position: relative;
+            z-index: 1;
+        }
+        .about-cta-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            flex-wrap: wrap;
+            position: relative;
+            z-index: 1;
+        }
+        .btn-primary {
             background: linear-gradient(135deg, var(--primary-gold), var(--secondary-gold));
             color: var(--darker-bg);
-            padding: 1rem 2.5rem;
+            border: none;
             border-radius: 50px;
+            padding: 0.85rem 2.2rem;
+            font-size: 0.95rem;
+            font-weight: 700;
+            cursor: pointer;
             text-decoration: none;
-            font-weight: 600;
-            transition: transform 0.3s, box-shadow 0.3s;
-            margin-top: 1.5rem;
+            display: inline-block;
+            transition: transform 0.2s, box-shadow 0.2s;
         }
-
-        .cta-button:hover {
+        .btn-primary:hover {
             transform: translateY(-2px);
-            box-shadow: 0 10px 30px rgba(201, 176, 55, 0.3);
+            box-shadow: 0 6px 20px rgba(201,176,55,0.35);
         }
-        /* Footer */
-        footer {
-            background: var(--darker-bg);
-            padding: 2rem;
-            text-align: center;
-            border-top: 1px solid rgba(201, 176, 55, 0.2);
+        .btn-outline {
+            background: none;
+            color: var(--primary-gold);
+            border: 1.5px solid rgba(201,176,55,0.5);
+            border-radius: 50px;
+            padding: 0.85rem 2.2rem;
+            font-size: 0.95rem;
+            font-weight: 600;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+            transition: border-color 0.2s, background 0.2s, transform 0.2s;
+        }
+        .btn-outline:hover {
+            border-color: var(--primary-gold);
+            background: rgba(201,176,55,0.07);
+            transform: translateY(-2px);
         }
 
-        @media (max-width: 768px) {
-            .about-grid { grid-template-columns: 1fr; }
+        /* ---- Reveal ---- */
+        .reveal {
+            opacity: 0;
+            transform: translateY(16px);
+            transition: opacity 450ms cubic-bezier(0.22,1,0.36,1), transform 450ms cubic-bezier(0.22,1,0.36,1);
+        }
+        .reveal.visible { opacity: 1; transform: translateY(0); }
+
+        /* ---- Mobile ---- */
+        @media (max-width: 900px) {
+            .timeline-section { grid-template-columns: 1fr; gap: 2.5rem; }
+            .values-grid { grid-template-columns: repeat(2, 1fr); }
+            .founder-split {
+                grid-template-columns: 1fr;
+            }
+            .founder-photo-panel {
+                height: 380px;
+            }
+            .founder-photo-panel img {
+                object-position: center 20%;
+            }
+            .founder-photo-panel::after {
+                background: linear-gradient(
+                    to bottom,
+                    transparent 50%,
+                    rgba(26,31,46,0.6) 100%
+                ),
+                linear-gradient(
+                    to top,
+                    rgba(201,176,55,0.1) 0%,
+                    transparent 50%
+                );
+            }
+            .founder-content-panel {
+                padding: 2.5rem 2rem;
+            }
+            .founder-name { font-size: 1.8rem; }
+            .founder-stamp {
+                top: 0;
+                left: auto;
+                right: -10px;
+                transform: none;
+                width: 140px;
+                height: auto;
+                opacity: 0.06;
+            }
+        }
+        @media (max-width: 600px) {
+            .about-hero { padding: 7.5rem 1.25rem 3.5rem; }
+            .timeline-section,
+            .values-section { padding: 3.5rem 1.25rem; }
+            .founders-section { padding: 3.5rem 1.25rem; }
+            .about-cta { margin: 0 1.25rem 4rem; padding: 2.5rem 1.5rem; }
+            .values-grid { grid-template-columns: 1fr 1fr; gap: 0.9rem; }
+            .about-cta h2 { font-size: 1.6rem; }
         }
     </style>
 </head>
@@ -85,27 +605,220 @@
     <div id="nav-placeholder" data-nav-type="public"></div>
     <script src="assets/js/nav-component.js"></script>
 
-    <div class="about">
-        <h1 class="section-title">Our Journey: From Vision to Victor</h1>
-        <div class="about-grid">
-            <div class="about-image">
-                <img src="assets/images/logo.png" alt="Blue Chip Signals Team">
+    <!-- Hero -->
+    <section class="about-hero">
+        <div class="about-hero-inner reveal">
+            <span class="about-hero-label">Our Story</span>
+            <h1>Built by traders,<br><em>for traders.</em></h1>
+            <p class="about-hero-desc">Blue Chip Signals was born out of frustration with noisy, unreliable trading advice. We spent years developing and backtesting a strategy that actually works — then built the tools to make it accessible to everyone.</p>
+        </div>
+    </section>
+
+    <hr class="section-divider">
+
+    <!-- Timeline -->
+    <div class="timeline-section">
+        <div class="timeline-intro reveal">
+            <h2>Years of<br><em>relentless</em> work.</h2>
+            <p>What began as a personal project to improve trading results grew into a full platform built from the ground up. Here's how it happened.</p>
+        </div>
+        <div class="timeline-list" id="timelineList">
+            <div class="timeline-item" data-delay="0">
+                <div class="timeline-dot"></div>
+                <div class="timeline-item-inner">
+                    <div class="timeline-year">2020</div>
+                    <h3>Strategy Development Begins</h3>
+                    <p>It all began with testing a momentum breakout strategy across SPY with hundreds of hours of data analysis to try and find an edge.</p>
+                </div>
             </div>
-            <div class="about-content">
-                <p>Blue Chip Signals was born from a singular vision: to demystify the complexities of stock market trading and empower individuals with precise, actionable insights. Our journey began in 2020, a period marked by unprecedented market shifts and a growing need for reliable trading strategies.</p>
-    
-                <h3>Years of Relentless Dedication</h3>
-                <p>Since 2020, our team has been relentlessly dedicated to building and rigorously backtesting our proprietary trading algorithms. We immersed ourselves in countless hours of data analysis, refining our momentum breakout strategy against years of historical market data. This wasn't just about theoretical models; it was about proving, unequivocally, that our approach could consistently identify high-probability buy signals for blue-chip stocks like SPY, META, AAPL, TSLA, NVDA, and AMZN.</p>
-    
-                <h3>The Conclusion: A Service for All</h3>
-                <p>After years of meticulous development, exhaustive backtesting, and consistent validation of our results, we have officially come to the conclusion that it is time to launch Blue Chip Signals to the public. We are confident that the precision and reliability of our signals, honed through extensive research, will provide immense value to traders of all experience levels. Our mission is to equip you with the tools and insights needed to navigate the markets with greater confidence and achieve your trading goals.</p>
-                <a href="index.html#pricing" class="cta-button">Get Started Now</a>
+            <div class="timeline-item" data-delay="150">
+                <div class="timeline-dot"></div>
+                <div class="timeline-item-inner">
+                    <div class="timeline-year">2022</div>
+                    <h3>First Private Telegram Groups</h3>
+                    <p>A small private group of traders tests the signals in live market conditions. The results validate years of testing and development work.</p>
+                </div>
             </div>
+            <div class="timeline-item" data-delay="300">
+                <div class="timeline-dot"></div>
+                <div class="timeline-item-inner">
+                    <div class="timeline-year">2025</div>
+                    <h3>Blue Chip Signals Goes Public</h3>
+                    <p>The platform officially launches, expanding coverage to META, NVDA, AAPL, TSLA and AMZN — bringing institutional-grade signals to everyday traders.</p>
+                </div>
+            </div>
+            <div class="timeline-item" data-delay="450">
+                <div class="timeline-dot"></div>
+                <div class="timeline-item-inner">
+                    <div class="timeline-year">2026</div>
+                    <h3>Platform Expansion</h3>
+                    <p>The Trading Journal and Trade Planner ship — giving members the tools to track performance, plan entries, and grow as disciplined traders.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <hr class="section-divider">
+
+    <!-- Founders -->
+    <div class="founders-section">
+        <div class="founders-inner">
+            <div class="founders-intro reveal">
+                <h2>One person. One vision.</h2>
+                <p>Blue Chip Signals was built entirely by one person — from strategy development to platform engineering. No fluff, no committee — just a trader who built exactly what he wished existed.</p>
+            </div>
+            <div class="founder-split reveal">
+                <div class="founder-photo-panel">
+                    <img src="assets/images/Founder HeadShot.png" alt="Hamza Hanifi">
+                </div>
+                <div class="founder-content-panel">
+                    <div class="founders-label">The Founder</div>
+                    <div class="founder-name">Hamza Hanifi</div>
+                    <div class="founder-role">Founder &amp; Architect</div>
+                    <p class="founder-bio">Developed the VWAP/MFI signal strategy from scratch, built the entire platform, and continues to oversee signal quality, trading tools, and daily market analysis. Every signal, every feature, and every line of code traces back to one person with a clear vision.</p>
+                    <div class="founder-social">
+                        <a href="https://www.linkedin.com/in/hamza-h/" target="_blank" rel="noopener" class="founder-linkedin">
+                            <i class="fab fa-linkedin"></i> LinkedIn
+                        </a>
+                        <a href="https://t.me/hhisdagovy" target="_blank" rel="noopener" class="founder-telegram">
+                            <i class="fab fa-telegram-plane"></i> Telegram
+                        </a>
+                    </div>
+                    <img src="assets/images/Crest logo.png" alt="" class="founder-stamp" aria-hidden="true">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Values -->
+    <div class="values-section">
+        <div class="values-header reveal">
+            <span class="section-label">What we stand for</span>
+            <h2>Our values shape every signal we send.</h2>
+        </div>
+        <div class="values-grid" id="valuesGrid">
+            <div class="value-card" data-index="01" data-delay="0">
+                <div class="value-icon"><i class="fas fa-crosshairs"></i></div>
+                <h3>Precision</h3>
+                <p>Data-driven signals, not guesswork. Every signal is the result of a strict, rules-based strategy.</p>
+            </div>
+            <div class="value-card" data-index="02" data-delay="100">
+                <div class="value-icon"><i class="fas fa-eye"></i></div>
+                <h3>Transparency</h3>
+                <p>Every signal comes with full context — entry, strike, expiry, and reasoning. Nothing hidden.</p>
+            </div>
+            <div class="value-card" data-index="03" data-delay="200">
+                <div class="value-icon"><i class="fas fa-users"></i></div>
+                <h3>Accessibility</h3>
+                <p>Built for beginners and experts alike. You don't need years of experience to trade well with us.</p>
+            </div>
+            <div class="value-card" data-index="04" data-delay="300">
+                <div class="value-icon"><i class="fas fa-shield-alt"></i></div>
+                <h3>Accountability</h3>
+                <p>We trade what we signal. Our team uses the same alerts we send to our members every day.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bottom CTA -->
+    <div class="about-cta reveal">
+        <img src="assets/images/Crest logo.png" alt="" class="cta-stamp" aria-hidden="true">
+        <div class="cta-stats">
+            <span class="cta-stat"><i class="fas fa-chart-line"></i> 6 Tickers</span>
+            <span class="cta-stat"><i class="fas fa-bolt"></i> Daily Signals</span>
+            <span class="cta-stat"><i class="fas fa-history"></i> 4+ Years</span>
+        </div>
+        <h2>Ready to start trading smarter?</h2>
+        <p>Join hundreds of traders who rely on Blue Chip Signals every market day.</p>
+        <div class="about-cta-buttons">
+            <a href="https://calendly.com/bluechipsignals/30min" class="btn-primary">Book a Demo</a>
+            <a href="contact.html" class="btn-outline">Contact Us</a>
         </div>
     </div>
 
     <!-- Footer -->
     <div id="footer-placeholder" data-footer-type="back-to-home" data-base=""></div>
     <script src="assets/js/footer-component.js"></script>
+
+    <script>
+        /* ---- Scroll reveal (general) ---- */
+        var observer = new IntersectionObserver(function(entries) {
+            entries.forEach(function(entry) {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('visible');
+                    observer.unobserve(entry.target);
+                }
+            });
+        }, { threshold: 0.08 });
+        document.querySelectorAll('.reveal').forEach(function(el) { observer.observe(el); });
+
+        /* ---- Timeline: draw line + stagger items in ---- */
+        var timelineList = document.getElementById('timelineList');
+        var timelineItems = timelineList ? timelineList.querySelectorAll('.timeline-item') : [];
+
+        var timelineObserver = new IntersectionObserver(function(entries) {
+            entries.forEach(function(entry) {
+                if (entry.isIntersecting) {
+                    // Draw the vertical line
+                    timelineList.classList.add('line-drawn');
+                    // Stagger each item
+                    timelineItems.forEach(function(item) {
+                        var delay = parseInt(item.getAttribute('data-delay') || '0', 10);
+                        setTimeout(function() {
+                            item.classList.add('item-visible');
+                        }, delay);
+                    });
+                    timelineObserver.unobserve(entry.target);
+                }
+            });
+        }, { threshold: 0.15 });
+
+        if (timelineList) timelineObserver.observe(timelineList);
+
+        /* ---- Value cards: staggered scroll-in ---- */
+        var valuesGrid = document.getElementById('valuesGrid');
+        if (valuesGrid) {
+            var valueCards = valuesGrid.querySelectorAll('.value-card');
+            var valuesObserver = new IntersectionObserver(function(entries) {
+                entries.forEach(function(entry) {
+                    if (entry.isIntersecting) {
+                        valueCards.forEach(function(card) {
+                            var delay = parseInt(card.getAttribute('data-delay') || '0', 10);
+                            setTimeout(function() {
+                                card.classList.add('card-visible');
+                            }, delay);
+                        });
+                        valuesObserver.unobserve(entry.target);
+                    }
+                });
+            }, { threshold: 0.1 });
+            valuesObserver.observe(valuesGrid);
+        }
+
+        /* ---- Auth button ---- */
+        (function() {
+            var isLoggedIn = localStorage.getItem('bluechip_logged_in') || sessionStorage.getItem('bluechip_logged_in');
+            if (!isLoggedIn) return;
+            function updateAuthButton() {
+                var btn = document.getElementById('authButton');
+                if (!btn) return;
+                btn.removeAttribute('href');
+                btn.innerHTML = '<i class="fas fa-sign-out-alt"></i> Logout';
+                btn.style.cursor = 'pointer';
+                btn.onclick = function(e) {
+                    e.preventDefault();
+                    localStorage.clear();
+                    sessionStorage.clear();
+                    window.location.href = 'login.html';
+                    return false;
+                };
+            }
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', updateAuthButton);
+            } else {
+                updateAuthButton();
+            }
+        })();
+    </script>
 </body>
 </html>

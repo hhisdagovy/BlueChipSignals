@@ -8,105 +8,274 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="assets/css/bot-style.css">
     <style>
-        /* FAQ Section */
-        .faq {
-            padding: 8rem 2rem 4rem;
-            max-width: 1000px;
+        /* ---- Hero ---- */
+        .faq-hero {
+            padding: 8rem 2rem 3rem;
+            max-width: 900px;
             margin: 0 auto;
         }
+        .faq-hero-label {
+            display: inline-block;
+            font-size: 0.75rem;
+            font-weight: 700;
+            letter-spacing: 0.14em;
+            text-transform: uppercase;
+            color: var(--primary-gold);
+            background: rgba(201,176,55,0.08);
+            border: 1px solid rgba(201,176,55,0.2);
+            border-radius: 50px;
+            padding: 0.3rem 0.9rem;
+            margin-bottom: 1.4rem;
+        }
+        .faq-hero h1 {
+            font-size: clamp(2.2rem, 5vw, 3.6rem);
+            font-weight: 800;
+            color: var(--light-text);
+            line-height: 1.1;
+            margin-bottom: 1rem;
+        }
+        .faq-hero h1 span {
+            background: linear-gradient(135deg, var(--primary-gold), var(--secondary-gold));
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .faq-hero p {
+            color: var(--gray-text);
+            font-size: 1.1rem;
+            max-width: 600px;
+            margin-bottom: 2rem;
+        }
+        .faq-search-wrap {
+            position: relative;
+            max-width: 480px;
+        }
+        .faq-search-wrap i {
+            position: absolute;
+            left: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--gray-text);
+            font-size: 0.9rem;
+        }
+        #faqSearch {
+            width: 100%;
+            background: rgba(26,31,46,0.7);
+            border: 1px solid rgba(201,176,55,0.2);
+            border-radius: 50px;
+            padding: 0.75rem 1.2rem 0.75rem 2.8rem;
+            color: var(--light-text);
+            font-size: 0.95rem;
+            outline: none;
+            transition: border-color 0.25s;
+        }
+        #faqSearch::placeholder { color: var(--gray-text); }
+        #faqSearch:focus { border-color: rgba(201,176,55,0.55); }
 
-        .section-title {
-            text-align: center;
-            font-size: 2.5rem;
-            margin-bottom: 3rem;
+        /* ---- Divider ---- */
+        .faq-divider {
+            border: none;
+            border-top: 1px solid rgba(201,176,55,0.1);
+            margin: 0;
+        }
+
+        /* ---- Two-column body ---- */
+        .faq-body {
+            display: grid;
+            grid-template-columns: 200px 1fr;
+            gap: 3rem;
+            max-width: 1060px;
+            margin: 0 auto;
+            padding: 3rem 2rem 5rem;
+            align-items: start;
+        }
+
+        /* ---- Sidebar ---- */
+        .faq-sidebar {
+            position: sticky;
+            top: 110px;
+        }
+        .faq-sidebar-label {
+            font-size: 0.7rem;
+            font-weight: 700;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            color: var(--gray-text);
+            margin-bottom: 0.75rem;
+        }
+        .faq-cat-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 0.3rem;
+        }
+        .faq-cat-list a {
+            display: block;
+            padding: 0.5rem 0.9rem;
+            border-radius: 8px;
+            color: var(--gray-text);
+            font-size: 0.9rem;
+            font-weight: 500;
+            text-decoration: none;
+            transition: background 0.2s, color 0.2s;
+        }
+        .faq-cat-list a:hover,
+        .faq-cat-list a.active {
+            background: rgba(201,176,55,0.1);
             color: var(--primary-gold);
         }
 
-        .faq-item {
-            background: rgba(26, 31, 46, 0.5);
-            border: 1px solid rgba(201, 176, 55, 0.2);
-            border-radius: 15px;
-            margin-bottom: 1.5rem;
-            overflow: hidden;
+        /* ---- FAQ content ---- */
+        .faq-content { min-width: 0; }
+
+        .faq-group { margin-bottom: 3rem; }
+        .faq-group-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--light-text);
+            margin-bottom: 1.2rem;
+            padding-bottom: 0.75rem;
+            border-bottom: 1px solid rgba(201,176,55,0.12);
         }
 
+        .faq-item {
+            background: rgba(26,31,46,0.55);
+            border: 1px solid rgba(201,176,55,0.14);
+            border-radius: 14px;
+            margin-bottom: 0.75rem;
+            overflow: hidden;
+            transition: border-color 0.25s;
+        }
+        .faq-item:hover { border-color: rgba(201,176,55,0.32); }
+        .faq-item.active { border-color: rgba(201,176,55,0.4); }
+
         .faq-question {
-            padding: 1.5rem 2rem;
+            padding: 1.2rem 1.5rem;
             cursor: pointer;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            font-size: 1.2rem;
+            font-size: 1rem;
             font-weight: 600;
+            color: var(--light-text);
+            user-select: none;
+            gap: 1rem;
         }
-
-        .faq-question:after {
-            content: '+';
-            font-size: 2rem;
+        .faq-chevron {
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            border: 1px solid rgba(201,176,55,0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
             color: var(--primary-gold);
-            transition: transform 0.3s;
+            font-size: 0.75rem;
+            transition: transform 0.3s, background 0.25s;
         }
-
+        .faq-item.active .faq-chevron {
+            transform: rotate(180deg);
+            background: rgba(201,176,55,0.12);
+        }
         .faq-answer {
-            padding: 0 2rem;
             max-height: 0;
             overflow: hidden;
-            transition: max-height 0.5s ease-out, padding 0.5s ease-out;
+            transition: max-height 0.45s ease-out, padding 0.35s ease-out;
+            padding: 0 1.5rem;
         }
-        
         .faq-answer p {
-            padding-bottom: 1.5rem;
             color: var(--gray-text);
+            font-size: 0.95rem;
+            line-height: 1.7;
+            padding-bottom: 1.25rem;
         }
-
         .faq-item.active .faq-answer {
-            max-height: 300px; /* Adjust as needed */
-            padding-top: 1rem;
-        }
-        
-        .faq-item.active .faq-question:after {
-             transform: rotate(45deg);
-        }
-        /* Footer */
-        footer {
-            background: var(--darker-bg);
-            padding: 2rem;
-            text-align: center;
-            border-top: 1px solid rgba(201, 176, 55, 0.2);
+            max-height: 400px;
+            padding-top: 0.25rem;
         }
 
-        /* Dropdown (More) */
-        .dropdown { position: relative; }
-        .dropdown > a::after { content: " \25BE"; font-size: 0.8rem; }
-        .dropdown-menu {
+        /* no-results */
+        .faq-no-results {
             display: none;
-            position: absolute;
-            top: 100%;
-            right: 0;
-            background: rgba(5, 8, 16, 0.95);
-            border: 1px solid rgba(201, 176, 55, 0.2);
-            border-radius: 8px;
-            min-width: 220px;
-            padding: 0.5rem 0;
-            z-index: 1200;
+            text-align: center;
+            color: var(--gray-text);
+            padding: 3rem 0;
+            font-size: 1rem;
         }
-        .dropdown-menu li { list-style: none; }
-        .dropdown-menu a { display: block; padding: 0.6rem 1rem; color: var(--light-text); white-space: nowrap; }
-        .dropdown-menu a:hover { background: rgba(201, 176, 55, 0.08); color: var(--primary-gold); }
-        .dropdown:hover .dropdown-menu { display: block; }
 
+        /* ---- Bottom CTA ---- */
+        .faq-cta {
+            background: rgba(26,31,46,0.6);
+            border: 1px solid rgba(201,176,55,0.16);
+            border-radius: 20px;
+            max-width: 1060px;
+            margin: 0 auto 5rem;
+            padding: 3rem 2rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 2rem;
+            flex-wrap: wrap;
+        }
+        .faq-cta-text h2 {
+            font-size: 1.6rem;
+            font-weight: 700;
+            color: var(--light-text);
+            margin-bottom: 0.4rem;
+        }
+        .faq-cta-text p { color: var(--gray-text); font-size: 0.95rem; }
+        .faq-cta .btn-primary {
+            background: linear-gradient(135deg, var(--primary-gold), var(--secondary-gold));
+            color: var(--darker-bg);
+            border: none;
+            border-radius: 50px;
+            padding: 0.8rem 2rem;
+            font-size: 0.95rem;
+            font-weight: 700;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+            white-space: nowrap;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .faq-cta .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(201,176,55,0.35);
+        }
+
+        /* ---- Reveal animation ---- */
+        .reveal {
+            opacity: 0;
+            transform: translateY(14px);
+            transition: opacity 450ms cubic-bezier(0.22,1,0.36,1), transform 450ms cubic-bezier(0.22,1,0.36,1);
+        }
+        .reveal.visible { opacity: 1; transform: translateY(0); }
+
+        /* ---- Mobile ---- */
         @media (max-width: 768px) {
-            .dropdown-menu {
-                position: static;
-                display: none;
-                background: rgba(0, 0, 0, 0.3);
-                border: none;
-                border-radius: 0;
-                padding: 0;
-                margin-left: 1rem;
+            .faq-hero { padding: 7rem 1.25rem 2rem; }
+            .faq-body {
+                grid-template-columns: 1fr;
+                gap: 1.5rem;
+                padding: 2rem 1.25rem 4rem;
             }
-            .dropdown.active .dropdown-menu { display: block; }
-            .dropdown > a::after { float: right; }
+            .faq-sidebar {
+                position: static;
+                display: flex;
+                flex-wrap: wrap;
+                gap: 0.5rem;
+                align-items: center;
+            }
+            .faq-sidebar-label { width: 100%; margin-bottom: 0; }
+            .faq-cat-list {
+                flex-direction: row;
+                flex-wrap: wrap;
+            }
+            .faq-cta { padding: 2rem 1.25rem; flex-direction: column; align-items: flex-start; }
+            .faq-cta { margin: 0 1.25rem 4rem; }
         }
     </style>
 </head>
@@ -115,100 +284,288 @@
     <div id="nav-placeholder" data-nav-type="public"></div>
     <script src="assets/js/nav-component.js"></script>
 
-    <!-- FAQ Section -->
-    <section class="faq">
-        <h1 class="section-title">Frequently Asked Questions</h1>
+    <!-- Hero -->
+    <div class="faq-hero reveal">
+        <span class="faq-hero-label">Support</span>
+        <h1>Frequently Asked <span>Questions</span></h1>
+        <p>Everything you need to know about Blue Chip Signals. Can't find your answer? Reach out to our support team.</p>
+        <div class="faq-search-wrap">
+            <i class="fas fa-search"></i>
+            <input type="text" id="faqSearch" placeholder="Search questions..." autocomplete="off">
+        </div>
+    </div>
 
-        <div class="faq-item">
-            <div class="faq-question">What is Blue Chip Signals?</div>
-            <div class="faq-answer">
-                <p>Blue Chip Signals is a premium service that provides real-time trading signals for blue-chip stocks like SPY, META, AAPL, TSLA, NVDA, and AMZN. We use a proprietary momentum breakout strategy based on VWAP and MFI indicators to identify high-probability trading opportunities.</p>
-            </div>
-        </div>
+    <hr class="faq-divider">
 
-        <div class="faq-item">
-            <div class="faq-question">How are the signals delivered?</div>
-            <div class="faq-answer">
-                <p>All signals are sent instantly via dedicated Telegram channels. Once you subscribe, you'll get access to the channels for the bots included in your plan.</p>
-            </div>
-        </div>
+    <!-- Two-column body -->
+    <div class="faq-body">
+        <!-- Sidebar -->
+        <aside class="faq-sidebar">
+            <div class="faq-sidebar-label">Categories</div>
+            <ul class="faq-cat-list">
+                <li><a href="#cat-general"   class="cat-link active" data-cat="general">General</a></li>
+                <li><a href="#cat-signals"   class="cat-link" data-cat="signals">Signals</a></li>
+                <li><a href="#cat-subscription" class="cat-link" data-cat="subscription">Subscription</a></li>
+                <li><a href="#cat-technical" class="cat-link" data-cat="technical">Getting Started</a></li>
+            </ul>
+        </aside>
 
-        <div class="faq-item">
-            <div class="faq-question">How many signals can I expect per day?</div>
-            <div class="faq-answer">
-                <p>Each of our trading bots generates between 4 to 7 high-quality signals per trading day, ensuring you have a steady stream of opportunities.</p>
-            </div>
-        </div>
+        <!-- Accordion content -->
+        <div class="faq-content">
 
-        <div class="faq-item">
-            <div class="faq-question">Do I need any trading experience?</div>
-            <div class="faq-answer">
-                <p>No, our signals are designed to be easy to follow for everyone, from beginners to experienced traders. We provide all the necessary details, including the exact entry point and suggested options contract.</p>
-            </div>
-        </div>
-        
-        <div class="faq-item">
-            <div class="faq-question">What do the signals include?</div>
-            <div class="faq-answer">
-                <p>Each signal includes the stock ticker, whether it's a buy (call) or sell (put) signal, the strike price for the suggested options contract, the premium, and the expiration date.</p>
-            </div>
-        </div>
+            <!-- General -->
+            <div class="faq-group reveal" id="cat-general" data-cat="general">
+                <h2 class="faq-group-title">General</h2>
 
-        <div class="faq-item">
-            <div class="faq-question">Can I cancel my subscription?</div>
-            <div class="faq-answer">
-                <p>Yes, you can cancel your subscription at any time. You will retain access to the service for the remainder of your billing period.</p>
+                <div class="faq-item">
+                    <div class="faq-question">
+                        What is Blue Chip Signals?
+                        <span class="faq-chevron"><i class="fas fa-chevron-down"></i></span>
+                    </div>
+                    <div class="faq-answer">
+                        <p>Blue Chip Signals is a premium service that provides real-time trading signals for blue-chip stocks including SPY, META, AAPL, TSLA, NVDA, and AMZN. We use a proprietary momentum breakout strategy based on VWAP and MFI indicators to identify high-probability trading opportunities.</p>
+                    </div>
+                </div>
+
+                <div class="faq-item">
+                    <div class="faq-question">
+                        How does Blue Chip Signals work?
+                        <span class="faq-chevron"><i class="fas fa-chevron-down"></i></span>
+                    </div>
+                    <div class="faq-answer">
+                        <p>Our algorithms monitor price action, volume, and momentum indicators throughout the trading day. When a high-probability setup is detected, a signal is immediately sent to your Telegram channel with all the details you need to act on it.</p>
+                    </div>
+                </div>
+
+                <div class="faq-item">
+                    <div class="faq-question">
+                        How are the signals delivered?
+                        <span class="faq-chevron"><i class="fas fa-chevron-down"></i></span>
+                    </div>
+                    <div class="faq-answer">
+                        <p>All signals are delivered instantly via dedicated Telegram channels. Once you subscribe, you'll receive immediate access to the channels included in your plan. Telegram is free to download on iOS, Android, and desktop.</p>
+                    </div>
+                </div>
             </div>
+
+            <!-- Signals -->
+            <div class="faq-group reveal" id="cat-signals" data-cat="signals">
+                <h2 class="faq-group-title">Signals</h2>
+
+                <div class="faq-item">
+                    <div class="faq-question">
+                        How many signals can I expect per day?
+                        <span class="faq-chevron"><i class="fas fa-chevron-down"></i></span>
+                    </div>
+                    <div class="faq-answer">
+                        <p>Each of our trading bots generates between 4 to 7 high-quality signals per trading day, ensuring you have a steady stream of opportunities during live market hours.</p>
+                    </div>
+                </div>
+
+                <div class="faq-item">
+                    <div class="faq-question">
+                        What information do the signals include?
+                        <span class="faq-chevron"><i class="fas fa-chevron-down"></i></span>
+                    </div>
+                    <div class="faq-answer">
+                        <p>Each signal includes the stock ticker, whether it's a call or put, the suggested strike price, the option premium, and the expiration date. You get everything you need to place the trade immediately.</p>
+                    </div>
+                </div>
+
+                <div class="faq-item">
+                    <div class="faq-question">
+                        Which stocks and tickers are covered?
+                        <span class="faq-chevron"><i class="fas fa-chevron-down"></i></span>
+                    </div>
+                    <div class="faq-answer">
+                        <p>We currently cover SPY, META, AAPL, TSLA, NVDA, and AMZN — some of the most liquid and actively traded securities in the market. We are continuously evaluating additional tickers to add to the platform.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Subscription -->
+            <div class="faq-group reveal" id="cat-subscription" data-cat="subscription">
+                <h2 class="faq-group-title">Subscription</h2>
+
+                <div class="faq-item">
+                    <div class="faq-question">
+                        Can I cancel my subscription?
+                        <span class="faq-chevron"><i class="fas fa-chevron-down"></i></span>
+                    </div>
+                    <div class="faq-answer">
+                        <p>Yes, you can cancel at any time with no questions asked. You will retain full access to the service for the remainder of your current billing period.</p>
+                    </div>
+                </div>
+
+                <div class="faq-item">
+                    <div class="faq-question">
+                        What plans are available?
+                        <span class="faq-chevron"><i class="fas fa-chevron-down"></i></span>
+                    </div>
+                    <div class="faq-answer">
+                        <p>We offer flexible subscription tiers depending on how many tickers you want access to. Visit our pricing page on the homepage to see the current plans and what's included in each.</p>
+                    </div>
+                </div>
+
+                <div class="faq-item">
+                    <div class="faq-question">
+                        Is there a free trial?
+                        <span class="faq-chevron"><i class="fas fa-chevron-down"></i></span>
+                    </div>
+                    <div class="faq-answer">
+                        <p>We offer a free demo call so you can see exactly what our signals look like and ask any questions before committing. Book a demo directly from our homepage.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Getting Started -->
+            <div class="faq-group reveal" id="cat-technical" data-cat="technical">
+                <h2 class="faq-group-title">Getting Started</h2>
+
+                <div class="faq-item">
+                    <div class="faq-question">
+                        Do I need any trading experience?
+                        <span class="faq-chevron"><i class="fas fa-chevron-down"></i></span>
+                    </div>
+                    <div class="faq-answer">
+                        <p>No prior experience is required. Our signals are designed to be easy to follow for everyone, from complete beginners to seasoned traders. We include all the details you need — entry point, strike price, expiration, and more.</p>
+                    </div>
+                </div>
+
+                <div class="faq-item">
+                    <div class="faq-question">
+                        What do I need to get started?
+                        <span class="faq-chevron"><i class="fas fa-chevron-down"></i></span>
+                    </div>
+                    <div class="faq-answer">
+                        <p>You'll need a brokerage account that supports options trading (such as TD Ameritrade, Webull, or Robinhood), a Telegram account to receive signals, and an active Blue Chip Signals subscription.</p>
+                    </div>
+                </div>
+
+                <div class="faq-item">
+                    <div class="faq-question">
+                        How quickly can I access signals after subscribing?
+                        <span class="faq-chevron"><i class="fas fa-chevron-down"></i></span>
+                    </div>
+                    <div class="faq-answer">
+                        <p>Access is granted within minutes of your subscription being confirmed. You'll receive onboarding instructions with links to your Telegram channels immediately after payment.</p>
+                    </div>
+                </div>
+            </div>
+
+            <p class="faq-no-results" id="faqNoResults">No questions match your search. Try different keywords or <a href="contact.html" style="color:var(--primary-gold)">contact us directly</a>.</p>
         </div>
-    </section>
+    </div>
+
+    <!-- Bottom CTA -->
+    <div class="faq-cta reveal" style="margin-left: 2rem; margin-right: 2rem; max-width: calc(1060px - 4rem); margin-left: auto; margin-right: auto;">
+        <div class="faq-cta-text">
+            <h2>Still have questions?</h2>
+            <p>Our support team is happy to help with anything not covered here.</p>
+        </div>
+        <a href="contact.html" class="btn-primary">Contact Support</a>
+    </div>
 
     <!-- Footer -->
     <div id="footer-placeholder" data-footer-type="back-to-home" data-base=""></div>
     <script src="assets/js/footer-component.js"></script>
 
     <script>
-        const faqItems = document.querySelectorAll('.faq-item');
+        /* ---- Accordion ---- */
+        document.querySelectorAll('.faq-question').forEach(function(question) {
+            question.addEventListener('click', function() {
+                var item = this.closest('.faq-item');
+                var isActive = item.classList.contains('active');
+                document.querySelectorAll('.faq-item').forEach(function(i) { i.classList.remove('active'); });
+                if (!isActive) item.classList.add('active');
+            });
+        });
 
-        faqItems.forEach(item => {
-            const question = item.querySelector('.faq-question');
-            question.addEventListener('click', () => {
-                const isActive = item.classList.contains('active');
-                faqItems.forEach(i => i.classList.remove('active'));
-                if (!isActive) {
-                    item.classList.add('active');
+        /* ---- Search filter ---- */
+        document.getElementById('faqSearch').addEventListener('input', function() {
+            var q = this.value.trim().toLowerCase();
+            var anyVisible = false;
+
+            document.querySelectorAll('.faq-item').forEach(function(item) {
+                var text = item.textContent.toLowerCase();
+                var match = !q || text.includes(q);
+                item.style.display = match ? '' : 'none';
+                if (match) anyVisible = true;
+            });
+
+            document.querySelectorAll('.faq-group').forEach(function(group) {
+                var visible = Array.from(group.querySelectorAll('.faq-item')).some(function(i) { return i.style.display !== 'none'; });
+                group.style.display = visible ? '' : 'none';
+            });
+
+            document.getElementById('faqNoResults').style.display = anyVisible ? 'none' : 'block';
+        });
+
+        /* ---- Category sidebar highlight on scroll ---- */
+        var groups = document.querySelectorAll('.faq-group');
+        var catLinks = document.querySelectorAll('.cat-link');
+
+        window.addEventListener('scroll', function() {
+            var scrollY = window.scrollY + 140;
+            groups.forEach(function(group) {
+                var top = group.offsetTop;
+                var bottom = top + group.offsetHeight;
+                if (scrollY >= top && scrollY < bottom) {
+                    var cat = group.dataset.cat;
+                    catLinks.forEach(function(a) {
+                        a.classList.toggle('active', a.dataset.cat === cat);
+                    });
                 }
             });
         });
-    </script>
-    <script>
-        // Check if user is logged in and update the navigation button immediately
-        (function() {
-            const isLoggedIn = localStorage.getItem('bluechip_logged_in') || sessionStorage.getItem('bluechip_logged_in');
-            
-            if (isLoggedIn) {
-                if (document.readyState === 'loading') {
-                    document.addEventListener('DOMContentLoaded', updateAuthButton);
-                } else {
-                    updateAuthButton();
+
+        /* ---- Smooth scroll from sidebar ---- */
+        catLinks.forEach(function(link) {
+            link.addEventListener('click', function(e) {
+                e.preventDefault();
+                var cat = this.dataset.cat;
+                var target = document.getElementById('cat-' + cat);
+                if (target) {
+                    var offset = target.getBoundingClientRect().top + window.scrollY - 120;
+                    window.scrollTo({ top: offset, behavior: 'smooth' });
                 }
-            }
-            
+            });
+        });
+
+        /* ---- Scroll reveal ---- */
+        var revealEls = document.querySelectorAll('.reveal');
+        var observer = new IntersectionObserver(function(entries) {
+            entries.forEach(function(entry) {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('visible');
+                    observer.unobserve(entry.target);
+                }
+            });
+        }, { threshold: 0.08 });
+        revealEls.forEach(function(el) { observer.observe(el); });
+
+        /* ---- Auth button ---- */
+        (function() {
+            var isLoggedIn = localStorage.getItem('bluechip_logged_in') || sessionStorage.getItem('bluechip_logged_in');
+            if (!isLoggedIn) return;
             function updateAuthButton() {
-                const authButton = document.getElementById('authButton');
-                
-                if (authButton) {
-                    authButton.removeAttribute('href');
-                    authButton.innerHTML = '<i class="fas fa-sign-out-alt"></i> Logout';
-                    authButton.style.cursor = 'pointer';
-                    
-                authButton.onclick = function(e) {
+                var btn = document.getElementById('authButton');
+                if (!btn) return;
+                btn.removeAttribute('href');
+                btn.innerHTML = '<i class="fas fa-sign-out-alt"></i> Logout';
+                btn.style.cursor = 'pointer';
+                btn.onclick = function(e) {
                     e.preventDefault();
                     localStorage.clear();
                     sessionStorage.clear();
                     window.location.href = 'login.html';
                     return false;
                 };
-                }
+            }
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', updateAuthButton);
+            } else {
+                updateAuthButton();
             }
         })();
     </script>

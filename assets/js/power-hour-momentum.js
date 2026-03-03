@@ -1,6 +1,6 @@
 class PowerHourMomentum {
     constructor() {
-        this.apiKey = 'sTQWgQESNYRtbmcO5yKoOrToz2ZZeryV'; // Polygon.io API key
+        this.apiKey = '%%POLYGON_API_KEY%%';
         this.symbol = 'SPY';
         this.updateInterval = 900000; // Update every 15 minutes
         this.momentumScore = 0;

@@ -1,0 +1,67 @@
+name: Deploy to GitHub Pages
+
+# Runs on every push to main, or can be triggered manually
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+# Required permissions for the deploy-pages action
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Only allow one deployment at a time; don't cancel in-progress runs
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # ─────────────────────────────────────────────────────────────
+      # Inject API secrets — replaces %%PLACEHOLDER%% tokens in
+      # source files with the real values from GitHub Secrets.
+      # The source on GitHub only ever shows the placeholder tokens.
+      # ─────────────────────────────────────────────────────────────
+      - name: Inject API secrets
+        env:
+          FIREBASE_API:      ${{ secrets.FIREBASE_API }}
+          POLYGON_API_KEY:   ${{ secrets.POLYGON_API_KEY }}
+          ALPHA_VANTAGE_KEY: ${{ secrets.ALPHA_VANTAGE_KEY }}
+          BLS_API_KEY:       ${{ secrets.BLS_API_KEY }}
+        run: |
+          # Firebase API key — firebase-config.js and admin.html
+          sed -i "s|%%FIREBASE_API%%|${FIREBASE_API}|g"           assets/js/firebase-config.js
+          sed -i "s|%%FIREBASE_API%%|${FIREBASE_API}|g"           admin.html
+
+          # Polygon API key — central config + files that inline it directly
+          sed -i "s|%%POLYGON_API_KEY%%|${POLYGON_API_KEY}|g"     assets/js/config.js
+          sed -i "s|%%POLYGON_API_KEY%%|${POLYGON_API_KEY}|g"     assets/js/trend-strength.js
+          sed -i "s|%%POLYGON_API_KEY%%|${POLYGON_API_KEY}|g"     assets/js/power-hour-momentum.js
+
+          # Alpha Vantage and BLS keys — central config only
+          sed -i "s|%%ALPHA_VANTAGE_KEY%%|${ALPHA_VANTAGE_KEY}|g" assets/js/config.js
+          sed -i "s|%%BLS_API_KEY%%|${BLS_API_KEY}|g"             assets/js/config.js
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          # Deploy the entire repo root (with secrets now injected)
+          path: '.'
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

@@ -3,598 +3,1276 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Panel - User Management | Blue Chip Signals</title>
+    <title>Admin Panel | Blue Chip Signals</title>
     <link rel="icon" type="image/png" href="assets/images/logo.png">
     <link rel="stylesheet" href="assets/css/global.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        :root {
-            --primary-gold: #b3a17d;
-            --secondary-gold: #E2CFB5;
-            --dark-bg: #080B0F;
-            --darker-bg: #050810;
-            --light-text: #FFFFFF;
-            --gray-text: #A0A0A0;
-        }
-        body {
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-            background: var(--dark-bg);
-            color: var(--light-text);
-            min-height: 100vh;
-            padding: 2rem;
+        body { overflow-x: hidden; }
+
+        .admin-wrapper {
+            margin-top: 110px;
+            padding: 0 2rem 3rem;
+            max-width: 1200px;
+            margin-left: auto;
+            margin-right: auto;
         }
 
-        .admin-container {
-            max-width: 1400px;
-            margin: 0 auto;
-        }
-
-        .admin-header {
-            text-align: center;
-            margin-bottom: 3rem;
-            padding: 2rem;
-            background: linear-gradient(135deg, rgba(179, 161, 125, 0.1), rgba(226, 207, 181, 0.05));
-            border-radius: 16px;
-            border: 1px solid rgba(201, 176, 55, 0.2);
-        }
-
-        .admin-header h1 {
-            font-size: 2.5rem;
-            background: linear-gradient(135deg, var(--primary-gold), var(--secondary-gold));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            margin-bottom: 0.5rem;
-        }
-
-        .admin-header p {
-            color: var(--gray-text);
-            font-size: 1.1rem;
-        }
-
-        .admin-grid {
-            display: grid;
-            grid-template-columns: 1fr 2fr;
-            gap: 2rem;
-            margin-bottom: 2rem;
-        }
-
-        .admin-card {
-            background: var(--darker-bg);
-            border: 1px solid rgba(201, 176, 55, 0.2);
-            border-radius: 16px;
-            padding: 2rem;
-        }
-
-        .admin-card h2 {
-            color: var(--primary-gold);
-            font-size: 1.5rem;
+        /* ── Hero ── */
+        .admin-hero {
+            position: relative;
+            background: rgba(10, 14, 22, 0.7);
+            border: 1px solid rgba(201, 176, 55, 0.18);
+            border-radius: 20px;
+            padding: 2rem 2rem 1.75rem;
             margin-bottom: 1.5rem;
+            overflow: hidden;
+        }
+
+        .admin-hero-glow {
+            position: absolute;
+            top: -70px; right: -70px;
+            width: 400px; height: 320px;
+            background: radial-gradient(ellipse at center, rgba(201,176,55,0.07) 0%, transparent 70%);
+            pointer-events: none; z-index: 0;
+        }
+
+        .admin-hero-body {
+            position: relative; z-index: 1;
             display: flex;
-            align-items: center;
-            gap: 0.75rem;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 1rem;
+            flex-wrap: wrap;
         }
 
-        .form-group {
-            margin-bottom: 1.5rem;
-        }
-
-        .form-group label {
-            display: block;
-            color: var(--light-text);
-            margin-bottom: 0.5rem;
-            font-weight: 500;
-        }
-
-        .form-group input,
-        .form-group select {
-            width: 100%;
-            padding: 0.875rem;
-            background: var(--dark-bg);
-            border: 1px solid rgba(201, 176, 55, 0.2);
-            border-radius: 8px;
-            color: var(--light-text);
-            font-size: 1rem;
-            transition: all 0.3s ease;
-        }
-
-        .form-group input:focus,
-        .form-group select:focus {
-            outline: none;
-            border-color: var(--primary-gold);
-            box-shadow: 0 0 0 3px rgba(179, 161, 125, 0.1);
-        }
-
-        .btn {
-            padding: 0.875rem 1.75rem;
-            border: none;
-            border-radius: 8px;
-            font-size: 1rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
+        .admin-label-pill {
             display: inline-flex;
             align-items: center;
-            gap: 0.5rem;
-        }
-
-        .btn-primary {
-            background: linear-gradient(135deg, var(--primary-gold), var(--secondary-gold));
-            color: var(--darker-bg);
-        }
-
-        .btn-primary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 20px rgba(179, 161, 125, 0.3);
-        }
-
-        .btn-danger {
-            background: #FF3B3B;
-            color: white;
-        }
-
-        .btn-danger:hover {
-            background: #d32f2f;
-        }
-
-        .btn-secondary {
-            background: rgba(179, 161, 125, 0.1);
+            gap: 0.4rem;
+            font-size: 0.68rem;
+            font-weight: 700;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
             color: var(--primary-gold);
-            border: 1px solid rgba(201, 176, 55, 0.3);
+            background: rgba(201,176,55,0.08);
+            border: 1px solid rgba(201,176,55,0.2);
+            padding: 0.28rem 0.78rem;
+            border-radius: 100px;
+            margin-bottom: 0.85rem;
         }
 
-        .btn-secondary:hover {
-            background: rgba(179, 161, 125, 0.2);
+        .admin-hero-title {
+            font-size: clamp(1.5rem, 3vw, 2rem);
+            font-weight: 800;
+            background: linear-gradient(135deg, var(--primary-gold) 0%, var(--secondary-gold) 55%, var(--primary-gold) 100%);
+            -webkit-background-clip: text; background-clip: text;
+            -webkit-text-fill-color: transparent;
+            line-height: 1.15; margin-bottom: 0.4rem;
+            letter-spacing: -0.02em;
         }
 
-        .message {
-            padding: 1rem;
-            border-radius: 8px;
-            margin-bottom: 1rem;
-            display: none;
+        .admin-hero-sub {
+            font-size: 0.82rem;
+            color: rgba(255,255,255,0.38);
+        }
+
+        .admin-back-btn {
+            display: inline-flex;
             align-items: center;
-            gap: 0.5rem;
-        }
-
-        .message.show {
-            display: flex;
-        }
-
-        .message.success {
-            background: rgba(46, 125, 50, 0.2);
-            border: 1px solid rgba(76, 175, 80, 0.3);
-            color: #81c784;
-        }
-
-        .message.error {
-            background: rgba(211, 47, 47, 0.2);
-            border: 1px solid rgba(244, 67, 54, 0.3);
-            color: #e57373;
-        }
-
-        .users-table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 1rem;
-        }
-
-        .users-table thead {
-            background: rgba(179, 161, 125, 0.1);
-        }
-
-        .users-table th {
-            padding: 1rem;
-            text-align: left;
-            color: var(--primary-gold);
+            gap: 0.4rem;
+            font-size: 0.75rem;
             font-weight: 600;
-            border-bottom: 2px solid rgba(201, 176, 55, 0.3);
+            color: rgba(255,255,255,0.38);
+            text-decoration: none;
+            padding: 0.35rem 0.85rem;
+            border-radius: 100px;
+            border: 1px solid rgba(255,255,255,0.08);
+            background: rgba(255,255,255,0.03);
+            transition: color 0.2s, border-color 0.2s;
+            white-space: nowrap;
+            align-self: flex-start;
         }
 
-        .users-table td {
-            padding: 1rem;
-            border-bottom: 1px solid rgba(201, 176, 55, 0.1);
-            color: var(--gray-text);
-        }
-
-        .users-table tbody tr {
-            transition: background 0.2s ease;
-        }
-
-        .users-table tbody tr:hover {
-            background: rgba(179, 161, 125, 0.05);
-        }
-
-        .user-email {
-            color: var(--light-text);
-            font-weight: 500;
-        }
-
-        .status-badge {
-            padding: 0.25rem 0.75rem;
-            border-radius: 12px;
-            font-size: 0.875rem;
-            font-weight: 500;
-        }
-
-        .status-complete {
-            background: rgba(76, 175, 80, 0.2);
-            color: #81c784;
-        }
-
-        .status-incomplete {
-            background: rgba(255, 152, 0, 0.2);
-            color: #ffb74d;
-        }
-
-        .auth-method {
-            padding: 0.25rem 0.75rem;
-            border-radius: 12px;
-            font-size: 0.875rem;
-            background: rgba(33, 150, 243, 0.2);
-            color: #64b5f6;
-        }
-
-        .loading {
-            text-align: center;
-            padding: 2rem;
-            color: var(--gray-text);
-        }
-
-        .empty-state {
-            text-align: center;
-            padding: 3rem;
-            color: var(--gray-text);
-        }
-
-        .empty-state i {
-            font-size: 3rem;
+        .admin-back-btn:hover {
             color: var(--primary-gold);
-            margin-bottom: 1rem;
+            border-color: rgba(201,176,55,0.25);
         }
 
-        .stats-grid {
+        /* ── Stats ── */
+        .admin-stats-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            grid-template-columns: repeat(4, 1fr);
             gap: 1rem;
-            margin-bottom: 2rem;
+            margin-bottom: 1.5rem;
         }
 
-        .stat-card {
-            background: linear-gradient(135deg, rgba(179, 161, 125, 0.1), rgba(226, 207, 181, 0.05));
-            border: 1px solid rgba(201, 176, 55, 0.2);
+        .admin-stat-card {
+            background: rgba(10, 14, 22, 0.7);
+            border: 1px solid rgba(201, 176, 55, 0.18);
+            border-radius: 16px;
+            padding: 1.25rem 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .admin-stat-icon {
+            width: 38px; height: 38px;
+            border-radius: 10px;
+            background: rgba(201,176,55,0.08);
+            border: 1px solid rgba(201,176,55,0.15);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 0.85rem;
+            color: var(--primary-gold);
+            flex-shrink: 0;
+        }
+
+        .admin-stat-value {
+            font-size: 1.65rem;
+            font-weight: 800;
+            color: var(--light-text);
+            line-height: 1;
+            margin-bottom: 0.22rem;
+        }
+
+        .admin-stat-label {
+            font-size: 0.65rem;
+            font-weight: 700;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            color: rgba(255,255,255,0.3);
+        }
+
+        /* ── Tabs ── */
+        .admin-tabs {
+            display: flex;
+            gap: 0.4rem;
+            margin-bottom: 1.25rem;
+            background: rgba(10,14,22,0.7);
+            border: 1px solid rgba(201,176,55,0.15);
             border-radius: 12px;
-            padding: 1.5rem;
-            text-align: center;
+            padding: 0.35rem;
+            width: fit-content;
         }
 
-        .stat-card .number {
-            font-size: 2rem;
+        .admin-tab {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            padding: 0.5rem 1.25rem;
+            border-radius: 8px;
+            border: 1px solid transparent;
+            background: none;
+            color: rgba(255,255,255,0.4);
+            font-size: 0.8rem;
+            font-weight: 600;
+            cursor: pointer;
+            letter-spacing: 0.04em;
+            transition: background 0.2s, color 0.2s, border-color 0.2s;
+            font-family: inherit;
+        }
+
+        .admin-tab.active {
+            background: rgba(201,176,55,0.1);
+            border-color: rgba(201,176,55,0.22);
+            color: var(--primary-gold);
+        }
+
+        /* ── Panels ── */
+        .admin-panel { display: none; }
+        .admin-panel.active { display: block; }
+
+        .admin-card {
+            background: rgba(10, 14, 22, 0.7);
+            border: 1px solid rgba(201, 176, 55, 0.18);
+            border-radius: 16px;
+            padding: 1.75rem;
+        }
+
+        .admin-card-title {
+            font-size: 1rem;
             font-weight: 700;
             color: var(--primary-gold);
-            margin-bottom: 0.5rem;
-        }
-
-        .stat-card .label {
-            color: var(--gray-text);
-            font-size: 0.875rem;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
-        @media (max-width: 968px) {
-            .admin-grid {
-                grid-template-columns: 1fr;
-            }
-
-            .admin-header h1 {
-                font-size: 2rem;
-            }
-
-            body {
-                padding: 1rem;
-            }
-        }
-
-        .logout-btn {
-            position: fixed;
-            top: 2rem;
-            right: 2rem;
-            background: rgba(211, 47, 47, 0.2);
-            color: #e57373;
-            border: 1px solid rgba(244, 67, 54, 0.3);
-            padding: 0.75rem 1.5rem;
-            border-radius: 8px;
-            cursor: pointer;
-            font-weight: 600;
-            transition: all 0.3s ease;
-        }
-
-        .logout-btn:hover {
-            background: rgba(211, 47, 47, 0.3);
-        }
-
-        .user-actions {
             display: flex;
+            align-items: center;
             gap: 0.5rem;
+            margin-bottom: 1.5rem;
         }
 
-        .btn-small {
-            padding: 0.5rem 1rem;
-            font-size: 0.875rem;
+        /* ── Controls ── */
+        .admin-controls {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1.25rem;
+            flex-wrap: wrap;
+        }
+
+        .admin-search-wrap {
+            flex: 1;
+            min-width: 200px;
+            position: relative;
+        }
+
+        .admin-search-wrap > i {
+            position: absolute;
+            left: 0.9rem; top: 50%;
+            transform: translateY(-50%);
+            color: rgba(255,255,255,0.28);
+            font-size: 0.78rem;
+            pointer-events: none;
+        }
+
+        .admin-search-input {
+            width: 100%;
+            background: rgba(10,14,22,0.6);
+            border: 1px solid rgba(201,176,55,0.15);
+            border-radius: 10px;
+            padding: 0.65rem 1rem 0.65rem 2.2rem;
+            color: var(--light-text);
+            font-size: 0.85rem;
+            font-family: inherit;
+            outline: none;
+            transition: border-color 0.2s;
+            box-sizing: border-box;
+        }
+
+        .admin-search-input:focus { border-color: rgba(201,176,55,0.35); }
+        .admin-search-input::placeholder { color: rgba(255,255,255,0.22); }
+
+        .filter-pills { display: flex; gap: 0.4rem; flex-wrap: wrap; }
+
+        .filter-pill {
+            padding: 0.38rem 0.85rem;
+            border-radius: 100px;
+            border: 1px solid rgba(255,255,255,0.1);
+            background: none;
+            color: rgba(255,255,255,0.38);
+            font-size: 0.73rem;
+            font-weight: 600;
+            cursor: pointer;
+            font-family: inherit;
+            transition: all 0.2s;
+        }
+
+        .filter-pill.active, .filter-pill:hover {
+            background: rgba(201,176,55,0.08);
+            border-color: rgba(201,176,55,0.28);
+            color: var(--primary-gold);
+        }
+
+        /* ── Table ── */
+        .admin-table-wrap {
+            overflow-x: auto;
+            border-radius: 12px;
+            border: 1px solid rgba(201,176,55,0.1);
+        }
+
+        .admin-table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 720px;
+        }
+
+        .admin-table thead { background: rgba(201,176,55,0.04); }
+
+        .admin-table th {
+            padding: 0.85rem 1rem;
+            text-align: left;
+            font-size: 0.66rem;
+            font-weight: 700;
+            letter-spacing: 0.09em;
+            text-transform: uppercase;
+            color: rgba(255,255,255,0.3);
+            border-bottom: 1px solid rgba(201,176,55,0.1);
+            white-space: nowrap;
+        }
+
+        .admin-table td {
+            padding: 0.85rem 1rem;
+            border-bottom: 1px solid rgba(255,255,255,0.04);
+            vertical-align: middle;
+        }
+
+        .admin-table tbody tr:last-child td { border-bottom: none; }
+        .admin-table tbody tr:hover { background: rgba(201,176,55,0.025); }
+
+        /* ── User cell ── */
+        .user-cell { display: flex; align-items: center; gap: 0.7rem; }
+
+        .user-avatar {
+            width: 34px; height: 34px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, rgba(179,161,125,0.2), rgba(226,207,181,0.06));
+            border: 1px solid rgba(201,176,55,0.25);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 0.85rem; font-weight: 700;
+            color: var(--primary-gold);
+            flex-shrink: 0;
+        }
+
+        .user-name { font-size: 0.85rem; font-weight: 600; color: var(--light-text); line-height: 1.2; }
+        .user-email-sub { font-size: 0.72rem; color: rgba(255,255,255,0.35); }
+
+        /* ── Plan badges ── */
+        .plan-badge {
+            display: inline-flex; align-items: center; gap: 0.3rem;
+            padding: 0.24rem 0.65rem;
+            border-radius: 100px;
+            font-size: 0.72rem; font-weight: 700;
+            white-space: nowrap;
+        }
+
+        .plan-bundle {
+            background: rgba(42, 87, 31, 0.18);
+            border: 1px solid rgba(76,175,80,0.32);
+            color: #81c784;
+        }
+
+        .plan-single {
+            background: rgba(201,176,55,0.08);
+            border: 1px solid rgba(201,176,55,0.28);
+            color: var(--primary-gold);
+        }
+
+        .plan-none {
+            background: rgba(255,255,255,0.04);
+            border: 1px solid rgba(255,255,255,0.1);
+            color: rgba(255,255,255,0.3);
+        }
+
+        /* ── Status chip ── */
+        .status-chip {
+            display: inline-flex; align-items: center; gap: 0.3rem;
+            padding: 0.22rem 0.65rem;
+            border-radius: 100px;
+            font-size: 0.72rem; font-weight: 600;
+        }
+
+        .status-active  { background: rgba(42,87,31,0.15); color: #81c784; }
+        .status-inactive { background: rgba(211,47,47,0.1); color: #e57373; }
+
+        /* ── Row actions ── */
+        .row-actions { display: flex; gap: 0.4rem; }
+
+        .row-btn {
+            display: inline-flex; align-items: center; gap: 0.3rem;
+            padding: 0.3rem 0.7rem;
+            border-radius: 8px;
+            border: 1px solid;
+            font-size: 0.72rem; font-weight: 600;
+            cursor: pointer;
+            font-family: inherit;
+            transition: all 0.18s;
+        }
+
+        .row-btn-edit {
+            background: rgba(201,176,55,0.06);
+            border-color: rgba(201,176,55,0.22);
+            color: var(--primary-gold);
+        }
+
+        .row-btn-edit:hover { background: rgba(201,176,55,0.14); }
+
+        .row-btn-delete {
+            background: rgba(211,47,47,0.06);
+            border-color: rgba(244,67,54,0.22);
+            color: #e57373;
+        }
+
+        .row-btn-delete:hover { background: rgba(211,47,47,0.14); }
+
+        /* ── States ── */
+        .admin-loading, .admin-empty {
+            text-align: center;
+            padding: 3rem 2rem;
+            color: rgba(255,255,255,0.28);
+        }
+
+        .admin-loading i, .admin-empty i {
+            font-size: 2rem;
+            color: var(--primary-gold);
+            margin-bottom: 0.75rem;
+            display: block;
+        }
+
+        /* ── Form shared ── */
+        .form-field { display: flex; flex-direction: column; gap: 0.45rem; }
+        .form-field.full-width { grid-column: 1 / -1; }
+
+        .form-label {
+            font-size: 0.73rem; font-weight: 600;
+            letter-spacing: 0.05em;
+            color: rgba(255,255,255,0.5);
+        }
+
+        .form-label .req { color: var(--primary-gold); margin-left: 0.1rem; }
+
+        .form-input, .form-select {
+            background: rgba(10,14,22,0.6);
+            border: 1px solid rgba(201,176,55,0.18);
+            border-radius: 10px;
+            padding: 0.7rem 0.9rem;
+            color: var(--light-text);
+            font-size: 0.85rem;
+            font-family: inherit;
+            outline: none;
+            transition: border-color 0.2s;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        .form-input:focus, .form-select:focus { border-color: rgba(201,176,55,0.4); }
+        .form-input::placeholder { color: rgba(255,255,255,0.22); }
+        .form-select option { background: #0d111a; }
+
+        .form-hint {
+            font-size: 0.7rem;
+            color: rgba(255,255,255,0.25);
+            line-height: 1.5;
+        }
+
+        .form-msg {
+            padding: 0.75rem 1rem;
+            border-radius: 10px;
+            font-size: 0.82rem; font-weight: 500;
+            display: none;
+            align-items: center; gap: 0.5rem;
+            margin-bottom: 1.25rem;
+        }
+
+        .form-msg.show { display: flex; }
+
+        .form-msg.success {
+            background: rgba(46,125,50,0.14);
+            border: 1px solid rgba(76,175,80,0.25);
+            color: #81c784;
+        }
+
+        .form-msg.error {
+            background: rgba(211,47,47,0.1);
+            border: 1px solid rgba(244,67,54,0.25);
+            color: #e57373;
+        }
+
+        .form-submit-btn {
+            display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem;
+            padding: 0.82rem 2rem;
+            background: linear-gradient(135deg, var(--primary-gold), var(--secondary-gold));
+            color: #080B0F;
+            border: none; border-radius: 10px;
+            font-size: 0.85rem; font-weight: 700;
+            cursor: pointer; font-family: inherit;
+            transition: opacity 0.2s, transform 0.2s;
+        }
+
+        .form-submit-btn:hover { opacity: 0.88; transform: translateY(-1px); }
+        .form-submit-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+        /* ── Add User grid ── */
+        .add-user-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.25rem;
+        }
+
+        /* ── Edit modal ── */
+        .modal-overlay {
+            position: fixed; inset: 0;
+            background: rgba(5,8,16,0.85);
+            backdrop-filter: blur(6px);
+            -webkit-backdrop-filter: blur(6px);
+            z-index: 1000;
+            display: none; align-items: center; justify-content: center;
+            padding: 1.5rem;
+        }
+
+        .modal-overlay.open { display: flex; }
+
+        .modal-box {
+            background: #0d1118;
+            border: 1px solid rgba(201,176,55,0.22);
+            border-radius: 20px;
+            width: 100%; max-width: 520px;
+            max-height: 90vh; overflow-y: auto;
+            padding: 2rem;
+        }
+
+        .modal-header {
+            display: flex; align-items: center; justify-content: space-between;
+            margin-bottom: 1.5rem;
+        }
+
+        .modal-title { font-size: 1rem; font-weight: 700; color: var(--primary-gold); }
+
+        .modal-close {
+            width: 30px; height: 30px;
+            border-radius: 50%;
+            border: 1px solid rgba(255,255,255,0.1);
+            background: rgba(255,255,255,0.04);
+            color: rgba(255,255,255,0.4);
+            font-size: 0.8rem; cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+            transition: all 0.2s;
+        }
+
+        .modal-close:hover { border-color: rgba(211,47,47,0.4); color: #e57373; }
+
+        .modal-user-info {
+            display: flex; align-items: center; gap: 0.75rem;
+            padding: 0.9rem 1rem;
+            background: rgba(201,176,55,0.04);
+            border: 1px solid rgba(201,176,55,0.1);
+            border-radius: 12px;
+            margin-bottom: 1.5rem;
+        }
+
+        .modal-avatar {
+            width: 38px; height: 38px;
+            border-radius: 50%;
+            background: rgba(201,176,55,0.12);
+            border: 1px solid rgba(201,176,55,0.25);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1rem; font-weight: 800;
+            color: var(--primary-gold);
+        }
+
+        .modal-user-name { font-size: 0.88rem; font-weight: 600; color: var(--light-text); }
+        .modal-user-email { font-size: 0.72rem; color: rgba(255,255,255,0.35); }
+
+        .modal-form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+        }
+
+        .modal-form-grid .full { grid-column: 1 / -1; }
+
+        .modal-save-btn { width: 100%; margin-top: 1.5rem; }
+
+        /* ── Confirm dialog ── */
+        .confirm-overlay {
+            position: fixed; inset: 0;
+            background: rgba(5,8,16,0.85);
+            backdrop-filter: blur(6px);
+            -webkit-backdrop-filter: blur(6px);
+            z-index: 1100;
+            display: none; align-items: center; justify-content: center;
+            padding: 1.5rem;
+        }
+
+        .confirm-overlay.open { display: flex; }
+
+        .confirm-box {
+            background: #0d1118;
+            border: 1px solid rgba(244,67,54,0.28);
+            border-radius: 18px;
+            padding: 2rem 1.75rem;
+            max-width: 380px; width: 100%;
+            text-align: center;
+        }
+
+        .confirm-icon { font-size: 2.2rem; color: #e57373; margin-bottom: 0.75rem; display: block; }
+        .confirm-title { font-size: 1rem; font-weight: 700; color: var(--light-text); margin-bottom: 0.5rem; }
+        .confirm-body { font-size: 0.82rem; color: rgba(255,255,255,0.45); margin-bottom: 0.4rem; }
+
+        .confirm-note {
+            font-size: 0.7rem;
+            color: rgba(255,255,255,0.22);
+            margin-bottom: 1.5rem;
+            line-height: 1.5;
+        }
+
+        .confirm-actions { display: flex; gap: 0.75rem; }
+
+        .confirm-btn {
+            flex: 1; padding: 0.7rem;
+            border-radius: 10px; border: 1px solid;
+            font-size: 0.82rem; font-weight: 700;
+            cursor: pointer; font-family: inherit;
+            transition: all 0.2s;
+        }
+
+        .confirm-cancel {
+            background: rgba(255,255,255,0.04);
+            border-color: rgba(255,255,255,0.1);
+            color: rgba(255,255,255,0.5);
+        }
+
+        .confirm-cancel:hover { background: rgba(255,255,255,0.08); }
+
+        .confirm-delete {
+            background: rgba(211,47,47,0.14);
+            border-color: rgba(244,67,54,0.35);
+            color: #e57373;
+        }
+
+        .confirm-delete:hover { background: rgba(211,47,47,0.24); }
+
+        /* ── Responsive ── */
+        @media (max-width: 900px) {
+            .admin-stats-grid { grid-template-columns: 1fr 1fr; }
+        }
+
+        @media (max-width: 768px) {
+            .admin-wrapper { padding: 0 1rem 2rem; margin-top: 90px; }
+            .add-user-grid { grid-template-columns: 1fr; }
+            .modal-form-grid { grid-template-columns: 1fr; }
+        }
+
+        @media (max-width: 480px) {
+            .admin-stats-grid { grid-template-columns: 1fr 1fr; }
+            .admin-controls { flex-direction: column; align-items: stretch; }
         }
     </style>
 </head>
 <body>
-    <button class="logout-btn" onclick="logoutAdmin()">
-        <i class="fas fa-sign-out-alt"></i> Logout
-    </button>
+    <div id="nav-placeholder" data-nav-type="internal"></div>
+    <script src="assets/js/nav-component.js"></script>
 
-    <div class="admin-container">
-        <div class="admin-header">
-            <h1><i class="fas fa-shield-halved"></i> Admin Panel</h1>
-            <p>User Management System</p>
-        </div>
+    <div class="admin-wrapper">
 
-        <div class="stats-grid" id="statsGrid">
-            <div class="stat-card">
-                <div class="number" id="totalUsers">-</div>
-                <div class="label">Total Users</div>
-            </div>
-            <div class="stat-card">
-                <div class="number" id="completeProfiles">-</div>
-                <div class="label">Complete Profiles</div>
-            </div>
-            <div class="stat-card">
-                <div class="number" id="googleUsers">-</div>
-                <div class="label">Google Sign-In</div>
+        <!-- Hero -->
+        <div class="admin-hero">
+            <div class="admin-hero-glow"></div>
+            <div class="admin-hero-body">
+                <div>
+                    <div class="admin-label-pill"><i class="fas fa-shield-halved"></i> &nbsp;Admin Panel</div>
+                    <h1 class="admin-hero-title">User Management</h1>
+                    <p class="admin-hero-sub">Manage subscribers, plans, and access control</p>
+                </div>
+                <a href="dashboard.html" class="admin-back-btn">
+                    <i class="fas fa-arrow-left"></i> Dashboard
+                </a>
             </div>
         </div>
 
-        <div class="admin-grid">
-            <!-- Add User Form -->
+        <!-- Stats -->
+        <div class="admin-stats-grid">
+            <div class="admin-stat-card">
+                <div class="admin-stat-icon"><i class="fas fa-users"></i></div>
+                <div>
+                    <div class="admin-stat-value" id="statTotal">—</div>
+                    <div class="admin-stat-label">Total Users</div>
+                </div>
+            </div>
+            <div class="admin-stat-card">
+                <div class="admin-stat-icon"><i class="fas fa-crown"></i></div>
+                <div>
+                    <div class="admin-stat-value" id="statBundle">—</div>
+                    <div class="admin-stat-label">Full Bundle</div>
+                </div>
+            </div>
+            <div class="admin-stat-card">
+                <div class="admin-stat-icon"><i class="fas fa-satellite-dish"></i></div>
+                <div>
+                    <div class="admin-stat-value" id="statSingle">—</div>
+                    <div class="admin-stat-label">Single Channel</div>
+                </div>
+            </div>
+            <div class="admin-stat-card">
+                <div class="admin-stat-icon"><i class="fas fa-circle-check"></i></div>
+                <div>
+                    <div class="admin-stat-value" id="statActive">—</div>
+                    <div class="admin-stat-label">Active</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tabs -->
+        <div class="admin-tabs">
+            <button class="admin-tab active" data-tab="users">
+                <i class="fas fa-users"></i> Users
+            </button>
+            <button class="admin-tab" data-tab="add">
+                <i class="fas fa-user-plus"></i> Add User
+            </button>
+        </div>
+
+        <!-- Users Panel -->
+        <div class="admin-panel active" id="panel-users">
             <div class="admin-card">
-                <h2><i class="fas fa-user-plus"></i> Add New User</h2>
-                
-                <div class="message" id="addMessage"></div>
-
-                <form id="addUserForm">
-                    <div class="form-group">
-                        <label for="userEmail">Email Address</label>
-                        <input type="email" id="userEmail" placeholder="user@example.com" required>
+                <div class="admin-controls">
+                    <div class="admin-search-wrap">
+                        <i class="fas fa-search"></i>
+                        <input type="text" id="searchInput" class="admin-search-input" placeholder="Search by name or email…">
                     </div>
-
-                    <div class="form-group">
-                        <label for="userPassword">Temporary Password</label>
-                        <input type="password" id="userPassword" placeholder="Min. 6 characters" required>
+                    <div class="filter-pills">
+                        <button class="filter-pill active" data-filter="all">All</button>
+                        <button class="filter-pill" data-filter="bundle">Bundle</button>
+                        <button class="filter-pill" data-filter="single">Single</button>
+                        <button class="filter-pill" data-filter="none">Unassigned</button>
                     </div>
+                </div>
 
-                    <div class="form-group">
-                        <label for="userName">Full Name (Optional)</label>
-                        <input type="text" id="userName" placeholder="John Doe">
+                <div id="tableLoading" class="admin-loading">
+                    <i class="fas fa-spinner fa-spin"></i>
+                    <div>Loading users…</div>
+                </div>
+
+                <div id="tableEmpty" class="admin-empty" style="display:none;">
+                    <i class="fas fa-users-slash"></i>
+                    <div>No users found</div>
+                </div>
+
+                <div class="admin-table-wrap" id="tableWrap" style="display:none;">
+                    <table class="admin-table">
+                        <thead>
+                            <tr>
+                                <th>User</th>
+                                <th>Plan</th>
+                                <th>Ticker</th>
+                                <th>Status</th>
+                                <th>Joined</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="usersTableBody"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Add User Panel -->
+        <div class="admin-panel" id="panel-add">
+            <div class="admin-card">
+                <div class="admin-card-title"><i class="fas fa-user-plus"></i> Add New User</div>
+
+                <div class="form-msg" id="addMsg"></div>
+
+                <form id="addUserForm" autocomplete="off">
+                    <div class="add-user-grid">
+                        <div class="form-field">
+                            <label class="form-label">Email Address <span class="req">*</span></label>
+                            <input type="email" class="form-input" id="addEmail" placeholder="user@example.com" required autocomplete="off">
+                        </div>
+                        <div class="form-field">
+                            <label class="form-label">Temporary Password <span class="req">*</span></label>
+                            <input type="password" class="form-input" id="addPassword" placeholder="Min. 6 characters" required autocomplete="new-password">
+                        </div>
+                        <div class="form-field">
+                            <label class="form-label">First Name <span class="req">*</span></label>
+                            <input type="text" class="form-input" id="addFirstName" placeholder="Jane" required>
+                        </div>
+                        <div class="form-field">
+                            <label class="form-label">Last Name</label>
+                            <input type="text" class="form-input" id="addLastName" placeholder="Doe">
+                        </div>
+                        <div class="form-field">
+                            <label class="form-label">Plan <span class="req">*</span></label>
+                            <select class="form-select" id="addPlan" required>
+                                <option value="">— Select plan —</option>
+                                <option value="bundle">Full Bundle</option>
+                                <option value="single">Single Channel</option>
+                            </select>
+                        </div>
+                        <div class="form-field" id="addTickerField" style="display:none;">
+                            <label class="form-label">Allowed Ticker <span class="req">*</span></label>
+                            <select class="form-select" id="addTicker">
+                                <option value="">— Select ticker —</option>
+                                <option value="SPY">SPY — S&amp;P 500 ETF</option>
+                                <option value="TSLA">TSLA — Tesla</option>
+                                <option value="META">META — Meta Platforms</option>
+                                <option value="AAPL">AAPL — Apple</option>
+                                <option value="NVDA">NVDA — NVIDIA</option>
+                            </select>
+                        </div>
+                        <div class="form-field">
+                            <label class="form-label">Subscription Status</label>
+                            <select class="form-select" id="addStatus">
+                                <option value="Premium Active">Premium Active</option>
+                                <option value="Inactive">Inactive</option>
+                            </select>
+                        </div>
+                        <div class="form-field full-width" style="margin-top: 0.5rem;">
+                            <button type="submit" class="form-submit-btn" id="addSubmitBtn">
+                                <i class="fas fa-user-plus"></i> Create User
+                            </button>
+                            <span class="form-hint" style="margin-top:0.5rem;">
+                                A Firebase Auth account and full Firestore profile will be created. The user can log in immediately and change their password from the Account page.
+                            </span>
+                        </div>
                     </div>
-
-                    <button type="submit" class="btn btn-primary" style="width: 100%;">
-                        <i class="fas fa-plus"></i> Add User
-                    </button>
                 </form>
             </div>
+        </div>
 
-            <!-- User List -->
-            <div class="admin-card">
-                <h2><i class="fas fa-users"></i> Manage Users</h2>
-                
-                <div class="message" id="listMessage"></div>
+    </div><!-- /.admin-wrapper -->
 
-                <div id="usersLoading" class="loading">
-                    <i class="fas fa-spinner fa-spin"></i> Loading users...
+    <!-- Edit User Modal -->
+    <div class="modal-overlay" id="editModalOverlay">
+        <div class="modal-box">
+            <div class="modal-header">
+                <div class="modal-title"><i class="fas fa-user-pen"></i> Edit User</div>
+                <button class="modal-close" id="editModalClose"><i class="fas fa-xmark"></i></button>
+            </div>
+
+            <div class="modal-user-info">
+                <div class="modal-avatar" id="modalAvatar">—</div>
+                <div>
+                    <div class="modal-user-name" id="modalName">—</div>
+                    <div class="modal-user-email" id="modalEmail">—</div>
                 </div>
+            </div>
 
-                <div id="usersContainer" style="display: none;">
-                    <div style="overflow-x: auto;">
-                        <table class="users-table">
-                            <thead>
-                                <tr>
-                                    <th>Email</th>
-                                    <th>Name</th>
-                                    <th>Profile Status</th>
-                                    <th>Sign-In Method</th>
-                                    <th>Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody id="usersTableBody">
-                                <!-- Users will be loaded here -->
-                            </tbody>
-                        </table>
+            <div class="form-msg" id="editMsg"></div>
+
+            <form id="editUserForm">
+                <input type="hidden" id="editUserId">
+                <div class="modal-form-grid">
+                    <div class="form-field">
+                        <label class="form-label">First Name</label>
+                        <input type="text" class="form-input" id="editFirstName" placeholder="Jane">
+                    </div>
+                    <div class="form-field">
+                        <label class="form-label">Role</label>
+                        <select class="form-select" id="editRole">
+                            <option value="user">User</option>
+                            <option value="admin">Admin</option>
+                        </select>
+                    </div>
+                    <div class="form-field">
+                        <label class="form-label">Plan</label>
+                        <select class="form-select" id="editPlan">
+                            <option value="">Unassigned</option>
+                            <option value="bundle">Full Bundle</option>
+                            <option value="single">Single Channel</option>
+                        </select>
+                    </div>
+                    <div class="form-field" id="editTickerField" style="display:none;">
+                        <label class="form-label">Allowed Ticker</label>
+                        <select class="form-select" id="editTicker">
+                            <option value="">— none —</option>
+                            <option value="SPY">SPY</option>
+                            <option value="TSLA">TSLA</option>
+                            <option value="META">META</option>
+                            <option value="AAPL">AAPL</option>
+                            <option value="NVDA">NVDA</option>
+                        </select>
+                    </div>
+                    <div class="form-field full">
+                        <label class="form-label">Subscription Status</label>
+                        <select class="form-select" id="editStatus">
+                            <option value="Premium Active">Premium Active</option>
+                            <option value="Inactive">Inactive</option>
+                        </select>
                     </div>
                 </div>
+                <button type="submit" class="form-submit-btn modal-save-btn" id="editSubmitBtn">
+                    <i class="fas fa-check"></i> Save Changes
+                </button>
+            </form>
+        </div>
+    </div>
 
-                <div id="emptyState" class="empty-state" style="display: none;">
-                    <i class="fas fa-users-slash"></i>
-                    <p>No users found</p>
-                </div>
+    <!-- Delete Confirm -->
+    <div class="confirm-overlay" id="confirmOverlay">
+        <div class="confirm-box">
+            <i class="confirm-icon fas fa-triangle-exclamation"></i>
+            <div class="confirm-title">Remove User?</div>
+            <div class="confirm-body" id="confirmBody">This will delete the user's Firestore profile.</div>
+            <div class="confirm-note">
+                Their Firebase Auth account will remain intact. To fully remove it, use the Firebase console directly.
+            </div>
+            <div class="confirm-actions">
+                <button class="confirm-btn confirm-cancel" id="confirmCancel">Cancel</button>
+                <button class="confirm-btn confirm-delete" id="confirmDelete">
+                    <i class="fas fa-trash"></i> Delete
+                </button>
             </div>
         </div>
     </div>
 
     <script type="module">
-        import { 
-            auth,
-            db,
-            onAuthStateChanged,
-            signOut,
-            doc,
-            getDoc,
-            getDocs,
-            collection,
-            setDoc,
-            functions,
-            httpsCallable
+        import {
+            auth, db,
+            onAuthStateChanged, signOut,
+            doc, getDoc, getDocs, setDoc, updateDoc, collection
         } from './assets/js/firebase-config.js';
 
-        // Check admin authentication
+        import { initializeApp, getApps } from
+            'https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js';
+        import {
+            getAuth,
+            createUserWithEmailAndPassword,
+            signOut as secondarySignOut
+        } from 'https://www.gstatic.com/firebasejs/11.0.2/firebase-auth.js';
+        import { deleteDoc } from
+            'https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js';
+
+        /* ── Firebase config (needed for secondary app) ── */
+        const firebaseConfig = {
+            apiKey:            '%%FIREBASE_API%%',
+            authDomain:        'blue-chip-signals-log-ins.firebaseapp.com',
+            projectId:         'blue-chip-signals-log-ins',
+            storageBucket:     'blue-chip-signals-log-ins.firebasestorage.app',
+            messagingSenderId: '706921883505',
+            appId:             '1:706921883505:web:230d622a5c0d2e341378d0'
+        };
+
+        /* ── State ── */
+        let allUsers        = [];
+        let currentFilter   = 'all';
+        let pendingDeleteId = null;
+
+        /* ── Auth / admin guard ── */
         onAuthStateChanged(auth, async (user) => {
-            if (!user) {
+            if (!user) { window.location.href = 'login.html'; return; }
+            try {
+                const snap = await getDoc(doc(db, 'users', user.uid));
+                if (!snap.exists() || (snap.data().role || '').toLowerCase() !== 'admin') {
+                    alert('Access denied. Admin privileges required.');
+                    await signOut(auth);
+                    window.location.href = 'login.html';
+                    return;
+                }
+            } catch (e) {
+                console.error(e);
                 window.location.href = 'login.html';
                 return;
             }
-
-            // Check if user is admin (you can customize this logic)
-            const userRef = doc(db, 'users', user.uid);
-            const userSnap = await getDoc(userRef);
-            
-            if (!userSnap.exists() || !userSnap.data().role || userSnap.data().role.toLowerCase() !== 'admin') {
-                alert('Access denied. Admin privileges required.');
-                await signOut(auth);
-                window.location.href = 'login.html';
-                return;
-            }
-
-            // Load users
             loadUsers();
         });
 
-        // Logout function
-        window.logoutAdmin = async function() {
+        /* ── Logout ── */
+        window.logout = async function () {
             try {
                 await signOut(auth);
+                localStorage.clear();
+                sessionStorage.clear();
                 window.location.href = 'login.html';
-            } catch (error) {
-                console.error('Logout error:', error);
-            }
+            } catch (e) { console.error(e); }
         };
 
-        // Show message
-        function showMessage(elementId, message, type) {
-            const messageEl = document.getElementById(elementId);
-            messageEl.innerHTML = `<i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-circle'}"></i> ${message}`;
-            messageEl.className = `message ${type} show`;
-            
-            setTimeout(() => {
-                messageEl.classList.remove('show');
-            }, 5000);
+        /* ── Tabs ── */
+        document.querySelectorAll('.admin-tab').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.admin-tab').forEach(b => b.classList.remove('active'));
+                document.querySelectorAll('.admin-panel').forEach(p => p.classList.remove('active'));
+                btn.classList.add('active');
+                document.getElementById('panel-' + btn.dataset.tab).classList.add('active');
+            });
+        });
+
+        /* ─────────────────────────────────────────────
+           LOAD USERS
+        ───────────────────────────────────────────── */
+        async function loadUsers() {
+            setTableState('loading');
+            try {
+                const snap = await getDocs(collection(db, 'users'));
+                allUsers = [];
+                snap.forEach(d => allUsers.push({ id: d.id, ...d.data() }));
+                computeStats();
+                renderTable();
+            } catch (e) {
+                console.error('loadUsers error:', e);
+                setTableState('empty');
+            }
         }
 
-        // Callable function for admin user creation (deployed in Firebase Functions)
-        const createUserFn = httpsCallable(functions, 'createUserForAdmin');
+        function computeStats() {
+            let bundle = 0, single = 0, active = 0;
+            allUsers.forEach(u => {
+                const plan = (u.plan || '').toLowerCase();
+                if (plan === 'bundle') bundle++;
+                if (plan === 'single') single++;
+                if ((u.subscriptionStatus || '').toLowerCase().includes('active')) active++;
+            });
+            document.getElementById('statTotal').textContent  = allUsers.length;
+            document.getElementById('statBundle').textContent = bundle;
+            document.getElementById('statSingle').textContent = single;
+            document.getElementById('statActive').textContent = active;
+        }
 
-        // Add user form submission
-        document.getElementById('addUserForm').addEventListener('submit', async (e) => {
+        function renderTable() {
+            const query    = document.getElementById('searchInput').value.toLowerCase().trim();
+            const filtered = allUsers.filter(u => {
+                const matchSearch = !query ||
+                    (u.email       || '').toLowerCase().includes(query) ||
+                    (u.firstName   || '').toLowerCase().includes(query) ||
+                    (u.displayName || '').toLowerCase().includes(query);
+                const plan = (u.plan || '').toLowerCase();
+                const matchFilter =
+                    currentFilter === 'all'    ||
+                    (currentFilter === 'bundle' && plan === 'bundle') ||
+                    (currentFilter === 'single' && plan === 'single') ||
+                    (currentFilter === 'none'   && !plan);
+                return matchSearch && matchFilter;
+            });
+
+            if (filtered.length === 0) { setTableState('empty'); return; }
+
+            setTableState('table');
+            document.getElementById('usersTableBody').innerHTML = filtered.map(u => {
+                const plan     = (u.plan || '').toLowerCase();
+                const ticker   = (u.allowedTicker || '').toUpperCase();
+                const status   = u.subscriptionStatus || '—';
+                const isActive = status.toLowerCase().includes('active');
+                const name     = u.firstName || u.displayName || '—';
+                const initial  = name.charAt(0).toUpperCase();
+                const joined   = formatDate(u.joinedDate || u.createdAt);
+
+                const planBadge =
+                    plan === 'bundle' ? `<span class="plan-badge plan-bundle"><i class="fas fa-crown"></i> Full Bundle</span>` :
+                    plan === 'single' ? `<span class="plan-badge plan-single"><i class="fas fa-satellite-dish"></i> Single</span>` :
+                                        `<span class="plan-badge plan-none">—</span>`;
+
+                const statusBadge = `<span class="status-chip ${isActive ? 'status-active' : 'status-inactive'}">
+                    <i class="fas fa-circle" style="font-size:0.42rem;"></i> ${isActive ? 'Active' : status}
+                </span>`;
+
+                return `<tr>
+                    <td>
+                        <div class="user-cell">
+                            <div class="user-avatar">${initial}</div>
+                            <div>
+                                <div class="user-name">${esc(name)}</div>
+                                <div class="user-email-sub">${esc(u.email || '—')}</div>
+                            </div>
+                        </div>
+                    </td>
+                    <td>${planBadge}</td>
+                    <td style="font-size:0.8rem;color:rgba(255,255,255,0.5);font-weight:600;">${ticker || '—'}</td>
+                    <td>${statusBadge}</td>
+                    <td style="font-size:0.77rem;color:rgba(255,255,255,0.38);">${joined}</td>
+                    <td>
+                        <div class="row-actions">
+                            <button class="row-btn row-btn-edit" onclick="openEditModal('${u.id}')">
+                                <i class="fas fa-pen"></i> Edit
+                            </button>
+                            <button class="row-btn row-btn-delete" onclick="confirmDelete('${u.id}','${esc(u.email || 'this user')}')">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </td>
+                </tr>`;
+            }).join('');
+        }
+
+        function setTableState(state) {
+            document.getElementById('tableLoading').style.display = state === 'loading' ? 'block' : 'none';
+            document.getElementById('tableEmpty').style.display   = state === 'empty'   ? 'block' : 'none';
+            document.getElementById('tableWrap').style.display    = state === 'table'   ? 'block' : 'none';
+        }
+
+        /* ── Search & filter ── */
+        document.getElementById('searchInput').addEventListener('input', renderTable);
+
+        document.querySelectorAll('.filter-pill').forEach(pill => {
+            pill.addEventListener('click', () => {
+                document.querySelectorAll('.filter-pill').forEach(p => p.classList.remove('active'));
+                pill.classList.add('active');
+                currentFilter = pill.dataset.filter;
+                renderTable();
+            });
+        });
+
+        /* ─────────────────────────────────────────────
+           EDIT MODAL
+        ───────────────────────────────────────────── */
+        window.openEditModal = function (userId) {
+            const u = allUsers.find(x => x.id === userId);
+            if (!u) return;
+
+            document.getElementById('editUserId').value    = userId;
+            document.getElementById('editFirstName').value = u.firstName || u.displayName || '';
+            document.getElementById('editRole').value      = (u.role || 'user').toLowerCase();
+            document.getElementById('editPlan').value      = (u.plan || '').toLowerCase();
+            document.getElementById('editTicker').value    = (u.allowedTicker || '').toUpperCase();
+            document.getElementById('editStatus').value    = u.subscriptionStatus || 'Premium Active';
+
+            document.getElementById('modalAvatar').textContent = (u.firstName || u.displayName || '?').charAt(0).toUpperCase();
+            document.getElementById('modalName').textContent   = u.firstName || u.displayName || '—';
+            document.getElementById('modalEmail').textContent  = u.email || '—';
+
+            syncTickerVisibility('editPlan', 'editTickerField');
+            clearMsg('editMsg');
+            document.getElementById('editModalOverlay').classList.add('open');
+        };
+
+        document.getElementById('editModalClose').addEventListener('click', closeEditModal);
+        document.getElementById('editModalOverlay').addEventListener('click', e => {
+            if (e.target === document.getElementById('editModalOverlay')) closeEditModal();
+        });
+
+        function closeEditModal() {
+            document.getElementById('editModalOverlay').classList.remove('open');
+        }
+
+        document.getElementById('editPlan').addEventListener('change', () => {
+            syncTickerVisibility('editPlan', 'editTickerField');
+        });
+
+        document.getElementById('editUserForm').addEventListener('submit', async e => {
             e.preventDefault();
-            
-            const email = document.getElementById('userEmail').value;
-            const password = document.getElementById('userPassword').value;
-            const name = document.getElementById('userName').value;
+            const uid = document.getElementById('editUserId').value;
+            const btn = document.getElementById('editSubmitBtn');
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving…';
+
+            const plan   = document.getElementById('editPlan').value;
+            const ticker = plan === 'single' ? document.getElementById('editTicker').value.toUpperCase() : '';
 
             try {
-                showMessage('addMessage', 'Creating user...', 'success');
+                const updates = {
+                    firstName:          document.getElementById('editFirstName').value.trim(),
+                    plan,
+                    allowedTicker:      ticker,
+                    subscriptionStatus: document.getElementById('editStatus').value,
+                    role:               document.getElementById('editRole').value
+                };
+                await updateDoc(doc(db, 'users', uid), updates);
 
-                // Call the secured Cloud Function (requires role: admin on caller)
-                await createUserFn({
-                    email,
-                    password,
-                    displayName: name,
-                    role: 'user'
-                });
+                /* Update local cache */
+                const idx = allUsers.findIndex(x => x.id === uid);
+                if (idx !== -1) Object.assign(allUsers[idx], updates);
 
-                showMessage('addMessage', 'User created in Auth + Firestore', 'success');
-                
-                // Clear form
-                document.getElementById('addUserForm').reset();
-                
-                // Reload users after a short delay
-                setTimeout(() => loadUsers(), 1500);
-
-            } catch (error) {
-                console.error('Error adding user:', error);
-                showMessage('addMessage', 'Failed to add user: ' + (error.message || error.code), 'error');
+                computeStats();
+                renderTable();
+                showMsg('editMsg', 'Changes saved successfully.', 'success');
+                setTimeout(closeEditModal, 1300);
+            } catch (err) {
+                showMsg('editMsg', 'Error: ' + err.message, 'error');
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fas fa-check"></i> Save Changes';
             }
         });
 
-        // Load users
-        async function loadUsers() {
-            const loadingEl = document.getElementById('usersLoading');
-            const containerEl = document.getElementById('usersContainer');
-            const emptyEl = document.getElementById('emptyState');
-            const tbody = document.getElementById('usersTableBody');
+        /* ─────────────────────────────────────────────
+           DELETE USER
+        ───────────────────────────────────────────── */
+        window.confirmDelete = function (userId, email) {
+            pendingDeleteId = userId;
+            document.getElementById('confirmBody').textContent =
+                'This will permanently delete ' + email + "'s Firestore profile.";
+            document.getElementById('confirmOverlay').classList.add('open');
+        };
+
+        document.getElementById('confirmCancel').addEventListener('click', () => {
+            pendingDeleteId = null;
+            document.getElementById('confirmOverlay').classList.remove('open');
+        });
+
+        document.getElementById('confirmDelete').addEventListener('click', async () => {
+            if (!pendingDeleteId) return;
+            const uid = pendingDeleteId;
+            pendingDeleteId = null;
+            document.getElementById('confirmOverlay').classList.remove('open');
+            try {
+                await deleteDoc(doc(db, 'users', uid));
+                allUsers = allUsers.filter(u => u.id !== uid);
+                computeStats();
+                renderTable();
+            } catch (err) {
+                alert('Delete failed: ' + err.message);
+            }
+        });
+
+        /* ─────────────────────────────────────────────
+           ADD USER (secondary Firebase app)
+        ───────────────────────────────────────────── */
+        document.getElementById('addPlan').addEventListener('change', () => {
+            syncTickerVisibility('addPlan', 'addTickerField');
+        });
+
+        document.getElementById('addUserForm').addEventListener('submit', async e => {
+            e.preventDefault();
+            const btn = document.getElementById('addSubmitBtn');
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Creating…';
+            clearMsg('addMsg');
+
+            const email     = document.getElementById('addEmail').value.trim();
+            const password  = document.getElementById('addPassword').value;
+            const firstName = document.getElementById('addFirstName').value.trim();
+            const lastName  = document.getElementById('addLastName').value.trim();
+            const plan      = document.getElementById('addPlan').value;
+            const ticker    = plan === 'single' ? document.getElementById('addTicker').value.toUpperCase() : '';
+            const status    = document.getElementById('addStatus').value;
+
+            if (plan === 'single' && !ticker) {
+                showMsg('addMsg', 'Please select an allowed ticker for the Single Channel plan.', 'error');
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fas fa-user-plus"></i> Create User';
+                return;
+            }
 
             try {
-                loadingEl.style.display = 'block';
-                containerEl.style.display = 'none';
-                emptyEl.style.display = 'none';
+                /* Use a secondary app instance so the admin stays logged in */
+                const existing     = getApps().find(a => a.name === 'adminCreate');
+                const secondaryApp = existing || initializeApp(firebaseConfig, 'adminCreate');
+                const secAuth      = getAuth(secondaryApp);
 
-                const usersSnapshot = await getDocs(collection(db, 'users'));
-                
-                if (usersSnapshot.empty) {
-                    loadingEl.style.display = 'none';
-                    emptyEl.style.display = 'block';
-                    return;
-                }
+                const cred   = await createUserWithEmailAndPassword(secAuth, email, password);
+                const newUid = cred.user.uid;
+                await secondarySignOut(secAuth);
 
-                tbody.innerHTML = '';
-                let totalUsers = 0;
-                let completeProfiles = 0;
-                let googleUsers = 0;
-
-                usersSnapshot.forEach((doc) => {
-                    const userData = doc.data();
-                    totalUsers++;
-
-                    if (userData.profileComplete) completeProfiles++;
-                    if (userData.signInMethod === 'google') googleUsers++;
-
-                    const row = document.createElement('tr');
-                    row.innerHTML = `
-                        <td class="user-email">${userData.email || 'N/A'}</td>
-                        <td>${userData.displayName || '-'}</td>
-                        <td>
-                            <span class="status-badge ${userData.profileComplete ? 'status-complete' : 'status-incomplete'}">
-                                ${userData.profileComplete ? 'Complete' : 'Incomplete'}
-                            </span>
-                        </td>
-                        <td>
-                            <span class="auth-method">${userData.signInMethod || 'email'}</span>
-                        </td>
-                        <td>
-                            <div class="user-actions">
-                                <button class="btn btn-secondary btn-small" onclick="viewUser('${doc.id}')">
-                                    <i class="fas fa-eye"></i> View
-                                </button>
-                            </div>
-                        </td>
-                    `;
-                    tbody.appendChild(row);
+                /* Write a complete Firestore profile */
+                await setDoc(doc(db, 'users', newUid), {
+                    email,
+                    firstName,
+                    displayName:        lastName ? `${firstName} ${lastName}` : firstName,
+                    plan,
+                    allowedTicker:      ticker,
+                    subscriptionStatus: status,
+                    role:               'user',
+                    signInMethod:       'email',
+                    setupCompleted:     true,
+                    profileComplete:    true,
+                    joinedDate:         new Date().toISOString(),
+                    createdAt:          new Date().toISOString()
                 });
 
-                // Update stats
-                document.getElementById('totalUsers').textContent = totalUsers;
-                document.getElementById('completeProfiles').textContent = completeProfiles;
-                document.getElementById('googleUsers').textContent = googleUsers;
-
-                loadingEl.style.display = 'none';
-                containerEl.style.display = 'block';
-
-            } catch (error) {
-                console.error('Error loading users:', error);
-                showMessage('listMessage', 'Failed to load users: ' + error.message, 'error');
-                loadingEl.style.display = 'none';
+                showMsg('addMsg', `User ${email} created successfully!`, 'success');
+                document.getElementById('addUserForm').reset();
+                document.getElementById('addTickerField').style.display = 'none';
+                await loadUsers();
+            } catch (err) {
+                showMsg('addMsg', 'Error: ' + err.message, 'error');
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fas fa-user-plus"></i> Create User';
             }
+        });
+
+        /* ── Helpers ── */
+        function syncTickerVisibility(planId, tickerFieldId) {
+            const show = document.getElementById(planId).value === 'single';
+            document.getElementById(tickerFieldId).style.display = show ? 'flex' : 'none';
         }
 
-        // View user details
-        window.viewUser = async function(userId) {
+        function showMsg(id, msg, type) {
+            const el = document.getElementById(id);
+            el.innerHTML = `<i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-circle'}"></i> ${msg}`;
+            el.className = `form-msg ${type} show`;
+            setTimeout(() => el.classList.remove('show'), 6000);
+        }
+
+        function clearMsg(id) {
+            const el = document.getElementById(id);
+            el.className = 'form-msg';
+            el.innerHTML = '';
+        }
+
+        function formatDate(raw) {
+            if (!raw) return '—';
             try {
-                const userRef = doc(db, 'users', userId);
-                const userSnap = await getDoc(userRef);
-                
-                if (userSnap.exists()) {
-                    const userData = userSnap.data();
-                    alert(`User Details:\n\nEmail: ${userData.email}\nName: ${userData.displayName || 'Not set'}\nProfile Complete: ${userData.profileComplete ? 'Yes' : 'No'}\nSign-In Method: ${userData.signInMethod || 'email'}\nCreated: ${userData.createdAt || 'Unknown'}`);
-                }
-            } catch (error) {
-                console.error('Error viewing user:', error);
-                alert('Failed to load user details');
-            }
-        };
+                const d = raw.toDate ? raw.toDate() : new Date(raw);
+                return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+            } catch (_) { return '—'; }
+        }
+
+        function esc(str) {
+            return String(str)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#39;');
+        }
     </script>
 </body>
 </html>
-

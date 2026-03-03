@@ -8,6 +8,6 @@
    Netlify Functions, etc.) so the key never reaches the client.
    ============================================================ */
 
-export const POLYGON_API_KEY      = 'sTQWgQESNYRtbmcO5yKoOrToz2ZZeryV';
-export const BLS_API_KEY          = '6db22f52282f4b429de1712f22bf4336';
-export const ALPHA_VANTAGE_KEY    = 'GFZN9CUZBR03AEBR';
+export const POLYGON_API_KEY      = '%%POLYGON_API_KEY%%';
+export const BLS_API_KEY          = '%%BLS_API_KEY%%';
+export const ALPHA_VANTAGE_KEY    = '%%ALPHA_VANTAGE_KEY%%';

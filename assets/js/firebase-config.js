@@ -32,7 +32,7 @@ import {
 
 // Your web app's Firebase configuration
 const firebaseConfig = {
-    apiKey: "AIzaSyAXQNraHTsDcw3j7da1hlCIzMNT8NW-rGc",
+    apiKey: "%%FIREBASE_API%%",
     authDomain: "blue-chip-signals-log-ins.firebaseapp.com",
     projectId: "blue-chip-signals-log-ins",
     storageBucket: "blue-chip-signals-log-ins.firebasestorage.app",

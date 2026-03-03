@@ -1,6 +1,6 @@
 // trend-strength.js - SPY Trend Strength Indicator
 (function(){
-    const POLYGON_API_KEY = 'sTQWgQESNYRtbmcO5yKoOrToz2ZZeryV'; // Polygon.io API key
+    const POLYGON_API_KEY = '%%POLYGON_API_KEY%%';
     const SYMBOL = 'SPY';
     const REFRESH_INTERVAL = 300000; // 5 minutes
 

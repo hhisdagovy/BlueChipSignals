@@ -186,8 +186,17 @@
     }
 
     /* Internal nav — used by account.html, trading-journal.html, trade-planner.html.
-       Logo click returns to dashboard. Links: Journal, Planner, Contact, FAQ + Logout. */
+       Logo click returns to dashboard. Links: Journal, Planner, Contact, FAQ + Logout.
+       Admin link shown only when bluechip_is_admin flag is set in localStorage. */
     function internalNav() {
+        var isAdmin = false;
+        try { isAdmin = localStorage.getItem('bluechip_is_admin') === '1'; } catch (e) {}
+
+        var adminLink = isAdmin
+            ? '<li><a href="' + base + 'admin.html" style="color:var(--primary-gold);font-weight:700;">' +
+              '<i class="fas fa-shield-halved" style="font-size:0.8em;margin-right:0.3em;"></i>ADMIN</a></li>'
+            : '';
+
         return '<div class="nav-container">' +
             '<div class="logo">' +
                 '<a href="' + base + 'dashboard.html"><img src="' + base + 'assets/images/logo.png" alt="Blue Chip Signals Logo"></a>' +
@@ -203,6 +212,7 @@
                 '<li><a href="' + base + 'roadmap.html">ROADMAP</a></li>' +
                 '<li><a href="' + base + 'contact.html">CONTACT</a></li>' +
                 '<li><a href="' + base + 'faq.html">FAQ</a></li>' +
+                adminLink +
                 '<li>' +
                     '<button class="logout-btn" onclick="logout()">' +
                         '<i class="fas fa-sign-out-alt"></i> Logout' +

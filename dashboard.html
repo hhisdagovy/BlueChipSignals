@@ -1884,6 +1884,13 @@
                 const avatarEl = document.getElementById('dashAvatar');
                 if (avatarEl) avatarEl.textContent = firstName.charAt(0).toUpperCase();
 
+                /* Admin nav flag — read by nav-component.js synchronously */
+                if ((userData.role || '').toLowerCase() === 'admin') {
+                    localStorage.setItem('bluechip_is_admin', '1');
+                } else {
+                    localStorage.removeItem('bluechip_is_admin');
+                }
+
                 const plan = (userData.plan || '').toLowerCase();
                 if (plan === 'single') {
                     const ticker = (userData.allowedTicker || '').toUpperCase();

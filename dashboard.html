@@ -1298,6 +1298,104 @@
             .hm-stat-label { font-size: 0.6rem; letter-spacing: 0.03em; }
         }
 
+        /* ── Latest Signals card ── */
+        .card-signals {
+            grid-column: 1 / -1;
+        }
+
+        .lsig-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 1rem;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+
+        .lsig-count-badge {
+            background: rgba(201,176,55,0.12);
+            color: var(--primary-gold);
+            border: 1px solid rgba(201,176,55,0.25);
+            border-radius: 20px;
+            font-size: 0.65rem;
+            font-weight: 700;
+            padding: 0.12rem 0.5rem;
+        }
+
+        .lsig-refresh-note {
+            font-size: 0.68rem;
+            color: rgba(255,255,255,0.22);
+        }
+
+        .lsig-row {
+            display: flex;
+            align-items: center;
+            gap: 0.65rem;
+            flex-wrap: wrap;
+            padding: 0.7rem 0;
+            border-bottom: 1px solid rgba(255,255,255,0.04);
+        }
+
+        .lsig-row:last-child { border-bottom: none; }
+
+        .lsig-badge {
+            font-size: 0.72rem;
+            font-weight: 800;
+            letter-spacing: 0.05em;
+            padding: 0.22rem 0.6rem;
+            border-radius: 6px;
+            white-space: nowrap;
+            min-width: 42px;
+            text-align: center;
+        }
+
+        .lsig-type {
+            font-size: 0.78rem;
+            font-weight: 700;
+            white-space: nowrap;
+            display: flex;
+            align-items: center;
+            gap: 0.3rem;
+        }
+
+        .lsig-chip {
+            font-size: 0.73rem;
+            font-weight: 600;
+            color: rgba(255,255,255,0.55);
+            background: rgba(255,255,255,0.04);
+            border: 1px solid rgba(255,255,255,0.07);
+            border-radius: 6px;
+            padding: 0.18rem 0.5rem;
+            white-space: nowrap;
+        }
+
+        .lsig-entry {
+            font-size: 0.75rem;
+            font-weight: 700;
+            color: rgba(255,255,255,0.7);
+            white-space: nowrap;
+            margin-left: auto;
+        }
+
+        .lsig-time {
+            font-size: 0.68rem;
+            color: rgba(255,255,255,0.28);
+            white-space: nowrap;
+        }
+
+        .lsig-empty {
+            font-size: 0.8rem;
+            color: rgba(255,255,255,0.28);
+            padding: 0.5rem 0;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        @media (max-width: 600px) {
+            .lsig-entry { margin-left: 0; }
+        }
+
         /* ── Single-channel plan restrictions ── */
         .stock-row.row-locked {
             opacity: 0.38;
@@ -1778,6 +1876,20 @@
                 </div>
             </div>
 
+            <!-- Latest Signals from Backend -->
+            <div class="bento-card card-signals">
+                <div class="lsig-header">
+                    <span class="bento-card-title" style="margin:0;">
+                        <i class="fas fa-satellite-dish"></i> Latest Signals
+                        <span class="lsig-count-badge" id="latest-signals-count">—</span>
+                    </span>
+                    <span class="lsig-refresh-note"><i class="fas fa-rotate"></i> Refreshes every 5 min</span>
+                </div>
+                <div id="latest-signals-list">
+                    <p class="lsig-empty"><i class="fas fa-circle-notch fa-spin"></i> Loading signals…</p>
+                </div>
+            </div>
+
         </div>
     </div>
 
@@ -1807,6 +1919,8 @@
     <!-- Live market data -->
     <script src="assets/js/fear-greed.js" defer></script>
     <script type="module" src="assets/js/bls-data.js"></script>
+    <!-- Backend signals -->
+    <script src="assets/js/backend-signals.js" defer></script>
 
     <!-- Guide Picker Modal Logic -->
     <script>

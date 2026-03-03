@@ -4,6 +4,7 @@ Simple and reliable backend for managing trading signals
 """
 
 from flask import Flask, request, jsonify, render_template_string, redirect, session, make_response
+from flask_cors import CORS
 from datetime import datetime
 import sqlite3
 import json
@@ -11,6 +12,7 @@ from functools import wraps
 
 app = Flask(__name__)
 app.secret_key = 'bluechip-signals-secret-key-change-in-production'
+CORS(app, resources={r"/api/*": {"origins": "*"}})
 
 # Initialize database
 def init_db():

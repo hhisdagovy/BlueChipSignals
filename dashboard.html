@@ -1080,92 +1080,108 @@
         }
 
         /* ---- Responsive ---- */
+        /* ─── 768px: single-column bento, clear nav ─── */
         @media (max-width: 768px) {
             .main-content {
                 padding: 0 1rem 2rem;
-                margin-top: 80px;
+                margin-top: 90px; /* nav bottom is ~82px; 8px breathing room */
             }
 
             .dash-hero { padding: 1.25rem 1.25rem 1rem; }
+
+            /* Hero body: allow wrapping so right column never crushes left */
+            .dash-hero-body {
+                flex-wrap: wrap;
+            }
 
             .bento-grid {
                 grid-template-columns: 1fr;
                 grid-template-rows: auto;
             }
 
-            .card-stocks { grid-column: 1; grid-row: auto; }
-            .card-stats  { grid-column: 1; grid-row: auto; }
-            .card-econ   { grid-column: 1; grid-row: auto; }
-            .card-fg     { grid-column: 1; grid-row: auto; }
+            .card-stocks, .card-stats, .card-econ, .card-fg {
+                grid-column: 1;
+                grid-row: auto;
+            }
 
             .econ-stat-grid { grid-template-columns: 1fr 1fr; }
         }
 
-        /* Hero: stack on phones */
+        /* ─── 600px: hero fully stacks ─── */
         @media (max-width: 600px) {
+            .dash-hero { padding: 1rem; }
+
             .dash-hero-body {
                 flex-direction: column;
-                gap: 1rem;
+                gap: 0.85rem;
             }
 
-            /* Move right-column to a horizontal row at the top */
+            /* Right column → horizontal row at top */
             .dash-hero-right {
                 flex-direction: row;
                 align-items: center;
-                justify-content: space-between;
                 width: 100%;
+                gap: 0.65rem;
                 order: -1;
+                flex-shrink: unset;
             }
 
-            .dash-avatar { width: 40px; height: 40px; font-size: 1rem; }
+            /* Settings button pushed to far right */
+            .dash-settings-btn { margin-left: auto; }
 
-            /* Quick-stats: 2 × 2 grid, drop the vertical pipe dividers */
+            .dash-avatar { width: 38px; height: 38px; font-size: 0.95rem; }
+
+            /* Sub-badge: smaller text so it doesn't overflow the row */
+            .sub-badge { font-size: 0.72rem; padding: 0.28rem 0.7rem; }
+
+            /* Quick-stats strip → 2-col grid */
             .dash-hero-strip {
                 display: grid;
                 grid-template-columns: 1fr 1fr;
-                gap: 0.9rem 0;
+                gap: 0.85rem 1.5rem;
                 padding-top: 1rem;
                 margin-top: 1rem;
             }
 
+            /* Remove horizontal pipe dividers entirely */
             .dash-qstat {
                 border-right: none !important;
                 margin-right: 0 !important;
                 padding-right: 0 !important;
-                padding-bottom: 0.75rem;
-                border-bottom: 1px solid rgba(255,255,255,0.06);
-            }
-
-            /* Remove border-bottom from the last two items (bottom row) */
-            .dash-qstat:nth-last-child(-n+2) {
                 border-bottom: none;
                 padding-bottom: 0;
             }
+
+            /* Add bottom separator only under the first row (items 1 & 2) */
+            .dash-qstat:nth-child(-n+2) {
+                padding-bottom: 0.85rem;
+                border-bottom: 1px solid rgba(255,255,255,0.06);
+            }
         }
 
-        /* Stock rows: wrap buttons below ticker info */
+        /* ─── 520px: stock rows wrap ─── */
         @media (max-width: 520px) {
             .stock-row {
                 flex-wrap: wrap;
-                gap: 0.4rem 0.75rem;
+                gap: 0.35rem 0.75rem;
             }
 
             .stock-actions {
                 width: 100%;
-                padding-left: 50px; /* indent under ticker text, past icon */
-                margin-top: 0;
+                padding-left: 50px; /* aligns with ticker text after 38px icon + 12px gap */
                 gap: 0.5rem;
             }
 
             .stock-actions .tg-btn,
-            .stock-actions .signals-link {
-                font-size: 0.72rem;
-            }
+            .stock-actions .signals-link { font-size: 0.72rem; }
         }
 
+        /* ─── 480px: tightest view ─── */
         @media (max-width: 480px) {
             .stats-tile-grid { grid-template-columns: 1fr 1fr; }
-            .bento-card { padding: 1.1rem; }
+            .bento-card { padding: 1rem; }
+            /* Stack econ cards on very small phones */
+            .econ-stat-grid { grid-template-columns: 1fr; }
         }
 
         /* ---- Trading Activity Heatmap ---- */

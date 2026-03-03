@@ -550,9 +550,11 @@ POST_SIGNAL_HTML = '''
 '''
 
 if __name__ == '__main__':
+    import os
+    port = int(os.environ.get('PORT', 5001))
     print("\n🚀 Blue Chip Signals Backend Starting...")
-    print("📊 Admin Panel: http://127.0.0.1:5001/admin")
+    print(f"📊 Admin Panel: http://0.0.0.0:{port}/admin")
     print("🔑 Password: Pumrvb12!")
-    print("📡 API: http://127.0.0.1:5001/api/signals/new\n")
-    app.run(debug=True, host='0.0.0.0', port=5001)
+    print(f"📡 API: http://0.0.0.0:{port}/api/signals/new\n")
+    app.run(debug=False, host='0.0.0.0', port=port)
 

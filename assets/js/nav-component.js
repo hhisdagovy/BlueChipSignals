@@ -149,7 +149,7 @@
 
         return '<div class="nav-container">' +
             '<div class="logo">' +
-                '<a href="' + base + 'index.html"><img src="' + base + 'assets/images/logo.png" alt="Blue Chip Signals Logo"></a>' +
+                '<a href="' + base + 'index.html"><img src="' + base + 'assets/images/Crest logo.png" alt="Blue Chip Signals Logo"></a>' +
             '</div>' +
             '<button class="hamburger-menu" aria-label="Toggle menu">' +
                 '<span class="bar"></span>' +
@@ -197,7 +197,7 @@
 
         return '<div class="nav-container">' +
             '<div class="logo">' +
-                '<a href="' + base + 'dashboard.html"><img src="' + base + 'assets/images/logo.png" alt="Blue Chip Signals Logo"></a>' +
+                '<a href="' + base + 'dashboard.html"><img src="' + base + 'assets/images/Crest logo.png" alt="Blue Chip Signals Logo"></a>' +
             '</div>' +
             '<button class="hamburger-menu" aria-label="Toggle menu">' +
                 '<span class="bar"></span>' +
@@ -224,7 +224,7 @@
     function minimalNav() {
         return '<div class="nav-container">' +
             '<div class="logo">' +
-                '<a href="' + base + 'index.html"><img src="' + base + 'assets/images/logo.png" alt="Blue Chip Signals Logo"></a>' +
+                '<a href="' + base + 'index.html"><img src="' + base + 'assets/images/Crest logo.png" alt="Blue Chip Signals Logo"></a>' +
             '</div>' +
         '</div>';
     }

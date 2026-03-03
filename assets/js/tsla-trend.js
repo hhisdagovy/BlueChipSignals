@@ -1,10 +1,3 @@
-/* ─────────────────────────────────────────────────────────────────────────────
-   tsla-trend.js — Live TSLA Trend Strength Analyzer
-   Fetches 100 daily candles from Alpha Vantage once per day (cached in
-   sessionStorage), computes SMA20, SMA50, RSI14, Volume Trend, and Trend
-   Duration client-side, then auto-renders the result into the page.
-───────────────────────────────────────────────────────────────────────────── */
-
 import { ALPHA_VANTAGE_KEY } from './config.js';
 
 const FINNHUB_TOKEN = 'ctrlh6hr01qhlbactc50ctrlh6hr01qhlbactc5g';

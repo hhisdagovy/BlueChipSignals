@@ -6,18 +6,20 @@
     <title>Maintenance | BlueChip Signals</title>
     <link rel="icon" type="image/png" href="assets/images/Crest logo.png">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link rel="stylesheet" href="assets/css/global.css">
     <style>
         :root {
-            --primary-gold:  #c9b037;
-            --dark-bg:       #080b12;
-            --card-bg:       rgba(255,255,255,0.03);
-            --light-text:    #f0ece0;
+            /* RGB channels for use inside rgba() — values derived from global.css tokens */
+            --gold-rgb:       179, 161, 125;   /* matches --primary-gold: #b3a17d  */
+            --gold-light-rgb: 226, 207, 181;   /* matches --secondary-gold: #E2CFB5 */
+            --white-rgb:      255, 255, 255;
+
+            --card-bg: #0d1120;
         }
 
-        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        html, body { height: 100%; }
 
         body {
-            font-family: 'Georgia', 'Times New Roman', serif;
             background: var(--dark-bg);
             color: var(--light-text);
             min-height: 100vh;
@@ -25,140 +27,269 @@
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            padding: 2rem 1.5rem;
-            overflow: hidden;
+            padding: 2rem 1.25rem;
             position: relative;
+            overflow: hidden;
         }
 
-        /* Background radial glows */
-        body::before {
-            content: '';
+        /* ── Background layers ── */
+        .bg-glow-top {
             position: fixed;
-            top: -20%;
-            left: 50%;
+            top: -180px; left: 50%;
             transform: translateX(-50%);
-            width: 700px;
-            height: 700px;
-            background: radial-gradient(circle, rgba(201,176,55,0.07) 0%, transparent 65%);
-            pointer-events: none;
-            z-index: 0;
+            width: 900px; height: 600px;
+            background: radial-gradient(ellipse at center top, rgba(var(--gold-rgb), 0.13) 0%, transparent 60%);
+            pointer-events: none; z-index: 0;
         }
 
-        .maintenance-card {
+        .bg-glow-bottom {
+            position: fixed;
+            bottom: -200px; left: 50%;
+            transform: translateX(-50%);
+            width: 700px; height: 500px;
+            background: radial-gradient(ellipse at center, rgba(var(--gold-rgb), 0.06) 0%, transparent 65%);
+            pointer-events: none; z-index: 0;
+        }
+
+        /* Subtle dot grid */
+        .bg-grid {
+            position: fixed;
+            inset: 0;
+            background-image: radial-gradient(rgba(var(--white-rgb), 0.045) 1px, transparent 1px);
+            background-size: 32px 32px;
+            pointer-events: none; z-index: 0;
+            mask-image: radial-gradient(ellipse 80% 80% at 50% 50%, black 30%, transparent 100%);
+            -webkit-mask-image: radial-gradient(ellipse 80% 80% at 50% 50%, black 30%, transparent 100%);
+        }
+
+        /* ── Card ── */
+        .card {
             position: relative;
             z-index: 1;
             background: var(--card-bg);
-            border: 1px solid rgba(201,176,55,0.18);
-            border-radius: 24px;
-            padding: 3rem 2.5rem;
-            max-width: 520px;
+            border: 1px solid rgba(var(--gold-rgb), 0.25);
+            border-radius: 28px;
+            padding: 3rem 2.75rem 2.5rem;
+            max-width: 500px;
             width: 100%;
             text-align: center;
-            box-shadow: 0 0 80px rgba(0,0,0,0.5), 0 0 0 1px rgba(201,176,55,0.06) inset;
+            box-shadow:
+                0 0 0 1px rgba(var(--gold-rgb), 0.06) inset,
+                0 8px 32px rgba(0,0,0,0.55),
+                0 0 80px rgba(var(--gold-rgb), 0.07);
+            animation: cardIn 0.6s cubic-bezier(0.22,1,0.36,1) both;
         }
 
-        .crest-wrap {
+        @keyframes cardIn {
+            from { opacity: 0; transform: translateY(22px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Animated gold top-border glow */
+        .card::before {
+            content: '';
+            position: absolute;
+            top: -1px; left: 10%; right: 10%;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(var(--gold-rgb), 0.8), rgba(var(--gold-light-rgb), 0.9), rgba(var(--gold-rgb), 0.8), transparent);
+            border-radius: 1px;
+            animation: shimmerBorder 3s ease-in-out infinite;
+        }
+
+        @keyframes shimmerBorder {
+            0%, 100% { opacity: 0.6; }
+            50%       { opacity: 1; }
+        }
+
+        /* ── Logo ── */
+        .logo-wrap {
+            position: relative;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 88px; height: 88px;
             margin-bottom: 1.75rem;
         }
 
-        .crest-wrap img {
-            width: 64px;
-            height: 64px;
+        .logo-ring {
+            position: absolute;
+            inset: 0;
+            border-radius: 50%;
+            border: 1.5px solid rgba(var(--gold-rgb), 0.35);
+            background: radial-gradient(circle at center, rgba(var(--gold-rgb), 0.1) 0%, transparent 70%);
+            animation: ringPulse 3s ease-in-out infinite;
+        }
+
+        @keyframes ringPulse {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(var(--gold-rgb), 0); }
+            50%       { box-shadow: 0 0 20px 4px rgba(var(--gold-rgb), 0.15); }
+        }
+
+        .logo-wrap img {
+            position: relative;
+            width: 62px; height: 62px;
             object-fit: contain;
-            filter: drop-shadow(0 2px 8px rgba(201,176,55,0.35));
+            filter: drop-shadow(0 2px 10px rgba(var(--gold-rgb), 0.5)) brightness(1.1);
         }
 
-        .maintenance-icon {
-            font-size: 2.8rem;
-            color: var(--primary-gold);
-            opacity: 0.8;
-            margin-bottom: 1.25rem;
-            display: block;
-            animation: pulse 3s ease-in-out infinite;
-        }
-
-        @keyframes pulse {
-            0%, 100% { opacity: 0.8; transform: scale(1); }
-            50%       { opacity: 1;   transform: scale(1.05); }
-        }
-
-        .maintenance-eyebrow {
-            font-family: 'Georgia', serif;
-            font-size: 0.68rem;
-            font-weight: 400;
-            letter-spacing: 0.2em;
+        /* ── Status pill ── */
+        .status-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.45rem;
+            font-size: 0.65rem;
+            font-weight: 700;
+            letter-spacing: 0.14em;
             text-transform: uppercase;
             color: var(--primary-gold);
-            opacity: 0.8;
-            margin-bottom: 0.75rem;
+            background: rgba(var(--gold-rgb), 0.1);
+            border: 1px solid rgba(var(--gold-rgb), 0.28);
+            padding: 0.28rem 0.9rem;
+            border-radius: 100px;
+            margin-bottom: 1.5rem;
         }
 
-        .maintenance-title {
+        .status-dot {
+            width: 6px; height: 6px;
+            border-radius: 50%;
+            background: var(--primary-gold);
+            animation: dotPulse 1.8s ease-in-out infinite;
+        }
+
+        @keyframes dotPulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50%       { opacity: 0.35; transform: scale(0.75); }
+        }
+
+        /* ── Icon container ── */
+        .icon-wrap {
+            width: 72px; height: 72px;
+            border-radius: 20px;
+            background: linear-gradient(135deg, rgba(var(--gold-rgb), 0.15), rgba(var(--gold-rgb), 0.05));
+            border: 1px solid rgba(var(--gold-rgb), 0.25);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.85rem;
+            color: var(--primary-gold);
+            margin: 0 auto 1.5rem;
+            box-shadow: 0 4px 20px rgba(var(--gold-rgb), 0.12);
+            animation: iconFloat 4s ease-in-out infinite;
+        }
+
+        @keyframes iconFloat {
+            0%, 100% { transform: translateY(0); }
+            50%       { transform: translateY(-5px); }
+        }
+
+        /* ── Title ── */
+        .eyebrow {
+            font-size: 0.65rem;
+            font-weight: 700;
+            letter-spacing: 0.18em;
+            text-transform: uppercase;
+            color: rgba(var(--gold-rgb), 0.65);
+            margin-bottom: 0.6rem;
+        }
+
+        .title {
             font-family: 'Georgia', 'Times New Roman', serif;
-            font-size: 2rem;
+            font-size: 2.1rem;
             font-weight: 400;
-            color: var(--light-text);
+            background: linear-gradient(135deg, var(--primary-gold) 0%, var(--secondary-gold) 55%, var(--primary-gold) 100%);
+            -webkit-background-clip: text; background-clip: text;
+            -webkit-text-fill-color: transparent;
             line-height: 1.2;
-            margin-bottom: 1rem;
+            margin-bottom: 0.9rem;
             letter-spacing: -0.01em;
         }
 
-        .maintenance-divider {
-            width: 48px;
-            height: 2px;
+        .divider {
+            width: 56px; height: 2px;
             background: linear-gradient(90deg, transparent, var(--primary-gold), transparent);
-            margin: 0 auto 1.25rem;
+            margin: 0 auto 1.4rem;
             border-radius: 2px;
         }
 
-        .maintenance-message {
-            font-size: 0.88rem;
-            color: rgba(240,236,224,0.55);
-            line-height: 1.7;
-            margin-bottom: 2rem;
-            min-height: 2rem;
+        /* ── Message ── */
+        .message {
+            font-size: 0.9rem;
+            color: rgba(var(--white-rgb), 0.55);
+            line-height: 1.75;
+            margin-bottom: 2.25rem;
+            min-height: 2.5rem;
         }
 
-        .maintenance-footer {
-            font-size: 0.72rem;
-            color: rgba(255,255,255,0.22);
+        /* ── Footer ── */
+        .footer {
+            font-size: 0.7rem;
+            color: rgba(var(--white-rgb), 0.2);
             letter-spacing: 0.04em;
-            border-top: 1px solid rgba(255,255,255,0.06);
-            padding-top: 1.5rem;
-            margin-top: 0.5rem;
+            border-top: 1px solid rgba(var(--white-rgb), 0.07);
+            padding-top: 1.25rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
         }
 
-        .maintenance-footer span {
-            color: var(--primary-gold);
-            opacity: 0.6;
+        .footer-brand {
+            color: rgba(var(--gold-rgb), 0.55);
+            font-weight: 600;
         }
 
+        /* ── Responsive ── */
         @media (max-width: 480px) {
-            .maintenance-card { padding: 2.25rem 1.75rem; }
-            .maintenance-title { font-size: 1.6rem; }
+            .card { padding: 2.25rem 1.75rem 2rem; }
+            .title { font-size: 1.7rem; }
+            .logo-wrap { width: 72px; height: 72px; }
+            .logo-wrap img { width: 52px; height: 52px; }
         }
     </style>
 </head>
 <body>
-    <div class="maintenance-card">
-        <div class="crest-wrap">
-            <img src="assets/images/Crest logo.png" alt="BlueChip Signals crest">
+
+    <!-- Background layers -->
+    <div class="bg-grid"></div>
+    <div class="bg-glow-top"></div>
+    <div class="bg-glow-bottom"></div>
+
+    <!-- Card -->
+    <div class="card">
+
+        <!-- Logo with ring -->
+        <div class="logo-wrap">
+            <div class="logo-ring"></div>
+            <img src="assets/images/Crest logo.png" alt="BlueChip Signals">
         </div>
 
-        <i class="fas fa-wrench maintenance-icon"></i>
+        <!-- Status pill -->
+        <div class="status-pill">
+            <span class="status-dot"></span>
+            Temporarily Offline
+        </div>
 
-        <div class="maintenance-eyebrow">BlueChip Signals</div>
-        <h1 class="maintenance-title">Scheduled Maintenance</h1>
-        <div class="maintenance-divider"></div>
+        <!-- Icon -->
+        <div class="icon-wrap">
+            <i class="fas fa-wrench"></i>
+        </div>
 
-        <p class="maintenance-message" id="maintenanceMsg">
+        <!-- Headline -->
+        <div class="eyebrow">BlueChip Signals</div>
+        <h1 class="title">Scheduled Maintenance</h1>
+        <div class="divider"></div>
+
+        <!-- Message (overwritten by Firestore if custom message is set) -->
+        <p class="message" id="maintenanceMsg">
             We're currently performing scheduled maintenance.<br>
             We'll be back shortly — thank you for your patience.
         </p>
 
-        <div class="maintenance-footer">
-            &copy; <span id="maintenanceYear">2026</span> <span>BlueChip Signals</span> &mdash; All rights reserved
+        <!-- Footer -->
+        <div class="footer">
+            <span>&copy; <span id="maintenanceYear">2026</span></span>
+            <span class="footer-brand">BlueChip Signals</span>
+            <span>&mdash; All rights reserved</span>
         </div>
+
     </div>
 
     <script type="module">
@@ -166,20 +297,22 @@
 
         document.getElementById('maintenanceYear').textContent = new Date().getFullYear();
 
-        /* Fetch the maintenance message from Firestore and display it */
         try {
             const snap = await getDoc(doc(db, 'settings', 'site'));
             if (snap.exists()) {
-                const msg = snap.data().maintenanceMessage;
-                if (msg && msg.trim()) {
-                    document.getElementById('maintenanceMsg').innerHTML = msg;
+                const data = snap.data();
+
+                /* Show custom message if set */
+                if (data.maintenanceMessage && data.maintenanceMessage.trim()) {
+                    document.getElementById('maintenanceMsg').innerHTML = data.maintenanceMessage;
                 }
-                /* If maintenance mode is now OFF, redirect back to dashboard */
-                if (!snap.data().maintenanceMode) {
+
+                /* Redirect back to dashboard when maintenance is lifted */
+                if (!data.maintenanceMode) {
                     window.location.href = 'dashboard.html';
                 }
             }
-        } catch (_) {}
+        } catch (_) { /* fail silently — static page still renders */ }
     </script>
 </body>
 </html>

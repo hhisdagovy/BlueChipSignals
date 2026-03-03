@@ -1,17 +1,3 @@
-/* ============================================================
-   footer-component.js — Blue Chip Signals
-   Injects the site footer into any page that contains:
-     <div id="footer-placeholder"
-          data-footer-type="standard-social|back-to-home|minimal"
-          data-base=""></div>
-
-   data-footer-type:
-     standard-social (default) — copyright + Terms & Legal + social icons
-     back-to-home              — same as standard-social + Back to Home link
-     minimal                   — copyright + Terms & Legal, no social icons
-   data-base:
-     '' for root-level pages, '../../' for pages two levels deep
-   ============================================================ */
 (function () {
     var placeholder = document.getElementById('footer-placeholder');
     if (!placeholder) return;

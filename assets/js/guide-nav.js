@@ -1,9 +1,3 @@
-/**
- * guide-nav.js
- * Auto-detects the ticker from the current guide page URL,
- * replaces the back-button with a guide-switcher pill that opens
- * an in-page modal listing all guides for that ticker.
- */
 (function () {
 
     /* ── Guide data map ── */

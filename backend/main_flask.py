@@ -12,9 +12,30 @@ import re
 import os
 from functools import wraps
 
+import firebase_admin
+from firebase_admin import credentials, firestore as fs_admin
+
 app = Flask(__name__)
 app.secret_key = 'bluechip-signals-secret-key-change-in-production'
 CORS(app, resources={r"/api/*": {"origins": "*"}})
+
+# ── Firebase Admin SDK ──────────────────────────────────────────────────────
+# Set FIREBASE_SERVICE_ACCOUNT_JSON in Railway env vars as the full JSON string
+# of a Firebase service-account key file.  If the var is missing the app still
+# works — Firestore writes are silently skipped.
+_firestore_client = None
+try:
+    _sa_json = os.environ.get('FIREBASE_SERVICE_ACCOUNT_JSON', '')
+    if _sa_json:
+        _sa_dict = json.loads(_sa_json)
+        _cred = credentials.Certificate(_sa_dict)
+        firebase_admin.initialize_app(_cred)
+        _firestore_client = fs_admin.client()
+        print('[BCS] Firebase Admin SDK initialised — Firestore writes enabled.')
+    else:
+        print('[BCS] FIREBASE_SERVICE_ACCOUNT_JSON not set — Firestore writes disabled.')
+except Exception as _e:
+    print(f'[BCS] Firebase Admin SDK init failed: {_e}')
 
 # Initialize database
 def init_db():
@@ -41,6 +62,45 @@ def init_db():
     conn.close()
 
 init_db()
+
+
+def insert_signal(stock, price, vwap, mfi, contract_type, strike_price, premium, expiration, volume=0):
+    """
+    Write one signal to SQLite (always) and Firestore (if SDK is initialised).
+    Returns the new SQLite row id.
+    """
+    conn = sqlite3.connect('signals.db')
+    c = conn.cursor()
+    c.execute(
+        '''INSERT INTO signals
+           (stock, price, vwap, mfi, contract_type, strike_price, premium, expiration, volume)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)''',
+        (stock, price, vwap, mfi, contract_type, strike_price, premium, expiration, volume)
+    )
+    conn.commit()
+    signal_id = c.lastrowid
+    conn.close()
+
+    # Mirror to Firestore for the historical signals page
+    if _firestore_client:
+        try:
+            _firestore_client.collection('signals').add({
+                'stock':        stock,
+                'price':        price,
+                'vwap':         vwap,
+                'mfi':          mfi,
+                'contractType': contract_type,
+                'strike':       strike_price,
+                'premium':      premium,
+                'expiration':   expiration,
+                'volume':       volume,
+                'timestamp':    fs_admin.SERVER_TIMESTAMP,
+            })
+        except Exception as _fe:
+            print(f'[BCS] Firestore write failed (non-fatal): {_fe}')
+
+    return signal_id
+
 
 # Admin authentication decorator
 def admin_required(f):
@@ -73,28 +133,19 @@ def create_signal():
             return jsonify({'error': 'Missing required fields'}), 400
         
         contract = data['contract']
-        
-        conn = sqlite3.connect('signals.db')
-        c = conn.cursor()
-        c.execute('''
-            INSERT INTO signals 
-            (stock, price, vwap, mfi, contract_type, strike_price, premium, expiration, volume)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-        ''', (
-            data['stock'],
-            data['price'],
-            data['vwap'],
-            data['mfi'],
-            contract['type'],
-            contract['strike'],
-            contract['premium'],
-            contract['expiration'],
-            contract.get('volume', 0)
-        ))
-        conn.commit()
-        signal_id = c.lastrowid
-        conn.close()
-        
+
+        signal_id = insert_signal(
+            stock=data['stock'],
+            price=data['price'],
+            vwap=data['vwap'],
+            mfi=data['mfi'],
+            contract_type=contract['type'],
+            strike_price=contract['strike'],
+            premium=contract['premium'],
+            expiration=contract['expiration'],
+            volume=contract.get('volume', 0),
+        )
+
         return jsonify({
             'success': True,
             'signal_id': signal_id,
@@ -251,26 +302,17 @@ def telegram_webhook():
         return jsonify({'ok': True, 'note': 'Message received but could not be parsed'})
 
     try:
-        conn = sqlite3.connect('signals.db')
-        c = conn.cursor()
-        c.execute('''
-            INSERT INTO signals
-            (stock, price, vwap, mfi, contract_type, strike_price, premium, expiration, volume)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-        ''', (
-            signal['stock'],
-            signal['price'],
-            signal['vwap'],
-            signal['mfi'],
-            signal['contract_type'],
-            signal['strike_price'],
-            signal['premium'],
-            signal['expiration'],
-            signal['volume'],
-        ))
-        conn.commit()
-        signal_id = c.lastrowid
-        conn.close()
+        signal_id = insert_signal(
+            stock=signal['stock'],
+            price=signal['price'],
+            vwap=signal['vwap'],
+            mfi=signal['mfi'],
+            contract_type=signal['contract_type'],
+            strike_price=signal['strike_price'],
+            premium=signal['premium'],
+            expiration=signal['expiration'],
+            volume=signal['volume'],
+        )
         return jsonify({'ok': True, 'signal_id': signal_id})
     except Exception as e:
         return jsonify({'ok': False, 'error': str(e)}), 500

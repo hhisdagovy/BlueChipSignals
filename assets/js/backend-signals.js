@@ -1,6 +1,8 @@
 (function () {
     const BACKEND_URL = 'https://bluechipsignals-production.up.railway.app';
 
+    const TICKERS = ['SPY', 'TSLA', 'META', 'AAPL', 'NVDA', 'AMZN'];
+
     const STOCK_STYLES = {
         SPY:  { bg: 'rgba(179,161,125,0.15)', color: '#c9b037', top: 'linear-gradient(90deg,#c9b037,#e2cfb5)' },
         TSLA: { bg: 'rgba(232,33,39,0.12)',   color: '#e82127', top: 'linear-gradient(90deg,#e82127,#ff6b6b)' },
@@ -10,11 +12,15 @@
         AMZN: { bg: 'rgba(255,153,0,0.12)',    color: '#ff9900', top: 'linear-gradient(90deg,#ff9900,#fbbf24)' },
     };
 
-    /* Module-level state set by init() */
-    var _tickerFilter = null;
-    var _limit        = 9;
-    var _interval     = null;
+    /* ── Module-level state ── */
+    var _tickerFilter    = null;   // hard lock for single-channel users (null = bundle/all)
+    var _limit           = 9;
+    var _interval        = null;
+    var _allSignals      = [];     // cached last fetch result
+    var _activeTicker    = 'ALL';  // user-selected filter pill
+    var _activeDirection = 'ALL';  // 'ALL' | 'CALL' | 'PUT'
 
+    /* ── Helpers ── */
     function timeAgo(ts) {
         const diff = Math.floor((Date.now() - new Date(ts + 'Z').getTime()) / 1000);
         if (diff < 60)    return diff + 's ago';
@@ -31,6 +37,7 @@
         } catch (_) { return exp; }
     }
 
+    /* ── Fetch ── */
     async function fetchSignals() {
         try {
             const res = await fetch(BACKEND_URL + '/api/signals/latest?limit=' + _limit, { cache: 'no-store' });
@@ -42,18 +49,19 @@
         }
     }
 
+    /* ── Card builder ── */
     function buildCard(s) {
-        const style     = STOCK_STYLES[s.stock] || { bg: 'rgba(201,176,55,0.1)', color: '#c9b037', top: 'linear-gradient(90deg,#c9b037,#e2cfb5)' };
-        const isCall    = (s.contract.type || '').toLowerCase() === 'call';
-        const dirClass  = isCall ? 'call' : 'put';
-        const dirIcon   = isCall ? 'fa-arrow-trend-up' : 'fa-arrow-trend-down';
-        const dirLabel  = isCall ? 'CALL' : 'PUT';
-        const strike    = s.contract.strike  != null ? '$' + parseFloat(s.contract.strike).toFixed(2)  : '—';
-        const premium   = s.contract.premium != null ? '$' + parseFloat(s.contract.premium).toFixed(2) : '—';
-        const price     = s.price  != null ? '$' + parseFloat(s.price).toFixed(2)  : '—';
-        const vwap      = s.vwap   != null ? '$' + parseFloat(s.vwap).toFixed(2)   : '—';
-        const mfi       = s.mfi    != null ? parseFloat(s.mfi).toFixed(1)           : '—';
-        const expFmt    = formatExp(s.contract.expiration);
+        const style    = STOCK_STYLES[s.stock] || { bg: 'rgba(201,176,55,0.1)', color: '#c9b037', top: 'linear-gradient(90deg,#c9b037,#e2cfb5)' };
+        const isCall   = (s.contract.type || '').toLowerCase() === 'call';
+        const dirClass = isCall ? 'call' : 'put';
+        const dirIcon  = isCall ? 'fa-arrow-trend-up' : 'fa-arrow-trend-down';
+        const dirLabel = isCall ? 'CALL' : 'PUT';
+        const strike   = s.contract.strike  != null ? '$' + parseFloat(s.contract.strike).toFixed(2)  : '—';
+        const premium  = s.contract.premium != null ? '$' + parseFloat(s.contract.premium).toFixed(2) : '—';
+        const price    = s.price  != null ? '$' + parseFloat(s.price).toFixed(2)  : '—';
+        const vwap     = s.vwap   != null ? '$' + parseFloat(s.vwap).toFixed(2)   : '—';
+        const mfi      = s.mfi    != null ? parseFloat(s.mfi).toFixed(1)           : '—';
+        const expFmt   = formatExp(s.contract.expiration);
 
         return '<div class="sig-card" style="--sig-top:' + style.top + ';">' +
 
@@ -81,6 +89,7 @@
         '</div>';
     }
 
+    /* ── Render (applies active filter on top of _allSignals) ── */
     function renderSignals(signals) {
         const container = document.getElementById('latest-signals-list');
         const badge     = document.getElementById('latest-signals-count');
@@ -91,45 +100,114 @@
             return;
         }
 
-        /* Filter to the user's ticker when on a single-channel plan */
+        /* Hard ticker lock for single-channel users */
         if (_tickerFilter) {
             signals = signals.filter(function (s) { return s.stock === _tickerFilter; }).slice(0, 9);
+        } else {
+            /* Bundle: apply interactive filters */
+            if (_activeTicker !== 'ALL') {
+                signals = signals.filter(function (s) { return s.stock === _activeTicker; });
+            }
+            if (_activeDirection !== 'ALL') {
+                signals = signals.filter(function (s) {
+                    return (s.contract.type || '').toLowerCase() === _activeDirection.toLowerCase();
+                });
+            }
+            signals = signals.slice(0, 9);
         }
 
         if (badge) badge.textContent = signals.length;
 
         if (signals.length === 0) {
-            container.innerHTML = '<p class="sig-empty"><i class="fas fa-satellite-dish"></i> No Signals Yet</p>';
+            container.innerHTML = '<p class="sig-empty"><i class="fas fa-satellite-dish"></i> No signals match this filter.</p>';
             return;
         }
 
         container.innerHTML = signals.map(buildCard).join('');
 
-        /* Apply the per-card top accent colour via inline style (CSS var workaround) */
         container.querySelectorAll('.sig-card').forEach(function (card, i) {
             const s     = signals[i];
             const style = STOCK_STYLES[s.stock] || STOCK_STYLES.SPY;
             card.style.setProperty('--sig-top', style.top);
-            /* The ::before pseudo-element reads this var */
         });
     }
 
-    async function _run() {
-        renderSignals(await fetchSignals());
+    /* ── Filter bar (injected for bundle users only) ── */
+    function injectFilterBar() {
+        const header = document.querySelector('.signals-section-header');
+        if (!header || document.getElementById('sig-filter-bar')) return;
 
-        /* Clear any previous interval before starting a new one */
+        var tickerPills = '<button class="sig-filter-pill active" data-ticker="ALL">All</button>' +
+            TICKERS.map(function (t) {
+                return '<button class="sig-filter-pill" data-ticker="' + t + '">' + t + '</button>';
+            }).join('');
+
+        var bar = document.createElement('div');
+        bar.id        = 'sig-filter-bar';
+        bar.className = 'sig-filter-bar';
+        bar.innerHTML =
+            '<div class="sig-filter-group" id="sig-ticker-group">' + tickerPills + '</div>' +
+            '<div class="sig-filter-divider"></div>' +
+            '<div class="sig-filter-group">' +
+                '<button class="sig-filter-pill active" data-dir="ALL">All</button>' +
+                '<button class="sig-filter-pill call" data-dir="CALL">Calls</button>' +
+                '<button class="sig-filter-pill put"  data-dir="PUT">Puts</button>' +
+            '</div>';
+
+        header.after(bar);
+
+        /* Event delegation */
+        bar.addEventListener('click', function (e) {
+            var pill = e.target.closest('.sig-filter-pill');
+            if (!pill) return;
+
+            if (pill.dataset.ticker !== undefined) {
+                bar.querySelectorAll('[data-ticker]').forEach(function (p) { p.classList.remove('active'); });
+                pill.classList.add('active');
+                _activeTicker = pill.dataset.ticker;
+            } else if (pill.dataset.dir !== undefined) {
+                bar.querySelectorAll('[data-dir]').forEach(function (p) { p.classList.remove('active'); });
+                pill.classList.add('active');
+                _activeDirection = pill.dataset.dir;
+            }
+
+            renderSignals(_allSignals);
+        });
+    }
+
+    /* ── Run cycle ── */
+    async function _run() {
+        const raw = await fetchSignals();
+        if (raw !== null) _allSignals = raw;
+        renderSignals(_allSignals.length ? _allSignals : raw);
+
         if (_interval) clearInterval(_interval);
         _interval = setInterval(async function () {
-            renderSignals(await fetchSignals());
+            const fresh = await fetchSignals();
+            if (fresh !== null) _allSignals = fresh;
+            renderSignals(_allSignals);
         }, 5 * 60 * 1000);
     }
 
-    /* Exposed API — called by dashboard.html after Firebase auth resolves */
+    /* ── Public API — called by dashboard.html after Firebase auth resolves ── */
     window.BCSSignals = {
         init: function (options) {
-            _tickerFilter = (options && options.tickerFilter) ? options.tickerFilter.toUpperCase() : null;
-            _limit        = _tickerFilter ? 30 : 9;
+            _tickerFilter    = (options && options.tickerFilter) ? options.tickerFilter.toUpperCase() : null;
+            _limit           = _tickerFilter ? 30 : 50;
+            _activeTicker    = 'ALL';
+            _activeDirection = 'ALL';
+
+            /* Inject the interactive filter bar only for bundle/legacy users */
+            if (!_tickerFilter) injectFilterBar();
+
             _run();
+        },
+
+        /* Re-filter the cached signals without a new fetch */
+        filter: function (opts) {
+            if (opts && opts.ticker)    _activeTicker    = opts.ticker.toUpperCase();
+            if (opts && opts.direction) _activeDirection = opts.direction.toUpperCase();
+            renderSignals(_allSignals);
         }
     };
 })();

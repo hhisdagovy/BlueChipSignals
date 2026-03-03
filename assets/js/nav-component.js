@@ -205,6 +205,7 @@
                 '<span class="bar"></span>' +
             '</button>' +
             '<ul class="nav-links">' +
+                '<li><a href="' + base + 'signal-history.html">HISTORY</a></li>' +
                 '<li><a href="' + base + 'trading-journal.html">JOURNAL</a></li>' +
                 '<li><a href="' + base + 'trade-planner.html">PLANNER</a></li>' +
                 '<li><a href="' + base + 'roadmap.html">ROADMAP</a></li>' +

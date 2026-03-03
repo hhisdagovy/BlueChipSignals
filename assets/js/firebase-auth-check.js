@@ -80,16 +80,41 @@ export function requirePlan(planType, ticker, loginPath, upgradePath) {
     const _login   = () => { window.location.href = loginPath   || '../../login.html'; };
     const _upgrade = () => { window.location.href = upgradePath || '../../upgrade.html'; };
 
+    /* Derive the maintenance page path from the loginPath (same directory level) */
+    const _maintenance = () => {
+        const base = (loginPath || '../../login.html').replace(/[^/]+$/, '');
+        window.location.href = base + 'maintenance.html';
+    };
+
     const _check = async (user) => {
         if (!user) { _login(); return; }
         try {
-            const snap = await getDoc(doc(db, 'users', user.uid));
-            if (!snap.exists()) { _login(); return; }
-            const { plan, allowedTicker } = snap.data();
+            /* Fetch user profile and site settings in parallel */
+            const [userSnap, siteSnap] = await Promise.all([
+                getDoc(doc(db, 'users', user.uid)),
+                getDoc(doc(db, 'settings', 'site'))
+            ]);
+
+            if (!userSnap.exists()) { _login(); return; }
+
+            const { plan, allowedTicker, subscriptionStatus, role } = userSnap.data();
+            const isAdmin = (role || '').toLowerCase() === 'admin';
+
+            /* Maintenance mode — admins always bypass */
+            if (!isAdmin && siteSnap.exists() && siteSnap.data().maintenanceMode) {
+                _maintenance(); return;
+            }
+
+            /* Subscription status — 'Inactive' blocks access regardless of plan */
+            if (!isAdmin && (subscriptionStatus || '').toLowerCase() === 'inactive') {
+                _upgrade(); return;
+            }
+
+            /* Plan check */
             if (planType === 'bundle') {
                 if (plan !== 'bundle') _upgrade();
             } else {
-                const t = (ticker || '').toUpperCase();
+                const t       = (ticker        || '').toUpperCase();
                 const allowed = (allowedTicker || '').toUpperCase();
                 if (plan !== 'bundle' && !(plan === 'single' && allowed === t)) {
                     _upgrade();

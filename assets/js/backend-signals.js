@@ -10,6 +10,11 @@
         AMZN: { bg: 'rgba(255,153,0,0.12)',    color: '#ff9900', top: 'linear-gradient(90deg,#ff9900,#fbbf24)' },
     };
 
+    /* Module-level state set by init() */
+    var _tickerFilter = null;
+    var _limit        = 9;
+    var _interval     = null;
+
     function timeAgo(ts) {
         const diff = Math.floor((Date.now() - new Date(ts + 'Z').getTime()) / 1000);
         if (diff < 60)    return diff + 's ago';
@@ -28,7 +33,7 @@
 
     async function fetchSignals() {
         try {
-            const res = await fetch(BACKEND_URL + '/api/signals/latest?limit=9', { cache: 'no-store' });
+            const res = await fetch(BACKEND_URL + '/api/signals/latest?limit=' + _limit, { cache: 'no-store' });
             const data = await res.json();
             return data.signals || [];
         } catch (e) {
@@ -86,6 +91,11 @@
             return;
         }
 
+        /* Filter to the user's ticker when on a single-channel plan */
+        if (_tickerFilter) {
+            signals = signals.filter(function (s) { return s.stock === _tickerFilter; }).slice(0, 9);
+        }
+
         if (badge) badge.textContent = signals.length;
 
         if (signals.length === 0) {
@@ -104,16 +114,22 @@
         });
     }
 
-    async function init() {
+    async function _run() {
         renderSignals(await fetchSignals());
-        setInterval(async function () {
+
+        /* Clear any previous interval before starting a new one */
+        if (_interval) clearInterval(_interval);
+        _interval = setInterval(async function () {
             renderSignals(await fetchSignals());
         }, 5 * 60 * 1000);
     }
 
-    if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', init);
-    } else {
-        init();
-    }
+    /* Exposed API — called by dashboard.html after Firebase auth resolves */
+    window.BCSSignals = {
+        init: function (options) {
+            _tickerFilter = (options && options.tickerFilter) ? options.tickerFilter.toUpperCase() : null;
+            _limit        = _tickerFilter ? 30 : 9;
+            _run();
+        }
+    };
 })();

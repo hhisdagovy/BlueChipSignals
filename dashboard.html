@@ -2286,11 +2286,17 @@
 
                     const qstatChannels = document.getElementById('qstatChannels');
                     if (qstatChannels) qstatChannels.textContent = `1 Active · ${ticker}`;
+
+                    /* Show only this user's ticker in the signals grid */
+                    if (window.BCSSignals) window.BCSSignals.init({ tickerFilter: ticker });
                 } else if (plan === 'bundle') {
                     subscriptionStatus.textContent = 'Full Bundle';
+                    /* Full access — show all signals */
+                    if (window.BCSSignals) window.BCSSignals.init({ tickerFilter: null });
                 } else {
-                    /* Legacy users without plan field */
+                    /* Legacy users without plan field — full access */
                     subscriptionStatus.textContent = userData.subscriptionStatus || 'Premium Active';
+                    if (window.BCSSignals) window.BCSSignals.init({ tickerFilter: null });
                 }
 
                 /* Quick-stat: Plan Status */
@@ -2319,6 +2325,14 @@
         }
 
         function applyPlanRestrictions(allowedTicker) {
+            /* Update the Latest Signals heading to show the user's ticker */
+            const sigHeading = document.querySelector('.signals-section-title');
+            if (sigHeading) {
+                const countBadge = sigHeading.querySelector('#latest-signals-count');
+                sigHeading.innerHTML = `<i class="fas fa-satellite-dish"></i> Your ${allowedTicker} Signals `;
+                if (countBadge) sigHeading.appendChild(countBadge);
+            }
+
             /* Lock stock rows that aren't the user's ticker */
             document.querySelectorAll('.stock-row[data-ticker]').forEach(row => {
                 if (row.dataset.ticker !== allowedTicker) {

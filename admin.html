@@ -711,14 +711,60 @@
         }
 
         @media (max-width: 768px) {
-            .admin-wrapper { padding: 0 1rem 2rem; margin-top: 90px; }
+            .admin-wrapper {
+                padding: 0 1rem 3rem;
+                margin-top: 80px;
+            }
+
+            .admin-hero { padding: 1.25rem 1.25rem 1rem; }
+            .admin-hero-body { flex-direction: column; gap: 0.75rem; }
+            .admin-back-btn { align-self: flex-start; }
+
+            /* Tabs: full-width with horizontal scroll so all 4 tabs are reachable */
+            .admin-tabs {
+                width: 100%;
+                overflow-x: auto;
+                flex-wrap: nowrap;
+                -webkit-overflow-scrolling: touch;
+                scrollbar-width: none;
+            }
+            .admin-tabs::-webkit-scrollbar { display: none; }
+            .admin-tab {
+                flex-shrink: 0;
+                white-space: nowrap;
+                padding: 0.45rem 0.9rem;
+                font-size: 0.75rem;
+            }
+
+            .admin-card { padding: 1.25rem 1rem; }
+
             .add-user-grid { grid-template-columns: 1fr; }
             .modal-form-grid { grid-template-columns: 1fr; }
+
+            /* Table: allow horizontal scroll inside the card */
+            .user-table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+            .user-table { min-width: 580px; }
+
+            /* Modal */
+            .modal-box {
+                max-height: 92vh;
+                overflow-y: auto;
+                margin: 1rem;
+            }
         }
 
         @media (max-width: 480px) {
             .admin-stats-grid { grid-template-columns: 1fr 1fr; }
+            .admin-stat-card { padding: 0.9rem 1rem; gap: 0.7rem; }
+            .admin-stat-value { font-size: 1.3rem; }
+
             .admin-controls { flex-direction: column; align-items: stretch; }
+            .filter-pills { flex-wrap: wrap; }
+
+            .admin-tab i { margin-right: 0; }
+
+            .channel-row { gap: 0.6rem; }
+            .toggle-row { gap: 0.75rem; }
         }
     </style>
 </head>

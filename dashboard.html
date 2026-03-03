@@ -1082,14 +1082,11 @@
         /* ---- Responsive ---- */
         @media (max-width: 768px) {
             .main-content {
-                padding: 0 1rem 1.5rem;
-                margin-top: 90px;
+                padding: 0 1rem 2rem;
+                margin-top: 80px;
             }
 
-            .dash-hero { padding: 1.5rem 1.25rem 1.25rem; }
-            .dash-avatar { width: 42px; height: 42px; font-size: 1.1rem; }
-            .dash-hero-strip { gap: 0.85rem 0; }
-            .dash-qstat { padding-right: 1rem; margin-right: 1rem; }
+            .dash-hero { padding: 1.25rem 1.25rem 1rem; }
 
             .bento-grid {
                 grid-template-columns: 1fr;
@@ -1102,18 +1099,73 @@
             .card-fg     { grid-column: 1; grid-row: auto; }
 
             .econ-stat-grid { grid-template-columns: 1fr 1fr; }
+        }
 
-            .stock-row { flex-wrap: wrap; }
+        /* Hero: stack on phones */
+        @media (max-width: 600px) {
+            .dash-hero-body {
+                flex-direction: column;
+                gap: 1rem;
+            }
+
+            /* Move right-column to a horizontal row at the top */
+            .dash-hero-right {
+                flex-direction: row;
+                align-items: center;
+                justify-content: space-between;
+                width: 100%;
+                order: -1;
+            }
+
+            .dash-avatar { width: 40px; height: 40px; font-size: 1rem; }
+
+            /* Quick-stats: 2 × 2 grid, drop the vertical pipe dividers */
+            .dash-hero-strip {
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                gap: 0.9rem 0;
+                padding-top: 1rem;
+                margin-top: 1rem;
+            }
+
+            .dash-qstat {
+                border-right: none !important;
+                margin-right: 0 !important;
+                padding-right: 0 !important;
+                padding-bottom: 0.75rem;
+                border-bottom: 1px solid rgba(255,255,255,0.06);
+            }
+
+            /* Remove border-bottom from the last two items (bottom row) */
+            .dash-qstat:nth-last-child(-n+2) {
+                border-bottom: none;
+                padding-bottom: 0;
+            }
+        }
+
+        /* Stock rows: wrap buttons below ticker info */
+        @media (max-width: 520px) {
+            .stock-row {
+                flex-wrap: wrap;
+                gap: 0.4rem 0.75rem;
+            }
 
             .stock-actions {
                 width: 100%;
-                padding-left: 2.6rem;
-                margin-top: 0.25rem;
+                padding-left: 50px; /* indent under ticker text, past icon */
+                margin-top: 0;
+                gap: 0.5rem;
+            }
+
+            .stock-actions .tg-btn,
+            .stock-actions .signals-link {
+                font-size: 0.72rem;
             }
         }
 
         @media (max-width: 480px) {
             .stats-tile-grid { grid-template-columns: 1fr 1fr; }
+            .bento-card { padding: 1.1rem; }
         }
 
         /* ---- Trading Activity Heatmap ---- */

@@ -1,7 +1,3 @@
-[build]
-builder = "nixpacks"
-buildCommand = "cd backend && pip install -r requirements.txt"
-
 [deploy]
 startCommand = "cd backend && python main_flask.py"
 healthcheckPath = "/"

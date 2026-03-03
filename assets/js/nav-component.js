@@ -1,8 +1,3 @@
-/* ============================================================
-   nav-component.js — Blue Chip Signals
-   Injects the navigation bar into any page that contains:
-     <div id="nav-placeholder" data-nav-type="public|loggedin|internal|minimal"></div>
-   ============================================================ */
 (function () {
     var placeholder = document.getElementById('nav-placeholder');
     if (!placeholder) return;
@@ -117,8 +112,11 @@
        their own window.logout that calls Firebase signOut() before clearing. */
     if (typeof window.logout === 'undefined') {
         window.logout = function () {
-            localStorage.clear();
-            sessionStorage.clear();
+            localStorage.removeItem('bluechip_logged_in');
+            localStorage.removeItem('bluechip_user_email');
+            localStorage.removeItem('bluechip_is_admin');
+            sessionStorage.removeItem('bluechip_logged_in');
+            sessionStorage.removeItem('bluechip_user_email');
             window.location.href = base + 'login.html';
         };
     }

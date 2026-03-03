@@ -822,8 +822,11 @@
             try {
                 await deleteDoc(doc(db, 'users', currentUser.uid));
                 await deleteUser(currentUser);
-                localStorage.clear();
-                sessionStorage.clear();
+                localStorage.removeItem('bluechip_logged_in');
+                localStorage.removeItem('bluechip_user_email');
+                localStorage.removeItem('bluechip_is_admin');
+                sessionStorage.removeItem('bluechip_logged_in');
+                sessionStorage.removeItem('bluechip_user_email');
                 window.location.href = 'index.html';
             } catch (err) {
                 btn.disabled = false;
@@ -839,8 +842,11 @@
         /* ---- Real Firebase logout ---- */
         window.logout = async function () {
             try { await signOut(auth); } catch (_) {}
-            localStorage.clear();
-            sessionStorage.clear();
+            localStorage.removeItem('bluechip_logged_in');
+            localStorage.removeItem('bluechip_user_email');
+            localStorage.removeItem('bluechip_is_admin');
+            sessionStorage.removeItem('bluechip_logged_in');
+            sessionStorage.removeItem('bluechip_user_email');
             window.location.href = 'login.html';
         };
 

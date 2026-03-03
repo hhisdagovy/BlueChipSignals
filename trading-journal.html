@@ -1895,8 +1895,11 @@
         window.logout = async function() {
             try {
                 await auth.signOut();
-                localStorage.clear();
-                sessionStorage.clear();
+                localStorage.removeItem('bluechip_logged_in');
+                localStorage.removeItem('bluechip_user_email');
+                localStorage.removeItem('bluechip_is_admin');
+                sessionStorage.removeItem('bluechip_logged_in');
+                sessionStorage.removeItem('bluechip_user_email');
                 window.location.href = 'login.html';
             } catch (error) {
                 console.error('Logout error:', error);

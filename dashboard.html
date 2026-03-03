@@ -1293,6 +1293,62 @@
             border-color: rgba(201,176,55,0.4);
             color: #c9b037;
         }
+
+        /* ── Announcement banner ── */
+        #announcement-banner {
+            display: flex;
+            align-items: center;
+            gap: 0.65rem;
+            padding: 0.75rem 1.1rem;
+            border-radius: 12px;
+            font-size: 0.82rem;
+            font-weight: 500;
+            margin-bottom: 1.25rem;
+            animation: fadeInDown 0.35s ease;
+        }
+
+        #announcement-banner .ann-close {
+            margin-left: auto;
+            background: none;
+            border: none;
+            color: inherit;
+            opacity: 0.55;
+            cursor: pointer;
+            font-size: 0.85rem;
+            padding: 0;
+            line-height: 1;
+            transition: opacity 0.15s;
+            flex-shrink: 0;
+        }
+
+        #announcement-banner .ann-close:hover { opacity: 1; }
+
+        @keyframes fadeInDown {
+            from { opacity: 0; transform: translateY(-8px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        /* ── Channel offline badge ── */
+        .offline-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.3rem;
+            font-size: 0.68rem;
+            font-weight: 700;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+            color: #ef9a9a;
+            background: rgba(211,47,47,0.12);
+            border: 1px solid rgba(239,154,154,0.22);
+            border-radius: 6px;
+            padding: 0.22rem 0.55rem;
+        }
+
+        .stock-row.row-offline .tg-btn,
+        .stock-row.row-offline .signals-link {
+            opacity: 0.25;
+            pointer-events: none;
+        }
     </style>
 </head>
 <body>
@@ -2203,8 +2259,64 @@
             } else {
                 const userData = await getUserProfile(user.uid, user.email);
                 updateDashboard(userData);
+
+                const isAdmin = (userData && (userData.role || '').toLowerCase() === 'admin');
+
+                /* ── Site-wide settings (announcement + maintenance) ── */
+                try {
+                    const siteSnap = await getDoc(doc(db, 'settings', 'site'));
+                    if (siteSnap.exists()) {
+                        const s = siteSnap.data();
+                        if (s.maintenanceMode && !isAdmin) {
+                            window.location.href = 'maintenance.html';
+                            return;
+                        }
+                        if (s.announcementActive && s.announcementText) {
+                            injectAnnouncementBanner(s.announcementText, s.announcementType || 'info');
+                        }
+                    }
+                } catch (e) { console.warn('site settings fetch:', e); }
+
+                /* ── Signal channel status ── */
+                try {
+                    const sigSnap = await getDoc(doc(db, 'settings', 'signals'));
+                    if (sigSnap.exists()) {
+                        const signals = sigSnap.data();
+                        document.querySelectorAll('.stock-row[data-ticker]').forEach(row => {
+                            const ticker = row.dataset.ticker;
+                            if (signals[ticker] === false) {
+                                row.classList.add('row-offline');
+                                const info = row.querySelector('.stock-info');
+                                if (info) {
+                                    info.insertAdjacentHTML('beforeend',
+                                        '<span class="offline-badge" style="margin-left:0.6rem;">' +
+                                        '<i class="fas fa-circle-xmark"></i> Offline</span>');
+                                }
+                            }
+                        });
+                    }
+                } catch (e) { console.warn('signals fetch:', e); }
             }
         });
+
+        function injectAnnouncementBanner(text, type) {
+            const palette = {
+                info:    { bg: 'rgba(33,150,243,0.1)',  border: 'rgba(33,150,243,0.25)',  color: '#64b5f6', icon: 'fa-circle-info' },
+                warning: { bg: 'rgba(255,152,0,0.1)',   border: 'rgba(255,152,0,0.25)',   color: '#ffb74d', icon: 'fa-triangle-exclamation' },
+                success: { bg: 'rgba(46,125,50,0.1)',   border: 'rgba(76,175,80,0.25)',   color: '#81c784', icon: 'fa-circle-check' },
+            };
+            const c = palette[type] || palette.info;
+            const banner = document.createElement('div');
+            banner.id = 'announcement-banner';
+            banner.style.cssText = `background:${c.bg};border:1px solid ${c.border};color:${c.color};`;
+            banner.innerHTML =
+                `<i class="fas ${c.icon}" style="flex-shrink:0;"></i>` +
+                `<span>${text}</span>` +
+                `<button class="ann-close" onclick="this.parentElement.remove()" title="Dismiss">` +
+                `<i class="fas fa-xmark"></i></button>`;
+            const main = document.querySelector('.main-content');
+            if (main) main.insertBefore(banner, main.firstChild);
+        }
 
         /* ── Hero: greeting, date, market status ── */
         (function initHeroMeta() {

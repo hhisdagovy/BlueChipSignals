@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Maintenance | BlueChip Signals</title>
+    <link rel="icon" type="image/png" href="assets/images/Crest logo.png">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <style>
+        :root {
+            --primary-gold:  #c9b037;
+            --dark-bg:       #080b12;
+            --card-bg:       rgba(255,255,255,0.03);
+            --light-text:    #f0ece0;
+        }
+
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: 'Georgia', 'Times New Roman', serif;
+            background: var(--dark-bg);
+            color: var(--light-text);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem 1.5rem;
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* Background radial glows */
+        body::before {
+            content: '';
+            position: fixed;
+            top: -20%;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 700px;
+            height: 700px;
+            background: radial-gradient(circle, rgba(201,176,55,0.07) 0%, transparent 65%);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .maintenance-card {
+            position: relative;
+            z-index: 1;
+            background: var(--card-bg);
+            border: 1px solid rgba(201,176,55,0.18);
+            border-radius: 24px;
+            padding: 3rem 2.5rem;
+            max-width: 520px;
+            width: 100%;
+            text-align: center;
+            box-shadow: 0 0 80px rgba(0,0,0,0.5), 0 0 0 1px rgba(201,176,55,0.06) inset;
+        }
+
+        .crest-wrap {
+            margin-bottom: 1.75rem;
+        }
+
+        .crest-wrap img {
+            width: 64px;
+            height: 64px;
+            object-fit: contain;
+            filter: drop-shadow(0 2px 8px rgba(201,176,55,0.35));
+        }
+
+        .maintenance-icon {
+            font-size: 2.8rem;
+            color: var(--primary-gold);
+            opacity: 0.8;
+            margin-bottom: 1.25rem;
+            display: block;
+            animation: pulse 3s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 0.8; transform: scale(1); }
+            50%       { opacity: 1;   transform: scale(1.05); }
+        }
+
+        .maintenance-eyebrow {
+            font-family: 'Georgia', serif;
+            font-size: 0.68rem;
+            font-weight: 400;
+            letter-spacing: 0.2em;
+            text-transform: uppercase;
+            color: var(--primary-gold);
+            opacity: 0.8;
+            margin-bottom: 0.75rem;
+        }
+
+        .maintenance-title {
+            font-family: 'Georgia', 'Times New Roman', serif;
+            font-size: 2rem;
+            font-weight: 400;
+            color: var(--light-text);
+            line-height: 1.2;
+            margin-bottom: 1rem;
+            letter-spacing: -0.01em;
+        }
+
+        .maintenance-divider {
+            width: 48px;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, var(--primary-gold), transparent);
+            margin: 0 auto 1.25rem;
+            border-radius: 2px;
+        }
+
+        .maintenance-message {
+            font-size: 0.88rem;
+            color: rgba(240,236,224,0.55);
+            line-height: 1.7;
+            margin-bottom: 2rem;
+            min-height: 2rem;
+        }
+
+        .maintenance-footer {
+            font-size: 0.72rem;
+            color: rgba(255,255,255,0.22);
+            letter-spacing: 0.04em;
+            border-top: 1px solid rgba(255,255,255,0.06);
+            padding-top: 1.5rem;
+            margin-top: 0.5rem;
+        }
+
+        .maintenance-footer span {
+            color: var(--primary-gold);
+            opacity: 0.6;
+        }
+
+        @media (max-width: 480px) {
+            .maintenance-card { padding: 2.25rem 1.75rem; }
+            .maintenance-title { font-size: 1.6rem; }
+        }
+    </style>
+</head>
+<body>
+    <div class="maintenance-card">
+        <div class="crest-wrap">
+            <img src="assets/images/Crest logo.png" alt="BlueChip Signals crest">
+        </div>
+
+        <i class="fas fa-wrench maintenance-icon"></i>
+
+        <div class="maintenance-eyebrow">BlueChip Signals</div>
+        <h1 class="maintenance-title">Scheduled Maintenance</h1>
+        <div class="maintenance-divider"></div>
+
+        <p class="maintenance-message" id="maintenanceMsg">
+            We're currently performing scheduled maintenance.<br>
+            We'll be back shortly — thank you for your patience.
+        </p>
+
+        <div class="maintenance-footer">
+            &copy; <span id="maintenanceYear">2026</span> <span>BlueChip Signals</span> &mdash; All rights reserved
+        </div>
+    </div>
+
+    <script type="module">
+        import { db, doc, getDoc } from './assets/js/firebase-config.js';
+
+        document.getElementById('maintenanceYear').textContent = new Date().getFullYear();
+
+        /* Fetch the maintenance message from Firestore and display it */
+        try {
+            const snap = await getDoc(doc(db, 'settings', 'site'));
+            if (snap.exists()) {
+                const msg = snap.data().maintenanceMessage;
+                if (msg && msg.trim()) {
+                    document.getElementById('maintenanceMsg').innerHTML = msg;
+                }
+                /* If maintenance mode is now OFF, redirect back to dashboard */
+                if (!snap.data().maintenanceMode) {
+                    window.location.href = 'dashboard.html';
+                }
+            }
+        } catch (_) {}
+    </script>
+</body>
+</html>

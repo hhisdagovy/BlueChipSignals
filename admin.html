@@ -610,6 +610,101 @@
 
         .confirm-delete:hover { background: rgba(211,47,47,0.24); }
 
+        /* ── Toggle switch ── */
+        .toggle-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 1rem 0;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
+
+        .toggle-row:last-of-type { border-bottom: none; }
+
+        .toggle-left { flex: 1; padding-right: 1.5rem; }
+
+        .toggle-label {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--light-text);
+        }
+
+        .toggle-desc {
+            font-size: 0.72rem;
+            color: rgba(255,255,255,0.35);
+            margin-top: 0.18rem;
+        }
+
+        .toggle-switch {
+            position: relative;
+            width: 44px; height: 24px;
+            flex-shrink: 0;
+        }
+
+        .toggle-switch input {
+            opacity: 0; width: 0; height: 0;
+            position: absolute;
+        }
+
+        .toggle-slider {
+            position: absolute; inset: 0;
+            background: rgba(255,255,255,0.12);
+            border-radius: 100px;
+            cursor: pointer;
+            transition: background 0.25s;
+        }
+
+        .toggle-slider::before {
+            content: '';
+            position: absolute;
+            width: 18px; height: 18px;
+            left: 3px; top: 3px;
+            background: white;
+            border-radius: 50%;
+            transition: transform 0.25s;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.35);
+        }
+
+        .toggle-switch input:checked + .toggle-slider { background: var(--success-green); }
+        .toggle-switch input:checked + .toggle-slider::before { transform: translateX(20px); }
+
+        /* ── Settings divider ── */
+        .settings-divider {
+            border: none;
+            border-top: 1px solid rgba(201,176,55,0.1);
+            margin: 1.5rem 0;
+        }
+
+        /* ── Channel rows ── */
+        .channel-row {
+            display: flex;
+            align-items: center;
+            gap: 0.85rem;
+            padding: 0.85rem 0;
+            border-bottom: 1px solid rgba(255,255,255,0.04);
+        }
+
+        .channel-row:last-child { border-bottom: none; }
+
+        .channel-icon {
+            width: 36px; height: 36px;
+            border-radius: 10px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 0.85rem;
+            flex-shrink: 0;
+        }
+
+        .channel-name {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--light-text);
+        }
+
+        .channel-full-name {
+            font-size: 0.72rem;
+            color: rgba(255,255,255,0.35);
+        }
+
         /* ── Responsive ── */
         @media (max-width: 900px) {
             .admin-stats-grid { grid-template-columns: 1fr 1fr; }
@@ -639,8 +734,8 @@
             <div class="admin-hero-body">
                 <div>
                     <div class="admin-label-pill"><i class="fas fa-shield-halved"></i> &nbsp;Admin Panel</div>
-                    <h1 class="admin-hero-title">User Management</h1>
-                    <p class="admin-hero-sub">Manage subscribers, plans, and access control</p>
+                    <h1 class="admin-hero-title">Control Center</h1>
+                    <p class="admin-hero-sub">Manage users, signal channels, site settings, and announcements</p>
                 </div>
                 <a href="dashboard.html" class="admin-back-btn">
                     <i class="fas fa-arrow-left"></i> Dashboard
@@ -687,6 +782,12 @@
             </button>
             <button class="admin-tab" data-tab="add">
                 <i class="fas fa-user-plus"></i> Add User
+            </button>
+            <button class="admin-tab" data-tab="settings">
+                <i class="fas fa-bullhorn"></i> Site Settings
+            </button>
+            <button class="admin-tab" data-tab="channels">
+                <i class="fas fa-satellite-dish"></i> Channels
             </button>
         </div>
 
@@ -795,6 +896,166 @@
                         </div>
                     </div>
                 </form>
+            </div>
+        </div>
+
+        <!-- Site Settings Panel -->
+        <div class="admin-panel" id="panel-settings">
+            <div class="admin-card">
+                <div class="admin-card-title"><i class="fas fa-bullhorn"></i> Announcement Banner</div>
+                <div class="form-msg" id="settingsMsg" style="display:none;"></div>
+
+                <div class="toggle-row">
+                    <div class="toggle-left">
+                        <div class="toggle-label">Banner Active</div>
+                        <div class="toggle-desc">Show a site-wide announcement to all logged-in users</div>
+                    </div>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="announcementActive">
+                        <span class="toggle-slider"></span>
+                    </label>
+                </div>
+
+                <div class="form-field" style="margin-top:1rem;">
+                    <label class="form-label">Banner Message</label>
+                    <input type="text" class="form-input" id="announcementText" placeholder="e.g. Markets closed Monday for Memorial Day">
+                </div>
+
+                <div class="form-field" style="margin-top:0.75rem;">
+                    <label class="form-label">Banner Type</label>
+                    <select class="form-select" id="announcementType">
+                        <option value="info">Info (blue)</option>
+                        <option value="warning">Warning (orange)</option>
+                        <option value="success">Success (green)</option>
+                    </select>
+                </div>
+
+                <hr class="settings-divider">
+
+                <div class="admin-card-title" style="margin-top:0;"><i class="fas fa-wrench"></i> Maintenance Mode</div>
+
+                <div class="toggle-row">
+                    <div class="toggle-left">
+                        <div class="toggle-label">Maintenance Active</div>
+                        <div class="toggle-desc">Redirect all non-admin users to the maintenance page</div>
+                    </div>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="maintenanceMode">
+                        <span class="toggle-slider"></span>
+                    </label>
+                </div>
+
+                <div class="form-field" style="margin-top:1rem;">
+                    <label class="form-label">Maintenance Message</label>
+                    <input type="text" class="form-input" id="maintenanceMessage" placeholder="e.g. We'll be back shortly — scheduled maintenance in progress.">
+                </div>
+
+                <div style="margin-top:1.5rem;">
+                    <button class="form-submit-btn" id="saveSettingsBtn" style="max-width:200px;">
+                        <i class="fas fa-floppy-disk"></i> Save Settings
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Channels Panel -->
+        <div class="admin-panel" id="panel-channels">
+            <div class="admin-card">
+                <div class="admin-card-title"><i class="fas fa-satellite-dish"></i> Signal Channels</div>
+                <p style="font-size:0.78rem;color:rgba(255,255,255,0.38);margin:-0.5rem 0 1rem;">
+                    Toggle a channel offline to hide its Telegram link and show an "Offline" badge on the dashboard.
+                </p>
+                <div class="form-msg" id="channelsMsg" style="display:none;"></div>
+
+                <div class="channel-row">
+                    <div class="channel-icon" style="background:linear-gradient(135deg,rgba(179,161,125,0.22),rgba(179,161,125,0.06));border:1px solid rgba(179,161,125,0.28);color:var(--primary-gold);">
+                        <i class="fas fa-chart-bar"></i>
+                    </div>
+                    <div style="flex:1;">
+                        <div class="channel-name">SPY</div>
+                        <div class="channel-full-name">S&amp;P 500 ETF Trust</div>
+                    </div>
+                    <label class="toggle-switch">
+                        <input type="checkbox" class="channel-toggle" data-channel="SPY" checked>
+                        <span class="toggle-slider"></span>
+                    </label>
+                </div>
+
+                <div class="channel-row">
+                    <div class="channel-icon" style="background:linear-gradient(135deg,rgba(255,102,102,0.2),rgba(255,102,102,0.05));border:1px solid rgba(255,102,102,0.28);color:#ff6666;">
+                        <i class="fas fa-bolt"></i>
+                    </div>
+                    <div style="flex:1;">
+                        <div class="channel-name">TSLA</div>
+                        <div class="channel-full-name">Tesla, Inc.</div>
+                    </div>
+                    <label class="toggle-switch">
+                        <input type="checkbox" class="channel-toggle" data-channel="TSLA" checked>
+                        <span class="toggle-slider"></span>
+                    </label>
+                </div>
+
+                <div class="channel-row">
+                    <div class="channel-icon" style="background:linear-gradient(135deg,rgba(91,158,255,0.2),rgba(91,158,255,0.05));border:1px solid rgba(91,158,255,0.28);color:#5b9eff;">
+                        <i class="fab fa-meta"></i>
+                    </div>
+                    <div style="flex:1;">
+                        <div class="channel-name">META</div>
+                        <div class="channel-full-name">Meta Platforms</div>
+                    </div>
+                    <label class="toggle-switch">
+                        <input type="checkbox" class="channel-toggle" data-channel="META" checked>
+                        <span class="toggle-slider"></span>
+                    </label>
+                </div>
+
+                <div class="channel-row">
+                    <div class="channel-icon" style="background:linear-gradient(135deg,rgba(210,210,210,0.18),rgba(210,210,210,0.05));border:1px solid rgba(200,200,200,0.25);color:#d0d0d0;">
+                        <i class="fab fa-apple"></i>
+                    </div>
+                    <div style="flex:1;">
+                        <div class="channel-name">AAPL</div>
+                        <div class="channel-full-name">Apple Inc.</div>
+                    </div>
+                    <label class="toggle-switch">
+                        <input type="checkbox" class="channel-toggle" data-channel="AAPL" checked>
+                        <span class="toggle-slider"></span>
+                    </label>
+                </div>
+
+                <div class="channel-row">
+                    <div class="channel-icon" style="background:linear-gradient(135deg,rgba(143,219,47,0.2),rgba(143,219,47,0.05));border:1px solid rgba(143,219,47,0.28);color:#8fdb2f;">
+                        <i class="fas fa-microchip"></i>
+                    </div>
+                    <div style="flex:1;">
+                        <div class="channel-name">NVDA</div>
+                        <div class="channel-full-name">NVIDIA Corporation</div>
+                    </div>
+                    <label class="toggle-switch">
+                        <input type="checkbox" class="channel-toggle" data-channel="NVDA" checked>
+                        <span class="toggle-slider"></span>
+                    </label>
+                </div>
+
+                <div class="channel-row">
+                    <div class="channel-icon" style="background:linear-gradient(135deg,rgba(255,170,51,0.2),rgba(255,170,51,0.05));border:1px solid rgba(255,170,51,0.28);color:#ffaa33;">
+                        <i class="fab fa-amazon"></i>
+                    </div>
+                    <div style="flex:1;">
+                        <div class="channel-name">AMZN</div>
+                        <div class="channel-full-name">Amazon.com, Inc.</div>
+                    </div>
+                    <label class="toggle-switch">
+                        <input type="checkbox" class="channel-toggle" data-channel="AMZN" checked>
+                        <span class="toggle-slider"></span>
+                    </label>
+                </div>
+
+                <div style="margin-top:1.5rem;">
+                    <button class="form-submit-btn" id="saveChannelsBtn" style="max-width:220px;">
+                        <i class="fas fa-floppy-disk"></i> Save Channel Status
+                    </button>
+                </div>
             </div>
         </div>
 
@@ -937,6 +1198,7 @@
                 return;
             }
             loadUsers();
+            loadAllSettings();
         });
 
         /* ── Logout ── */
@@ -1281,6 +1543,78 @@
                 .replace(/"/g, '&quot;')
                 .replace(/'/g, '&#39;');
         }
+
+        /* ── Site Settings & Channels ── */
+
+        async function loadAllSettings() {
+            try {
+                const siteSnap = await getDoc(doc(db, 'settings', 'site'));
+                if (siteSnap.exists()) populateSiteSettings(siteSnap.data());
+
+                const sigSnap = await getDoc(doc(db, 'settings', 'signals'));
+                if (sigSnap.exists()) populateChannels(sigSnap.data());
+            } catch (e) {
+                console.error('loadAllSettings:', e);
+            }
+        }
+
+        function populateSiteSettings(data) {
+            const chk = (id, val) => { const el = document.getElementById(id); if (el) el.checked = !!val; };
+            const val = (id, v)   => { const el = document.getElementById(id); if (el) el.value  = v || ''; };
+            chk('announcementActive',  data.announcementActive);
+            val('announcementText',    data.announcementText);
+            val('announcementType',    data.announcementType || 'info');
+            chk('maintenanceMode',     data.maintenanceMode);
+            val('maintenanceMessage',  data.maintenanceMessage);
+        }
+
+        function populateChannels(data) {
+            document.querySelectorAll('.channel-toggle').forEach(toggle => {
+                toggle.checked = data[toggle.dataset.channel] !== false;
+            });
+        }
+
+        document.getElementById('saveSettingsBtn').addEventListener('click', async () => {
+            const btn = document.getElementById('saveSettingsBtn');
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving…';
+            clearMsg('settingsMsg');
+            try {
+                await setDoc(doc(db, 'settings', 'site'), {
+                    announcementActive: document.getElementById('announcementActive').checked,
+                    announcementText:   document.getElementById('announcementText').value.trim(),
+                    announcementType:   document.getElementById('announcementType').value,
+                    maintenanceMode:    document.getElementById('maintenanceMode').checked,
+                    maintenanceMessage: document.getElementById('maintenanceMessage').value.trim(),
+                });
+                showMsg('settingsMsg', 'Site settings saved successfully.', 'success');
+            } catch (e) {
+                showMsg('settingsMsg', 'Error: ' + e.message, 'error');
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fas fa-floppy-disk"></i> Save Settings';
+            }
+        });
+
+        document.getElementById('saveChannelsBtn').addEventListener('click', async () => {
+            const btn = document.getElementById('saveChannelsBtn');
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving…';
+            clearMsg('channelsMsg');
+            try {
+                const data = {};
+                document.querySelectorAll('.channel-toggle').forEach(t => {
+                    data[t.dataset.channel] = t.checked;
+                });
+                await setDoc(doc(db, 'settings', 'signals'), data);
+                showMsg('channelsMsg', 'Channel settings saved successfully.', 'success');
+            } catch (e) {
+                showMsg('channelsMsg', 'Error: ' + e.message, 'error');
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fas fa-floppy-disk"></i> Save Channel Status';
+            }
+        });
     </script>
 </body>
 </html>

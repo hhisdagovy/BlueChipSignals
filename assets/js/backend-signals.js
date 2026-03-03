@@ -89,7 +89,7 @@
         if (badge) badge.textContent = signals.length;
 
         if (signals.length === 0) {
-            container.innerHTML = '<p class="sig-empty"><i class="fas fa-satellite-dish"></i> No signals yet — they will appear here once the bot fires.</p>';
+            container.innerHTML = '<p class="sig-empty"><i class="fas fa-satellite-dish"></i> No Signals Yet</p>';
             return;
         }
 

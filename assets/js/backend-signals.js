@@ -2,12 +2,12 @@
     const BACKEND_URL = 'https://bluechipsignals-production.up.railway.app';
 
     const STOCK_STYLES = {
-        SPY:  { bg: 'rgba(179,161,125,0.15)', color: 'var(--primary-gold)' },
-        TSLA: { bg: 'rgba(232,33,39,0.12)',   color: '#e82127' },
-        META: { bg: 'rgba(91,158,255,0.12)',   color: '#5b9eff' },
-        AAPL: { bg: 'rgba(200,200,200,0.12)',  color: '#c0c0c0' },
-        NVDA: { bg: 'rgba(118,185,0,0.12)',    color: '#76b900' },
-        AMZN: { bg: 'rgba(255,153,0,0.12)',    color: '#ff9900' },
+        SPY:  { bg: 'rgba(179,161,125,0.15)', color: '#c9b037', top: 'linear-gradient(90deg,#c9b037,#e2cfb5)' },
+        TSLA: { bg: 'rgba(232,33,39,0.12)',   color: '#e82127', top: 'linear-gradient(90deg,#e82127,#ff6b6b)' },
+        META: { bg: 'rgba(91,158,255,0.12)',   color: '#5b9eff', top: 'linear-gradient(90deg,#5b9eff,#93c5fd)' },
+        AAPL: { bg: 'rgba(200,200,200,0.12)',  color: '#c0c0c0', top: 'linear-gradient(90deg,#9ca3af,#d1d5db)' },
+        NVDA: { bg: 'rgba(118,185,0,0.12)',    color: '#76b900', top: 'linear-gradient(90deg,#76b900,#a3e635)' },
+        AMZN: { bg: 'rgba(255,153,0,0.12)',    color: '#ff9900', top: 'linear-gradient(90deg,#ff9900,#fbbf24)' },
     };
 
     function timeAgo(ts) {
@@ -18,9 +18,17 @@
         return Math.floor(diff / 86400) + 'd ago';
     }
 
+    function formatExp(exp) {
+        if (!exp) return '—';
+        try {
+            const d = new Date(exp + 'T12:00:00');
+            return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+        } catch (_) { return exp; }
+    }
+
     async function fetchSignals() {
         try {
-            const res = await fetch(BACKEND_URL + '/api/signals/latest?limit=10', { cache: 'no-store' });
+            const res = await fetch(BACKEND_URL + '/api/signals/latest?limit=9', { cache: 'no-store' });
             const data = await res.json();
             return data.signals || [];
         } catch (e) {
@@ -29,49 +37,75 @@
         }
     }
 
+    function buildCard(s) {
+        const style     = STOCK_STYLES[s.stock] || { bg: 'rgba(201,176,55,0.1)', color: '#c9b037', top: 'linear-gradient(90deg,#c9b037,#e2cfb5)' };
+        const isCall    = (s.contract.type || '').toLowerCase() === 'call';
+        const dirClass  = isCall ? 'call' : 'put';
+        const dirIcon   = isCall ? 'fa-arrow-trend-up' : 'fa-arrow-trend-down';
+        const dirLabel  = isCall ? 'CALL' : 'PUT';
+        const strike    = s.contract.strike  != null ? '$' + parseFloat(s.contract.strike).toFixed(2)  : '—';
+        const premium   = s.contract.premium != null ? '$' + parseFloat(s.contract.premium).toFixed(2) : '—';
+        const price     = s.price  != null ? '$' + parseFloat(s.price).toFixed(2)  : '—';
+        const vwap      = s.vwap   != null ? '$' + parseFloat(s.vwap).toFixed(2)   : '—';
+        const mfi       = s.mfi    != null ? parseFloat(s.mfi).toFixed(1)           : '—';
+        const expFmt    = formatExp(s.contract.expiration);
+
+        return '<div class="sig-card" style="--sig-top:' + style.top + ';">' +
+
+            '<div class="sig-card-top">' +
+                '<div class="sig-card-left">' +
+                    '<span class="sig-ticker-badge" style="background:' + style.bg + ';color:' + style.color + ';">' + s.stock + '</span>' +
+                    '<span class="sig-contract-type ' + dirClass + '"><i class="fas ' + dirIcon + '"></i> ' + dirLabel + '</span>' +
+                '</div>' +
+                '<span class="sig-time">' + timeAgo(s.timestamp) + '</span>' +
+            '</div>' +
+
+            '<span class="sig-entry-label">Entry Price</span>' +
+            '<div class="sig-entry-price">' + price + '</div>' +
+
+            '<div class="sig-stats-row">' +
+                '<div class="sig-stat"><label>VWAP</label><span>' + vwap + '</span></div>' +
+                '<div class="sig-stat"><label>MFI</label><span>' + mfi + '</span></div>' +
+            '</div>' +
+
+            '<div class="sig-contract-footer">' +
+                '<span class="sig-contract-chip">' + strike + ' strike</span>' +
+                '<span class="sig-contract-chip">' + premium + ' prem</span>' +
+                '<span class="sig-contract-chip">Exp ' + expFmt + '</span>' +
+            '</div>' +
+        '</div>';
+    }
+
     function renderSignals(signals) {
         const container = document.getElementById('latest-signals-list');
         const badge     = document.getElementById('latest-signals-count');
         if (!container) return;
 
         if (signals === null) {
-            container.innerHTML = '<p class="lsig-empty"><i class="fas fa-circle-exclamation"></i> Could not reach signals server. Retrying…</p>';
+            container.innerHTML = '<p class="sig-empty"><i class="fas fa-circle-exclamation"></i> Could not reach signals server. Retrying…</p>';
             return;
         }
 
         if (badge) badge.textContent = signals.length;
 
         if (signals.length === 0) {
-            container.innerHTML = '<p class="lsig-empty"><i class="fas fa-satellite-dish"></i> No signals yet — they will appear here once the bot fires.</p>';
+            container.innerHTML = '<p class="sig-empty"><i class="fas fa-satellite-dish"></i> No signals yet — they will appear here once the bot fires.</p>';
             return;
         }
 
-        container.innerHTML = signals.map(function (s) {
-            const style   = STOCK_STYLES[s.stock] || { bg: 'rgba(201,176,55,0.1)', color: 'var(--primary-gold)' };
-            const isCall  = (s.contract.type || '').toLowerCase() === 'call';
-            const dirCol  = isCall ? '#4ade80' : '#ef4444';
-            const dirIcon = isCall ? 'fa-arrow-trend-up' : 'fa-arrow-trend-down';
-            const strike  = s.contract.strike  != null ? '$' + parseFloat(s.contract.strike).toFixed(2)  : '—';
-            const premium = s.contract.premium != null ? '$' + parseFloat(s.contract.premium).toFixed(2) : '—';
-            const expiry  = s.contract.expiration || '—';
-            const price   = s.price != null ? '$' + parseFloat(s.price).toFixed(2) : '—';
+        container.innerHTML = signals.map(buildCard).join('');
 
-            return '<div class="lsig-row">' +
-                '<span class="lsig-badge" style="background:' + style.bg + ';color:' + style.color + ';">' + s.stock + '</span>' +
-                '<span class="lsig-type" style="color:' + dirCol + ';"><i class="fas ' + dirIcon + '"></i> ' + s.contract.type + '</span>' +
-                '<span class="lsig-chip">' + strike + ' strike</span>' +
-                '<span class="lsig-chip">' + premium + ' prem</span>' +
-                '<span class="lsig-chip">Exp ' + expiry + '</span>' +
-                '<span class="lsig-entry">@ ' + price + '</span>' +
-                '<span class="lsig-time">' + timeAgo(s.timestamp) + '</span>' +
-            '</div>';
-        }).join('');
+        /* Apply the per-card top accent colour via inline style (CSS var workaround) */
+        container.querySelectorAll('.sig-card').forEach(function (card, i) {
+            const s     = signals[i];
+            const style = STOCK_STYLES[s.stock] || STOCK_STYLES.SPY;
+            card.style.setProperty('--sig-top', style.top);
+            /* The ::before pseudo-element reads this var */
+        });
     }
 
     async function init() {
-        const signals = await fetchSignals();
-        renderSignals(signals);
-        /* Refresh every 5 minutes */
+        renderSignals(await fetchSignals());
         setInterval(async function () {
             renderSignals(await fetchSignals());
         }, 5 * 60 * 1000);

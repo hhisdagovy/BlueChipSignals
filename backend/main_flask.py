@@ -141,6 +141,34 @@ def get_latest_signals():
     conn.close()
     return jsonify({'signals': signals})
 
+@app.route('/api/signals/<int:signal_id>', methods=['DELETE'])
+def delete_signal(signal_id):
+    try:
+        conn = sqlite3.connect('signals.db')
+        c = conn.cursor()
+        c.execute('DELETE FROM signals WHERE id = ?', (signal_id,))
+        deleted = c.rowcount
+        conn.commit()
+        conn.close()
+        if deleted == 0:
+            return jsonify({'error': 'Signal not found'}), 404
+        return jsonify({'success': True, 'deleted_id': signal_id})
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/signals/all', methods=['DELETE'])
+def delete_all_signals():
+    try:
+        conn = sqlite3.connect('signals.db')
+        c = conn.cursor()
+        c.execute('DELETE FROM signals')
+        deleted = c.rowcount
+        conn.commit()
+        conn.close()
+        return jsonify({'success': True, 'deleted_count': deleted})
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
 # ============================================
 # TELEGRAM WEBHOOK
 # ============================================
@@ -282,11 +310,11 @@ def admin_dashboard():
     signals_today = c.fetchone()[0]
     
     c.execute('''
-        SELECT stock, price, vwap, mfi, contract_type, strike_price, 
+        SELECT id, stock, price, vwap, mfi, contract_type, strike_price, 
                premium, expiration, timestamp 
         FROM signals 
         ORDER BY timestamp DESC 
-        LIMIT 10
+        LIMIT 20
     ''')
     recent_signals = c.fetchall()
     
@@ -488,6 +516,17 @@ ADMIN_DASHBOARD_HTML = '''
             color: #ff3b3b;
             border: 1px solid #ff3b3b;
         }
+        .danger-btn {
+            background: rgba(255, 59, 59, 0.15);
+            color: #ff3b3b;
+            border: 1px solid rgba(255,59,59,0.4);
+            padding: 0.35rem 0.75rem;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+        .danger-btn:hover { background: rgba(255,59,59,0.28); }
         .stock-badge {
             padding: 0.3rem 0.8rem;
             border-radius: 5px;
@@ -500,6 +539,12 @@ ADMIN_DASHBOARD_HTML = '''
         .stock-spy { background: #b3a17d; color: #000; }
         .stock-nvda { background: #76B900; }
         .stock-amzn { background: #FF9900; }
+        .clear-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
     </style>
 </head>
 <body>
@@ -523,7 +568,10 @@ ADMIN_DASHBOARD_HTML = '''
     </div>
     
     <div class="signals-table">
-        <h2 style="margin-bottom: 1rem; color: #b3a17d;">Recent Signals</h2>
+        <div class="clear-bar">
+            <h2 style="color: #b3a17d;">Recent Signals</h2>
+            <button class="danger-btn" onclick="clearAllSignals()">🗑 Clear All Signals</button>
+        </div>
         <table>
             <thead>
                 <tr>
@@ -535,24 +583,47 @@ ADMIN_DASHBOARD_HTML = '''
                     <th>Strike</th>
                     <th>Premium</th>
                     <th>Time</th>
+                    <th></th>
                 </tr>
             </thead>
-            <tbody>
+            <tbody id="signals-tbody">
                 {% for signal in recent_signals %}
-                <tr>
-                    <td><span class="stock-badge stock-{{ signal[0]|lower }}">{{ signal[0] }}</span></td>
-                    <td>${{ "%.2f"|format(signal[1]) }}</td>
+                <tr id="row-{{ signal[0] }}">
+                    <td><span class="stock-badge stock-{{ signal[1]|lower }}">{{ signal[1] }}</span></td>
                     <td>${{ "%.2f"|format(signal[2]) }}</td>
-                    <td>{{ "%.2f"|format(signal[3]) }}</td>
-                    <td>{{ signal[4] }}</td>
-                    <td>${{ "%.2f"|format(signal[5]) }}</td>
+                    <td>${{ "%.2f"|format(signal[3]) }}</td>
+                    <td>{{ "%.2f"|format(signal[4]) }}</td>
+                    <td>{{ signal[5] }}</td>
                     <td>${{ "%.2f"|format(signal[6]) }}</td>
-                    <td>{{ signal[8].split('.')[0] if '.' in signal[8] else signal[8] }}</td>
+                    <td>${{ "%.2f"|format(signal[7]) }}</td>
+                    <td>{{ signal[9].split('.')[0] if '.' in signal[9] else signal[9] }}</td>
+                    <td><button class="danger-btn" onclick="deleteSignal({{ signal[0] }})">Delete</button></td>
                 </tr>
                 {% endfor %}
             </tbody>
         </table>
     </div>
+    <script>
+        async function deleteSignal(id) {
+            if (!confirm('Delete signal #' + id + '?')) return;
+            const res = await fetch('/api/signals/' + id, { method: 'DELETE' });
+            if (res.ok) {
+                document.getElementById('row-' + id)?.remove();
+            } else {
+                alert('Failed to delete signal.');
+            }
+        }
+        async function clearAllSignals() {
+            if (!confirm('Delete ALL signals? This cannot be undone.')) return;
+            const res = await fetch('/api/signals/all', { method: 'DELETE' });
+            if (res.ok) {
+                document.getElementById('signals-tbody').innerHTML =
+                    '<tr><td colspan="9" style="color:#aaa;text-align:center;padding:1.5rem;">No signals</td></tr>';
+            } else {
+                alert('Failed to clear signals.');
+            }
+        }
+    </script>
 </body>
 </html>
 '''

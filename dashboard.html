@@ -257,7 +257,11 @@
             grid-template-columns: 2fr 1fr;
             grid-template-rows: auto auto;
             gap: 1.25rem;
+            min-width: 0;
         }
+
+        /* Every direct child of the grid must be constrained to its column */
+        .bento-grid > * { min-width: 0; }
 
         .bento-card {
             background: rgba(10, 14, 22, 0.7);
@@ -265,6 +269,8 @@
             border-radius: 16px;
             padding: 1.5rem;
             box-shadow: 0 6px 24px rgba(0, 0, 0, 0.3);
+            min-width: 0;       /* prevent grid item from expanding past column width */
+            overflow: hidden;   /* ensure nothing escapes the card boundary */
         }
 
         .bento-card-title {
@@ -434,6 +440,9 @@
             font-size: 0.62rem;
             color: rgba(255,255,255,0.25);
             margin-top: 0.25rem;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
         }
 
         /* Active plans section */
@@ -1240,6 +1249,9 @@
             color: rgba(255,255,255,0.4);
             text-transform: uppercase;
             letter-spacing: 0.06em;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
         }
 
         .hm-stat-value {
@@ -1278,11 +1290,12 @@
         }
 
         @media (max-width: 768px) {
-            .heatmap-footer { grid-template-columns: 1fr 1fr; gap: 0.85rem; }
+            .heatmap-footer { grid-template-columns: 1fr 1fr; gap: 0.75rem; }
         }
 
         @media (max-width: 480px) {
-            .hm-stat-value { font-size: 1.05rem; }
+            .hm-stat-value { font-size: 1rem; }
+            .hm-stat-label { font-size: 0.6rem; letter-spacing: 0.03em; }
         }
 
         /* ── Single-channel plan restrictions ── */

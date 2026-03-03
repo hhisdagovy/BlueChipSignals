@@ -706,6 +706,11 @@
             const isAdmin = (userData.role || '').toLowerCase() === 'admin';
             _userPlan     = plan;
 
+            /* Bundle-only gate — single-channel users are redirected to upgrade */
+            if (plan !== 'bundle' && !isAdmin) {
+                window.location.href = 'upgrade.html'; return;
+            }
+
             const badgeEl = document.getElementById('hist-plan-badge');
 
             if (plan === 'single' && !isAdmin) {

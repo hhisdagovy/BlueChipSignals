@@ -24,7 +24,7 @@
     placeholder.parentNode.replaceChild(footer, placeholder);
 
     function buildFooter(type, base) {
-        var termsLink = '<a href="' + base + 'terms.html">Terms &amp; Legal</a>';
+        var termsLink = '<a href="' + base + 'legal.html">Terms &amp; Legal</a>';
         var homeLink  = '<a href="' + base + 'index.html">Back to Home</a>';
 
         var social = '<div class="social-media">' +
@@ -36,7 +36,7 @@
             '</a>' +
         '</div>';
 
-        var copyright = '&copy; 2025 Blue Chip Signals. All rights reserved.';
+        var copyright = '&copy; 2026 Blue Chip Signals. All rights reserved.';
 
         switch (type) {
             case 'back-to-home':

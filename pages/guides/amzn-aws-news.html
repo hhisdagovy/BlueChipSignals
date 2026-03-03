@@ -731,9 +731,8 @@
     <script src="../../assets/js/footer-component.js"></script>
 
     <script type="module">
-        import { requireAuth, updateAuthButton } from '../../assets/js/firebase-auth-check.js';
-        requireAuth('../../book-demo.html');
-        updateAuthButton('../../login.html');
+        import { requirePlan } from '../../assets/js/firebase-auth-check.js';
+        requirePlan('ticker', 'AMZN', '../../login.html', '../../upgrade.html');
     </script>
 
     <script>

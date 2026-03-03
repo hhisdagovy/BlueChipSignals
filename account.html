@@ -5,86 +5,326 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Account Settings - Blue Chip Signals</title>
     <link rel="icon" type="image/png" href="assets/images/logo.png">
-    <link rel="stylesheet" href="assets/css/global.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="assets/css/signal-style.css">
     <style>
-        /* Main Content */
-        .main-content {
-            margin-top: 100px;
-            padding: 2rem;
-            max-width: 900px;
-            margin-left: auto;
-            margin-right: auto;
-            margin-bottom: 3rem;
+        body { overflow-x: hidden; }
+
+        /* ================================================================
+           HERO
+        ================================================================ */
+        .acc-hero {
+            padding: 8rem 2rem 4rem;
+            max-width: 1100px;
+            margin: 0 auto;
+            position: relative;
         }
 
-        .page-header {
-            margin-bottom: 2rem;
+        .acc-hero::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 50%; transform: translateX(-50%);
+            width: 700px; height: 480px;
+            background: radial-gradient(ellipse at center, rgba(201,176,55,0.09) 0%, transparent 70%);
+            pointer-events: none;
+            z-index: 0;
         }
 
-        .page-header h1 {
-            font-size: 2rem;
+        .acc-hero-inner {
+            position: relative;
+            z-index: 1;
+            /* entrance animation */
+            opacity: 0;
+            transform: translateY(16px);
+            animation: accFadeUp 0.6s ease 0.1s forwards;
+        }
+
+        @keyframes accFadeUp {
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .acc-hero-label {
+            display: inline-block;
+            font-size: 0.72rem;
+            font-weight: 700;
+            letter-spacing: 0.14em;
+            text-transform: uppercase;
+            color: var(--primary-gold);
+            background: rgba(201,176,55,0.08);
+            border: 1px solid rgba(201,176,55,0.22);
+            border-radius: 50px;
+            padding: 0.28rem 0.9rem;
+            margin-bottom: 1.25rem;
+        }
+
+        .acc-hero h1 {
+            font-size: clamp(2.4rem, 5vw, 3.8rem);
+            font-weight: 900;
+            color: var(--light-text);
+            line-height: 1.07;
+            letter-spacing: -0.025em;
+            margin-bottom: 1rem;
+        }
+
+        .acc-hero h1 em {
+            font-style: italic;
             background: linear-gradient(135deg, var(--primary-gold), var(--secondary-gold));
             -webkit-background-clip: text;
+            background-clip: text;
             -webkit-text-fill-color: transparent;
-            margin-bottom: 0.5rem;
         }
 
-        .page-header p {
+        .acc-hero-desc {
             color: var(--gray-text);
-        }
-
-        /* Section Card */
-        .section-card {
-            background: radial-gradient(800px 200px at 0% 0%, rgba(201,176,55,0.08), transparent 30%),
-                        var(--card-bg);
-            border: 1px solid rgba(201, 176, 55, 0.22);
-            border-radius: 16px;
-            padding: 2rem;
+            font-size: 1rem;
+            line-height: 1.6;
+            max-width: 520px;
             margin-bottom: 2rem;
         }
 
-        .section-title {
-            font-size: 1.3rem;
-            color: var(--primary-gold);
-            margin-bottom: 1.5rem;
+        /* Stat chips */
+        .acc-stat-chips {
             display: flex;
+            flex-wrap: wrap;
+            gap: 0.65rem;
+        }
+
+        .acc-chip {
+            display: inline-flex;
             align-items: center;
+            gap: 0.45rem;
+            font-size: 0.78rem;
+            font-weight: 600;
+            padding: 0.35rem 0.9rem;
+            border-radius: 20px;
+            background: rgba(255,255,255,0.04);
+            border: 1px solid rgba(255,255,255,0.1);
+            color: rgba(255,255,255,0.65);
+        }
+
+        .acc-chip i { font-size: 0.7rem; color: var(--primary-gold); }
+
+        .acc-chip.active-chip {
+            background: rgba(34,197,94,0.1);
+            border-color: rgba(74,222,128,0.3);
+            color: #4ade80;
+        }
+
+        .acc-chip.active-chip i { color: #4ade80; }
+
+        /* ================================================================
+           DIVIDER
+        ================================================================ */
+        .acc-divider {
+            border: none;
+            border-top: 1px solid rgba(201,176,55,0.1);
+            max-width: 1100px;
+            margin: 0 auto;
+        }
+
+        /* ================================================================
+           TAB NAV
+        ================================================================ */
+        .acc-tab-bar {
+            max-width: 860px;
+            margin: 0 auto;
+            padding: 2rem 2rem 0;
+            display: flex;
+            flex-wrap: wrap;
             gap: 0.5rem;
         }
 
-        .form-group {
+        .acc-tab {
+            background: rgba(255,255,255,0.04);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 50px;
+            color: rgba(255,255,255,0.45);
+            font-size: 0.78rem;
+            font-weight: 600;
+            font-family: inherit;
+            padding: 0.45rem 1.1rem;
+            cursor: pointer;
+            transition: background 0.2s, border-color 0.2s, color 0.2s;
+            white-space: nowrap;
+        }
+
+        .acc-tab:hover { color: var(--light-text); border-color: rgba(255,255,255,0.2); }
+
+        .acc-tab.active {
+            background: rgba(201,176,55,0.12);
+            border-color: rgba(201,176,55,0.4);
+            color: var(--primary-gold);
+        }
+
+        .acc-tab.danger-tab { color: rgba(255,59,59,0.6); border-color: rgba(255,59,59,0.2); }
+        .acc-tab.danger-tab:hover { color: var(--danger-red); border-color: rgba(255,59,59,0.4); background: rgba(255,59,59,0.05); }
+        .acc-tab.danger-tab.active { background: rgba(255,59,59,0.1); border-color: rgba(255,59,59,0.4); color: var(--danger-red); }
+
+        /* ================================================================
+           MAIN CONTENT WRAPPER
+        ================================================================ */
+        .acc-main {
+            max-width: 860px;
+            margin: 0 auto;
+            padding: 1.75rem 2rem 5rem;
+        }
+
+        /* ================================================================
+           SECTION PANELS (tab panes)
+        ================================================================ */
+        .acc-panel {
+            display: none;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: opacity 0.4s ease, transform 0.4s ease;
+        }
+
+        .acc-panel.active {
+            display: block;
+        }
+
+        .acc-panel.is-visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* ================================================================
+           SECTION CARD
+        ================================================================ */
+        .acc-card {
+            background: rgba(10,14,22,0.75);
+            border: 1px solid rgba(201,176,55,0.18);
+            border-radius: 18px;
+            padding: 2rem;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 6px 24px rgba(0,0,0,0.3);
+        }
+
+        .acc-card.danger-card {
+            border-color: rgba(255,59,59,0.3);
+            background: rgba(10,5,5,0.8);
+        }
+
+        .acc-card-title {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
             margin-bottom: 1.5rem;
         }
 
+        .acc-card-icon {
+            width: 34px; height: 34px;
+            border-radius: 10px;
+            background: rgba(201,176,55,0.1);
+            border: 1px solid rgba(201,176,55,0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.85rem;
+            color: var(--primary-gold);
+            flex-shrink: 0;
+        }
+
+        .acc-card.danger-card .acc-card-icon {
+            background: rgba(255,59,59,0.1);
+            border-color: rgba(255,59,59,0.25);
+            color: var(--danger-red);
+        }
+
+        .acc-card-title h2 {
+            font-size: 1rem;
+            font-weight: 700;
+            color: var(--light-text);
+            margin: 0;
+        }
+
+        .acc-card.danger-card .acc-card-title h2 { color: var(--danger-red); }
+
+        /* ================================================================
+           FORM ELEMENTS
+        ================================================================ */
+        .form-group { margin-bottom: 1.25rem; }
+
         .form-group label {
             display: block;
-            margin-bottom: 0.5rem;
-            color: var(--light-text);
+            margin-bottom: 0.45rem;
+            color: rgba(255,255,255,0.7);
             font-weight: 500;
-            font-size: 0.95rem;
+            font-size: 0.85rem;
         }
 
-        .form-group input {
+        .form-group label .label-opt {
+            font-weight: 400;
+            color: var(--gray-text);
+            margin-left: 0.3rem;
+        }
+
+        /* Input with icon adornment */
+        .input-wrap {
+            position: relative;
+        }
+
+        .input-wrap .input-icon {
+            position: absolute;
+            left: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 0.8rem;
+            color: rgba(201,176,55,0.5);
+            pointer-events: none;
+        }
+
+        .input-wrap input {
             width: 100%;
-            padding: 0.9rem 1rem;
-            background: var(--field-bg);
-            border: 1px solid rgba(201, 176, 55, 0.2);
-            border-radius: 10px;
+            padding: 0.85rem 1rem 0.85rem 2.5rem;
+            background: rgba(26,31,46,0.8);
+            border: 1px solid rgba(201,176,55,0.18);
+            border-radius: 11px;
             color: var(--light-text);
-            font-size: 1rem;
-            transition: border-color 0.3s, box-shadow 0.3s;
+            font-size: 0.92rem;
+            font-family: inherit;
+            transition: border-color 0.25s, box-shadow 0.25s;
+            box-sizing: border-box;
         }
 
-        .form-group input:focus {
+        .input-wrap input:focus {
             outline: none;
-            border-color: var(--primary-gold);
-            box-shadow: 0 0 0 3px rgba(201, 176, 55, 0.1);
+            border-color: rgba(201,176,55,0.55);
+            box-shadow: 0 0 0 3px rgba(201,176,55,0.1);
         }
 
-        .form-group input:disabled {
-            opacity: 0.6;
+        .input-wrap input:disabled {
+            opacity: 0.45;
             cursor: not-allowed;
+        }
+
+        /* Password eye toggle */
+        .input-wrap .eye-btn {
+            position: absolute;
+            right: 0.85rem;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            color: rgba(255,255,255,0.3);
+            cursor: pointer;
+            font-size: 0.82rem;
+            padding: 0.2rem;
+            transition: color 0.2s;
+        }
+
+        .input-wrap .eye-btn:hover { color: var(--primary-gold); }
+
+        /* Password inputs need right padding for the eye button */
+        .input-wrap.has-eye input { padding-right: 2.75rem; }
+
+        .field-hint {
+            font-size: 0.73rem;
+            color: var(--gray-text);
+            margin-top: 0.3rem;
+            display: flex;
+            align-items: center;
+            gap: 0.3rem;
         }
 
         .form-row {
@@ -93,326 +333,695 @@
             gap: 1rem;
         }
 
+        /* ================================================================
+           BUTTONS
+        ================================================================ */
         .btn {
-            padding: 0.9rem 2rem;
+            padding: 0.8rem 1.6rem;
             border-radius: 10px;
             font-weight: 600;
-            font-size: 1rem;
+            font-size: 0.88rem;
             cursor: pointer;
-            transition: all 0.3s;
+            transition: all 0.25s;
             border: none;
             display: inline-flex;
             align-items: center;
             gap: 0.5rem;
+            font-family: inherit;
+            text-decoration: none;
         }
+
+        .btn:disabled { opacity: 0.55; cursor: not-allowed; transform: none !important; box-shadow: none !important; }
 
         .btn-primary {
             background: linear-gradient(135deg, var(--primary-gold), var(--secondary-gold));
-            color: var(--darker-bg);
+            color: #080B0F;
         }
-
-        .btn-primary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 30px rgba(201, 176, 55, 0.3);
-        }
+        .btn-primary:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 8px 22px rgba(201,176,55,0.28); }
 
         .btn-secondary {
-            background: rgba(201, 176, 55, 0.1);
+            background: rgba(201,176,55,0.1);
             color: var(--primary-gold);
-            border: 1px solid var(--primary-gold);
+            border: 1px solid rgba(201,176,55,0.28);
         }
-
-        .btn-secondary:hover {
-            background: rgba(201, 176, 55, 0.2);
-        }
+        .btn-secondary:hover:not(:disabled) { background: rgba(201,176,55,0.18); }
 
         .btn-danger {
-            background: rgba(255, 59, 59, 0.1);
+            background: rgba(255,59,59,0.1);
             color: var(--danger-red);
-            border: 1px solid var(--danger-red);
+            border: 1px solid rgba(255,59,59,0.35);
         }
+        .btn-danger:hover:not(:disabled) { background: var(--danger-red); color: white; border-color: var(--danger-red); }
 
-        .btn-danger:hover {
-            background: var(--danger-red);
-            color: white;
-        }
-
+        /* ================================================================
+           INFO ROWS (subscription)
+        ================================================================ */
         .info-row {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 1rem;
-            background: rgba(0, 0, 0, 0.2);
-            border-radius: 8px;
-            margin-bottom: 1rem;
+            padding: 0.9rem 1rem;
+            background: rgba(0,0,0,0.25);
+            border-radius: 10px;
+            margin-bottom: 0.65rem;
+            border: 1px solid rgba(255,255,255,0.04);
         }
 
         .info-label {
             color: var(--gray-text);
-            font-size: 0.9rem;
+            font-size: 0.85rem;
         }
 
         .info-value {
             color: var(--light-text);
             font-weight: 600;
+            font-size: 0.9rem;
         }
 
-        .status-badge {
-            padding: 0.4rem 1rem;
+        .status-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.35rem;
+            padding: 0.3rem 0.8rem;
             border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            background: rgba(34,197,94,0.1);
+            color: #4ade80;
+            border: 1px solid rgba(74,222,128,0.25);
+        }
+
+        .status-pill.status-inactive {
+            background: rgba(239,68,68,0.08);
+            color: rgba(239,68,68,0.8);
+            border-color: rgba(239,68,68,0.2);
+        }
+
+        .acc-chip.active-chip.status-inactive {
+            background: rgba(239,68,68,0.08);
+            border-color: rgba(239,68,68,0.2);
+            color: rgba(239,68,68,0.8);
+        }
+
+        .acc-chip.active-chip.status-inactive i {
+            color: rgba(239,68,68,0.8);
+        }
+
+        /* ================================================================
+           ALERTS
+        ================================================================ */
+        .alert {
+            padding: 0.8rem 1rem;
+            border-radius: 10px;
+            margin-bottom: 1.1rem;
             font-size: 0.85rem;
-            font-weight: 600;
-        }
-
-        .status-badge.active {
-            background: rgba(42, 87, 31, 0.2);
-            color: var(--success-green);
-            border: 1px solid var(--success-green);
-        }
-
-        .danger-zone {
-            border: 2px solid var(--danger-red);
-            background: rgba(255, 59, 59, 0.05);
-        }
-
-        .danger-zone .section-title {
-            color: var(--danger-red);
-        }
-
-        .success-message, .error-message {
-            padding: 1rem;
-            border-radius: 8px;
-            margin-bottom: 1rem;
             display: none;
+            align-items: center;
+            gap: 0.55rem;
         }
+        .alert.show { display: flex; }
+        .alert-success { background: rgba(34,197,94,0.08); border: 1px solid rgba(74,222,128,0.25); color: #4ade80; }
+        .alert-error   { background: rgba(255,59,59,0.08); border: 1px solid rgba(255,59,59,0.3);  color: var(--danger-red); }
 
-        .success-message {
-            background: rgba(42, 87, 31, 0.1);
-            border: 1px solid var(--success-green);
-            color: var(--success-green);
-        }
+        /* ================================================================
+           DELETE CONFIRM
+        ================================================================ */
+        .delete-confirm-wrap { margin-top: 1.25rem; display: none; }
+        .delete-confirm-wrap.visible { display: block; }
 
-        .error-message {
-            background: rgba(255, 59, 59, 0.1);
-            border: 1px solid var(--danger-red);
+        .delete-confirm-wrap label {
+            display: block;
             color: var(--danger-red);
+            font-size: 0.84rem;
+            margin-bottom: 0.45rem;
         }
 
-        /* Footer */
-        footer {
-            background: var(--darker-bg);
-            padding: 2rem;
-            text-align: center;
-            border-top: 1px solid rgba(201, 176, 55, 0.2);
+        .delete-confirm-wrap .input-wrap input {
+            border-color: rgba(255,59,59,0.3);
         }
-        /* Responsive */
+        .delete-confirm-wrap .input-wrap input:focus {
+            border-color: var(--danger-red);
+            box-shadow: 0 0 0 3px rgba(255,59,59,0.1);
+        }
+
+        .delete-confirm-btns {
+            display: flex;
+            gap: 0.75rem;
+            margin-top: 1rem;
+            flex-wrap: wrap;
+        }
+
+        /* ================================================================
+           RESPONSIVE
+        ================================================================ */
         @media (max-width: 768px) {
-            .main-content {
-                padding: 1rem;
-                margin-top: 90px;
-            }
+            .acc-hero { padding: 6.5rem 1.25rem 3rem; }
+            .acc-tab-bar { padding: 1.5rem 1.25rem 0; }
+            .acc-main { padding: 1.5rem 1.25rem 4rem; }
+            .form-row { grid-template-columns: 1fr; }
+            .acc-card { padding: 1.5rem; }
+        }
 
-            .form-row {
-                grid-template-columns: 1fr;
-            }
-
-            .section-card {
-                padding: 1.5rem;
-            }
+        @media (max-width: 480px) {
+            .acc-stat-chips { gap: 0.45rem; }
+            .acc-tab-bar { display: grid; grid-template-columns: 1fr 1fr; }
         }
     </style>
 </head>
 <body>
-    <!-- Navigation -->
     <div id="nav-placeholder" data-nav-type="internal"></div>
     <script src="assets/js/nav-component.js"></script>
 
-    <!-- Main Content -->
-    <div class="main-content">
-        <div class="page-header">
-            <h1>Account Settings</h1>
-            <p>Manage your profile, subscription, and preferences</p>
-        </div>
-
-        <!-- Profile Information -->
-        <div class="section-card">
-            <h2 class="section-title"><i class="fas fa-user"></i> Profile Information</h2>
-            
-            <div id="profileSuccess" class="success-message">
-                <i class="fas fa-check-circle"></i> Profile updated successfully!
-            </div>
-
-            <form id="profileForm">
-                <div class="form-row">
-                    <div class="form-group">
-                        <label for="firstName">First Name</label>
-                        <input type="text" id="firstName" value="John" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="lastName">Last Name</label>
-                        <input type="text" id="lastName" value="Doe" required>
-                    </div>
-                </div>
-
-                <div class="form-group">
-                    <label for="email">Email Address</label>
-                    <input type="email" id="email" value="john.doe@example.com" required>
-                </div>
-
-                <div class="form-group">
-                    <label for="phone">Phone Number (Optional)</label>
-                    <input type="tel" id="phone" placeholder="+1 (555) 123-4567">
-                </div>
-
-                <button type="submit" class="btn btn-primary">
-                    <i class="fas fa-save"></i> Save Changes
-                </button>
-            </form>
-        </div>
-
-        <!-- Subscription Details -->
-        <div class="section-card">
-            <h2 class="section-title"><i class="fas fa-crown"></i> Subscription Details</h2>
-            
-            <div class="info-row">
-                <span class="info-label">Current Plan</span>
-                <span class="info-value">Premium - All Signals</span>
-            </div>
-
-            <div class="info-row">
-                <span class="info-label">Status</span>
-                <span class="status-badge active"><i class="fas fa-check-circle"></i> Active</span>
-            </div>
-
-            <div class="info-row">
-                <span class="info-label">Billing Cycle</span>
-                <span class="info-value">Annual</span>
-            </div>
-
-            <div class="info-row">
-                <span class="info-label">Next Renewal</span>
-                <span class="info-value">January 15, 2026</span>
-            </div>
-
-            <div class="info-row">
-                <span class="info-label">Payment Method</span>
-                <span class="info-value">•••• •••• •••• 4242</span>
-            </div>
-
-            <div style="margin-top: 1.5rem; display: flex; gap: 1rem; flex-wrap: wrap;">
-                <button class="btn btn-secondary" onclick="alert('Billing portal coming soon!')">
-                    <i class="fas fa-receipt"></i> View Billing History
-                </button>
-                <button class="btn btn-secondary" onclick="alert('Payment update coming soon!')">
-                    <i class="fas fa-credit-card"></i> Update Payment Method
-                </button>
+    <!-- ================================================================
+         HERO
+    ================================================================ -->
+    <section class="acc-hero">
+        <div class="acc-hero-inner">
+            <div class="acc-hero-label"><i class="fas fa-user-circle"></i> &nbsp;Account Settings</div>
+            <h1>My <em>Account</em></h1>
+            <p class="acc-hero-desc" id="heroDesc">Manage your profile, security, and subscription details.</p>
+            <div class="acc-stat-chips">
+                <span class="acc-chip"><i class="fas fa-crown"></i> <span id="heroPlan">—</span></span>
+                <span class="acc-chip"><i class="fas fa-calendar-days"></i> Member since <span id="heroSince">—</span></span>
+                <span class="acc-chip active-chip" id="heroStatusChip"><i class="fas fa-check-circle"></i> <span id="heroStatusText">Active</span></span>
             </div>
         </div>
+    </section>
 
-        <!-- Change Password -->
-        <div class="section-card">
-            <h2 class="section-title"><i class="fas fa-lock"></i> Change Password</h2>
-            
-            <div id="passwordSuccess" class="success-message">
-                <i class="fas fa-check-circle"></i> Password changed successfully!
-            </div>
+    <hr class="acc-divider">
 
-            <div id="passwordError" class="error-message">
-                <i class="fas fa-exclamation-circle"></i> Passwords do not match or current password is incorrect.
-            </div>
-
-            <form id="passwordForm">
-                <div class="form-group">
-                    <label for="currentPassword">Current Password</label>
-                    <input type="password" id="currentPassword" required>
-                </div>
-
-                <div class="form-group">
-                    <label for="newPassword">New Password</label>
-                    <input type="password" id="newPassword" required>
-                </div>
-
-                <div class="form-group">
-                    <label for="confirmPassword">Confirm New Password</label>
-                    <input type="password" id="confirmPassword" required>
-                </div>
-
-                <button type="submit" class="btn btn-primary">
-                    <i class="fas fa-key"></i> Change Password
-                </button>
-            </form>
-        </div>
-
-        <!-- Danger Zone -->
-        <div class="section-card danger-zone">
-            <h2 class="section-title"><i class="fas fa-exclamation-triangle"></i> Danger Zone</h2>
-            
-            <p style="color: var(--gray-text); margin-bottom: 1.5rem;">
-                Once you cancel your subscription, you will lose access to all signals and features at the end of your billing period.
-            </p>
-
-            <button class="btn btn-danger" onclick="cancelSubscription()">
-                <i class="fas fa-times-circle"></i> Cancel Subscription
-            </button>
-        </div>
+    <!-- ================================================================
+         TAB NAV
+    ================================================================ -->
+    <div class="acc-tab-bar">
+        <button class="acc-tab active" data-tab="profile"><i class="fas fa-user"></i> Profile</button>
+        <button class="acc-tab" data-tab="subscription"><i class="fas fa-crown"></i> Subscription</button>
+        <button class="acc-tab" data-tab="security"><i class="fas fa-lock"></i> Security</button>
+        <button class="acc-tab danger-tab" data-tab="danger"><i class="fas fa-exclamation-triangle"></i> Danger Zone</button>
     </div>
 
-    <!-- Footer -->
+    <!-- ================================================================
+         MAIN CONTENT
+    ================================================================ -->
+    <div class="acc-main">
+
+        <!-- PROFILE TAB -->
+        <div class="acc-panel active" id="panel-profile">
+            <div class="acc-card">
+                <div class="acc-card-title">
+                    <div class="acc-card-icon"><i class="fas fa-user"></i></div>
+                    <h2>Profile Information</h2>
+                </div>
+
+                <div id="profileSuccess" class="alert alert-success">
+                    <i class="fas fa-check-circle"></i> Profile updated successfully!
+                </div>
+                <div id="profileError" class="alert alert-error">
+                    <i class="fas fa-exclamation-circle"></i> <span id="profileErrorMsg">Something went wrong.</span>
+                </div>
+
+                <form id="profileForm" novalidate>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="firstName">First Name</label>
+                            <div class="input-wrap">
+                                <i class="fas fa-user input-icon"></i>
+                                <input type="text" id="firstName" required placeholder="First name">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="lastName">Last Name</label>
+                            <div class="input-wrap">
+                                <i class="fas fa-user input-icon"></i>
+                                <input type="text" id="lastName" required placeholder="Last name">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="email">Email Address</label>
+                        <div class="input-wrap">
+                            <i class="fas fa-envelope input-icon"></i>
+                            <input type="email" id="email" disabled placeholder="Loading…">
+                        </div>
+                        <div class="field-hint"><i class="fas fa-lock" style="font-size:0.6rem;color:var(--primary-gold);"></i> Email cannot be changed here — contact support to update it.</div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="phone">Phone Number <span class="label-opt">(optional)</span></label>
+                        <div class="input-wrap">
+                            <i class="fas fa-phone input-icon"></i>
+                            <input type="tel" id="phone" placeholder="+1 (555) 123-4567">
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary" id="profileSaveBtn">
+                        <i class="fas fa-save"></i> Save Changes
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <!-- SUBSCRIPTION TAB -->
+        <div class="acc-panel" id="panel-subscription">
+            <div class="acc-card">
+                <div class="acc-card-title">
+                    <div class="acc-card-icon"><i class="fas fa-crown"></i></div>
+                    <h2>Subscription Details</h2>
+                </div>
+
+                <div class="info-row">
+                    <span class="info-label">Current Plan</span>
+                    <span class="info-value" id="subPlan">Full Bundle — Lifetime Access</span>
+                </div>
+
+                <div class="info-row">
+                    <span class="info-label">Status</span>
+                    <span class="status-pill" id="statusPill"><i class="fas fa-check-circle"></i> <span id="statusText">Active</span></span>
+                </div>
+
+                <div class="info-row">
+                    <span class="info-label">Billing</span>
+                    <span class="info-value" id="billingText">One-time payment — no renewals</span>
+                </div>
+
+                <div class="info-row">
+                    <span class="info-label">Member Since</span>
+                    <span class="info-value" id="memberSince">—</span>
+                </div>
+
+                <div style="margin-top:1.5rem;">
+                    <a href="mailto:support@bluechipsignals.online?subject=Billing%20Inquiry" class="btn btn-secondary">
+                        <i class="fas fa-envelope"></i> Contact Support
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- SECURITY TAB -->
+        <div class="acc-panel" id="panel-security">
+            <div class="acc-card">
+                <div class="acc-card-title">
+                    <div class="acc-card-icon"><i class="fas fa-lock"></i></div>
+                    <h2>Change Password</h2>
+                </div>
+
+                <div id="passwordSuccess" class="alert alert-success">
+                    <i class="fas fa-check-circle"></i> Password changed successfully!
+                </div>
+                <div id="passwordError" class="alert alert-error">
+                    <i class="fas fa-exclamation-circle"></i> <span id="passwordErrorMsg">Something went wrong.</span>
+                </div>
+
+                <form id="passwordForm" novalidate>
+                    <div class="form-group">
+                        <label for="currentPassword">Current Password</label>
+                        <div class="input-wrap has-eye">
+                            <i class="fas fa-lock input-icon"></i>
+                            <input type="password" id="currentPassword" required placeholder="Enter your current password">
+                            <button type="button" class="eye-btn" data-target="currentPassword" aria-label="Toggle visibility">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="newPassword">New Password</label>
+                        <div class="input-wrap has-eye">
+                            <i class="fas fa-key input-icon"></i>
+                            <input type="password" id="newPassword" required placeholder="Minimum 8 characters">
+                            <button type="button" class="eye-btn" data-target="newPassword" aria-label="Toggle visibility">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="confirmPassword">Confirm New Password</label>
+                        <div class="input-wrap has-eye">
+                            <i class="fas fa-key input-icon"></i>
+                            <input type="password" id="confirmPassword" required placeholder="Repeat new password">
+                            <button type="button" class="eye-btn" data-target="confirmPassword" aria-label="Toggle visibility">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary" id="passwordSaveBtn">
+                        <i class="fas fa-key"></i> Change Password
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <!-- DANGER ZONE TAB -->
+        <div class="acc-panel" id="panel-danger">
+            <div class="acc-card danger-card">
+                <div class="acc-card-title">
+                    <div class="acc-card-icon"><i class="fas fa-exclamation-triangle"></i></div>
+                    <h2>Danger Zone</h2>
+                </div>
+
+                <p style="color:var(--gray-text);margin-bottom:1.25rem;font-size:0.88rem;line-height:1.6;">
+                    Permanently deletes your account, all trade logs, and trade plans. Your access is removed immediately. <strong style="color:rgba(255,255,255,0.65);">This cannot be undone.</strong>
+                </p>
+
+                <div id="deleteError" class="alert alert-error">
+                    <i class="fas fa-exclamation-circle"></i> <span id="deleteErrorMsg">Unable to delete account.</span>
+                </div>
+
+                <button class="btn btn-danger" id="deleteAccountBtn" onclick="showDeleteConfirm()">
+                    <i class="fas fa-trash"></i> Delete Account
+                </button>
+
+                <div class="delete-confirm-wrap" id="deleteConfirmWrap">
+                    <label for="deleteConfirmInput">Type <strong>DELETE</strong> to confirm permanent deletion:</label>
+                    <div class="input-wrap">
+                        <i class="fas fa-exclamation-triangle input-icon" style="color:rgba(255,59,59,0.5);"></i>
+                        <input type="text" id="deleteConfirmInput" placeholder="DELETE" autocomplete="off">
+                    </div>
+                    <div class="delete-confirm-btns">
+                        <button class="btn btn-danger" id="confirmDeleteBtn" onclick="confirmDeleteAccount()">
+                            <i class="fas fa-trash"></i> Yes, Delete My Account
+                        </button>
+                        <button class="btn btn-secondary" onclick="hideDeleteConfirm()">
+                            Cancel
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div><!-- end .acc-main -->
+
     <div id="footer-placeholder" data-footer-type="standard-social" data-base=""></div>
     <script src="assets/js/footer-component.js"></script>
 
+    <!-- ================================================================
+         NON-MODULE: tab switching + eye toggles (no Firebase needed)
+    ================================================================ -->
     <script>
-        function logout() {
-            if (confirm('Are you sure you want to logout?')) {
-                window.location.href = 'login.html';
-            }
-        }
+        /* ---- Tab switching with fade-up animation ---- */
+        document.querySelectorAll('.acc-tab').forEach(function (btn) {
+            btn.addEventListener('click', function () {
+                var target = btn.getAttribute('data-tab');
 
-        function cancelSubscription() {
-            if (confirm('Are you sure you want to cancel your subscription? This action cannot be undone.')) {
-                alert('Cancellation request received. You will receive a confirmation email shortly.');
-                // Add actual cancellation logic here
-            }
-        }
+                /* Deactivate all tabs */
+                document.querySelectorAll('.acc-tab').forEach(function (t) { t.classList.remove('active'); });
+                btn.classList.add('active');
 
-        // Profile Form
-        document.getElementById('profileForm').addEventListener('submit', function(e) {
-            e.preventDefault();
-            
-            // Simulate API call
-            setTimeout(() => {
-                document.getElementById('profileSuccess').style.display = 'block';
-                setTimeout(() => {
-                    document.getElementById('profileSuccess').style.display = 'none';
-                }, 3000);
-            }, 500);
+                /* Hide all panels */
+                document.querySelectorAll('.acc-panel').forEach(function (p) {
+                    p.classList.remove('active', 'is-visible');
+                });
+
+                /* Show target panel with animation */
+                var panel = document.getElementById('panel-' + target);
+                if (panel) {
+                    panel.classList.add('active');
+                    /* Trigger reflow then add is-visible */
+                    requestAnimationFrame(function () {
+                        requestAnimationFrame(function () {
+                            panel.classList.add('is-visible');
+                        });
+                    });
+                }
+            });
         });
 
-        // Password Form
-        document.getElementById('passwordForm').addEventListener('submit', function(e) {
-            e.preventDefault();
-            
-            const newPassword = document.getElementById('newPassword').value;
-            const confirmPassword = document.getElementById('confirmPassword').value;
-            
-            if (newPassword !== confirmPassword) {
-                document.getElementById('passwordError').style.display = 'block';
-                setTimeout(() => {
-                    document.getElementById('passwordError').style.display = 'none';
-                }, 3000);
+        /* Animate the initially active panel on page load */
+        document.addEventListener('DOMContentLoaded', function () {
+            var first = document.querySelector('.acc-panel.active');
+            if (first) {
+                requestAnimationFrame(function () {
+                    requestAnimationFrame(function () {
+                        first.classList.add('is-visible');
+                    });
+                });
+            }
+        });
+
+        /* ---- Password eye toggle ---- */
+        document.querySelectorAll('.eye-btn').forEach(function (btn) {
+            btn.addEventListener('click', function () {
+                var targetId = btn.getAttribute('data-target');
+                var input = document.getElementById(targetId);
+                if (!input) return;
+                var isPassword = input.type === 'password';
+                input.type = isPassword ? 'text' : 'password';
+                var icon = btn.querySelector('i');
+                if (icon) icon.className = isPassword ? 'fas fa-eye-slash' : 'fas fa-eye';
+            });
+        });
+    </script>
+
+    <!-- ================================================================
+         MODULE: Firebase auth + Firestore logic (all original logic preserved)
+    ================================================================ -->
+    <script type="module">
+        import {
+            auth, db,
+            onAuthStateChanged, signOut,
+            updatePassword, reauthenticateWithCredential, EmailAuthProvider,
+            doc, getDoc, updateDoc
+        } from './assets/js/firebase-config.js';
+
+        import {
+            deleteDoc
+        } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
+
+        import {
+            deleteUser
+        } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-auth.js";
+
+        let currentUser = null;
+
+        /* ---- Expose delete helpers to inline onclick handlers ---- */
+        window.showDeleteConfirm = function () {
+            document.getElementById('deleteConfirmWrap').classList.add('visible');
+            document.getElementById('deleteAccountBtn').style.display = 'none';
+        };
+
+        window.hideDeleteConfirm = function () {
+            document.getElementById('deleteConfirmWrap').classList.remove('visible');
+            document.getElementById('deleteAccountBtn').style.display = '';
+            document.getElementById('deleteConfirmInput').value = '';
+            hideAlert('deleteError');
+        };
+
+        window.confirmDeleteAccount = async function () {
+            if (!currentUser) return;
+            const input = document.getElementById('deleteConfirmInput').value.trim();
+            if (input !== 'DELETE') {
+                showAlert('deleteError', 'You must type DELETE exactly to confirm.');
                 return;
             }
-            
-            // Simulate API call
-            setTimeout(() => {
-                document.getElementById('passwordSuccess').style.display = 'block';
+            const btn = document.getElementById('confirmDeleteBtn');
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Deleting…';
+            try {
+                await deleteDoc(doc(db, 'users', currentUser.uid));
+                await deleteUser(currentUser);
+                localStorage.clear();
+                sessionStorage.clear();
+                window.location.href = 'index.html';
+            } catch (err) {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fas fa-trash"></i> Yes, Delete My Account';
+                if (err.code === 'auth/requires-recent-login') {
+                    showAlert('deleteError', 'For security, please log out and log back in before deleting your account.');
+                } else {
+                    showAlert('deleteError', 'Could not delete account: ' + (err.message || err.code));
+                }
+            }
+        };
+
+        /* ---- Real Firebase logout ---- */
+        window.logout = async function () {
+            try { await signOut(auth); } catch (_) {}
+            localStorage.clear();
+            sessionStorage.clear();
+            window.location.href = 'login.html';
+        };
+
+        /* ---- Alert helpers ---- */
+        function showAlert(id, msg) {
+            const el = document.getElementById(id);
+            if (!el) return;
+            const msgEl = el.querySelector('span');
+            if (msgEl && msg) msgEl.textContent = msg;
+            el.classList.add('show');
+        }
+
+        function hideAlert(id) {
+            const el = document.getElementById(id);
+            if (el) el.classList.remove('show');
+        }
+
+        function autoHide(id, ms = 4000) {
+            setTimeout(() => hideAlert(id), ms);
+        }
+
+        /* ---- Populate page from Firestore ---- */
+        function populatePage(userData, user) {
+            /* Profile fields */
+            document.getElementById('firstName').value = userData.firstName || '';
+            document.getElementById('lastName').value  = userData.lastName  || '';
+            document.getElementById('email').value     = user.email || userData.email || '';
+            document.getElementById('phone').value     = userData.phone || '';
+
+            /* Hero greeting */
+            const heroDesc = document.getElementById('heroDesc');
+            if (heroDesc && userData.firstName) {
+                heroDesc.textContent = 'Welcome back, ' + userData.firstName + '. Manage your profile, security, and subscription.';
+            }
+
+            /* Plan — derive display text from structured fields */
+            const plan           = (userData.plan || '').toLowerCase();
+            const allowedTicker  = (userData.allowedTicker || '').toUpperCase();
+            let planText;
+            if (plan === 'bundle') {
+                planText = 'Full Bundle — All 5 Channels';
+            } else if (plan === 'single' && allowedTicker) {
+                planText = 'Single Channel · ' + allowedTicker;
+            } else {
+                planText = userData.subscriptionStatus || 'Premium Active';
+            }
+            const subPlanEl = document.getElementById('subPlan');
+            if (subPlanEl) subPlanEl.textContent = planText;
+            const heroPlanEl = document.getElementById('heroPlan');
+            if (heroPlanEl) heroPlanEl.textContent = planText;
+
+            /* Status — use subscriptionStatus field; default to Active */
+            const status   = userData.subscriptionStatus || 'Active';
+            const isActive = status.toLowerCase().includes('active');
+            const statusPill   = document.getElementById('statusPill');
+            const statusText   = document.getElementById('statusText');
+            const heroChip     = document.getElementById('heroStatusChip');
+            const heroChipText = document.getElementById('heroStatusText');
+            const statusLabel  = isActive ? 'Active' : status;
+            const statusIcon   = isActive ? 'fa-check-circle' : 'fa-times-circle';
+            if (statusText)   statusText.textContent = statusLabel;
+            if (heroChipText) heroChipText.textContent = statusLabel;
+            if (statusPill) {
+                const icon = statusPill.querySelector('i');
+                if (icon) { icon.className = 'fas ' + statusIcon; }
+                statusPill.classList.toggle('status-inactive', !isActive);
+            }
+            if (heroChip) {
+                const icon = heroChip.querySelector('i');
+                if (icon) { icon.className = 'fas ' + statusIcon; }
+                heroChip.classList.toggle('status-inactive', !isActive);
+            }
+
+            /* Member Since — prefer joinedDate (set by welcome-setup), fall back to createdAt */
+            let sinceText = '—';
+            const rawDate = userData.joinedDate || userData.createdAt;
+            if (rawDate) {
+                try {
+                    const d = rawDate.toDate ? rawDate.toDate() : new Date(rawDate);
+                    sinceText = d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+                } catch (_) {}
+            }
+            const memberSinceEl = document.getElementById('memberSince');
+            if (memberSinceEl) memberSinceEl.textContent = sinceText;
+            const heroSinceEl = document.getElementById('heroSince');
+            if (heroSinceEl) heroSinceEl.textContent = sinceText;
+        }
+
+        /* ---- Auth gate + data load ---- */
+        onAuthStateChanged(auth, async (user) => {
+            if (!user) { window.location.href = 'login.html'; return; }
+            currentUser = user;
+            try {
+                const snap = await getDoc(doc(db, 'users', user.uid));
+                if (snap.exists()) {
+                    populatePage(snap.data(), user);
+                } else {
+                    document.getElementById('email').value = user.email || '';
+                }
+            } catch (err) {
+                console.error('Error loading profile:', err);
+            }
+        });
+
+        /* ---- Profile form — save to Firestore ---- */
+        document.getElementById('profileForm').addEventListener('submit', async function (e) {
+            e.preventDefault();
+            if (!currentUser) return;
+
+            hideAlert('profileSuccess');
+            hideAlert('profileError');
+
+            const firstName = document.getElementById('firstName').value.trim();
+            const lastName  = document.getElementById('lastName').value.trim();
+            const phone     = document.getElementById('phone').value.trim();
+
+            if (!firstName || !lastName) {
+                showAlert('profileError', 'First name and last name are required.');
+                return;
+            }
+
+            const btn = document.getElementById('profileSaveBtn');
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving…';
+
+            try {
+                await updateDoc(doc(db, 'users', currentUser.uid), {
+                    firstName,
+                    lastName,
+                    displayName: `${firstName} ${lastName}`,
+                    phone: phone || ''
+                });
+                showAlert('profileSuccess');
+                autoHide('profileSuccess');
+            } catch (err) {
+                showAlert('profileError', 'Failed to save: ' + (err.message || err.code));
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fas fa-save"></i> Save Changes';
+            }
+        });
+
+        /* ---- Password form — reauthenticate + update ---- */
+        document.getElementById('passwordForm').addEventListener('submit', async function (e) {
+            e.preventDefault();
+            if (!currentUser) return;
+
+            hideAlert('passwordSuccess');
+            hideAlert('passwordError');
+
+            const currentPwd = document.getElementById('currentPassword').value;
+            const newPwd     = document.getElementById('newPassword').value;
+            const confirmPwd = document.getElementById('confirmPassword').value;
+
+            if (!currentPwd) { showAlert('passwordError', 'Please enter your current password.'); return; }
+            if (newPwd.length < 8) { showAlert('passwordError', 'New password must be at least 8 characters.'); return; }
+            if (newPwd !== confirmPwd) { showAlert('passwordError', 'New passwords do not match.'); return; }
+            if (newPwd === currentPwd) { showAlert('passwordError', 'New password must be different from your current password.'); return; }
+
+            const btn = document.getElementById('passwordSaveBtn');
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Updating…';
+
+            try {
+                const credential = EmailAuthProvider.credential(currentUser.email, currentPwd);
+                await reauthenticateWithCredential(currentUser, credential);
+                await updatePassword(currentUser, newPwd);
+                showAlert('passwordSuccess');
+                autoHide('passwordSuccess');
                 document.getElementById('passwordForm').reset();
-                setTimeout(() => {
-                    document.getElementById('passwordSuccess').style.display = 'none';
-                }, 3000);
-            }, 500);
+            } catch (err) {
+                let msg = 'Something went wrong. Please try again.';
+                if (err.code === 'auth/wrong-password' || err.code === 'auth/invalid-credential') msg = 'Current password is incorrect.';
+                else if (err.code === 'auth/weak-password') msg = 'Password is too weak. Choose a stronger one.';
+                else if (err.code === 'auth/too-many-requests') msg = 'Too many attempts. Please wait a moment and try again.';
+                showAlert('passwordError', msg);
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fas fa-key"></i> Change Password';
+            }
         });
     </script>
 </body>
 </html>
-

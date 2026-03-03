@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Upgrade Required - Blue Chip Signals</title>
+    <link rel="icon" type="image/png" href="assets/images/logo.png">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="assets/css/signal-style.css">
+    <style>
+        body { overflow-x: hidden; }
+
+        /* ── Hero ── */
+        .up-hero {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 7rem 2rem 5rem;
+            position: relative;
+            text-align: center;
+        }
+
+        .up-hero::before {
+            content: '';
+            position: absolute;
+            top: 10%; left: 50%; transform: translateX(-50%);
+            width: 800px; height: 600px;
+            background: radial-gradient(ellipse at center, rgba(201,176,55,0.10) 0%, transparent 70%);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .up-inner {
+            position: relative;
+            z-index: 1;
+            max-width: 680px;
+            opacity: 0;
+            transform: translateY(20px);
+            animation: upFade 0.65s ease 0.1s forwards;
+        }
+
+        @keyframes upFade {
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* lock icon */
+        .up-icon {
+            width: 72px;
+            height: 72px;
+            margin: 0 auto 2rem;
+            background: rgba(201,176,55,0.10);
+            border: 1px solid rgba(201,176,55,0.25);
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.75rem;
+            color: var(--primary-gold);
+        }
+
+        /* label */
+        .up-label {
+            display: inline-block;
+            font-size: 0.72rem;
+            font-weight: 700;
+            letter-spacing: 0.14em;
+            text-transform: uppercase;
+            color: var(--primary-gold);
+            background: rgba(201,176,55,0.10);
+            border: 1px solid rgba(201,176,55,0.25);
+            border-radius: 100px;
+            padding: 0.35em 1em;
+            margin-bottom: 1.4rem;
+        }
+
+        .up-inner h1 {
+            font-size: clamp(2rem, 5vw, 3rem);
+            font-weight: 800;
+            line-height: 1.15;
+            letter-spacing: -0.02em;
+            color: #f0ece0;
+            margin: 0 0 1.2rem;
+        }
+
+        .up-inner h1 em {
+            font-style: italic;
+            background: linear-gradient(135deg, var(--primary-gold) 0%, var(--secondary-gold) 50%, var(--primary-gold) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            display: inline-block;
+            padding-bottom: 0.08em;
+        }
+
+        .up-desc {
+            font-size: 1.05rem;
+            color: rgba(240,236,224,0.65);
+            line-height: 1.7;
+            margin: 0 0 2.8rem;
+        }
+
+        /* ── Plan comparison cards ── */
+        .up-plans {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            margin: 0 0 2.5rem;
+            text-align: left;
+        }
+
+        .up-plan-card {
+            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 16px;
+            padding: 1.4rem 1.5rem;
+            position: relative;
+            transition: border-color 0.2s;
+        }
+
+        .up-plan-card.featured {
+            border-color: rgba(201,176,55,0.35);
+            background: rgba(201,176,55,0.05);
+        }
+
+        .up-plan-card.featured::before {
+            content: 'YOUR ACCESS';
+            position: absolute;
+            top: -1px; right: 16px;
+            font-size: 0.62rem;
+            font-weight: 700;
+            letter-spacing: 0.12em;
+            color: #111;
+            background: linear-gradient(135deg, var(--primary-gold), var(--secondary-gold));
+            border-radius: 0 0 8px 8px;
+            padding: 0.28em 0.8em;
+        }
+
+        .up-plan-name {
+            font-size: 0.8rem;
+            font-weight: 700;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            color: rgba(240,236,224,0.5);
+            margin: 0 0 0.5rem;
+        }
+
+        .up-plan-title {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: #f0ece0;
+            margin: 0 0 0.9rem;
+        }
+
+        .up-plan-features {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 0.45rem;
+        }
+
+        .up-plan-features li {
+            font-size: 0.84rem;
+            color: rgba(240,236,224,0.65);
+            display: flex;
+            align-items: center;
+            gap: 0.55rem;
+        }
+
+        .up-plan-features li i {
+            font-size: 0.7rem;
+            color: var(--primary-gold);
+            flex-shrink: 0;
+        }
+
+        .up-plan-features li.locked {
+            color: rgba(240,236,224,0.3);
+        }
+
+        .up-plan-features li.locked i {
+            color: rgba(240,236,224,0.3);
+        }
+
+        /* ── CTAs ── */
+        .up-cta-row {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .up-btn-primary {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: linear-gradient(135deg, var(--primary-gold) 0%, var(--secondary-gold) 50%, var(--primary-gold) 100%);
+            background-size: 200% 100%;
+            color: #0d0d0d;
+            font-weight: 700;
+            font-size: 0.9rem;
+            letter-spacing: 0.05em;
+            padding: 0.75rem 1.8rem;
+            border-radius: 100px;
+            text-decoration: none;
+            border: none;
+            cursor: pointer;
+            transition: background-position 0.3s, transform 0.2s, box-shadow 0.2s;
+            box-shadow: 0 4px 20px rgba(201,176,55,0.3);
+        }
+
+        .up-btn-primary:hover {
+            background-position: 100% 0;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 28px rgba(201,176,55,0.4);
+        }
+
+        .up-btn-secondary {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: transparent;
+            color: rgba(240,236,224,0.6);
+            font-weight: 600;
+            font-size: 0.9rem;
+            padding: 0.75rem 1.6rem;
+            border-radius: 100px;
+            border: 1px solid rgba(255,255,255,0.12);
+            text-decoration: none;
+            cursor: pointer;
+            transition: color 0.2s, border-color 0.2s, transform 0.2s;
+        }
+
+        .up-btn-secondary:hover {
+            color: #f0ece0;
+            border-color: rgba(255,255,255,0.25);
+            transform: translateY(-2px);
+        }
+
+        @media (max-width: 560px) {
+            .up-plans { grid-template-columns: 1fr; }
+            .up-cta-row { flex-direction: column; align-items: center; }
+        }
+    </style>
+</head>
+<body>
+
+    <div id="nav-placeholder" data-nav-type="internal"></div>
+
+    <main class="up-hero">
+        <div class="up-inner">
+
+            <div class="up-icon"><i class="fas fa-lock"></i></div>
+            <span class="up-label">Access Restricted</span>
+
+            <h1>Upgrade to unlock<br><em>full access</em></h1>
+
+            <p class="up-desc">
+                This page is part of the <strong style="color:#f0ece0;">Full Bundle</strong> plan.
+                Your current plan gives you access to your chosen single ticker.
+                Upgrade to get everything — all 5 signals, guides, dashboard, journal &amp; planner.
+            </p>
+
+            <div class="up-plans">
+                <div class="up-plan-card featured">
+                    <div class="up-plan-name">Current</div>
+                    <div class="up-plan-title">Single Channel</div>
+                    <ul class="up-plan-features">
+                        <li><i class="fas fa-check-circle"></i> 1 ticker signal &amp; guides</li>
+                        <li><i class="fas fa-check-circle"></i> Real-time alerts</li>
+                        <li class="locked"><i class="fas fa-lock"></i> Dashboard &amp; analytics</li>
+                        <li class="locked"><i class="fas fa-lock"></i> All other tickers</li>
+                        <li class="locked"><i class="fas fa-lock"></i> Trading journal &amp; planner</li>
+                    </ul>
+                </div>
+                <div class="up-plan-card">
+                    <div class="up-plan-name">Upgrade To</div>
+                    <div class="up-plan-title">Full Bundle</div>
+                    <ul class="up-plan-features">
+                        <li><i class="fas fa-check-circle"></i> All 5 ticker signals</li>
+                        <li><i class="fas fa-check-circle"></i> All guides &amp; research</li>
+                        <li><i class="fas fa-check-circle"></i> Dashboard &amp; analytics</li>
+                        <li><i class="fas fa-check-circle"></i> SPY market overview</li>
+                        <li><i class="fas fa-check-circle"></i> Trading journal &amp; planner</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="up-cta-row">
+                <a href="pricing.html" class="up-btn-primary">
+                    <i class="fas fa-arrow-up"></i> Upgrade My Plan
+                </a>
+                <a href="javascript:history.back()" class="up-btn-secondary">
+                    <i class="fas fa-arrow-left"></i> Go Back
+                </a>
+            </div>
+
+        </div>
+    </main>
+
+    <div id="footer-placeholder"></div>
+
+    <script src="assets/js/nav-component.js"></script>
+    <script src="assets/js/footer-component.js"></script>
+
+</body>
+</html>

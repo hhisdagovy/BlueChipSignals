@@ -5,29 +5,17 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Trade Planner - Blue Chip Signals</title>
     <link rel="icon" type="image/png" href="assets/images/logo.png">
-    <link rel="stylesheet" href="assets/css/global.css">
+    <link rel="stylesheet" href="assets/css/signal-style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        :root {
-            --primary-gold: #b3a17d;
-            --secondary-gold: #E2CFB5;
-            --dark-bg: #080B0F;
-            --darker-bg: #050810;
-            --light-text: #FFFFFF;
-            --gray-text: #A0A0A0;
-            --card-bg: rgba(18, 22, 32, 0.72);
-            --success-green: #2a571f;
-            --danger-red: #ef4444;
-            --border-color: rgba(201, 176, 55, 0.25);
-        }
+        body { overflow-x: hidden; }
 
         body::before {
             content: '';
             position: fixed;
             inset: 0;
-            background: radial-gradient(1200px 800px at -10% -10%, rgba(201, 176, 55, 0.25), transparent 55%),
-                        radial-gradient(900px 900px at 110% 10%, rgba(59, 130, 246, 0.15), transparent 60%),
-                        linear-gradient(160deg, rgba(5, 8, 16, 0.92) 25%, rgba(8, 12, 22, 0.98) 70%);
+            background: radial-gradient(1200px 800px at -10% -10%, rgba(201, 176, 55, 0.18), transparent 55%),
+                        linear-gradient(160deg, rgba(5, 8, 16, 0.95) 25%, rgba(8, 12, 22, 0.99) 70%);
             pointer-events: none;
             z-index: -2;
         }
@@ -43,60 +31,115 @@
             mix-blend-mode: lighten;
         }
 
-        /* ---- Planner Hero ---- */
-        .planner-hero {
-            margin-top: 100px;
-            padding: 2rem 2rem 1.5rem;
+        /* ================================================================
+           PLANNER HERO
+        ================================================================ */
+        .tp-hero {
+            padding: 8rem 2rem 3.5rem;
             max-width: 1200px;
-            margin-left: auto;
-            margin-right: auto;
-            display: flex;
-            align-items: center;
-            gap: 2rem;
-            flex-wrap: wrap;
+            margin: 0 auto;
+            position: relative;
+            text-align: center;
         }
 
-        .planner-hero-left { flex: 1; min-width: 180px; }
+        .tp-hero::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 50%; transform: translateX(-50%);
+            width: 800px; height: 520px;
+            background: radial-gradient(ellipse at center, rgba(201,176,55,0.09) 0%, transparent 70%);
+            pointer-events: none;
+            z-index: 0;
+        }
 
-        .planner-hero-left h1 {
-            font-size: 1.5rem;
+        .tp-hero-inner {
+            position: relative;
+            z-index: 1;
+            opacity: 0;
+            transform: translateY(18px);
+            animation: tpFadeUp 0.65s ease 0.1s forwards;
+        }
+
+        @keyframes tpFadeUp {
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .tp-hero-label {
+            display: inline-block;
+            font-size: 0.72rem;
             font-weight: 700;
-            background: linear-gradient(135deg, var(--primary-gold), var(--secondary-gold));
+            letter-spacing: 0.16em;
+            text-transform: uppercase;
+            color: var(--primary-gold);
+            border: 1px solid rgba(201, 176, 55, 0.3);
+            border-radius: 20px;
+            padding: 0.3rem 0.95rem;
+            margin-bottom: 1.25rem;
+        }
+
+        .tp-hero h1 {
+            font-size: clamp(2.2rem, 5vw, 3.8rem);
+            font-weight: 900;
+            line-height: 1.08;
+            letter-spacing: -0.03em;
+            color: var(--light-text);
+            margin: 0 0 1rem;
+        }
+
+        .tp-hero h1 em {
+            font-style: italic;
+            display: inline-block;
+            padding-bottom: 0.12em;
+            padding-right: 0.12em;
+            margin-right: -0.12em;
+            background: linear-gradient(135deg, var(--primary-gold) 20%, var(--secondary-gold) 80%);
             -webkit-background-clip: text;
             background-clip: text;
             -webkit-text-fill-color: transparent;
-            margin-bottom: 0.25rem;
         }
 
-        .planner-hero-left p {
+        .tp-hero-desc {
+            font-size: 1rem;
             color: var(--gray-text);
-            font-size: 0.88rem;
+            max-width: 520px;
+            margin: 0 auto 2rem;
+            line-height: 1.6;
         }
 
-        .planner-hero-center {
-            text-align: center;
-            flex: 1;
-            min-width: 160px;
+        /* Avg R:R featured stat */
+        .tp-rr-feature {
+            display: inline-flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.25rem;
+            margin-bottom: 0;
         }
 
-        .hero-rr-label {
-            font-size: 0.72rem;
+        .tp-rr-label {
+            font-size: 0.68rem;
+            font-weight: 700;
+            letter-spacing: 0.14em;
             text-transform: uppercase;
-            letter-spacing: 0.12em;
-            color: var(--gray-text);
-            margin-bottom: 0.2rem;
+            color: rgba(255,255,255,0.35);
         }
 
         .hero-rr-number {
-            font-size: 2.5rem;
-            font-weight: 800;
-            letter-spacing: -0.03em;
+            font-size: clamp(2.4rem, 5vw, 3.6rem);
+            font-weight: 900;
+            letter-spacing: -0.04em;
+            line-height: 1;
             color: var(--primary-gold);
             transition: color 0.3s;
         }
 
         .hero-rr-number.good { color: #4ade80; }
-        .planner-hero-right { flex-shrink: 0; }
+
+        /* Divider */
+        .tp-divider {
+            border: none;
+            border-top: 1px solid rgba(201, 176, 55, 0.12);
+            margin: 0;
+        }
 
         /* ---- Container ---- */
         .container {
@@ -105,67 +148,128 @@
             padding: 0 2rem 3rem;
         }
 
-        /* ---- Stats Row ---- */
-        .stats-row {
-            display: flex;
-            gap: 2.5rem;
-            flex-wrap: wrap;
-            margin-bottom: 1.5rem;
-            padding: 1rem 0;
-            border-bottom: 1px solid rgba(201, 176, 55, 0.1);
+        /* ---- Stat Tiles Grid ---- */
+        .tp-stat-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1rem;
+            margin: 1.75rem 0 1.75rem;
         }
 
-        .stat-chip {
-            display: flex;
-            flex-direction: column;
-            gap: 0.1rem;
+        .tp-stat-tile {
+            background: rgba(10, 14, 22, 0.7);
+            border: 1px solid rgba(255,255,255,0.06);
+            border-radius: 14px;
+            padding: 1rem 1.2rem;
+            position: relative;
+            overflow: hidden;
         }
 
-        .stat-chip-label {
-            font-size: 0.7rem;
+        .tp-stat-tile::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 2px;
+            border-radius: 14px 14px 0 0;
+        }
+
+        #tpst-plans::before   { background: linear-gradient(90deg, var(--primary-gold), var(--secondary-gold)); }
+        #tpst-active::before  { background: linear-gradient(90deg, #4ade80, #22c55e); }
+        #tpst-target::before  { background: linear-gradient(90deg, #60a5fa, #3b82f6); }
+        #tpst-rr::before      { background: linear-gradient(90deg, #f97316, #fb923c); }
+
+        .tp-stat-tile-label {
+            font-size: 0.63rem;
+            font-weight: 600;
+            letter-spacing: 0.06em;
             text-transform: uppercase;
-            letter-spacing: 0.1em;
-            color: var(--gray-text);
+            color: rgba(255,255,255,0.35);
+            margin-bottom: 0.35rem;
         }
 
-        .stat-chip-value {
-            font-size: 1.15rem;
-            font-weight: 700;
+        .tp-stat-tile-value {
+            font-size: 1.55rem;
+            font-weight: 900;
+            line-height: 1;
+            letter-spacing: -0.02em;
             color: var(--light-text);
         }
 
-        /* ---- Tab Bar ---- */
-        .tab-bar {
+        .tp-stat-tile-sub {
+            font-size: 0.62rem;
+            color: rgba(255,255,255,0.22);
+            margin-top: 0.3rem;
+        }
+
+        /* ---- Tab Bar Row (pill style + New Plan button) ---- */
+        .tab-bar-row {
             display: flex;
-            gap: 0;
-            margin-bottom: 1.5rem;
-            border-bottom: 1px solid rgba(201, 176, 55, 0.12);
+            align-items: center;
+            justify-content: space-between;
+            gap: 1rem;
+            margin-bottom: 1.75rem;
+            flex-wrap: wrap;
+        }
+
+        .tab-bar-row .tab-bar { margin-bottom: 0; }
+
+        .tab-bar {
+            display: inline-flex;
+            gap: 0.25rem;
+            background: rgba(10, 14, 22, 0.65);
+            border: 1px solid rgba(201, 176, 55, 0.12);
+            border-radius: 12px;
+            padding: 4px;
         }
 
         .tab-btn {
-            background: none;
+            background: transparent;
             border: none;
             cursor: pointer;
-            padding: 0.65rem 1.3rem;
-            font-size: 0.88rem;
+            padding: 0.5rem 1.25rem;
+            font-size: 0.86rem;
             font-weight: 600;
-            color: var(--gray-text);
+            color: rgba(255,255,255,0.45);
             font-family: inherit;
-            transition: color 0.2s;
-            border-bottom: 2px solid transparent;
-            margin-bottom: -1px;
+            border-radius: 8px;
+            transition: background 0.2s, color 0.2s;
+            white-space: nowrap;
         }
 
-        .tab-btn:hover { color: var(--light-text); }
+        .tab-btn:hover { color: var(--light-text); background: rgba(255,255,255,0.04); }
 
         .tab-btn.active {
+            background: rgba(201, 176, 55, 0.13);
             color: var(--primary-gold);
-            border-bottom-color: var(--primary-gold);
         }
 
         /* ---- Tab Panels ---- */
         .tab-panel { display: none; }
         .tab-panel.active { display: block; }
+
+        /* ---- New Plan button ---- */
+        .tp-new-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.45rem;
+            padding: 0.5rem 1.2rem;
+            background: linear-gradient(135deg, var(--primary-gold), var(--secondary-gold));
+            color: var(--darker-bg);
+            border: none;
+            border-radius: 10px;
+            font-size: 0.88rem;
+            font-weight: 800;
+            font-family: inherit;
+            cursor: pointer;
+            transition: transform 0.22s, box-shadow 0.22s;
+            box-shadow: 0 4px 14px rgba(201,176,55,0.28);
+            flex-shrink: 0;
+        }
+
+        .tp-new-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 7px 22px rgba(201,176,55,0.42);
+        }
 
         /* ---- Plan Row ---- */
         .plan-row {
@@ -547,11 +651,17 @@
         .calc-value.rr-bad  { color: var(--danger-red); }
 
         /* ---- Responsive ---- */
+        @media (max-width: 900px) {
+            .tp-stat-grid { grid-template-columns: 1fr 1fr; }
+        }
+
         @media (max-width: 768px) {
-            .planner-hero { margin-top: 90px; padding: 1.5rem 1rem 1rem; gap: 1rem; }
-            .planner-hero-center { display: none; }
+            .tp-hero { padding: 6.5rem 1.25rem 2.5rem; }
             .container { padding: 0 1rem 3rem; }
-            .stats-row { gap: 1.5rem; }
+            .tp-stat-grid { grid-template-columns: 1fr 1fr; gap: 0.65rem; }
+            .tab-bar-row { flex-direction: column; align-items: flex-start; }
+            .tab-bar { width: 100%; }
+            .tp-new-btn { width: 100%; justify-content: center; }
             .form-grid { grid-template-columns: 1fr; }
             .calc-grid { grid-template-columns: repeat(2, 1fr); }
             .plan-prices { display: none; }
@@ -559,61 +669,67 @@
         }
 
         @media (max-width: 480px) {
-            .stats-row { gap: 1rem; }
+            .tp-stat-grid { grid-template-columns: 1fr 1fr; }
         }
     </style>
 </head>
 <body>
 
     <!-- Navigation -->
-    <div id="nav-placeholder" data-nav-type="loggedin" data-base=""></div>
+    <div id="nav-placeholder" data-nav-type="internal" data-base=""></div>
     <script src="assets/js/nav-component.js"></script>
 
     <!-- Planner Hero -->
-    <div class="planner-hero">
-        <div class="planner-hero-left">
-            <h1><i class="fas fa-crosshairs"></i> Trade Planner</h1>
-            <p>Plan your trades before you place them</p>
+    <section class="tp-hero">
+        <div class="tp-hero-inner">
+            <span class="tp-hero-label">Your Trade Planner</span>
+            <h1>Trade <em>Planner</em></h1>
+            <p class="tp-hero-desc">Plan your trades before you place them. Define your entry, target, and stop loss before every trade.</p>
+            <div class="tp-rr-feature">
+                <span class="tp-rr-label">Average R:R</span>
+                <div class="hero-rr-number" id="heroAvgRR">—</div>
+            </div>
         </div>
-        <div class="planner-hero-center">
-            <div class="hero-rr-label">Average R:R</div>
-            <div class="hero-rr-number" id="heroAvgRR">—</div>
-        </div>
-        <div class="planner-hero-right">
-            <button class="btn btn-primary" onclick="openPlanModal()">
-                <i class="fas fa-plus"></i> New Plan
-            </button>
-        </div>
-    </div>
+    </section>
+    <hr class="tp-divider">
 
     <!-- Main Container -->
     <div class="container">
 
-        <!-- Stats Row -->
-        <div class="stats-row">
-            <div class="stat-chip">
-                <span class="stat-chip-label">Total Plans</span>
-                <span class="stat-chip-value" id="totalPlans">0</span>
+        <!-- Stat Tiles -->
+        <div class="tp-stat-grid">
+            <div class="tp-stat-tile" id="tpst-plans">
+                <div class="tp-stat-tile-label">Total Plans</div>
+                <div class="tp-stat-tile-value" id="totalPlans">0</div>
+                <div class="tp-stat-tile-sub">All time</div>
             </div>
-            <div class="stat-chip">
-                <span class="stat-chip-label">Active</span>
-                <span class="stat-chip-value" id="activePlansCount">0</span>
+            <div class="tp-stat-tile" id="tpst-active">
+                <div class="tp-stat-tile-label">Active</div>
+                <div class="tp-stat-tile-value" id="activePlansCount">0</div>
+                <div class="tp-stat-tile-sub">In play now</div>
             </div>
-            <div class="stat-chip">
-                <span class="stat-chip-label">Hit Target</span>
-                <span class="stat-chip-value" id="hitTargetPct">—</span>
+            <div class="tp-stat-tile" id="tpst-target">
+                <div class="tp-stat-tile-label">Hit Target</div>
+                <div class="tp-stat-tile-value" id="hitTargetPct">—</div>
+                <div class="tp-stat-tile-sub">Closed plans</div>
             </div>
-            <div class="stat-chip">
-                <span class="stat-chip-label">Avg R:R</span>
-                <span class="stat-chip-value" id="avgRR">—</span>
+            <div class="tp-stat-tile" id="tpst-rr">
+                <div class="tp-stat-tile-label">Avg R:R</div>
+                <div class="tp-stat-tile-value" id="avgRR">—</div>
+                <div class="tp-stat-tile-sub">Risk / reward</div>
             </div>
         </div>
 
-        <!-- Tab Bar -->
-        <div class="tab-bar">
-            <button class="tab-btn active" onclick="switchTab('active', this)">Active</button>
-            <button class="tab-btn" onclick="switchTab('watching', this)">Watching</button>
-            <button class="tab-btn" onclick="switchTab('closed', this)">Closed</button>
+        <!-- Tab Bar + New Plan -->
+        <div class="tab-bar-row">
+            <div class="tab-bar">
+                <button class="tab-btn active" onclick="switchTab('active', this)">Active</button>
+                <button class="tab-btn" onclick="switchTab('watching', this)">Watching</button>
+                <button class="tab-btn" onclick="switchTab('closed', this)">Closed</button>
+            </div>
+            <button class="tp-new-btn" onclick="openPlanModal()">
+                <i class="fas fa-plus"></i> New Plan
+            </button>
         </div>
 
         <!-- Active Tab -->
@@ -1202,23 +1318,20 @@
         onAuthStateChanged(auth, async (user) => {
             if (!user) {
                 window.location.href = 'login.html';
-            } else {
-                currentUserId = user.uid;
-                await loadPlans();
-                updateAuthButton();
+                return;
             }
+            try {
+                const snap = await getDoc(doc(db, 'users', user.uid));
+                if (!snap.exists() || snap.data().plan !== 'bundle') {
+                    window.location.href = 'upgrade.html';
+                    return;
+                }
+            } catch (e) {
+                console.error('Plan check error:', e);
+            }
+            currentUserId = user.uid;
+            await loadPlans();
         });
-
-        function updateAuthButton() {
-            const authButton = document.getElementById('authButton');
-            if (authButton && authButton.parentElement) {
-                const logoutBtn     = document.createElement('button');
-                logoutBtn.className = 'logout-btn';
-                logoutBtn.innerHTML = '<i class="fas fa-sign-out-alt"></i> Logout';
-                logoutBtn.onclick   = window.logout;
-                authButton.parentElement.replaceChild(logoutBtn, authButton);
-            }
-        }
     </script>
 </body>
 </html>

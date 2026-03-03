@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Risk Disclaimer – Blue Chip Signals</title>
+    <link rel="icon" type="image/png" href="assets/images/logo.png">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="assets/css/signal-style.css">
+    <style>
+        body { overflow-x: hidden; }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0; left: 50%; transform: translateX(-50%);
+            width: 900px; height: 600px;
+            background: radial-gradient(ellipse at center, rgba(201,176,55,0.07) 0%, transparent 70%);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .legal-layout {
+            display: flex;
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 7rem 2rem 5rem;
+            gap: 3rem;
+            align-items: flex-start;
+            position: relative;
+            z-index: 1;
+        }
+
+        .legal-sidebar {
+            width: 220px;
+            flex-shrink: 0;
+            position: sticky;
+            top: 7rem;
+        }
+
+        .legal-sidebar-back {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.72rem;
+            font-weight: 700;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            color: rgba(240,236,224,0.45);
+            text-decoration: none;
+            margin-bottom: 1rem;
+            transition: color 0.2s;
+        }
+
+        .legal-sidebar-back:hover { color: var(--primary-gold); }
+
+        .legal-sidebar-divider {
+            height: 1px;
+            background: rgba(255,255,255,0.07);
+            margin-bottom: 0.9rem;
+        }
+
+        .legal-sidebar-heading {
+            font-size: 0.62rem;
+            font-weight: 700;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            color: rgba(240,236,224,0.25);
+            padding: 0 0.75rem;
+            margin-bottom: 0.4rem;
+        }
+
+        .legal-nav-item {
+            display: flex;
+            align-items: center;
+            gap: 0.55rem;
+            padding: 0.5rem 0.75rem;
+            border-radius: 8px;
+            font-size: 0.83rem;
+            font-weight: 500;
+            color: rgba(240,236,224,0.5);
+            text-decoration: none;
+            transition: background 0.2s, color 0.2s;
+            margin-bottom: 0.15rem;
+            border: 1px solid transparent;
+        }
+
+        .legal-nav-item:hover {
+            background: rgba(255,255,255,0.05);
+            color: #f0ece0;
+        }
+
+        .legal-nav-item.active {
+            background: rgba(201,176,55,0.1);
+            border-color: rgba(201,176,55,0.2);
+            color: var(--primary-gold);
+            font-weight: 600;
+        }
+
+        .legal-nav-item i { font-size: 0.72rem; width: 14px; text-align: center; flex-shrink: 0; }
+
+        .legal-content {
+            flex: 1;
+            min-width: 0;
+            opacity: 0;
+            transform: translateY(14px);
+            animation: lgFadeUp 0.55s ease 0.1s forwards;
+        }
+
+        @keyframes lgFadeUp {
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .legal-doc-label {
+            display: inline-block;
+            font-size: 0.67rem;
+            font-weight: 700;
+            letter-spacing: 0.14em;
+            text-transform: uppercase;
+            color: var(--primary-gold);
+            background: rgba(201,176,55,0.08);
+            border: 1px solid rgba(201,176,55,0.2);
+            border-radius: 100px;
+            padding: 0.3em 1em;
+            margin-bottom: 1rem;
+        }
+
+        .legal-doc-title {
+            font-size: clamp(1.7rem, 3.5vw, 2.2rem);
+            font-weight: 800;
+            color: #f0ece0;
+            margin: 0 0 0.5rem;
+            letter-spacing: -0.02em;
+            line-height: 1.15;
+        }
+
+        .legal-doc-meta {
+            display: flex;
+            align-items: center;
+            gap: 1.25rem;
+            flex-wrap: wrap;
+            font-size: 0.78rem;
+            color: rgba(240,236,224,0.35);
+            margin-bottom: 2rem;
+            padding-bottom: 1.5rem;
+            border-bottom: 1px solid rgba(255,255,255,0.07);
+        }
+
+        .legal-doc-meta span { display: flex; align-items: center; gap: 0.35rem; }
+        .legal-doc-meta i { color: rgba(201,176,55,0.6); font-size: 0.68rem; }
+
+        /* Warning banner */
+        .disclaimer-banner {
+            display: flex;
+            gap: 1rem;
+            align-items: flex-start;
+            background: rgba(239,68,68,0.06);
+            border: 1px solid rgba(239,68,68,0.2);
+            border-radius: 12px;
+            padding: 1.1rem 1.4rem;
+            margin-bottom: 1.75rem;
+        }
+
+        .disclaimer-banner i {
+            color: rgba(239,68,68,0.75);
+            font-size: 1rem;
+            flex-shrink: 0;
+            margin-top: 0.1rem;
+        }
+
+        .disclaimer-banner p {
+            font-size: 0.84rem;
+            color: rgba(235,235,235,0.65);
+            line-height: 1.65;
+            margin: 0;
+        }
+
+        .disclaimer-banner strong {
+            color: rgba(255,255,255,0.85);
+        }
+
+        .legal-doc-card {
+            background: rgba(255,255,255,0.025);
+            border: 1px solid rgba(255,255,255,0.07);
+            border-radius: 16px;
+            padding: 2rem 2.5rem;
+        }
+
+        .lg-section-title {
+            font-size: 0.75rem;
+            font-weight: 700;
+            letter-spacing: 0.14em;
+            text-transform: uppercase;
+            color: var(--primary-gold);
+            margin: 2rem 0 0.65rem;
+            padding-top: 1.75rem;
+            border-top: 1px solid rgba(255,255,255,0.06);
+        }
+
+        .lg-section-title:first-child {
+            margin-top: 0;
+            padding-top: 0;
+            border-top: none;
+        }
+
+        .lg-body {
+            font-size: 0.9rem;
+            color: rgba(235,235,235,0.72);
+            line-height: 1.85;
+            margin-bottom: 1rem;
+        }
+
+        .lg-body strong { color: rgba(255,255,255,0.88); }
+
+        .lg-body a {
+            color: var(--primary-gold);
+            text-decoration: none;
+        }
+
+        .lg-body a:hover { text-decoration: underline; }
+
+        .lg-body ul {
+            padding-left: 1.4rem;
+            margin: 0.5rem 0 0.75rem;
+        }
+
+        .lg-body ul li {
+            margin-bottom: 0.45rem;
+            color: rgba(214,214,214,0.75);
+        }
+
+        .legal-mobile-tabs {
+            display: none;
+            gap: 0.4rem;
+            flex-wrap: wrap;
+            margin-bottom: 1.5rem;
+        }
+
+        .legal-mobile-tab {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            padding: 0.4rem 0.9rem;
+            border-radius: 100px;
+            font-size: 0.78rem;
+            font-weight: 600;
+            color: rgba(240,236,224,0.5);
+            text-decoration: none;
+            border: 1px solid rgba(255,255,255,0.1);
+            transition: background 0.2s, color 0.2s, border-color 0.2s;
+        }
+
+        .legal-mobile-tab:hover { color: #f0ece0; border-color: rgba(255,255,255,0.2); }
+
+        .legal-mobile-tab.active {
+            background: rgba(201,176,55,0.12);
+            border-color: rgba(201,176,55,0.3);
+            color: var(--primary-gold);
+        }
+
+        @media (max-width: 768px) {
+            .legal-layout { flex-direction: column; padding-top: 6rem; gap: 0; }
+            .legal-sidebar { display: none; }
+            .legal-mobile-tabs { display: flex; }
+            .legal-doc-card { padding: 1.5rem; }
+        }
+    </style>
+</head>
+<body>
+
+    <div id="nav-placeholder" data-nav-type="public"></div>
+    <script src="assets/js/nav-component.js"></script>
+
+    <div class="legal-layout">
+
+        <!-- Sidebar -->
+        <aside class="legal-sidebar">
+            <a href="legal.html" class="legal-sidebar-back"><i class="fas fa-arrow-left"></i> Legal Hub</a>
+            <div class="legal-sidebar-divider"></div>
+            <div class="legal-sidebar-heading">Documents</div>
+            <a href="terms.html" class="legal-nav-item"><i class="fas fa-file-contract"></i> Terms of Service</a>
+            <a href="privacy.html" class="legal-nav-item"><i class="fas fa-shield-halved"></i> Privacy Policy</a>
+            <a href="disclaimer.html" class="legal-nav-item active"><i class="fas fa-triangle-exclamation"></i> Risk Disclaimer</a>
+        </aside>
+
+        <!-- Content -->
+        <main class="legal-content">
+
+            <!-- Mobile tabs -->
+            <div class="legal-mobile-tabs">
+                <a href="legal.html" class="legal-mobile-tab"><i class="fas fa-arrow-left"></i> Hub</a>
+                <a href="terms.html" class="legal-mobile-tab"><i class="fas fa-file-contract"></i> Terms</a>
+                <a href="privacy.html" class="legal-mobile-tab"><i class="fas fa-shield-halved"></i> Privacy</a>
+                <a href="disclaimer.html" class="legal-mobile-tab active"><i class="fas fa-triangle-exclamation"></i> Disclaimer</a>
+            </div>
+
+            <span class="legal-doc-label">Legal Document</span>
+            <h1 class="legal-doc-title">Risk Disclaimer</h1>
+            <div class="legal-doc-meta">
+                <span><i class="fas fa-calendar-days"></i> Effective Date: November 10, 2025</span>
+                <span><i class="fas fa-building"></i> Blue Chip Signals LLC</span>
+            </div>
+
+            <!-- Warning banner -->
+            <div class="disclaimer-banner">
+                <i class="fas fa-circle-exclamation"></i>
+                <p><strong>Important:</strong> Trading securities and financial instruments involves substantial risk of loss. The content provided by Blue Chip Signals is for educational and informational purposes only and does not constitute investment advice. Please read this disclaimer carefully before using our Services.</p>
+            </div>
+
+            <div class="legal-doc-card">
+
+                <div class="lg-section-title">No Advisory Relationship</div>
+                <p class="lg-body">All data feeds, strategy notes, alerts, commentary, charts, research briefs, videos, webinars, messages, or conversational outputs (collectively, the "<strong>Content</strong>") are furnished strictly for generalized educational and informational purposes. The Content does not constitute, and shall not be construed as, individualized investment advice, portfolio management, brokerage services, an offer to buy or sell securities, a solicitation for any transaction, legal advice, tax counsel, accounting guidance, or any form of professional fiduciary service.</p>
+
+                <p class="lg-body">Blue Chip Signals LLC is <strong>not registered</strong> with the U.S. Securities and Exchange Commission (SEC), the Financial Industry Regulatory Authority (FINRA), the Commodity Futures Trading Commission (CFTC), or any comparable domestic or foreign regulatory authority as an investment adviser, broker-dealer, commodity trading adviser, or futures commission merchant.</p>
+
+                <p class="lg-body">Any discussion of historical performance, hypothetical scenarios, illustrative trades, or prospective outcomes is inherently speculative and presented without representation that similar results are probable or attainable. You remain exclusively responsible for consulting qualified professionals acquainted with your personal financial condition and risk tolerance prior to acting on any Content.</p>
+
+                <div class="lg-section-title">Risk Factors &amp; Trading Losses</div>
+                <p class="lg-body">Trading securities, options, futures, ETFs, cryptocurrencies, or any other financial instruments involves <strong>substantial risk, including the possible loss of your entire invested capital</strong>. The following risk factors, among others, may result in severe adverse outcomes:</p>
+                <ul class="lg-body">
+                    <li><strong>Market volatility</strong> — Prices of financial instruments can move rapidly and unpredictably.</li>
+                    <li><strong>Liquidity risk</strong> — You may be unable to exit a position at a desired price due to insufficient market volume.</li>
+                    <li><strong>Execution risk</strong> — Slippage, order delays, or platform outages may cause trades to execute at unfavorable prices.</li>
+                    <li><strong>Leverage risk</strong> — The use of margin or leveraged instruments can amplify both gains and losses.</li>
+                    <li><strong>Counterparty risk</strong> — The insolvency or default of a broker, exchange, or counterparty may result in the loss of assets.</li>
+                    <li><strong>Regulatory and legal risk</strong> — Changes in tax law, regulations, or government policy may adversely affect markets or your specific positions.</li>
+                    <li><strong>Technology risk</strong> — System failures, data errors, or cybersecurity incidents may cause financial harm.</li>
+                    <li><strong>Macroeconomic risk</strong> — Geopolitical events, interest rate changes, inflation, or economic recessions may move markets adversely.</li>
+                </ul>
+
+                <div class="lg-section-title">Past Performance</div>
+                <p class="lg-body"><strong>Past performance is not indicative of future results.</strong> Any results discussed, referenced, or implied in our Content — whether hypothetical, back-tested, or based on actual historical trades — are provided for illustrative purposes only. There is no guarantee that similar results can or will be achieved in the future. Hypothetical performance results have inherent limitations and may not account for commissions, slippage, taxes, or other real-world trading costs.</p>
+
+                <div class="lg-section-title">Independent Decision-Making</div>
+                <p class="lg-body">You acknowledge and agree that:</p>
+                <ul class="lg-body">
+                    <li>All trading and investment decisions are made solely by you and at your sole discretion.</li>
+                    <li>You will not rely on the Services as the sole or primary basis for any investment decision.</li>
+                    <li>You will conduct your own independent due diligence before entering any trade or investment.</li>
+                    <li>You will only trade with risk capital — funds that, if lost in their entirety, would not materially impair your financial obligations, lifestyle, or long-term financial security.</li>
+                </ul>
+
+                <div class="lg-section-title">No Guarantee of Accuracy</div>
+                <p class="lg-body">While Blue Chip Signals endeavors to source data from believed-to-be reliable channels, we make no warranty — express or implied — that any Content is accurate, complete, timely, or free from errors. Market data provided through our platform may be delayed, adjusted, or erroneous due to factors outside our control. Real-time data may not always be available, and you should verify any information independently before acting on it.</p>
+
+                <div class="lg-section-title">Limitation of Liability</div>
+                <p class="lg-body">To the fullest extent permitted by applicable law, Blue Chip Signals LLC and its members, managers, employees, and affiliates shall not be liable for any trading losses, investment losses, lost profits, or other financial damages arising from your use of or reliance on the Content. This limitation applies regardless of the theory of liability — whether in contract, tort, negligence, strict liability, or otherwise — even if Blue Chip Signals has been advised of the possibility of such damages.</p>
+
+                <div class="lg-section-title">Seek Professional Advice</div>
+                <p class="lg-body" style="margin-bottom:0;">Nothing in our Content should be construed as a substitute for personalized financial, legal, or tax advice. Before making any investment decision, you should consider consulting with a licensed financial adviser, tax professional, or attorney who is familiar with your specific circumstances, financial goals, and risk tolerance. Blue Chip Signals is an educational platform and does not provide individualized guidance of any kind.</p>
+
+            </div>
+        </main>
+    </div>
+
+    <div id="footer-placeholder" data-footer-type="minimal" data-base=""></div>
+    <script src="assets/js/footer-component.js"></script>
+
+</body>
+</html>

@@ -1,0 +1,554 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pricing - Blue Chip Signals</title>
+    <link rel="icon" type="image/png" href="assets/images/logo.png">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="assets/css/signal-style.css">
+    <style>
+        body { overflow-x: hidden; }
+
+        .gate-box {
+            background: rgba(10,14,22,0.9);
+            border: 1px solid rgba(201,176,55,0.22);
+            border-radius: 20px;
+            padding: 2.75rem 2.5rem;
+            max-width: 420px;
+            width: 100%;
+            text-align: center;
+            box-shadow: 0 24px 60px rgba(0,0,0,0.6);
+        }
+
+        /* ================================================================
+           PRICING PAGE CONTENT
+        ================================================================ */
+        .pricing-hero {
+            padding: 9rem 2rem 4.5rem;
+            max-width: 1100px;
+            margin: 0 auto;
+            position: relative;
+            text-align: center;
+        }
+
+        .pricing-hero::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 50%; transform: translateX(-50%);
+            width: 700px; height: 500px;
+            background: radial-gradient(ellipse at center, rgba(201,176,55,0.08) 0%, transparent 70%);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .pricing-hero-inner { position: relative; z-index: 1; }
+
+        .pricing-hero-label {
+            display: inline-block;
+            font-size: 0.75rem;
+            font-weight: 700;
+            letter-spacing: 0.14em;
+            text-transform: uppercase;
+            color: var(--primary-gold);
+            background: rgba(201,176,55,0.08);
+            border: 1px solid rgba(201,176,55,0.2);
+            border-radius: 50px;
+            padding: 0.3rem 0.9rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .pricing-hero h1 {
+            font-size: clamp(2.4rem, 5.5vw, 4rem);
+            font-weight: 900;
+            color: var(--light-text);
+            line-height: 1.07;
+            letter-spacing: -0.025em;
+            margin-bottom: 1.1rem;
+        }
+
+        .pricing-hero h1 em {
+            font-style: italic;
+            background: linear-gradient(135deg, var(--primary-gold), var(--secondary-gold));
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .pricing-hero-desc {
+            color: var(--gray-text);
+            font-size: 1.05rem;
+            line-height: 1.7;
+            max-width: 520px;
+            margin: 0 auto;
+        }
+
+        /* ---- Divider ---- */
+        .pricing-divider {
+            border: none;
+            border-top: 1px solid rgba(201,176,55,0.1);
+            max-width: 1100px;
+            margin: 0 auto;
+        }
+
+        /* ---- Cards grid ---- */
+        .pricing-cards {
+            max-width: 920px;
+            margin: 0 auto;
+            padding: 5rem 2rem;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
+            align-items: start;
+        }
+
+        .pricing-card {
+            background: rgba(10,14,22,0.75);
+            border: 1px solid rgba(201,176,55,0.15);
+            border-radius: 20px;
+            padding: 2.25rem 2rem;
+            position: relative;
+            transition: transform 0.25s, border-color 0.25s;
+        }
+
+        .pricing-card:hover { transform: translateY(-4px); }
+
+        .pricing-card.featured {
+            border-color: rgba(201,176,55,0.4);
+            box-shadow: 0 0 0 1px rgba(201,176,55,0.15), 0 20px 50px rgba(0,0,0,0.4);
+        }
+
+        .featured-badge {
+            position: absolute;
+            top: -13px; left: 50%; transform: translateX(-50%);
+            background: linear-gradient(135deg, var(--primary-gold), var(--secondary-gold));
+            color: #080B0F;
+            font-size: 0.68rem;
+            font-weight: 800;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            padding: 0.28rem 1rem;
+            border-radius: 20px;
+            white-space: nowrap;
+        }
+
+        .card-plan-name {
+            font-size: 0.8rem;
+            font-weight: 700;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            color: var(--primary-gold);
+            margin-bottom: 0.65rem;
+        }
+
+        .card-tagline {
+            font-size: 0.88rem;
+            color: var(--gray-text);
+            margin-bottom: 1.5rem;
+            line-height: 1.5;
+        }
+
+        .card-price-block {
+            margin-bottom: 1.75rem;
+            padding-bottom: 1.5rem;
+            border-bottom: 1px solid rgba(255,255,255,0.07);
+        }
+
+        .card-original-price {
+            font-size: 0.88rem;
+            color: var(--gray-text);
+            text-decoration: line-through;
+            margin-bottom: 0.25rem;
+        }
+
+        .card-current-price {
+            font-size: 2.5rem;
+            font-weight: 900;
+            color: var(--light-text);
+            line-height: 1;
+            letter-spacing: -0.03em;
+        }
+
+        .card-current-price sup {
+            font-size: 1.2rem;
+            font-weight: 700;
+            vertical-align: super;
+            letter-spacing: 0;
+        }
+
+        .card-price-note {
+            font-size: 0.78rem;
+            color: var(--gray-text);
+            margin-top: 0.4rem;
+        }
+
+        .card-savings-badge {
+            display: inline-block;
+            background: rgba(34,197,94,0.12);
+            border: 1px solid rgba(34,197,94,0.25);
+            color: #4ade80;
+            font-size: 0.72rem;
+            font-weight: 700;
+            padding: 0.2rem 0.65rem;
+            border-radius: 20px;
+            margin-top: 0.6rem;
+        }
+
+        .card-cta-btn {
+            display: block;
+            width: 100%;
+            text-align: center;
+            padding: 0.9rem;
+            border-radius: 12px;
+            font-size: 0.92rem;
+            font-weight: 700;
+            font-family: inherit;
+            cursor: pointer;
+            text-decoration: none;
+            transition: opacity 0.2s, transform 0.2s;
+            margin-bottom: 1.75rem;
+            border: none;
+        }
+
+        .pricing-card.featured .card-cta-btn {
+            background: linear-gradient(135deg, var(--primary-gold), var(--secondary-gold));
+            color: #080B0F;
+        }
+
+        .pricing-card:not(.featured) .card-cta-btn {
+            background: rgba(201,176,55,0.1);
+            border: 1px solid rgba(201,176,55,0.3);
+            color: var(--primary-gold);
+        }
+
+        .card-cta-btn:hover { opacity: 0.85; transform: translateY(-1px); }
+
+        .card-stripe-note {
+            text-align: center;
+            font-size: 0.73rem;
+            color: rgba(255,255,255,0.3);
+            margin-bottom: 1.5rem;
+        }
+
+        .card-stripe-note i { margin-right: 0.3rem; }
+
+        /* ---- Features list ---- */
+        .card-features-title {
+            font-size: 0.72rem;
+            font-weight: 700;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            color: rgba(255,255,255,0.4);
+            margin-bottom: 0.85rem;
+        }
+
+        .card-features {
+            list-style: none;
+            padding: 0; margin: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 0.65rem;
+        }
+
+        .card-features li {
+            display: flex;
+            align-items: flex-start;
+            gap: 0.65rem;
+            font-size: 0.865rem;
+            color: rgba(255,255,255,0.8);
+            line-height: 1.4;
+        }
+
+        .card-features li i {
+            color: #4ade80;
+            font-size: 0.75rem;
+            margin-top: 0.15rem;
+            flex-shrink: 0;
+        }
+
+        .pricing-card.featured .card-features li i {
+            color: var(--primary-gold);
+        }
+
+        .feature-highlight {
+            font-weight: 600;
+            color: var(--light-text);
+        }
+
+        /* ---- Comparison note ---- */
+        .pricing-compare {
+            max-width: 920px;
+            margin: 0 auto;
+            padding: 0 2rem 2rem;
+        }
+
+        .compare-box {
+            background: rgba(201,176,55,0.04);
+            border: 1px solid rgba(201,176,55,0.12);
+            border-radius: 14px;
+            padding: 1.25rem 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .compare-box i {
+            color: var(--primary-gold);
+            font-size: 1rem;
+            flex-shrink: 0;
+        }
+
+        .compare-box p {
+            font-size: 0.85rem;
+            color: var(--gray-text);
+            line-height: 1.55;
+        }
+
+        .compare-box p strong { color: var(--light-text); }
+
+        /* ---- Divider ---- */
+        .pricing-section-divider {
+            border: none;
+            border-top: 1px solid rgba(201,176,55,0.08);
+            max-width: 920px;
+            margin: 3rem auto;
+        }
+
+        /* ---- FAQ ---- */
+        .pricing-faq {
+            max-width: 700px;
+            margin: 0 auto;
+            padding: 0 2rem 6rem;
+        }
+
+        .faq-title {
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: var(--light-text);
+            margin-bottom: 0.5rem;
+            text-align: center;
+        }
+
+        .faq-subtitle {
+            text-align: center;
+            color: var(--gray-text);
+            font-size: 0.9rem;
+            margin-bottom: 2.5rem;
+        }
+
+        .faq-item {
+            border-bottom: 1px solid rgba(255,255,255,0.07);
+        }
+
+        .faq-question {
+            width: 100%;
+            background: none;
+            border: none;
+            color: var(--light-text);
+            font-family: inherit;
+            font-size: 0.95rem;
+            font-weight: 600;
+            text-align: left;
+            padding: 1.2rem 0;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .faq-question:hover { color: var(--primary-gold); }
+
+        .faq-caret {
+            font-size: 0.75rem;
+            color: var(--gray-text);
+            transition: transform 0.25s;
+            flex-shrink: 0;
+        }
+
+        .faq-item.open .faq-caret { transform: rotate(180deg); }
+
+        .faq-answer {
+            display: none;
+            font-size: 0.88rem;
+            color: var(--gray-text);
+            line-height: 1.7;
+            padding-bottom: 1.25rem;
+        }
+
+        .faq-item.open .faq-answer { display: block; }
+
+        /* ---- Responsive ---- */
+        @media (max-width: 720px) {
+            .pricing-cards {
+                grid-template-columns: 1fr;
+                padding: 3rem 1.25rem;
+            }
+            .pricing-hero { padding: 7rem 1.25rem 3.5rem; }
+            .pricing-compare, .pricing-faq { padding-left: 1.25rem; padding-right: 1.25rem; }
+            .card-current-price { font-size: 2rem; }
+        }
+    </style>
+</head>
+<body>
+
+    <div id="page-content">
+
+        <div id="nav-placeholder" data-nav-type="public"></div>
+        <script src="assets/js/nav-component.js"></script>
+
+        <!-- Hero -->
+        <section class="pricing-hero">
+            <div class="pricing-hero-inner">
+                <div class="pricing-hero-label"><i class="fas fa-tag"></i> &nbsp;Pricing</div>
+                <h1>Simple pricing you <em>can trust</em></h1>
+                <p class="pricing-hero-desc">
+                    Get access to institutional-grade signals for the stocks that move markets. No recurring fees, no hidden costs — pay once and keep access.
+                </p>
+            </div>
+        </section>
+
+        <hr class="pricing-divider">
+
+        <!-- Pricing Cards -->
+        <div class="pricing-cards">
+
+            <!-- Single Channel -->
+            <div class="pricing-card">
+                <div class="card-plan-name">Single Channel</div>
+                <div class="card-tagline">Perfect for traders focused on one ticker they know well.</div>
+
+                <div class="card-price-block">
+                    <div class="card-original-price">$2,995 regular price</div>
+                    <div class="card-current-price"><sup>$</sup>1,995</div>
+                    <div class="card-price-note">One-time payment &middot; Lifetime access</div>
+                    <div class="card-savings-badge"><i class="fas fa-tag"></i> Save $1,000 today</div>
+                </div>
+
+                <!-- REPLACE WITH STRIPE PAYMENT LINK FOR SINGLE CHANNEL ($1,995) -->
+                <a href="#" class="card-cta-btn" id="stripe-single">
+                    Get Started <i class="fas fa-arrow-right"></i>
+                </a>
+                <div class="card-stripe-note"><i class="fab fa-stripe"></i> Secured by Stripe</div>
+
+                <div class="card-features-title">What's included</div>
+                <ul class="card-features">
+                    <li><i class="fas fa-check"></i><span>Access to <span class="feature-highlight">1 signal channel</span> of your choice (SPY, AAPL, TSLA, META, NVDA or AMZN)</span></li>
+                    <li><i class="fas fa-check"></i><span>Real-time <span class="feature-highlight">entry signal alerts</span></span></li>
+                    <li><i class="fas fa-check"></i><span>Supporting <span class="feature-highlight">educational guide</span> for your chosen stock</span></li>
+                    <li><i class="fas fa-check"></i><span>Member <span class="feature-highlight">dashboard access</span></span></li>
+                    <li><i class="fas fa-check"></i><span>Lifetime access — <span class="feature-highlight">no monthly fees</span></span></li>
+                </ul>
+            </div>
+
+            <!-- Full Bundle -->
+            <div class="pricing-card featured">
+                <div class="featured-badge"><i class="fas fa-star"></i> &nbsp;Most Popular</div>
+                <div class="card-plan-name">Full Bundle</div>
+                <div class="card-tagline">Everything we offer, every update included, and first access to mobile apps.</div>
+
+                <div class="card-price-block">
+                    <div class="card-original-price">$9,995 regular price</div>
+                    <div class="card-current-price"><sup>$</sup>4,995</div>
+                    <div class="card-price-note">One-time payment &middot; Lifetime access</div>
+                    <div class="card-savings-badge"><i class="fas fa-tag"></i> Save $5,000 today</div>
+                </div>
+
+                <!-- REPLACE WITH STRIPE PAYMENT LINK FOR FULL BUNDLE ($4,995) -->
+                <a href="#" class="card-cta-btn" id="stripe-bundle">
+                    Get Full Bundle <i class="fas fa-arrow-right"></i>
+                </a>
+                <div class="card-stripe-note"><i class="fab fa-stripe"></i> Secured by Stripe</div>
+
+                <div class="card-features-title">Everything in Single, plus</div>
+                <ul class="card-features">
+                    <li><i class="fas fa-check"></i><span><span class="feature-highlight">All 6 signal channels</span> — SPY, AAPL, TSLA, META, NVDA &amp; AMZN</span></li>
+                    <li><i class="fas fa-check"></i><span>Full <span class="feature-highlight">member dashboard</span> — Journal, Trade Planner &amp; Portfolio Overview</span></li>
+                    <li><i class="fas fa-check"></i><span>Access to all <span class="feature-highlight">13 educational guides</span></span></li>
+                    <li><i class="fas fa-check"></i><span>All <span class="feature-highlight">future updates included</span> — no extra charge, ever</span></li>
+                    <li><i class="fas fa-check"></i><span><span class="feature-highlight">Priority early access</span> to iOS &amp; Android apps at launch (Q2 2027)</span></li>
+                    <li><i class="fas fa-check"></i><span>First access to <span class="feature-highlight">AI signal confidence scoring</span> (Q4 2026)</span></li>
+                    <li><i class="fas fa-check"></i><span>Member <span class="feature-highlight">community hub</span> &amp; Discord access when launched</span></li>
+                </ul>
+            </div>
+
+        </div>
+
+        <!-- Comparison note -->
+        <div class="pricing-compare">
+            <div class="compare-box">
+                <i class="fas fa-circle-info"></i>
+                <p>
+                    <strong>Not sure which to choose?</strong> The Full Bundle delivers over 3× more value than the single channel — and at $4,995 vs. buying 6 individual channels at $1,995 each ($11,970 total), you save <strong>$6,975</strong>. Bundle members also receive every future feature at no additional cost.
+                </p>
+            </div>
+        </div>
+
+        <hr class="pricing-section-divider">
+
+        <!-- FAQ -->
+        <div class="pricing-faq">
+            <div class="faq-title">Common questions</div>
+            <div class="faq-subtitle">Everything you need to know before getting started.</div>
+
+            <div class="faq-item">
+                <button class="faq-question">
+                    Is this really a one-time payment with no subscriptions?
+                    <i class="fas fa-chevron-down faq-caret"></i>
+                </button>
+                <div class="faq-answer">
+                    Yes — you pay once and keep lifetime access. There are no monthly or annual renewal fees. Any future features we build (signals, tools, mobile apps) are included for bundle members at no extra charge.
+                </div>
+            </div>
+
+            <div class="faq-item">
+                <button class="faq-question">
+                    Which signal channel should I choose for the Single plan?
+                    <i class="fas fa-chevron-down faq-caret"></i>
+                </button>
+                <div class="faq-answer">
+                    Choose the ticker you trade most actively. SPY is great for broad market traders. TSLA and NVDA suit higher-volatility traders. AAPL, META and AMZN tend to trend more steadily. After purchase, you can contact us to select your channel.
+                </div>
+            </div>
+
+            <div class="faq-item">
+                <button class="faq-question">
+                    When do I get access after purchasing?
+                    <i class="fas fa-chevron-down faq-caret"></i>
+                </button>
+                <div class="faq-answer">
+                    Access is set up within 24 hours of your payment clearing. You'll receive login credentials via email and a welcome guide to get you started immediately.
+                </div>
+            </div>
+
+            <div class="faq-item">
+                <button class="faq-question">
+                    Is my payment information secure?
+                    <i class="fas fa-chevron-down faq-caret"></i>
+                </button>
+                <div class="faq-answer">
+                    All payments are processed through Stripe — a PCI DSS Level 1 certified payment processor trusted by millions of businesses worldwide. We never store your card details on our servers.
+                </div>
+            </div>
+
+        </div>
+
+    </div><!-- end #page-content -->
+
+    <div id="footer-placeholder" data-footer-type="standard-social"></div>
+    <script src="assets/js/footer-component.js"></script>
+
+    <script>
+        document.querySelectorAll('.faq-question').forEach(function (btn) {
+            btn.addEventListener('click', function () {
+                var item = btn.closest('.faq-item');
+                var isOpen = item.classList.contains('open');
+                document.querySelectorAll('.faq-item.open').forEach(function (i) {
+                    i.classList.remove('open');
+                });
+                if (!isOpen) item.classList.add('open');
+            });
+        });
+    </script>
+</body>
+</html>

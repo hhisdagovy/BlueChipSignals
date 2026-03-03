@@ -1,6 +1,6 @@
 // Firebase Authentication Check — Blue Chip Signals
 // Centralised auth utilities used by all protected pages.
-import { auth, onAuthStateChanged, signOut } from './firebase-config.js';
+import { auth, db, onAuthStateChanged, signOut, doc, getDoc } from './firebase-config.js';
 
 /**
  * Protect a page: redirect unauthenticated users immediately.
@@ -60,6 +60,51 @@ export function redirectIfLoggedIn(destination) {
         if (e.persisted && auth.currentUser) {
             _redirect();
         }
+    });
+}
+
+/**
+ * Plan-gated page guard.
+ * Checks Firebase auth AND the user's Firestore subscription plan before allowing access.
+ *
+ * planType  'bundle' — user must have plan === 'bundle'
+ *           'ticker' — user must have plan === 'bundle'  OR
+ *                      (plan === 'single' AND allowedTicker === ticker)
+ *
+ * @param {'bundle'|'ticker'} planType
+ * @param {string|null}       ticker      - e.g. 'SPY', 'AAPL' (ignored when planType='bundle')
+ * @param {string}            loginPath   - e.g. '../../login.html'
+ * @param {string}            upgradePath - e.g. '../../upgrade.html'
+ */
+export function requirePlan(planType, ticker, loginPath, upgradePath) {
+    const _login   = () => { window.location.href = loginPath   || '../../login.html'; };
+    const _upgrade = () => { window.location.href = upgradePath || '../../upgrade.html'; };
+
+    const _check = async (user) => {
+        if (!user) { _login(); return; }
+        try {
+            const snap = await getDoc(doc(db, 'users', user.uid));
+            if (!snap.exists()) { _login(); return; }
+            const { plan, allowedTicker } = snap.data();
+            if (planType === 'bundle') {
+                if (plan !== 'bundle') _upgrade();
+            } else {
+                const t = (ticker || '').toUpperCase();
+                const allowed = (allowedTicker || '').toUpperCase();
+                if (plan !== 'bundle' && !(plan === 'single' && allowed === t)) {
+                    _upgrade();
+                }
+            }
+        } catch (err) {
+            console.error('requirePlan error:', err);
+            _login();
+        }
+    };
+
+    onAuthStateChanged(auth, (user) => { _check(user); });
+
+    window.addEventListener('pageshow', (e) => {
+        if (e.persisted) _check(auth.currentUser);
     });
 }
 

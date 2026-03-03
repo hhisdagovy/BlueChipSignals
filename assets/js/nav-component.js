@@ -92,13 +92,35 @@
        Nav HTML templates
        ============================================================ */
 
+    /* Check the lightweight auth flag set by login.html / cleared on logout. */
+    function isUserLoggedIn() {
+        try {
+            return !!(localStorage.getItem('bluechip_logged_in') ||
+                      sessionStorage.getItem('bluechip_logged_in'));
+        } catch (e) { return false; }
+    }
+
     function buildNav(navType) {
         switch (navType) {
-            case 'loggedin':  return loggedinNav();
             case 'internal':  return internalNav();
             case 'minimal':   return minimalNav();
-            default:          return publicNav();
+            /* 'loggedin' is a legacy alias — falls through to the same logic */
+            case 'loggedin':
+            default:
+                /* Public pages: show internal nav to authenticated users */
+                return (isUserLoggedIn() ? internalNav() : publicNav());
         }
+    }
+
+    /* Define a fallback logout for public pages (contact, faq, roadmap, etc.)
+       that don't import Firebase directly.  Protected pages override this with
+       their own window.logout that calls Firebase signOut() before clearing. */
+    if (typeof window.logout === 'undefined') {
+        window.logout = function () {
+            localStorage.clear();
+            sessionStorage.clear();
+            window.location.href = base + 'login.html';
+        };
     }
 
     /* Standard public nav — logo click redirects logged-in users to dashboard
@@ -142,6 +164,7 @@
                     '<ul class="nav-stocks-dropdown">' + desktopDropdownItems + '</ul>' +
                 '</li>' +
                 '<li class="nav-stocks-mobile-li"><button class="nav-stocks-mobile-btn">SUPPORTED STOCKS <span>&#8250;</span></button></li>' +
+                '<li><a href="' + base + 'roadmap.html">ROADMAP</a></li>' +
                 '<li><a href="' + base + 'contact.html">CONTACT</a></li>' +
                 '<li><a href="' + base + 'faq.html">FAQ</a></li>' +
                 '<li><a href="' + base + 'about.html">ABOUT US</a></li>' +
@@ -156,41 +179,18 @@
         '</div>';
     }
 
-    /* Always-logged-in nav — used by dashboard.html.
-       Logo click redirects to index.html which bounces back to dashboard.
-       Calls window.logout() which each protected page defines. */
+    /* Alias — forwards to internalNav() so any page still using data-nav-type="loggedin"
+       receives the same consistent logged-in nav. */
     function loggedinNav() {
-        return '<div class="nav-container">' +
-            '<div class="logo">' +
-                '<a href="' + base + 'index.html"><img src="' + base + 'assets/images/logo.png" alt="Blue Chip Signals Logo"></a>' +
-            '</div>' +
-            '<button class="hamburger-menu" aria-label="Toggle menu">' +
-                '<span class="bar"></span>' +
-                '<span class="bar"></span>' +
-                '<span class="bar"></span>' +
-            '</button>' +
-            '<ul class="nav-links">' +
-                '<li><a href="' + base + 'trading-journal.html">JOURNAL</a></li>' +
-                '<li><a href="' + base + 'trade-planner.html">PLANNER</a></li>' +
-                '<li><a href="' + base + 'contact.html">CONTACT</a></li>' +
-                '<li><a href="' + base + 'faq.html">FAQ</a></li>' +
-                '<li>' +
-                    '<a href="#" class="login-btn" id="authButton" ' +
-                       'onclick="if(window.logout){logout();}return false;" ' +
-                       'style="cursor:pointer;">' +
-                        '<i class="fas fa-sign-out-alt"></i> Logout' +
-                    '</a>' +
-                '</li>' +
-            '</ul>' +
-        '</div>';
+        return internalNav();
     }
 
-    /* Internal nav — used by account.html.
-       Simple links to Dashboard, Journal, Planner, Account + Logout. */
+    /* Internal nav — used by account.html, trading-journal.html, trade-planner.html.
+       Logo click returns to dashboard. Links: Journal, Planner, Contact, FAQ + Logout. */
     function internalNav() {
         return '<div class="nav-container">' +
             '<div class="logo">' +
-                '<a href="' + base + 'index.html"><img src="' + base + 'assets/images/logo.png" alt="Blue Chip Signals Logo"></a>' +
+                '<a href="' + base + 'dashboard.html"><img src="' + base + 'assets/images/logo.png" alt="Blue Chip Signals Logo"></a>' +
             '</div>' +
             '<button class="hamburger-menu" aria-label="Toggle menu">' +
                 '<span class="bar"></span>' +
@@ -198,10 +198,11 @@
                 '<span class="bar"></span>' +
             '</button>' +
             '<ul class="nav-links">' +
-                '<li><a href="' + base + 'dashboard.html">DASHBOARD</a></li>' +
                 '<li><a href="' + base + 'trading-journal.html">JOURNAL</a></li>' +
                 '<li><a href="' + base + 'trade-planner.html">PLANNER</a></li>' +
-                '<li><a href="' + base + 'account.html">ACCOUNT</a></li>' +
+                '<li><a href="' + base + 'roadmap.html">ROADMAP</a></li>' +
+                '<li><a href="' + base + 'contact.html">CONTACT</a></li>' +
+                '<li><a href="' + base + 'faq.html">FAQ</a></li>' +
                 '<li>' +
                     '<button class="logout-btn" onclick="logout()">' +
                         '<i class="fas fa-sign-out-alt"></i> Logout' +

@@ -1108,8 +1108,8 @@
 
 
     <script type="module">
-        import { updateAuthButton } from '../../assets/js/firebase-auth-check.js';
-        updateAuthButton('../../login.html');
+        import { requirePlan } from '../../assets/js/firebase-auth-check.js';
+        requirePlan('ticker', 'NVDA', '../../login.html', '../../upgrade.html');
     </script>
 
     <script>

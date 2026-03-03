@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Privacy Policy – Blue Chip Signals</title>
+    <link rel="icon" type="image/png" href="assets/images/logo.png">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="assets/css/signal-style.css">
+    <style>
+        body { overflow-x: hidden; }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0; left: 50%; transform: translateX(-50%);
+            width: 900px; height: 600px;
+            background: radial-gradient(ellipse at center, rgba(201,176,55,0.07) 0%, transparent 70%);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .legal-layout {
+            display: flex;
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 7rem 2rem 5rem;
+            gap: 3rem;
+            align-items: flex-start;
+            position: relative;
+            z-index: 1;
+        }
+
+        .legal-sidebar {
+            width: 220px;
+            flex-shrink: 0;
+            position: sticky;
+            top: 7rem;
+        }
+
+        .legal-sidebar-back {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.72rem;
+            font-weight: 700;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            color: rgba(240,236,224,0.45);
+            text-decoration: none;
+            margin-bottom: 1rem;
+            transition: color 0.2s;
+        }
+
+        .legal-sidebar-back:hover { color: var(--primary-gold); }
+
+        .legal-sidebar-divider {
+            height: 1px;
+            background: rgba(255,255,255,0.07);
+            margin-bottom: 0.9rem;
+        }
+
+        .legal-sidebar-heading {
+            font-size: 0.62rem;
+            font-weight: 700;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            color: rgba(240,236,224,0.25);
+            padding: 0 0.75rem;
+            margin-bottom: 0.4rem;
+        }
+
+        .legal-nav-item {
+            display: flex;
+            align-items: center;
+            gap: 0.55rem;
+            padding: 0.5rem 0.75rem;
+            border-radius: 8px;
+            font-size: 0.83rem;
+            font-weight: 500;
+            color: rgba(240,236,224,0.5);
+            text-decoration: none;
+            transition: background 0.2s, color 0.2s;
+            margin-bottom: 0.15rem;
+            border: 1px solid transparent;
+        }
+
+        .legal-nav-item:hover {
+            background: rgba(255,255,255,0.05);
+            color: #f0ece0;
+        }
+
+        .legal-nav-item.active {
+            background: rgba(201,176,55,0.1);
+            border-color: rgba(201,176,55,0.2);
+            color: var(--primary-gold);
+            font-weight: 600;
+        }
+
+        .legal-nav-item i { font-size: 0.72rem; width: 14px; text-align: center; flex-shrink: 0; }
+
+        .legal-content {
+            flex: 1;
+            min-width: 0;
+            opacity: 0;
+            transform: translateY(14px);
+            animation: lgFadeUp 0.55s ease 0.1s forwards;
+        }
+
+        @keyframes lgFadeUp {
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .legal-doc-label {
+            display: inline-block;
+            font-size: 0.67rem;
+            font-weight: 700;
+            letter-spacing: 0.14em;
+            text-transform: uppercase;
+            color: var(--primary-gold);
+            background: rgba(201,176,55,0.08);
+            border: 1px solid rgba(201,176,55,0.2);
+            border-radius: 100px;
+            padding: 0.3em 1em;
+            margin-bottom: 1rem;
+        }
+
+        .legal-doc-title {
+            font-size: clamp(1.7rem, 3.5vw, 2.2rem);
+            font-weight: 800;
+            color: #f0ece0;
+            margin: 0 0 0.5rem;
+            letter-spacing: -0.02em;
+            line-height: 1.15;
+        }
+
+        .legal-doc-meta {
+            display: flex;
+            align-items: center;
+            gap: 1.25rem;
+            flex-wrap: wrap;
+            font-size: 0.78rem;
+            color: rgba(240,236,224,0.35);
+            margin-bottom: 2rem;
+            padding-bottom: 1.5rem;
+            border-bottom: 1px solid rgba(255,255,255,0.07);
+        }
+
+        .legal-doc-meta span { display: flex; align-items: center; gap: 0.35rem; }
+        .legal-doc-meta i { color: rgba(201,176,55,0.6); font-size: 0.68rem; }
+
+        .legal-doc-card {
+            background: rgba(255,255,255,0.025);
+            border: 1px solid rgba(255,255,255,0.07);
+            border-radius: 16px;
+            padding: 2rem 2.5rem;
+        }
+
+        .lg-section-title {
+            font-size: 0.75rem;
+            font-weight: 700;
+            letter-spacing: 0.14em;
+            text-transform: uppercase;
+            color: var(--primary-gold);
+            margin: 2rem 0 0.65rem;
+            padding-top: 1.75rem;
+            border-top: 1px solid rgba(255,255,255,0.06);
+        }
+
+        .lg-section-title:first-child {
+            margin-top: 0;
+            padding-top: 0;
+            border-top: none;
+        }
+
+        .lg-body {
+            font-size: 0.9rem;
+            color: rgba(235,235,235,0.72);
+            line-height: 1.85;
+            margin-bottom: 1rem;
+        }
+
+        .lg-body strong { color: rgba(255,255,255,0.88); }
+
+        .lg-body a {
+            color: var(--primary-gold);
+            text-decoration: none;
+        }
+
+        .lg-body a:hover { text-decoration: underline; }
+
+        .lg-body ul {
+            padding-left: 1.4rem;
+            margin: 0.5rem 0 0.75rem;
+        }
+
+        .lg-body ul li {
+            margin-bottom: 0.45rem;
+            color: rgba(214,214,214,0.75);
+        }
+
+        .legal-mobile-tabs {
+            display: none;
+            gap: 0.4rem;
+            flex-wrap: wrap;
+            margin-bottom: 1.5rem;
+        }
+
+        .legal-mobile-tab {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            padding: 0.4rem 0.9rem;
+            border-radius: 100px;
+            font-size: 0.78rem;
+            font-weight: 600;
+            color: rgba(240,236,224,0.5);
+            text-decoration: none;
+            border: 1px solid rgba(255,255,255,0.1);
+            transition: background 0.2s, color 0.2s, border-color 0.2s;
+        }
+
+        .legal-mobile-tab:hover { color: #f0ece0; border-color: rgba(255,255,255,0.2); }
+
+        .legal-mobile-tab.active {
+            background: rgba(201,176,55,0.12);
+            border-color: rgba(201,176,55,0.3);
+            color: var(--primary-gold);
+        }
+
+        @media (max-width: 768px) {
+            .legal-layout { flex-direction: column; padding-top: 6rem; gap: 0; }
+            .legal-sidebar { display: none; }
+            .legal-mobile-tabs { display: flex; }
+            .legal-doc-card { padding: 1.5rem; }
+        }
+    </style>
+</head>
+<body>
+
+    <div id="nav-placeholder" data-nav-type="public"></div>
+    <script src="assets/js/nav-component.js"></script>
+
+    <div class="legal-layout">
+
+        <!-- Sidebar -->
+        <aside class="legal-sidebar">
+            <a href="legal.html" class="legal-sidebar-back"><i class="fas fa-arrow-left"></i> Legal Hub</a>
+            <div class="legal-sidebar-divider"></div>
+            <div class="legal-sidebar-heading">Documents</div>
+            <a href="terms.html" class="legal-nav-item"><i class="fas fa-file-contract"></i> Terms of Service</a>
+            <a href="privacy.html" class="legal-nav-item active"><i class="fas fa-shield-halved"></i> Privacy Policy</a>
+            <a href="disclaimer.html" class="legal-nav-item"><i class="fas fa-triangle-exclamation"></i> Risk Disclaimer</a>
+        </aside>
+
+        <!-- Content -->
+        <main class="legal-content">
+
+            <!-- Mobile tabs -->
+            <div class="legal-mobile-tabs">
+                <a href="legal.html" class="legal-mobile-tab"><i class="fas fa-arrow-left"></i> Hub</a>
+                <a href="terms.html" class="legal-mobile-tab"><i class="fas fa-file-contract"></i> Terms</a>
+                <a href="privacy.html" class="legal-mobile-tab active"><i class="fas fa-shield-halved"></i> Privacy</a>
+                <a href="disclaimer.html" class="legal-mobile-tab"><i class="fas fa-triangle-exclamation"></i> Disclaimer</a>
+            </div>
+
+            <span class="legal-doc-label">Legal Document</span>
+            <h1 class="legal-doc-title">Privacy Policy</h1>
+            <div class="legal-doc-meta">
+                <span><i class="fas fa-calendar-days"></i> Effective Date: November 10, 2025</span>
+                <span><i class="fas fa-building"></i> Blue Chip Signals LLC</span>
+            </div>
+
+            <div class="legal-doc-card">
+
+                <p class="lg-body">This Privacy Policy explains how Blue Chip Signals LLC collects, uses, and safeguards information when you interact with our Services at <a href="https://bluechipsignals.online">https://bluechipsignals.online</a>. By accessing the Services, you consent to the practices described below. If you do not agree with this policy, please discontinue use immediately.</p>
+
+                <div class="lg-section-title">Information We Collect</div>
+                <p class="lg-body">Information we collect falls into two categories: information you voluntarily provide and information automatically collected when you use our platform.</p>
+                <ul class="lg-body">
+                    <li><strong>Contact details</strong> you choose to provide — such as name, email address, and phone number — through registration forms, demos, or support inquiries.</li>
+                    <li><strong>Usage information</strong> about how you navigate the Services, including device identifiers, browser type and version, IP address, and pages visited.</li>
+                    <li><strong>Scheduling metadata</strong> and related details supplied through integrated third-party platforms (e.g., Calendly) when you book demos or consultations.</li>
+                    <li><strong>Account data</strong> such as your trading experience, stated interests, and platform preferences provided during onboarding.</li>
+                </ul>
+
+                <div class="lg-section-title">How We Use Your Information</div>
+                <ul class="lg-body">
+                    <li>To provide, maintain, and improve the Services, including account management and customer support.</li>
+                    <li>To respond to inquiries and deliver communications related to your account or activity.</li>
+                    <li>To personalize your experience and recommend content relevant to your stated interests.</li>
+                    <li>To operate analytics, security monitoring, and product development processes.</li>
+                    <li>To facilitate scheduling, webinars, and events administered through trusted third-party providers.</li>
+                    <li>To comply with legal obligations and enforce our agreements.</li>
+                </ul>
+
+                <div class="lg-section-title">Third-Party Services</div>
+                <p class="lg-body">We rely on select vendors to deliver portions of the Services. These include scheduling platforms (e.g., Calendly), payment processors, and analytics providers. Those providers process your information in accordance with their own privacy statements — we encourage you to review those disclosures. Blue Chip Signals contractually requires vendors to safeguard personal information consistent with applicable law.</p>
+                <p class="lg-body">We do not sell, trade, or transfer your personally identifiable information to outside parties for marketing purposes, nor do we share payment card data with any third party except as necessary to complete your transaction.</p>
+
+                <div class="lg-section-title">Cookies &amp; Analytics</div>
+                <p class="lg-body">We may use cookies, pixels, log files, and similar technologies to understand usage patterns, improve performance, and detect abuse. A cookie is a small piece of data stored on your device that helps us recognize your preferences across visits. Most browsers allow you to block or delete cookies; however, doing so may impact certain functionality. We use analytics tools to track aggregate behavioral data — this data does not personally identify individual users.</p>
+
+                <div class="lg-section-title">Data Security</div>
+                <p class="lg-body">We implement commercially reasonable technical and organizational safeguards designed to protect your information against unauthorized access, disclosure, alteration, or destruction. This includes encrypted data transmission and access controls limiting who can view personal information. No method of transmission or storage is completely secure, and we cannot guarantee absolute security. You are responsible for maintaining the confidentiality of your account credentials.</p>
+
+                <div class="lg-section-title">Data Retention</div>
+                <p class="lg-body">Information is retained only as long as necessary to fulfill the purposes outlined in this Privacy Policy, comply with legal obligations, resolve disputes, or enforce our agreements. When your information is no longer required, we will delete it or render it anonymous. We may retain aggregated or de-identified data for analytical purposes indefinitely, as it can no longer be used to identify you.</p>
+
+                <div class="lg-section-title">Your Choices &amp; Rights</div>
+                <ul class="lg-body">
+                    <li>You may request access to, correction of, or deletion of your personal information by contacting us at <a href="mailto:support@bluechipsignals.online">support@bluechipsignals.online</a>.</li>
+                    <li>You may opt out of non-essential marketing communications by using the unsubscribe mechanisms provided in those messages or by notifying us directly.</li>
+                    <li>California residents may exercise additional rights under the California Consumer Privacy Act (CCPA), including the right to know, delete, and opt out of the sale of personal information. To submit a request, contact us with "California Privacy Rights Request" in your message.</li>
+                </ul>
+
+                <div class="lg-section-title">Children's Privacy</div>
+                <p class="lg-body">The Services are not directed to children under thirteen (13) years of age, and we do not knowingly collect personal information from children. If we become aware that a child has provided information without parental consent, we will delete it promptly. If you believe your child has submitted information to us, please contact us immediately.</p>
+
+                <div class="lg-section-title">International Users</div>
+                <p class="lg-body">Our Services are operated from the United States. If you access the Services from outside the United States, your information may be transferred to and processed in the United States or other jurisdictions where we or our service providers operate. By using the Services, you consent to such transfer and processing, which may be subject to laws different from those in your jurisdiction.</p>
+
+                <div class="lg-section-title">Business Transfers</div>
+                <p class="lg-body">In the event that Blue Chip Signals LLC undergoes a merger, acquisition, sale of assets, or insolvency proceeding, personal information held by us may be transferred to the acquiring entity as part of that transaction. Should such a transfer occur, we will take reasonable steps to ensure the receiving party is bound by the terms of this Privacy Policy, and that your information continues to be handled in a manner consistent with it. By continuing to use our Services, you acknowledge and consent to the possibility of such transfers.</p>
+
+                <div class="lg-section-title">Changes to This Policy</div>
+                <p class="lg-body">We may revise this Privacy Policy periodically to reflect changes in our practices or for legal, operational, or regulatory reasons. Material updates will be reflected in the effective date shown at the top of this page. We may also notify registered users of significant changes via email. Continued use of the Services after the updated policy takes effect constitutes your acceptance of the revised terms.</p>
+
+                <div class="lg-section-title">Contact</div>
+                <p class="lg-body" style="margin-bottom:0;">For privacy-related inquiries, data requests, or compliance questions, contact Blue Chip Signals LLC at <a href="mailto:support@bluechipsignals.online">support@bluechipsignals.online</a>.</p>
+
+            </div>
+        </main>
+    </div>
+
+    <div id="footer-placeholder" data-footer-type="minimal" data-base=""></div>
+    <script src="assets/js/footer-component.js"></script>
+
+</body>
+</html>

@@ -18,26 +18,140 @@
             margin-right: auto;
         }
 
-        /* ---- Welcome bar ---- */
-        .dash-welcome {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 1rem 0 1.25rem;
-            margin-bottom: 1.25rem;
-            border-bottom: 1px solid rgba(201, 176, 55, 0.12);
+        /* ---- Dashboard Hero ---- */
+        .dash-hero {
+            position: relative;
+            background: rgba(10, 14, 22, 0.7);
+            border: 1px solid rgba(201, 176, 55, 0.18);
+            border-radius: 20px;
+            padding: 2rem 2rem 1.5rem;
+            margin-bottom: 1.5rem;
+            overflow: hidden;
         }
 
-        .dash-welcome h1 {
-            font-size: 1.4rem;
+        .dash-hero-glow {
+            position: absolute;
+            top: -80px;
+            right: -80px;
+            width: 420px;
+            height: 320px;
+            background: radial-gradient(ellipse at center, rgba(201,176,55,0.07) 0%, transparent 70%);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .dash-hero-body {
+            position: relative;
+            z-index: 1;
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 1.5rem;
+        }
+
+        .dash-hero-left { flex: 1; min-width: 0; }
+
+        .dash-greeting-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            font-size: 0.68rem;
             font-weight: 700;
-            background: linear-gradient(135deg, var(--primary-gold), var(--secondary-gold));
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            color: var(--primary-gold);
+            background: rgba(201,176,55,0.08);
+            border: 1px solid rgba(201,176,55,0.2);
+            padding: 0.28rem 0.78rem;
+            border-radius: 100px;
+            margin-bottom: 0.85rem;
+        }
+
+        .dash-greeting-pill i { font-size: 0.65rem; }
+
+        .dash-hero-name {
+            font-size: clamp(1.6rem, 3.5vw, 2.2rem);
+            font-weight: 800;
+            background: linear-gradient(135deg, var(--primary-gold) 0%, var(--secondary-gold) 55%, var(--primary-gold) 100%);
             -webkit-background-clip: text;
             background-clip: text;
             -webkit-text-fill-color: transparent;
+            line-height: 1.15;
+            margin-bottom: 0.9rem;
+            letter-spacing: -0.02em;
         }
 
-        .dash-welcome .sub-badge {
+        .dash-hero-meta {
+            display: flex;
+            align-items: center;
+            gap: 0.55rem;
+            flex-wrap: wrap;
+        }
+
+        .dash-meta-date {
+            font-size: 0.8rem;
+            color: rgba(255,255,255,0.38);
+            font-weight: 500;
+        }
+
+        .dash-meta-sep {
+            color: rgba(255,255,255,0.15);
+            font-size: 0.85rem;
+        }
+
+        .dash-market-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.35rem;
+            font-size: 0.78rem;
+            font-weight: 600;
+        }
+
+        .market-dot {
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+
+        .market-dot.open {
+            background: var(--success-green);
+            box-shadow: 0 0 6px var(--success-green);
+            animation: marketPulse 2s ease-in-out infinite;
+        }
+
+        .market-dot.closed { background: rgba(255,255,255,0.22); }
+
+        @keyframes marketPulse {
+            0%, 100% { opacity: 1; box-shadow: 0 0 4px var(--success-green); }
+            50%       { opacity: 0.45; box-shadow: 0 0 10px var(--success-green); }
+        }
+
+        /* Right column */
+        .dash-hero-right {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            gap: 0.6rem;
+            flex-shrink: 0;
+        }
+
+        .dash-avatar {
+            width: 52px;
+            height: 52px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, rgba(179,161,125,0.2), rgba(226,207,181,0.06));
+            border: 1.5px solid rgba(201,176,55,0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.35rem;
+            font-weight: 800;
+            color: var(--primary-gold);
+            box-shadow: 0 0 18px rgba(201,176,55,0.1);
+        }
+
+        .sub-badge {
             display: inline-flex;
             align-items: center;
             gap: 0.45rem;
@@ -46,12 +160,96 @@
             color: var(--success-green);
             padding: 0.35rem 0.9rem;
             border-radius: 20px;
-            font-size: 0.8rem;
+            font-size: 0.78rem;
             font-weight: 600;
             white-space: nowrap;
         }
 
-        .dash-welcome .sub-badge i { font-size: 0.7rem; }
+        .sub-badge i { font-size: 0.68rem; }
+
+        .dash-settings-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.38rem;
+            font-size: 0.72rem;
+            font-weight: 600;
+            letter-spacing: 0.03em;
+            color: rgba(255,255,255,0.35);
+            text-decoration: none;
+            padding: 0.3rem 0.75rem;
+            border-radius: 100px;
+            border: 1px solid rgba(255,255,255,0.08);
+            background: rgba(255,255,255,0.03);
+            transition: color 0.2s, border-color 0.2s, background 0.2s;
+        }
+
+        .dash-settings-btn:hover {
+            color: var(--primary-gold);
+            border-color: rgba(201,176,55,0.25);
+            background: rgba(201,176,55,0.06);
+        }
+
+        /* Bottom quick-stats strip */
+        .dash-hero-strip {
+            position: relative;
+            z-index: 1;
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 0;
+            padding-top: 1.25rem;
+            margin-top: 1.25rem;
+            border-top: 1px solid rgba(201, 176, 55, 0.1);
+        }
+
+        .dash-qstat {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0 1.5rem 0 0;
+            margin-right: 1.5rem;
+            border-right: 1px solid rgba(255,255,255,0.06);
+        }
+
+        .dash-qstat:last-child {
+            border-right: none;
+            margin-right: 0;
+            padding-right: 0;
+        }
+
+        .dash-qstat-icon {
+            width: 30px;
+            height: 30px;
+            border-radius: 8px;
+            background: rgba(201,176,55,0.07);
+            border: 1px solid rgba(201,176,55,0.14);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.7rem;
+            color: var(--primary-gold);
+            flex-shrink: 0;
+        }
+
+        .dash-qstat-text {
+            display: flex;
+            flex-direction: column;
+            gap: 0.05rem;
+        }
+
+        .dash-qstat-label {
+            font-size: 0.62rem;
+            font-weight: 700;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            color: rgba(255,255,255,0.28);
+        }
+
+        .dash-qstat-value {
+            font-size: 0.82rem;
+            font-weight: 700;
+            color: rgba(255,255,255,0.72);
+        }
 
         /* ---- Bento grid ---- */
         .bento-grid {
@@ -888,7 +1086,10 @@
                 margin-top: 90px;
             }
 
-            .dash-welcome h1 { font-size: 1.15rem; }
+            .dash-hero { padding: 1.5rem 1.25rem 1.25rem; }
+            .dash-avatar { width: 42px; height: 42px; font-size: 1.1rem; }
+            .dash-hero-strip { gap: 0.85rem 0; }
+            .dash-qstat { padding-right: 1rem; margin-right: 1rem; }
 
             .bento-grid {
                 grid-template-columns: 1fr;
@@ -1015,20 +1216,152 @@
         @media (max-width: 480px) {
             .hm-stat-value { font-size: 1.05rem; }
         }
+
+        /* ── Single-channel plan restrictions ── */
+        .stock-row.row-locked {
+            opacity: 0.38;
+            pointer-events: none;
+            position: relative;
+            user-select: none;
+        }
+
+        .stock-row.row-locked::after {
+            content: '\f023'; /* fa-lock */
+            font-family: 'Font Awesome 6 Free';
+            font-weight: 900;
+            position: absolute;
+            right: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 0.75rem;
+            color: rgba(255,255,255,0.3);
+        }
+
+        /* Wrapper that sits over the heatmap + tool-links when locked */
+        .bundle-gate {
+            position: relative;
+        }
+
+        .bundle-gate-overlay {
+            position: absolute;
+            inset: 0;
+            background: rgba(8, 11, 18, 0.75);
+            backdrop-filter: blur(4px);
+            -webkit-backdrop-filter: blur(4px);
+            border-radius: 14px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 0.6rem;
+            z-index: 2;
+        }
+
+        .bundle-gate-overlay i {
+            font-size: 1.3rem;
+            color: rgba(201,176,55,0.7);
+        }
+
+        .bundle-gate-overlay span {
+            font-size: 0.78rem;
+            font-weight: 600;
+            color: rgba(240,236,224,0.55);
+            letter-spacing: 0.03em;
+        }
+
+        .bundle-gate-overlay a {
+            font-size: 0.72rem;
+            font-weight: 700;
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+            color: #c9b037;
+            text-decoration: none;
+            border: 1px solid rgba(201,176,55,0.35);
+            padding: 0.3em 0.9em;
+            border-radius: 100px;
+            transition: background 0.2s, color 0.2s;
+        }
+
+        .bundle-gate-overlay a:hover {
+            background: rgba(201,176,55,0.12);
+            color: #f0d060;
+        }
+
+        /* Sub-badge variant for single plan */
+        .sub-badge.single-plan {
+            background: rgba(201,176,55,0.08);
+            border-color: rgba(201,176,55,0.4);
+            color: #c9b037;
+        }
     </style>
 </head>
 <body>
     <!-- Navigation -->
-    <div id="nav-placeholder" data-nav-type="loggedin"></div>
+    <div id="nav-placeholder" data-nav-type="internal"></div>
     <script src="assets/js/nav-component.js"></script>
 
     <!-- Main Content -->
     <div class="main-content">
 
-        <!-- Welcome Bar -->
-        <div class="dash-welcome">
-            <h1 id="welcomeMessage">Welcome back!</h1>
-            <span class="sub-badge"><i class="fas fa-crown"></i> <span id="subscriptionStatus">Premium Active</span></span>
+        <!-- Dashboard Hero -->
+        <div class="dash-hero">
+            <div class="dash-hero-glow"></div>
+
+            <div class="dash-hero-body">
+                <!-- Left: greeting + name + meta -->
+                <div class="dash-hero-left">
+                    <div class="dash-greeting-pill">
+                        <i class="fas fa-sun" id="greetingIcon"></i>
+                        <span id="greetingText">Good Morning</span>
+                    </div>
+                    <h1 class="dash-hero-name" id="welcomeMessage">Welcome back!</h1>
+                    <div class="dash-hero-meta">
+                        <span class="dash-meta-date" id="dashDate"></span>
+                        <span class="dash-meta-sep">·</span>
+                        <span class="dash-market-chip">
+                            <span class="market-dot closed" id="marketDot"></span>
+                            <span id="marketLabel" style="color:rgba(255,255,255,0.38);">Loading…</span>
+                        </span>
+                    </div>
+                </div>
+
+                <!-- Right: avatar + badge + settings -->
+                <div class="dash-hero-right">
+                    <div class="dash-avatar" id="dashAvatar">—</div>
+                    <span class="sub-badge" id="subBadge">
+                        <i class="fas fa-crown"></i>
+                        <span id="subscriptionStatus">Premium Active</span>
+                    </span>
+                    <a href="account.html" class="dash-settings-btn">
+                        <i class="fas fa-gear"></i> Settings
+                    </a>
+                </div>
+            </div>
+
+            <!-- Quick-stats strip -->
+            <div class="dash-hero-strip">
+                <div class="dash-qstat">
+                    <div class="dash-qstat-icon"><i class="fas fa-satellite-dish"></i></div>
+                    <div class="dash-qstat-text">
+                        <span class="dash-qstat-label">Channels</span>
+                        <span class="dash-qstat-value" id="qstatChannels">5 Active</span>
+                    </div>
+                </div>
+                <div class="dash-qstat">
+                    <div class="dash-qstat-icon"><i class="fas fa-shield-halved"></i></div>
+                    <div class="dash-qstat-text">
+                        <span class="dash-qstat-label">Plan Status</span>
+                        <span class="dash-qstat-value" id="qstatStatus">Active</span>
+                    </div>
+                </div>
+                <div class="dash-qstat">
+                    <div class="dash-qstat-icon"><i class="fas fa-calendar-check"></i></div>
+                    <div class="dash-qstat-text">
+                        <span class="dash-qstat-label">Member Since</span>
+                        <span class="dash-qstat-value" id="qstatSince">—</span>
+                    </div>
+                </div>
+            </div>
         </div>
 
         <!-- Bento Grid -->
@@ -1048,7 +1381,7 @@
                     </div>
                 </div>
 
-                <div class="stock-row">
+                <div class="stock-row" data-ticker="SPY">
                     <div class="stock-ticker-icon" style="background:linear-gradient(135deg,rgba(179,161,125,0.22),rgba(179,161,125,0.06));border-color:rgba(179,161,125,0.28);color:var(--primary-gold);"><i class="fas fa-chart-bar"></i></div>
                     <div class="stock-info"><span class="ticker">SPY</span> <span class="name">S&P 500 ETF Trust</span></div>
                     <div class="stock-actions">
@@ -1057,7 +1390,7 @@
                     </div>
                 </div>
 
-                <div class="stock-row">
+                <div class="stock-row" data-ticker="TSLA">
                     <div class="stock-ticker-icon" style="background:linear-gradient(135deg,rgba(255,102,102,0.2),rgba(255,102,102,0.05));border-color:rgba(255,102,102,0.28);color:#ff6666;"><i class="fas fa-bolt"></i></div>
                     <div class="stock-info"><span class="ticker">TSLA</span> <span class="name">Tesla, Inc.</span></div>
                     <div class="stock-actions">
@@ -1066,7 +1399,7 @@
                     </div>
                 </div>
 
-                <div class="stock-row">
+                <div class="stock-row" data-ticker="META">
                     <div class="stock-ticker-icon" style="background:linear-gradient(135deg,rgba(91,158,255,0.2),rgba(91,158,255,0.05));border-color:rgba(91,158,255,0.28);color:#5b9eff;"><i class="fab fa-meta"></i></div>
                     <div class="stock-info"><span class="ticker">META</span> <span class="name">Meta Platforms</span></div>
                     <div class="stock-actions">
@@ -1075,7 +1408,7 @@
                     </div>
                 </div>
 
-                <div class="stock-row">
+                <div class="stock-row" data-ticker="AAPL">
                     <div class="stock-ticker-icon" style="background:linear-gradient(135deg,rgba(210,210,210,0.18),rgba(210,210,210,0.05));border-color:rgba(200,200,200,0.25);color:#d0d0d0;"><i class="fab fa-apple"></i></div>
                     <div class="stock-info"><span class="ticker">AAPL</span> <span class="name">Apple Inc.</span></div>
                     <div class="stock-actions">
@@ -1084,7 +1417,7 @@
                     </div>
                 </div>
 
-                <div class="stock-row">
+                <div class="stock-row" data-ticker="NVDA">
                     <div class="stock-ticker-icon" style="background:linear-gradient(135deg,rgba(143,219,47,0.2),rgba(143,219,47,0.05));border-color:rgba(143,219,47,0.28);color:#8fdb2f;"><i class="fas fa-microchip"></i></div>
                     <div class="stock-info"><span class="ticker">NVDA</span> <span class="name">NVIDIA Corporation</span></div>
                     <div class="stock-actions">
@@ -1093,7 +1426,7 @@
                     </div>
                 </div>
 
-                <div class="stock-row">
+                <div class="stock-row" data-ticker="AMZN">
                     <div class="stock-ticker-icon" style="background:linear-gradient(135deg,rgba(255,170,51,0.2),rgba(255,170,51,0.05));border-color:rgba(255,170,51,0.28);color:#ffaa33;"><i class="fab fa-amazon"></i></div>
                     <div class="stock-info"><span class="ticker">AMZN</span> <span class="name">Amazon.com, Inc.</span></div>
                     <div class="stock-actions">
@@ -1143,7 +1476,7 @@
                 </div>
 
                 <!-- Ghost links to the full tools -->
-                <div class="stats-tool-links">
+                <div class="stats-tool-links" id="stats-tool-links">
                     <a href="trading-journal.html" class="stats-tool-link"><i class="fas fa-book"></i> Journal</a>
                     <a href="trade-planner.html"   class="stats-tool-link"><i class="fas fa-crosshairs"></i> Planner</a>
                 </div>
@@ -1264,7 +1597,7 @@
             </div>
 
             <!-- Trading Activity Heatmap -->
-            <div class="bento-card card-heatmap">
+            <div class="bento-card card-heatmap" id="heatmap-card">
                 <div class="heatmap-header">
                     <span class="bento-card-title" style="margin:0;"><i class="fas fa-calendar-days"></i> Trading Activity</span>
                     <span class="heatmap-year-badge" id="heatmap-year">2026</span>
@@ -1539,15 +1872,87 @@
         }
 
         function updateDashboard(userData) {
-            const welcomeMessage    = document.getElementById('welcomeMessage');
+            const welcomeMessage     = document.getElementById('welcomeMessage');
             const subscriptionStatus = document.getElementById('subscriptionStatus');
+            const subBadge           = subscriptionStatus ? subscriptionStatus.closest('.sub-badge') : null;
 
             if (userData) {
                 const firstName = userData.firstName || userData.displayName || 'there';
-                welcomeMessage.textContent       = `Welcome back, ${firstName}!`;
-                subscriptionStatus.textContent   = userData.subscriptionStatus || 'Premium Active';
+                welcomeMessage.textContent = `Welcome back, ${firstName}!`;
+
+                /* Avatar initial */
+                const avatarEl = document.getElementById('dashAvatar');
+                if (avatarEl) avatarEl.textContent = firstName.charAt(0).toUpperCase();
+
+                const plan = (userData.plan || '').toLowerCase();
+                if (plan === 'single') {
+                    const ticker = (userData.allowedTicker || '').toUpperCase();
+                    subscriptionStatus.textContent = `Single Channel · ${ticker}`;
+                    if (subBadge) subBadge.classList.add('single-plan');
+                    applyPlanRestrictions(ticker);
+
+                    const qstatChannels = document.getElementById('qstatChannels');
+                    if (qstatChannels) qstatChannels.textContent = `1 Active · ${ticker}`;
+                } else if (plan === 'bundle') {
+                    subscriptionStatus.textContent = 'Full Bundle';
+                } else {
+                    /* Legacy users without plan field */
+                    subscriptionStatus.textContent = userData.subscriptionStatus || 'Premium Active';
+                }
+
+                /* Quick-stat: Plan Status */
+                const qstatStatus = document.getElementById('qstatStatus');
+                const rawStatus   = userData.subscriptionStatus || 'Active';
+                if (qstatStatus) {
+                    qstatStatus.textContent = rawStatus;
+                    const isActive = rawStatus.toLowerCase().includes('active');
+                    qstatStatus.style.color = isActive ? 'var(--success-green)' : 'rgba(255,100,100,0.8)';
+                }
+
+                /* Quick-stat: Member Since */
+                const qstatSince = document.getElementById('qstatSince');
+                if (qstatSince) {
+                    const rawDate = userData.joinedDate || userData.createdAt;
+                    if (rawDate) {
+                        try {
+                            const d = rawDate.toDate ? rawDate.toDate() : new Date(rawDate);
+                            qstatSince.textContent = d.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+                        } catch (_) { qstatSince.textContent = '—'; }
+                    }
+                }
 
                 renderPortfolioStats(userData.trades || [], userData.tradePlans || []);
+            }
+        }
+
+        function applyPlanRestrictions(allowedTicker) {
+            /* Lock stock rows that aren't the user's ticker */
+            document.querySelectorAll('.stock-row[data-ticker]').forEach(row => {
+                if (row.dataset.ticker !== allowedTicker) {
+                    row.classList.add('row-locked');
+                }
+            });
+
+            /* Gate the tool links (Journal + Planner) */
+            const toolLinks = document.getElementById('stats-tool-links');
+            if (toolLinks) {
+                toolLinks.style.position = 'relative';
+                toolLinks.insertAdjacentHTML('beforeend', `<div class="bundle-gate-overlay">
+                    <i class="fas fa-lock"></i>
+                    <span>Full Bundle required</span>
+                    <a href="upgrade.html">Upgrade &rarr;</a>
+                </div>`);
+            }
+
+            /* Gate the Trading Activity Heatmap */
+            const heatmapCard = document.getElementById('heatmap-card');
+            if (heatmapCard) {
+                heatmapCard.style.position = 'relative';
+                heatmapCard.insertAdjacentHTML('beforeend', `<div class="bundle-gate-overlay">
+                    <i class="fas fa-lock"></i>
+                    <span>Trading Activity — Full Bundle only</span>
+                    <a href="upgrade.html">Upgrade &rarr;</a>
+                </div>`);
             }
         }
 
@@ -1793,6 +2198,45 @@
                 updateDashboard(userData);
             }
         });
+
+        /* ── Hero: greeting, date, market status ── */
+        (function initHeroMeta() {
+            const hour = new Date().getHours();
+            const greetingText = document.getElementById('greetingText');
+            const greetingIcon = document.getElementById('greetingIcon');
+            if (greetingText && greetingIcon) {
+                if (hour < 12) {
+                    greetingText.textContent = 'Good Morning';
+                    greetingIcon.className   = 'fas fa-sun';
+                } else if (hour < 17) {
+                    greetingText.textContent = 'Good Afternoon';
+                    greetingIcon.className   = 'fas fa-cloud-sun';
+                } else {
+                    greetingText.textContent = 'Good Evening';
+                    greetingIcon.className   = 'fas fa-moon';
+                }
+            }
+
+            const dashDate = document.getElementById('dashDate');
+            if (dashDate) {
+                dashDate.textContent = new Date().toLocaleDateString('en-US', {
+                    weekday: 'short', month: 'long', day: 'numeric', year: 'numeric'
+                });
+            }
+
+            /* NYSE hours: Mon–Fri 9:30 AM – 4:00 PM ET */
+            const marketDot   = document.getElementById('marketDot');
+            const marketLabel = document.getElementById('marketLabel');
+            if (marketDot && marketLabel) {
+                const etNow   = new Date(new Date().toLocaleString('en-US', { timeZone: 'America/New_York' }));
+                const etDay   = etNow.getDay();
+                const etMins  = etNow.getHours() * 60 + etNow.getMinutes();
+                const isOpen  = etDay >= 1 && etDay <= 5 && etMins >= 570 && etMins < 960;
+                marketDot.className      = 'market-dot ' + (isOpen ? 'open' : 'closed');
+                marketLabel.textContent  = isOpen ? 'Market Open' : 'Market Closed';
+                marketLabel.style.color  = isOpen ? 'var(--success-green)' : 'rgba(255,255,255,0.38)';
+            }
+        })();
 
         window.logout = async function () {
             try {

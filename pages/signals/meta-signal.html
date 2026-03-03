@@ -224,8 +224,8 @@
     <div id="footer-placeholder" data-footer-type="standard-social" data-base="../../"></div>
     <script src="../../assets/js/footer-component.js"></script>
     <script type="module">
-        import { updateAuthButton } from '../../assets/js/firebase-auth-check.js';
-        updateAuthButton('../../login.html');
+        import { requirePlan } from '../../assets/js/firebase-auth-check.js';
+        requirePlan('ticker', 'META', '../../login.html', '../../upgrade.html');
     </script>
     <script>
         (function () {

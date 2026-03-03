@@ -5,31 +5,19 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Trading Journal - Blue Chip Signals</title>
     <link rel="icon" type="image/png" href="assets/images/logo.png">
-    <link rel="stylesheet" href="assets/css/global.css">
+    <link rel="stylesheet" href="assets/css/signal-style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns"></script>
     <style>
-        :root {
-            --primary-gold: #b3a17d;
-            --secondary-gold: #E2CFB5;
-            --dark-bg: #080B0F;
-            --darker-bg: #050810;
-            --light-text: #FFFFFF;
-            --gray-text: #A0A0A0;
-            --card-bg: rgba(18, 22, 32, 0.72);
-            --success-green: #2a571f;
-            --danger-red: #ef4444;
-            --border-color: rgba(201, 176, 55, 0.25);
-        }
+        body { overflow-x: hidden; }
 
         body::before {
             content: '';
             position: fixed;
             inset: 0;
-            background: radial-gradient(1200px 800px at -10% -10%, rgba(201, 176, 55, 0.25), transparent 55%),
-                        radial-gradient(900px 900px at 110% 10%, rgba(59, 130, 246, 0.15), transparent 60%),
-                        linear-gradient(160deg, rgba(5, 8, 16, 0.92) 25%, rgba(8, 12, 22, 0.98) 70%);
+            background: radial-gradient(1200px 800px at -10% -10%, rgba(201, 176, 55, 0.18), transparent 55%),
+                        linear-gradient(160deg, rgba(5, 8, 16, 0.95) 25%, rgba(8, 12, 22, 0.99) 70%);
             pointer-events: none;
             z-index: -2;
         }
@@ -45,62 +33,187 @@
             mix-blend-mode: lighten;
         }
 
-        /* ---- Journal Hero ---- */
-        .journal-hero {
-            margin-top: 100px;
-            padding: 2rem 2rem 1.5rem;
+        /* ================================================================
+           JOURNAL HERO
+        ================================================================ */
+        .jn-hero {
+            padding: 8rem 2rem 3.5rem;
             max-width: 1200px;
-            margin-left: auto;
-            margin-right: auto;
-            display: flex;
-            align-items: center;
-            gap: 2rem;
-            flex-wrap: wrap;
+            margin: 0 auto;
+            position: relative;
+            text-align: center;
         }
 
-        .journal-hero-left { flex: 1; min-width: 180px; }
+        .jn-hero::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 50%; transform: translateX(-50%);
+            width: 800px; height: 520px;
+            background: radial-gradient(ellipse at center, rgba(201,176,55,0.09) 0%, transparent 70%);
+            pointer-events: none;
+            z-index: 0;
+        }
 
-        .journal-hero-left h1 {
-            font-size: 1.5rem;
+        .jn-hero-inner {
+            position: relative;
+            z-index: 1;
+            opacity: 0;
+            transform: translateY(18px);
+            animation: jnFadeUp 0.65s ease 0.1s forwards;
+        }
+
+        @keyframes jnFadeUp {
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .jn-hero-label {
+            display: inline-block;
+            font-size: 0.72rem;
             font-weight: 700;
-            background: linear-gradient(135deg, var(--primary-gold), var(--secondary-gold));
+            letter-spacing: 0.16em;
+            text-transform: uppercase;
+            color: var(--primary-gold);
+            border: 1px solid rgba(201, 176, 55, 0.3);
+            border-radius: 20px;
+            padding: 0.3rem 0.95rem;
+            margin-bottom: 1.25rem;
+        }
+
+        .jn-hero h1 {
+            font-size: clamp(2.2rem, 5vw, 3.8rem);
+            font-weight: 900;
+            line-height: 1.08;
+            letter-spacing: -0.03em;
+            color: var(--light-text);
+            margin: 0 0 1rem;
+        }
+
+        .jn-hero h1 em {
+            font-style: italic;
+            display: inline-block;
+            padding-bottom: 0.12em;
+            padding-right: 0.12em;
+            margin-right: -0.12em;
+            background: linear-gradient(135deg, var(--primary-gold) 20%, var(--secondary-gold) 80%);
             -webkit-background-clip: text;
             background-clip: text;
             -webkit-text-fill-color: transparent;
-            margin-bottom: 0.25rem;
         }
 
-        .journal-hero-left p {
+        .jn-hero-desc {
+            font-size: 1rem;
             color: var(--gray-text);
-            font-size: 0.88rem;
+            max-width: 520px;
+            margin: 0 auto 2rem;
+            line-height: 1.6;
         }
 
-        .journal-hero-center {
-            text-align: center;
-            flex: 1;
-            min-width: 160px;
+        /* P&L featured number */
+        .jn-pnl-feature {
+            display: inline-flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.25rem;
+            margin-bottom: 2rem;
         }
 
-        .hero-pnl-label {
-            font-size: 0.72rem;
+        .jn-pnl-label {
+            font-size: 0.68rem;
+            font-weight: 700;
+            letter-spacing: 0.14em;
             text-transform: uppercase;
-            letter-spacing: 0.12em;
-            color: var(--gray-text);
-            margin-bottom: 0.2rem;
+            color: rgba(255,255,255,0.35);
         }
 
         .hero-pnl-number {
-            font-size: 2.5rem;
-            font-weight: 800;
-            letter-spacing: -0.03em;
+            font-size: clamp(2.4rem, 5vw, 3.6rem);
+            font-weight: 900;
+            letter-spacing: -0.04em;
+            line-height: 1;
             color: var(--primary-gold);
             transition: color 0.3s;
         }
 
         .hero-pnl-number.positive { color: #4ade80; }
-        .hero-pnl-number.negative { color: var(--danger-red); }
+        .hero-pnl-number.negative { color: #ef4444; }
 
-        .journal-hero-right { flex-shrink: 0; }
+        /* Divider */
+        .jn-divider {
+            border: none;
+            border-top: 1px solid rgba(201, 176, 55, 0.12);
+            margin: 0;
+        }
+
+        /* ---- Tab Bar Row (tabs + Add Trade button) ---- */
+        .tab-bar-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 1rem;
+            margin-bottom: 1.75rem;
+            flex-wrap: wrap;
+        }
+
+        .tab-bar-row .tab-bar { margin-bottom: 0; }
+
+        .jn-add-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.45rem;
+            padding: 0.5rem 1.2rem;
+            background: linear-gradient(135deg, var(--primary-gold), var(--secondary-gold));
+            color: var(--darker-bg);
+            border: none;
+            border-radius: 10px;
+            font-size: 0.88rem;
+            font-weight: 800;
+            font-family: inherit;
+            cursor: pointer;
+            transition: transform 0.22s, box-shadow 0.22s;
+            box-shadow: 0 4px 14px rgba(201,176,55,0.28);
+            flex-shrink: 0;
+        }
+
+        .jn-add-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 7px 22px rgba(201,176,55,0.42);
+        }
+
+        /* ---- Analytics KPI Row ---- */
+        .analytics-kpi-row {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 0.85rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .analytics-kpi-tile {
+            background: rgba(10, 14, 22, 0.7);
+            border: 1px solid rgba(255,255,255,0.06);
+            border-radius: 12px;
+            padding: 0.9rem 1rem;
+            text-align: center;
+        }
+
+        .analytics-kpi-label {
+            font-size: 0.62rem;
+            font-weight: 600;
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+            color: rgba(255,255,255,0.3);
+            margin-bottom: 0.35rem;
+        }
+
+        .analytics-kpi-value {
+            font-size: 1.3rem;
+            font-weight: 800;
+            letter-spacing: -0.02em;
+            color: var(--light-text);
+        }
+
+        .analytics-kpi-value.kpi-pos { color: #4ade80; }
+        .analytics-kpi-value.kpi-neg { color: #ef4444; }
+        .analytics-kpi-value.kpi-gold { color: var(--primary-gold); }
 
         /* ---- Container ---- */
         .container {
@@ -109,62 +222,92 @@
             padding: 0 2rem 3rem;
         }
 
-        /* ---- Stats Row ---- */
-        .stats-row {
-            display: flex;
-            gap: 2.5rem;
-            flex-wrap: wrap;
-            margin-bottom: 1.5rem;
-            padding: 1rem 0;
-            border-bottom: 1px solid rgba(201, 176, 55, 0.1);
+        /* ---- Stat Tiles Grid ---- */
+        .jn-stat-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1rem;
+            margin: 1.75rem 0 1.75rem;
         }
 
-        .stat-chip {
-            display: flex;
-            flex-direction: column;
-            gap: 0.1rem;
+        .jn-stat-tile {
+            background: rgba(10, 14, 22, 0.7);
+            border: 1px solid rgba(255,255,255,0.06);
+            border-radius: 14px;
+            padding: 1rem 1.2rem;
+            position: relative;
+            overflow: hidden;
         }
 
-        .stat-chip-label {
-            font-size: 0.7rem;
+        .jn-stat-tile::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 2px;
+            border-radius: 14px 14px 0 0;
+        }
+
+        #jst-pnl::before     { background: linear-gradient(90deg, #4ade80, #22c55e); }
+        #jst-winrate::before { background: linear-gradient(90deg, #60a5fa, #3b82f6); }
+        #jst-best::before    { background: linear-gradient(90deg, var(--primary-gold), var(--secondary-gold)); }
+        #jst-open::before    { background: linear-gradient(90deg, #f97316, #fb923c); }
+
+        .jn-stat-tile-label {
+            font-size: 0.63rem;
+            font-weight: 600;
+            letter-spacing: 0.06em;
             text-transform: uppercase;
-            letter-spacing: 0.1em;
-            color: var(--gray-text);
+            color: rgba(255,255,255,0.35);
+            margin-bottom: 0.35rem;
         }
 
-        .stat-chip-value {
-            font-size: 1.15rem;
-            font-weight: 700;
+        .jn-stat-tile-value {
+            font-size: 1.55rem;
+            font-weight: 900;
+            line-height: 1;
+            letter-spacing: -0.02em;
             color: var(--light-text);
         }
 
-        /* ---- Tab Bar ---- */
+        .jn-stat-tile-value.pnl-pos { color: #4ade80; }
+        .jn-stat-tile-value.pnl-neg { color: #ef4444; }
+
+        .jn-stat-tile-sub {
+            font-size: 0.62rem;
+            color: rgba(255,255,255,0.22);
+            margin-top: 0.3rem;
+        }
+
+        /* ---- Tab Bar (pill style) ---- */
         .tab-bar {
-            display: flex;
-            gap: 0;
-            margin-bottom: 1.5rem;
-            border-bottom: 1px solid rgba(201, 176, 55, 0.12);
+            display: inline-flex;
+            gap: 0.25rem;
+            margin-bottom: 1.75rem;
+            background: rgba(10, 14, 22, 0.65);
+            border: 1px solid rgba(201, 176, 55, 0.12);
+            border-radius: 12px;
+            padding: 4px;
         }
 
         .tab-btn {
-            background: none;
+            background: transparent;
             border: none;
             cursor: pointer;
-            padding: 0.65rem 1.3rem;
-            font-size: 0.88rem;
+            padding: 0.5rem 1.25rem;
+            font-size: 0.86rem;
             font-weight: 600;
-            color: var(--gray-text);
+            color: rgba(255,255,255,0.45);
             font-family: inherit;
-            transition: color 0.2s;
-            border-bottom: 2px solid transparent;
-            margin-bottom: -1px;
+            border-radius: 8px;
+            transition: background 0.2s, color 0.2s;
+            white-space: nowrap;
         }
 
-        .tab-btn:hover { color: var(--light-text); }
+        .tab-btn:hover { color: var(--light-text); background: rgba(255,255,255,0.04); }
 
         .tab-btn.active {
+            background: rgba(201, 176, 55, 0.13);
             color: var(--primary-gold);
-            border-bottom-color: var(--primary-gold);
         }
 
         /* ---- Tab Panels ---- */
@@ -628,18 +771,23 @@
         }
 
         /* ---- Responsive ---- */
+        @media (max-width: 900px) {
+            .jn-stat-grid { grid-template-columns: 1fr 1fr; }
+            .analytics-kpi-row { grid-template-columns: repeat(3, 1fr); }
+        }
+
         @media (max-width: 768px) {
-            .journal-hero {
-                margin-top: 80px;
-                flex-direction: column;
-                text-align: center;
-                padding: 1.5rem 1rem 1rem;
-                gap: 1rem;
-            }
+            .jn-hero { padding: 6.5rem 1.25rem 2.5rem; }
 
             .container { padding: 0 1rem 2rem; }
 
-            .stats-row { gap: 1.25rem 2rem; }
+            .jn-stat-grid { grid-template-columns: 1fr 1fr; gap: 0.65rem; }
+
+            .tab-bar-row { flex-direction: column; align-items: flex-start; }
+            .tab-bar { width: 100%; }
+            .jn-add-btn { width: 100%; justify-content: center; }
+
+            .analytics-kpi-row { grid-template-columns: 1fr 1fr; }
 
             .overview-insight-row { grid-template-columns: 1fr; }
 
@@ -656,58 +804,69 @@
 
             .form-grid { grid-template-columns: 1fr; }
         }
+
+        @media (max-width: 480px) {
+            .jn-stat-grid { grid-template-columns: 1fr 1fr; }
+            .analytics-kpi-row { grid-template-columns: 1fr 1fr; }
+        }
     </style>
 </head>
 <body>
     <!-- Navigation -->
-    <div id="nav-placeholder" data-nav-type="public"></div>
+    <div id="nav-placeholder" data-nav-type="internal"></div>
     <script src="assets/js/nav-component.js"></script>
 
     <!-- Journal Hero -->
-    <div class="journal-hero">
-        <div class="journal-hero-left">
-            <h1><i class="fas fa-book-open" style="font-size:1.1rem;margin-right:0.4rem;"></i>Trading Journal</h1>
-            <p>Track, analyze, and improve your trading performance</p>
+    <section class="jn-hero">
+        <div class="jn-hero-inner">
+            <span class="jn-hero-label">Your Trading Journal</span>
+            <h1>Trading <em>Journal</em></h1>
+            <p class="jn-hero-desc">Track, analyze, and continuously improve your trading performance.</p>
+            <div class="jn-pnl-feature">
+                <span class="jn-pnl-label">Total P&amp;L</span>
+                <div class="hero-pnl-number" id="heroPnL">+$0.00</div>
+            </div>
         </div>
-        <div class="journal-hero-center">
-            <div class="hero-pnl-label">Total P&amp;L</div>
-            <div class="hero-pnl-number" id="heroPnL">+$0.00</div>
-        </div>
-        <div class="journal-hero-right">
-            <button class="btn btn-primary" onclick="openTradeModal()">
-                <i class="fas fa-plus"></i> Add Trade
-            </button>
-        </div>
-    </div>
+    </section>
+    <hr class="jn-divider">
 
     <!-- Main Container -->
     <div class="container">
 
-        <!-- Stats Row -->
-        <div class="stats-row">
-            <div class="stat-chip">
-                <span class="stat-chip-label">Total Trades</span>
-                <span class="stat-chip-value" id="totalTrades">0</span>
+        <!-- Stat Tiles -->
+        <div class="jn-stat-grid">
+            <div class="jn-stat-tile" id="jst-pnl">
+                <div class="jn-stat-tile-label">Total Trades</div>
+                <div class="jn-stat-tile-value" id="totalTrades">0</div>
+                <div class="jn-stat-tile-sub">All time</div>
             </div>
-            <div class="stat-chip">
-                <span class="stat-chip-label">Win Rate</span>
-                <span class="stat-chip-value" id="winRate">0%</span>
+            <div class="jn-stat-tile" id="jst-winrate">
+                <div class="jn-stat-tile-label">Win Rate</div>
+                <div class="jn-stat-tile-value" id="winRate">0%</div>
+                <div class="jn-stat-tile-sub">Closed trades</div>
             </div>
-            <div class="stat-chip">
-                <span class="stat-chip-label">Best Trade</span>
-                <span class="stat-chip-value" id="bestTrade">$0.00</span>
+            <div class="jn-stat-tile" id="jst-best">
+                <div class="jn-stat-tile-label">Best Trade</div>
+                <div class="jn-stat-tile-value" id="bestTrade">$0.00</div>
+                <div class="jn-stat-tile-sub">Single P&amp;L</div>
             </div>
-            <div class="stat-chip">
-                <span class="stat-chip-label">Open Positions</span>
-                <span class="stat-chip-value" id="openPositions">0</span>
+            <div class="jn-stat-tile" id="jst-open">
+                <div class="jn-stat-tile-label">Open Positions</div>
+                <div class="jn-stat-tile-value" id="openPositions">0</div>
+                <div class="jn-stat-tile-sub">Active trades</div>
             </div>
         </div>
 
-        <!-- Tab Bar -->
-        <div class="tab-bar">
-            <button class="tab-btn active" onclick="switchTab('overview', this)">Overview</button>
-            <button class="tab-btn" onclick="switchTab('trades', this)">Trades</button>
-            <button class="tab-btn" onclick="switchTab('analytics', this)">Analytics</button>
+        <!-- Tab Bar + Add Trade -->
+        <div class="tab-bar-row">
+            <div class="tab-bar">
+                <button class="tab-btn active" onclick="switchTab('overview', this)">Overview</button>
+                <button class="tab-btn" onclick="switchTab('trades', this)">Trades</button>
+                <button class="tab-btn" onclick="switchTab('analytics', this)">Analytics</button>
+            </div>
+            <button class="jn-add-btn" onclick="openTradeModal()">
+                <i class="fas fa-plus"></i> Add Trade
+            </button>
         </div>
 
         <!-- Overview Tab -->
@@ -785,6 +944,32 @@
 
         <!-- Analytics Tab -->
         <div class="tab-panel" id="tab-analytics">
+
+            <!-- KPI Metrics Row -->
+            <div class="analytics-kpi-row">
+                <div class="analytics-kpi-tile">
+                    <div class="analytics-kpi-label">Avg Win</div>
+                    <div class="analytics-kpi-value kpi-pos" id="kpiAvgWin">—</div>
+                </div>
+                <div class="analytics-kpi-tile">
+                    <div class="analytics-kpi-label">Avg Loss</div>
+                    <div class="analytics-kpi-value kpi-neg" id="kpiAvgLoss">—</div>
+                </div>
+                <div class="analytics-kpi-tile">
+                    <div class="analytics-kpi-label">Profit Factor</div>
+                    <div class="analytics-kpi-value kpi-gold" id="kpiProfitFactor">—</div>
+                </div>
+                <div class="analytics-kpi-tile">
+                    <div class="analytics-kpi-label">Winning Trades</div>
+                    <div class="analytics-kpi-value kpi-pos" id="kpiWins">—</div>
+                </div>
+                <div class="analytics-kpi-tile">
+                    <div class="analytics-kpi-label">Losing Trades</div>
+                    <div class="analytics-kpi-value kpi-neg" id="kpiLosses">—</div>
+                </div>
+            </div>
+
+            <!-- Charts Grid -->
             <div class="charts-grid">
                 <div class="chart-container">
                     <h3 class="chart-title"><i class="fas fa-chart-bar"></i> P&amp;L by Ticker</h3>
@@ -797,7 +982,7 @@
                     </div>
                 </div>
                 <div class="chart-container">
-                    <h3 class="chart-title"><i class="fas fa-chart-pie"></i> Win Rate</h3>
+                    <h3 class="chart-title"><i class="fas fa-chart-pie"></i> Win / Loss Breakdown</h3>
                     <div style="position:relative;height:260px;">
                         <canvas id="winRateChart"></canvas>
                         <div id="winRateEmpty" class="chart-empty-state" style="display:none;">
@@ -813,6 +998,16 @@
                         <div id="monthlyPnLEmpty" class="chart-empty-state" style="display:none;">
                             <i class="fas fa-calendar-alt" style="font-size:2.5rem;color:rgba(201,176,55,0.25);margin-bottom:0.75rem;"></i>
                             <p>No closed trades yet</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="chart-container">
+                    <h3 class="chart-title"><i class="fas fa-layer-group"></i> P&amp;L by Strategy</h3>
+                    <div style="position:relative;height:260px;">
+                        <canvas id="strategyPnLChart"></canvas>
+                        <div id="strategyPnLEmpty" class="chart-empty-state" style="display:none;">
+                            <i class="fas fa-layer-group" style="font-size:2.5rem;color:rgba(201,176,55,0.25);margin-bottom:0.75rem;"></i>
+                            <p>No closed trades with strategies yet</p>
                         </div>
                     </div>
                 </div>
@@ -1365,6 +1560,23 @@
             if (winProgress) winProgress.style.width = Math.min(Math.max(winRate, 0), 100) + '%';
             const openInsight = document.getElementById('openTradesInsight');
             if (openInsight) openInsight.textContent = openTrades;
+
+            // Analytics KPI tiles
+            const losingTrades = closedTrades.filter(t => t.pnl < 0);
+            const avgWin = winningTrades.length > 0
+                ? winningTrades.reduce((s, t) => s + t.pnl, 0) / winningTrades.length : null;
+            const avgLoss = losingTrades.length > 0
+                ? losingTrades.reduce((s, t) => s + t.pnl, 0) / losingTrades.length : null;
+            const totalGains = winningTrades.reduce((s, t) => s + t.pnl, 0);
+            const totalLossAbs = Math.abs(losingTrades.reduce((s, t) => s + t.pnl, 0));
+            const profitFactor = totalLossAbs > 0 ? (totalGains / totalLossAbs) : null;
+            const fmtKpi = v => (v >= 0 ? '+$' : '-$') + Math.abs(v).toFixed(0);
+            const setKpi = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
+            setKpi('kpiAvgWin',        avgWin !== null        ? fmtKpi(avgWin)               : '—');
+            setKpi('kpiAvgLoss',       avgLoss !== null       ? fmtKpi(avgLoss)              : '—');
+            setKpi('kpiProfitFactor',  profitFactor !== null  ? profitFactor.toFixed(2) + 'x' : '—');
+            setKpi('kpiWins',          winningTrades.length   > 0 ? winningTrades.length     : '—');
+            setKpi('kpiLosses',        losingTrades.length    > 0 ? losingTrades.length      : '—');
         }
 
         // Render charts
@@ -1373,6 +1585,7 @@
             renderPnLByTicker();
             renderWinRate();
             renderMonthlyPnL();
+            renderPnLByStrategy();
         }
 
         // Equity Curve
@@ -1568,6 +1781,66 @@
             });
         }
 
+        // P&L by Strategy
+        function renderPnLByStrategy() {
+            const ctx = document.getElementById('strategyPnLChart');
+            const emptyState = document.getElementById('strategyPnLEmpty');
+            if (charts.strategyPnL) charts.strategyPnL.destroy();
+
+            const closedTrades = trades.filter(t => t.status === 'Closed' && t.exitPrice && t.strategy);
+            if (closedTrades.length === 0) {
+                ctx.style.display = 'none';
+                emptyState.style.display = 'flex';
+                return;
+            }
+
+            ctx.style.display = 'block';
+            emptyState.style.display = 'none';
+
+            const pnlByStrategy = {};
+            closedTrades.forEach(trade => {
+                const strat = trade.strategy || 'Other';
+                if (!pnlByStrategy[strat]) pnlByStrategy[strat] = 0;
+                pnlByStrategy[strat] += trade.pnl;
+            });
+
+            const labels = Object.keys(pnlByStrategy);
+            const data = Object.values(pnlByStrategy);
+            const colors = data.map(val => val >= 0 ? 'rgba(16,185,129,0.75)' : 'rgba(239,68,68,0.75)');
+            const borders = data.map(val => val >= 0 ? '#10b981' : '#ef4444');
+
+            charts.strategyPnL = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'P&L',
+                        data: data,
+                        backgroundColor: colors,
+                        borderColor: borders,
+                        borderWidth: 1,
+                        borderRadius: 6
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    indexAxis: 'y',
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        x: {
+                            grid: { color: 'rgba(201, 176, 55, 0.08)' },
+                            ticks: { color: '#A0A0A0', callback: value => '$' + value.toFixed(0) }
+                        },
+                        y: {
+                            grid: { display: false },
+                            ticks: { color: '#A0A0A0', font: { size: 11 } }
+                        }
+                    }
+                }
+            });
+        }
+
         // Export to CSV
         window.exportTrades = function() {
             if (trades.length === 0) {
@@ -1630,15 +1903,24 @@
             }
         };
 
-        // Auth check
+        // Auth + plan check
         onAuthStateChanged(auth, async (user) => {
             if (!user) {
                 window.location.href = 'login.html';
-            } else {
-                currentUserId = user.uid;
-                await loadTrades();
-                updateAuthButton();
+                return;
             }
+            try {
+                const snap = await getDoc(doc(db, 'users', user.uid));
+                if (!snap.exists() || snap.data().plan !== 'bundle') {
+                    window.location.href = 'upgrade.html';
+                    return;
+                }
+            } catch (e) {
+                console.error('Plan check error:', e);
+            }
+            currentUserId = user.uid;
+            await loadTrades();
+            updateAuthButton();
         });
 
         function updateAuthButton() {

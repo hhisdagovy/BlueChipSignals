@@ -1,0 +1,1218 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Product Roadmap - Blue Chip Signals</title>
+    <link rel="icon" type="image/png" href="assets/images/logo.png">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="assets/css/signal-style.css">
+    <style>
+        body { overflow-x: hidden; }
+
+        /* ================================================================
+           HERO
+        ================================================================ */
+        .rm-hero {
+            padding: 9rem 2rem 4rem;
+            max-width: 1100px;
+            margin: 0 auto;
+            position: relative;
+        }
+
+        .rm-hero::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 50%; transform: translateX(-50%);
+            width: 700px; height: 500px;
+            background: radial-gradient(ellipse at center, rgba(201,176,55,0.09) 0%, transparent 70%);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .rm-hero-inner { position: relative; z-index: 1; }
+
+        .rm-hero-label {
+            display: inline-block;
+            font-size: 0.75rem;
+            font-weight: 700;
+            letter-spacing: 0.14em;
+            text-transform: uppercase;
+            color: var(--primary-gold);
+            background: rgba(201,176,55,0.08);
+            border: 1px solid rgba(201,176,55,0.2);
+            border-radius: 50px;
+            padding: 0.3rem 0.9rem;
+            margin-bottom: 1.5rem;
+            /* hero label fade-in */
+            opacity: 0;
+            transform: translateY(12px);
+            animation: heroFadeUp 0.55s ease 0.1s forwards;
+        }
+
+        .rm-hero h1 {
+            font-size: clamp(2.6rem, 5.5vw, 4.2rem);
+            font-weight: 900;
+            color: var(--light-text);
+            line-height: 1.07;
+            letter-spacing: -0.025em;
+            margin-bottom: 1.25rem;
+            max-width: 760px;
+            opacity: 0;
+            transform: translateY(16px);
+            animation: heroFadeUp 0.6s ease 0.2s forwards;
+        }
+
+        .rm-hero h1 em {
+            font-style: italic;
+            display: inline-block;
+            padding-bottom: 0.12em;
+            padding-right: 0.12em;
+            margin-right: -0.12em;
+            background: linear-gradient(135deg, var(--primary-gold), var(--secondary-gold));
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .rm-hero-desc {
+            color: var(--gray-text);
+            font-size: 1.05rem;
+            line-height: 1.7;
+            max-width: 600px;
+            margin-bottom: 2rem;
+            opacity: 0;
+            transform: translateY(12px);
+            animation: heroFadeUp 0.6s ease 0.35s forwards;
+        }
+
+        @keyframes heroFadeUp {
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* ---- Hero counter strip ---- */
+        .rm-hero-stats {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            margin-bottom: 2.25rem;
+            opacity: 0;
+            transform: translateY(10px);
+            animation: heroFadeUp 0.6s ease 0.5s forwards;
+        }
+
+        .rm-hero-stat {
+            background: rgba(10,14,22,0.7);
+            border: 1px solid rgba(201,176,55,0.15);
+            border-radius: 14px;
+            padding: 0.85rem 1.4rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.15rem;
+            min-width: 110px;
+        }
+
+        .rm-stat-num {
+            font-size: 1.7rem;
+            font-weight: 900;
+            letter-spacing: -0.03em;
+            background: linear-gradient(135deg, var(--primary-gold), var(--secondary-gold));
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            line-height: 1;
+        }
+
+        .rm-stat-label {
+            font-size: 0.72rem;
+            font-weight: 600;
+            color: var(--gray-text);
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+        }
+
+        /* ---- Legend badges ---- */
+        .rm-legend {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.65rem;
+            opacity: 0;
+            transform: translateY(10px);
+            animation: heroFadeUp 0.6s ease 0.65s forwards;
+        }
+
+        .rm-legend-item {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            font-size: 0.75rem;
+            font-weight: 600;
+            padding: 0.3rem 0.8rem;
+            border-radius: 20px;
+        }
+
+        .rm-legend-item.completed  { background: rgba(34,197,94,0.1);   border: 1px solid rgba(34,197,94,0.25);  color: #4ade80; }
+        .rm-legend-item.inprogress { background: rgba(201,176,55,0.12); border: 1px solid rgba(201,176,55,0.3);  color: var(--primary-gold); }
+        .rm-legend-item.soon       { background: rgba(96,165,250,0.1);  border: 1px solid rgba(96,165,250,0.25); color: #93c5fd; }
+        .rm-legend-item.planned    { background: rgba(255,255,255,0.05);border: 1px solid rgba(255,255,255,0.12);color: rgba(255,255,255,0.55); }
+
+        .rm-legend-dot { width: 7px; height: 7px; border-radius: 50%; }
+        .completed  .rm-legend-dot { background: #4ade80; }
+        .inprogress .rm-legend-dot { background: var(--primary-gold); animation: pulseGold 2s ease-in-out infinite; }
+        .soon       .rm-legend-dot { background: #93c5fd; }
+        .planned    .rm-legend-dot { background: rgba(255,255,255,0.35); }
+
+        @keyframes pulseGold {
+            0%,100% { box-shadow: 0 0 0 0 rgba(201,176,55,0.6); }
+            50%      { box-shadow: 0 0 0 4px rgba(201,176,55,0); }
+        }
+
+        /* ================================================================
+           DIVIDER
+        ================================================================ */
+        .rm-divider {
+            border: none;
+            border-top: 1px solid rgba(201,176,55,0.1);
+            max-width: 1100px;
+            margin: 0 auto;
+        }
+
+        /* ================================================================
+           FILTER TABS
+        ================================================================ */
+        .rm-filter-bar {
+            max-width: 860px;
+            margin: 0 auto;
+            padding: 2.5rem 2rem 0;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+
+        .rm-filter-btn {
+            background: rgba(255,255,255,0.04);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 50px;
+            color: rgba(255,255,255,0.5);
+            font-size: 0.78rem;
+            font-weight: 600;
+            font-family: inherit;
+            padding: 0.4rem 1rem;
+            cursor: pointer;
+            transition: background 0.2s, border-color 0.2s, color 0.2s;
+            white-space: nowrap;
+        }
+
+        .rm-filter-btn:hover { color: var(--light-text); border-color: rgba(255,255,255,0.2); }
+
+        .rm-filter-btn.active-all     { background: rgba(255,255,255,0.08); border-color: rgba(255,255,255,0.25); color: var(--light-text); }
+        .rm-filter-btn.active-completed  { background: rgba(34,197,94,0.12);   border-color: rgba(34,197,94,0.35);  color: #4ade80; }
+        .rm-filter-btn.active-inprogress { background: rgba(201,176,55,0.12);  border-color: rgba(201,176,55,0.35); color: var(--primary-gold); }
+        .rm-filter-btn.active-soon       { background: rgba(96,165,250,0.12);  border-color: rgba(96,165,250,0.35); color: #93c5fd; }
+        .rm-filter-btn.active-planned    { background: rgba(255,255,255,0.07); border-color: rgba(255,255,255,0.2); color: rgba(255,255,255,0.7); }
+
+        /* ================================================================
+           PROGRESS BANNER
+        ================================================================ */
+        .rm-progress-wrap {
+            max-width: 860px;
+            margin: 1.75rem auto 0;
+            padding: 0 2rem;
+        }
+
+        .rm-progress-box {
+            background: rgba(10,14,22,0.7);
+            border: 1px solid rgba(201,176,55,0.15);
+            border-radius: 16px;
+            padding: 1.1rem 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 1.25rem;
+            flex-wrap: wrap;
+        }
+
+        .rm-progress-meta {
+            flex: 1;
+            min-width: 180px;
+        }
+
+        .rm-progress-title {
+            font-size: 0.78rem;
+            font-weight: 700;
+            color: var(--light-text);
+            margin-bottom: 0.2rem;
+        }
+
+        .rm-progress-sub {
+            font-size: 0.72rem;
+            color: var(--gray-text);
+        }
+
+        .rm-progress-sub .rm-ip-dot {
+            display: inline-block;
+            width: 6px; height: 6px;
+            border-radius: 50%;
+            background: var(--primary-gold);
+            margin-right: 0.3rem;
+            vertical-align: middle;
+            animation: pulseGold 2s ease-in-out infinite;
+        }
+
+        .rm-progress-bar-wrap {
+            flex: 2;
+            min-width: 160px;
+        }
+
+        .rm-progress-labels {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.68rem;
+            color: var(--gray-text);
+            margin-bottom: 0.4rem;
+        }
+
+        .rm-progress-track {
+            height: 6px;
+            background: rgba(255,255,255,0.07);
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        .rm-progress-fill {
+            height: 100%;
+            border-radius: 10px;
+            background: linear-gradient(90deg, var(--primary-gold), var(--secondary-gold));
+            width: 0%;
+            transition: width 1.2s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .rm-progress-pct {
+            font-size: 0.72rem;
+            font-weight: 700;
+            color: var(--primary-gold);
+            white-space: nowrap;
+            align-self: center;
+        }
+
+        /* ================================================================
+           TIMELINE
+        ================================================================ */
+        .rm-timeline {
+            max-width: 860px;
+            margin: 0 auto;
+            padding: 3.5rem 2rem 6rem;
+            position: relative;
+        }
+
+        /* Real line element (replaces ::before) */
+        .rm-line-track {
+            position: absolute;
+            top: 3.5rem; bottom: 6rem;
+            left: calc(2rem + 31px);
+            width: 2px;
+            background: rgba(255,255,255,0.05);
+            border-radius: 2px;
+            overflow: hidden;
+        }
+
+        .rm-line-fill {
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 100%;
+            transform-origin: top center;
+            transform: scaleY(0);
+            background: linear-gradient(to bottom,
+                rgba(201,176,55,0.6),
+                rgba(201,176,55,0.15) 80%,
+                transparent
+            );
+            border-radius: 2px;
+        }
+
+        /* ---- Quarter group ---- */
+        .rm-quarter {
+            display: flex;
+            gap: 2rem;
+            margin-bottom: 3rem;
+            position: relative;
+            /* scroll-reveal start state */
+            opacity: 0;
+            transform: translateY(30px);
+            transition: opacity 0.6s ease, transform 0.6s ease;
+        }
+
+        .rm-quarter.is-visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* hidden when filtered out */
+        .rm-quarter.rm-hidden {
+            opacity: 0 !important;
+            max-height: 0 !important;
+            margin-bottom: 0 !important;
+            padding: 0 !important;
+            overflow: hidden;
+            pointer-events: none;
+            transition: opacity 0.3s ease, max-height 0.4s ease, margin-bottom 0.4s ease;
+        }
+
+        /* Dot on the line */
+        .rm-quarter-dot {
+            flex-shrink: 0;
+            width: 50px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: relative;
+            z-index: 1;
+        }
+
+        .rm-dot-ring {
+            width: 16px; height: 16px;
+            border-radius: 50%;
+            border: 2px solid;
+            background: var(--dark-bg);
+            margin-top: 4px;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .rm-quarter:hover .rm-dot-ring { transform: scale(1.25); }
+
+        .rm-quarter.completed  .rm-dot-ring { border-color: #4ade80; background: rgba(34,197,94,0.2); }
+        .rm-quarter.inprogress .rm-dot-ring { border-color: var(--primary-gold); background: rgba(201,176,55,0.2); box-shadow: 0 0 0 4px rgba(201,176,55,0.12), 0 0 14px rgba(201,176,55,0.35); animation: ringPulse 2.5s ease-in-out infinite; }
+        .rm-quarter.soon       .rm-dot-ring { border-color: #93c5fd; background: rgba(96,165,250,0.1); }
+        .rm-quarter.planned    .rm-dot-ring { border-color: rgba(255,255,255,0.2); background: rgba(255,255,255,0.04); }
+
+        @keyframes ringPulse {
+            0%,100% { box-shadow: 0 0 0 0 rgba(201,176,55,0.35), 0 0 14px rgba(201,176,55,0.35); }
+            50%      { box-shadow: 0 0 0 6px rgba(201,176,55,0),  0 0 14px rgba(201,176,55,0.35); }
+        }
+
+        /* ---- Quarter content ---- */
+        .rm-quarter-body { flex: 1; padding-bottom: 0.5rem; }
+
+        .rm-quarter-header {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin-bottom: 1rem;
+        }
+
+        .rm-quarter-label {
+            font-size: 0.95rem;
+            font-weight: 800;
+            color: var(--light-text);
+            letter-spacing: -0.01em;
+        }
+
+        .rm-status-badge {
+            font-size: 0.68rem;
+            font-weight: 700;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            padding: 0.2rem 0.65rem;
+            border-radius: 20px;
+        }
+
+        .rm-quarter.completed  .rm-status-badge { background: rgba(34,197,94,0.12);   border: 1px solid rgba(34,197,94,0.25);  color: #4ade80; }
+        .rm-quarter.inprogress .rm-status-badge { background: rgba(201,176,55,0.12);  border: 1px solid rgba(201,176,55,0.3);  color: var(--primary-gold); }
+        .rm-quarter.soon       .rm-status-badge { background: rgba(96,165,250,0.1);   border: 1px solid rgba(96,165,250,0.25); color: #93c5fd; }
+        .rm-quarter.planned    .rm-status-badge { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.12);color: rgba(255,255,255,0.45); }
+
+        /* ---- Feature cards grid ---- */
+        .rm-features {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+            gap: 0.75rem;
+        }
+
+        .rm-feature-card {
+            background: rgba(10,14,22,0.7);
+            border: 1px solid rgba(255,255,255,0.07);
+            border-radius: 12px;
+            padding: 1rem 1.1rem;
+            cursor: pointer;
+            transition: border-color 0.2s, transform 0.2s, box-shadow 0.2s;
+            position: relative;
+            user-select: none;
+        }
+
+        .rm-feature-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+        }
+
+        .rm-quarter.completed  .rm-feature-card { border-color: rgba(34,197,94,0.15); }
+        .rm-quarter.completed  .rm-feature-card:hover { border-color: rgba(34,197,94,0.4); }
+        .rm-quarter.inprogress .rm-feature-card { border-color: rgba(201,176,55,0.2); }
+        .rm-quarter.inprogress .rm-feature-card:hover { border-color: rgba(201,176,55,0.5); }
+        .rm-quarter.soon       .rm-feature-card { border-color: rgba(96,165,250,0.15); }
+        .rm-quarter.soon       .rm-feature-card:hover { border-color: rgba(96,165,250,0.4); }
+        .rm-quarter.planned    .rm-feature-card:hover { border-color: rgba(255,255,255,0.2); }
+
+        /* card expand state */
+        .rm-feature-card.expanded { box-shadow: 0 10px 30px rgba(0,0,0,0.35); }
+        .rm-quarter.completed  .rm-feature-card.expanded { border-color: rgba(34,197,94,0.45); }
+        .rm-quarter.inprogress .rm-feature-card.expanded { border-color: rgba(201,176,55,0.55); }
+        .rm-quarter.soon       .rm-feature-card.expanded { border-color: rgba(96,165,250,0.45); }
+
+        /* card top row */
+        .rm-card-top {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 0.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .rm-feature-icon {
+            font-size: 1rem;
+        }
+
+        .rm-quarter.completed  .rm-feature-icon { color: #4ade80; }
+        .rm-quarter.inprogress .rm-feature-icon { color: var(--primary-gold); }
+        .rm-quarter.soon       .rm-feature-icon { color: #93c5fd; }
+        .rm-quarter.planned    .rm-feature-icon { color: rgba(255,255,255,0.3); }
+
+        .rm-card-chevron {
+            font-size: 0.65rem;
+            color: rgba(255,255,255,0.25);
+            transition: transform 0.3s ease, color 0.2s;
+            flex-shrink: 0;
+            margin-top: 2px;
+        }
+
+        .rm-feature-card.expanded .rm-card-chevron { transform: rotate(180deg); color: rgba(255,255,255,0.5); }
+
+        .rm-feature-name {
+            font-size: 0.88rem;
+            font-weight: 700;
+            color: var(--light-text);
+            margin-bottom: 0.25rem;
+        }
+
+        .rm-feature-desc {
+            font-size: 0.78rem;
+            color: var(--gray-text);
+            line-height: 1.5;
+        }
+
+        /* Completed check */
+        .rm-feature-card.is-done .rm-feature-name::after {
+            content: ' ✓';
+            color: #4ade80;
+            font-size: 0.8rem;
+        }
+
+        /* Expandable detail */
+        .rm-card-detail {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.35s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.3s ease;
+            opacity: 0;
+        }
+
+        .rm-feature-card.expanded .rm-card-detail {
+            max-height: 120px;
+            opacity: 1;
+        }
+
+        .rm-card-detail-inner {
+            margin-top: 0.75rem;
+            padding-top: 0.75rem;
+            border-top: 1px solid rgba(255,255,255,0.07);
+            font-size: 0.76rem;
+            color: rgba(255,255,255,0.5);
+            line-height: 1.6;
+        }
+
+        /* ================================================================
+           CTA
+        ================================================================ */
+        .rm-cta {
+            max-width: 860px;
+            margin: 0 auto;
+            padding: 0 2rem 6rem;
+            text-align: center;
+        }
+
+        .rm-cta-box {
+            background: rgba(10,14,22,0.7);
+            border: 1px solid rgba(201,176,55,0.18);
+            border-radius: 20px;
+            padding: 3rem 2rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .rm-cta-box::before {
+            content: '';
+            position: absolute;
+            bottom: -60px; left: 50%; transform: translateX(-50%);
+            width: 400px; height: 300px;
+            background: radial-gradient(ellipse at center, rgba(201,176,55,0.08) 0%, transparent 70%);
+            pointer-events: none;
+        }
+
+        .rm-cta-box h2 {
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: var(--light-text);
+            margin-bottom: 0.75rem;
+        }
+
+        .rm-cta-box h2 em {
+            font-style: italic;
+            background: linear-gradient(135deg, var(--primary-gold), var(--secondary-gold));
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .rm-cta-box p {
+            color: var(--gray-text);
+            font-size: 0.95rem;
+            margin-bottom: 1.75rem;
+            max-width: 460px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .rm-cta-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: linear-gradient(135deg, var(--primary-gold), var(--secondary-gold));
+            color: #080B0F;
+            font-weight: 700;
+            font-size: 0.9rem;
+            padding: 0.85rem 2rem;
+            border-radius: 50px;
+            text-decoration: none;
+            transition: opacity 0.2s, transform 0.2s;
+        }
+
+        .rm-cta-btn:hover { opacity: 0.88; transform: translateY(-2px); }
+
+        /* ================================================================
+           RESPONSIVE
+        ================================================================ */
+        @media (max-width: 768px) {
+            .rm-hero { padding: 7rem 1.25rem 3rem; }
+            .rm-filter-bar, .rm-progress-wrap { padding-left: 1.25rem; padding-right: 1.25rem; }
+            .rm-timeline { padding: 3rem 1.25rem 4rem; }
+            .rm-line-track { left: calc(1.25rem + 31px); }
+            .rm-features { grid-template-columns: 1fr; }
+            .rm-quarter { gap: 1.25rem; }
+            .rm-cta { padding: 0 1.25rem 4rem; }
+            .rm-hero-stats { gap: 0.65rem; }
+            .rm-hero-stat { padding: 0.7rem 1rem; min-width: 90px; }
+            .rm-stat-num { font-size: 1.35rem; }
+        }
+    </style>
+</head>
+<body>
+    <div id="nav-placeholder" data-nav-type="public"></div>
+    <script src="assets/js/nav-component.js"></script>
+
+    <!-- ======================== HERO ======================== -->
+    <section class="rm-hero">
+        <div class="rm-hero-inner">
+            <div class="rm-hero-label"><i class="fas fa-map-signs"></i> &nbsp;Product Roadmap</div>
+            <h1>Here's what we're <em>building next</em></h1>
+            <p class="rm-hero-desc">
+                Our roadmap shows every feature we've shipped and everything we're working on — from automated signal alerts to a full mobile application. Bundle members get priority access to every new release at no extra cost.
+            </p>
+
+            <!-- Animated stat counters -->
+            <div class="rm-hero-stats">
+                <div class="rm-hero-stat">
+                    <span class="rm-stat-num" data-target="6">0</span>
+                    <span class="rm-stat-label">Signal Channels</span>
+                </div>
+                <div class="rm-hero-stat">
+                    <span class="rm-stat-num" data-target="13">0</span>
+                    <span class="rm-stat-label">Educational Guides</span>
+                </div>
+                <div class="rm-hero-stat">
+                    <span class="rm-stat-num" data-target="7">0</span>
+                    <span class="rm-stat-label">Roadmap Phases</span>
+                </div>
+                <div class="rm-hero-stat">
+                    <span class="rm-stat-num" data-target="2027" data-no-format>0</span>
+                    <span class="rm-stat-label">Target Year</span>
+                </div>
+            </div>
+
+            <div class="rm-legend">
+                <span class="rm-legend-item completed"><span class="rm-legend-dot"></span>Completed</span>
+                <span class="rm-legend-item inprogress"><span class="rm-legend-dot"></span>In Progress</span>
+                <span class="rm-legend-item soon"><span class="rm-legend-dot"></span>Coming Soon</span>
+                <span class="rm-legend-item planned"><span class="rm-legend-dot"></span>Planned</span>
+            </div>
+        </div>
+    </section>
+
+    <hr class="rm-divider">
+
+    <!-- ======================== FILTER TABS ======================== -->
+    <div class="rm-filter-bar">
+        <button class="rm-filter-btn active-all" data-filter="all">All</button>
+        <button class="rm-filter-btn" data-filter="completed">Completed</button>
+        <button class="rm-filter-btn" data-filter="inprogress">In Progress</button>
+        <button class="rm-filter-btn" data-filter="soon">Coming Soon</button>
+        <button class="rm-filter-btn" data-filter="planned">Planned</button>
+    </div>
+
+    <!-- ======================== PROGRESS BANNER ======================== -->
+    <div class="rm-progress-wrap">
+        <div class="rm-progress-box">
+            <div class="rm-progress-meta">
+                <div class="rm-progress-title">Overall Progress</div>
+                <div class="rm-progress-sub">
+                    <span class="rm-ip-dot"></span>Phase 2 of 7 active &nbsp;·&nbsp; Q2 2027 target
+                </div>
+            </div>
+            <div class="rm-progress-bar-wrap">
+                <div class="rm-progress-labels">
+                    <span>1 phase complete</span>
+                    <span>6 remaining</span>
+                </div>
+                <div class="rm-progress-track">
+                    <div class="rm-progress-fill" id="rm-progress-fill"></div>
+                </div>
+            </div>
+            <div class="rm-progress-pct" id="rm-progress-pct">0%</div>
+        </div>
+    </div>
+
+    <!-- ======================== TIMELINE ======================== -->
+    <div class="rm-timeline" id="rm-timeline">
+
+        <!-- Animated draw line -->
+        <div class="rm-line-track">
+            <div class="rm-line-fill" id="rm-line-fill"></div>
+        </div>
+
+        <!-- Launched — completed -->
+        <div class="rm-quarter completed" data-filter="completed">
+            <div class="rm-quarter-dot"><div class="rm-dot-ring"></div></div>
+            <div class="rm-quarter-body">
+                <div class="rm-quarter-header">
+                    <span class="rm-quarter-label">Launched</span>
+                    <span class="rm-status-badge">Completed</span>
+                </div>
+                <div class="rm-features">
+                    <div class="rm-feature-card is-done">
+                        <div class="rm-card-top">
+                            <div class="rm-feature-icon"><i class="fas fa-chart-line"></i></div>
+                            <i class="fas fa-chevron-down rm-card-chevron"></i>
+                        </div>
+                        <div class="rm-feature-name">6 Live Signal Channels</div>
+                        <div class="rm-feature-desc">SPY, AAPL, TSLA, META, NVDA &amp; AMZN with entry &amp; exit signals.</div>
+                        <div class="rm-card-detail">
+                            <div class="rm-card-detail-inner">Covers 6 of the most traded US equities. Each channel provides daily analysis, key price levels, and specific entry/exit zones based on our proprietary methodology.</div>
+                        </div>
+                    </div>
+                    <div class="rm-feature-card is-done">
+                        <div class="rm-card-top">
+                            <div class="rm-feature-icon"><i class="fas fa-book"></i></div>
+                            <i class="fas fa-chevron-down rm-card-chevron"></i>
+                        </div>
+                        <div class="rm-feature-name">Trading Journal</div>
+                        <div class="rm-feature-desc">Full P/L tracking with open &amp; closed trade logging.</div>
+                        <div class="rm-card-detail">
+                            <div class="rm-card-detail-inner">Log trades with entry price, exit price, quantity, and notes. Automatically calculates P/L, win rate, and running totals across all positions.</div>
+                        </div>
+                    </div>
+                    <div class="rm-feature-card is-done">
+                        <div class="rm-card-top">
+                            <div class="rm-feature-icon"><i class="fas fa-crosshairs"></i></div>
+                            <i class="fas fa-chevron-down rm-card-chevron"></i>
+                        </div>
+                        <div class="rm-feature-name">Trade Idea Planner</div>
+                        <div class="rm-feature-desc">Plan entries, targets &amp; stops before pulling the trigger.</div>
+                        <div class="rm-card-detail">
+                            <div class="rm-card-detail-inner">Set up trade plans before the market opens. Define your entry, stop-loss, and target with automatic R:R ratio calculation to validate every setup.</div>
+                        </div>
+                    </div>
+                    <div class="rm-feature-card is-done">
+                        <div class="rm-card-top">
+                            <div class="rm-feature-icon"><i class="fas fa-graduation-cap"></i></div>
+                            <i class="fas fa-chevron-down rm-card-chevron"></i>
+                        </div>
+                        <div class="rm-feature-name">13 Educational Guides</div>
+                        <div class="rm-feature-desc">Deep-dive strategy guides for every supported ticker.</div>
+                        <div class="rm-card-detail">
+                            <div class="rm-card-detail-inner">Covers earnings cycles, trend following, support/resistance, options volume, and macroeconomic catalysts — one guide per stock plus cross-market strategy guides.</div>
+                        </div>
+                    </div>
+                    <div class="rm-feature-card is-done">
+                        <div class="rm-card-top">
+                            <div class="rm-feature-icon"><i class="fas fa-gauge-high"></i></div>
+                            <i class="fas fa-chevron-down rm-card-chevron"></i>
+                        </div>
+                        <div class="rm-feature-name">Member Dashboard</div>
+                        <div class="rm-feature-desc">Portfolio overview, Fear &amp; Greed gauge &amp; live economic indicators.</div>
+                        <div class="rm-card-detail">
+                            <div class="rm-card-detail-inner">Real-time Fear & Greed gauge, live CPI/PPI economic data from the BLS API, and a full portfolio overview with win rate and P/L stats — all in one place.</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Q1 2026 — In Progress -->
+        <div class="rm-quarter inprogress" data-filter="inprogress">
+            <div class="rm-quarter-dot"><div class="rm-dot-ring"></div></div>
+            <div class="rm-quarter-body">
+                <div class="rm-quarter-header">
+                    <span class="rm-quarter-label">Q1 2026</span>
+                    <span class="rm-status-badge">In Progress</span>
+                </div>
+                <div class="rm-features">
+                    <div class="rm-feature-card">
+                        <div class="rm-card-top">
+                            <div class="rm-feature-icon"><i class="fas fa-calendar-days"></i></div>
+                            <i class="fas fa-chevron-down rm-card-chevron"></i>
+                        </div>
+                        <div class="rm-feature-name">Trading Activity Heatmap</div>
+                        <div class="rm-feature-desc">See your full year of trading activity at a glance on the dashboard.</div>
+                        <div class="rm-card-detail">
+                            <div class="rm-card-detail-inner">A calendar heatmap showing every day you logged a trade this year. Includes streak tracking, most-active day, longest streak, and current streak stats.</div>
+                        </div>
+                    </div>
+                    <div class="rm-feature-card">
+                        <div class="rm-card-top">
+                            <div class="rm-feature-icon"><i class="fas fa-chart-bar"></i></div>
+                            <i class="fas fa-chevron-down rm-card-chevron"></i>
+                        </div>
+                        <div class="rm-feature-name">Live Economic Indicators</div>
+                        <div class="rm-feature-desc">Real-time CPI, PPI &amp; Fed Funds Rate on your dashboard.</div>
+                        <div class="rm-card-detail">
+                            <div class="rm-card-detail-inner">Pulls CPI and PPI data directly from the BLS public API. Fed Funds Rate updates automatically after each FOMC meeting — no manual refreshing needed.</div>
+                        </div>
+                    </div>
+                    <div class="rm-feature-card">
+                        <div class="rm-card-top">
+                            <div class="rm-feature-icon"><i class="fas fa-mobile-screen"></i></div>
+                            <i class="fas fa-chevron-down rm-card-chevron"></i>
+                        </div>
+                        <div class="rm-feature-name">Mobile Responsive Improvements</div>
+                        <div class="rm-feature-desc">Polished layouts across all pages for phones &amp; tablets.</div>
+                        <div class="rm-card-detail">
+                            <div class="rm-card-detail-inner">A full audit and redesign of every page for touch screens — optimized tap targets, readable fonts, and smooth scrolling across iOS and Android browsers.</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Q2 2026 — Coming Soon -->
+        <div class="rm-quarter soon" data-filter="soon">
+            <div class="rm-quarter-dot"><div class="rm-dot-ring"></div></div>
+            <div class="rm-quarter-body">
+                <div class="rm-quarter-header">
+                    <span class="rm-quarter-label">Q2 2026</span>
+                    <span class="rm-status-badge">Coming Soon</span>
+                </div>
+                <div class="rm-features">
+                    <div class="rm-feature-card">
+                        <div class="rm-card-top">
+                            <div class="rm-feature-icon"><i class="fas fa-bell"></i></div>
+                            <i class="fas fa-chevron-down rm-card-chevron"></i>
+                        </div>
+                        <div class="rm-feature-name">Automated Sell Signal Alerts</div>
+                        <div class="rm-feature-desc">Get notified the moment a position hits its exit target or stop-loss level.</div>
+                        <div class="rm-card-detail">
+                            <div class="rm-card-detail-inner">When your position approaches its target or stop-loss, you'll get a push notification before the signal triggers — giving you time to act, not react.</div>
+                        </div>
+                    </div>
+                    <div class="rm-feature-card">
+                        <div class="rm-card-top">
+                            <div class="rm-feature-icon"><i class="fas fa-envelope"></i></div>
+                            <i class="fas fa-chevron-down rm-card-chevron"></i>
+                        </div>
+                        <div class="rm-feature-name">Email &amp; SMS Notifications</div>
+                        <div class="rm-feature-desc">Never miss a signal — receive alerts directly to your phone or inbox.</div>
+                        <div class="rm-card-detail">
+                            <div class="rm-card-detail-inner">Choose your preferred channel — email, SMS, or both. Set quiet hours and choose which signal channels you want to receive alerts for.</div>
+                        </div>
+                    </div>
+                    <div class="rm-feature-card">
+                        <div class="rm-card-top">
+                            <div class="rm-feature-icon"><i class="fas fa-chart-pie"></i></div>
+                            <i class="fas fa-chevron-down rm-card-chevron"></i>
+                        </div>
+                        <div class="rm-feature-name">Journal Analytics</div>
+                        <div class="rm-feature-desc">Visual P/L charts, win-rate trends &amp; performance breakdowns over time.</div>
+                        <div class="rm-card-detail">
+                            <div class="rm-card-detail-inner">Visual charts showing P/L by ticker, by month, and by trade type. See your win rate trend over time and identify which setups perform best for you.</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Q3 2026 — Planned -->
+        <div class="rm-quarter planned" data-filter="planned">
+            <div class="rm-quarter-dot"><div class="rm-dot-ring"></div></div>
+            <div class="rm-quarter-body">
+                <div class="rm-quarter-header">
+                    <span class="rm-quarter-label">Q3 2026</span>
+                    <span class="rm-status-badge">Planned</span>
+                </div>
+                <div class="rm-features">
+                    <div class="rm-feature-card">
+                        <div class="rm-card-top">
+                            <div class="rm-feature-icon"><i class="fas fa-water"></i></div>
+                            <i class="fas fa-chevron-down rm-card-chevron"></i>
+                        </div>
+                        <div class="rm-feature-name">Options Flow Integration</div>
+                        <div class="rm-feature-desc">Track unusual options activity across all 6 covered tickers.</div>
+                        <div class="rm-card-detail">
+                            <div class="rm-card-detail-inner">Identify when large institutions are making unusual bets through the options market — often a leading indicator of significant price moves before they happen.</div>
+                        </div>
+                    </div>
+                    <div class="rm-feature-card">
+                        <div class="rm-card-top">
+                            <div class="rm-feature-icon"><i class="fas fa-calendar-check"></i></div>
+                            <i class="fas fa-chevron-down rm-card-chevron"></i>
+                        </div>
+                        <div class="rm-feature-name">Earnings Calendar</div>
+                        <div class="rm-feature-desc">Pre-earnings signal recommendations with historical context.</div>
+                        <div class="rm-card-detail">
+                            <div class="rm-card-detail-inner">Know exactly when each covered stock reports and get pre-built signal scenarios for earnings plays — both bullish and bearish setups with historical win rates.</div>
+                        </div>
+                    </div>
+                    <div class="rm-feature-card">
+                        <div class="rm-card-top">
+                            <div class="rm-feature-icon"><i class="fas fa-book-open"></i></div>
+                            <i class="fas fa-chevron-down rm-card-chevron"></i>
+                        </div>
+                        <div class="rm-feature-name">Expanded Guide Library</div>
+                        <div class="rm-feature-desc">10+ new strategy guides covering advanced setups and market conditions.</div>
+                        <div class="rm-card-detail">
+                            <div class="rm-card-detail-inner">New guides covering scalping, swing trading on earnings, macro-driven setups, and sector rotation — expanding well beyond the current 13-guide library.</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Q4 2026 — Planned -->
+        <div class="rm-quarter planned" data-filter="planned">
+            <div class="rm-quarter-dot"><div class="rm-dot-ring"></div></div>
+            <div class="rm-quarter-body">
+                <div class="rm-quarter-header">
+                    <span class="rm-quarter-label">Q4 2026</span>
+                    <span class="rm-status-badge">Planned</span>
+                </div>
+                <div class="rm-features">
+                    <div class="rm-feature-card">
+                        <div class="rm-card-top">
+                            <div class="rm-feature-icon"><i class="fas fa-brain"></i></div>
+                            <i class="fas fa-chevron-down rm-card-chevron"></i>
+                        </div>
+                        <div class="rm-feature-name">AI Signal Confidence Scoring</div>
+                        <div class="rm-feature-desc">Each signal gets an AI-generated confidence score based on market conditions.</div>
+                        <div class="rm-card-detail">
+                            <div class="rm-card-detail-inner">Our model evaluates trend strength, volume confirmation, macro backdrop, and historical pattern similarity to produce a 1–10 confidence score for every signal.</div>
+                        </div>
+                    </div>
+                    <div class="rm-feature-card">
+                        <div class="rm-card-top">
+                            <div class="rm-feature-icon"><i class="fas fa-scale-balanced"></i></div>
+                            <i class="fas fa-chevron-down rm-card-chevron"></i>
+                        </div>
+                        <div class="rm-feature-name">Portfolio Benchmarking</div>
+                        <div class="rm-feature-desc">Compare your returns against SPY and see exactly where you're winning.</div>
+                        <div class="rm-card-detail">
+                            <div class="rm-card-detail-inner">See your cumulative P/L plotted against SPY's performance over the same period. Know at a glance whether you're outperforming the market.</div>
+                        </div>
+                    </div>
+                    <div class="rm-feature-card">
+                        <div class="rm-card-top">
+                            <div class="rm-feature-icon"><i class="fas fa-users"></i></div>
+                            <i class="fas fa-chevron-down rm-card-chevron"></i>
+                        </div>
+                        <div class="rm-feature-name">Member Community Hub</div>
+                        <div class="rm-feature-desc">Private Discord integration and early-access forum for bundle members.</div>
+                        <div class="rm-card-detail">
+                            <div class="rm-card-detail-inner">A private Discord server for bundle members only, plus an in-app discussion board for sharing trade ideas, asking questions, and peer feedback.</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Q1 2027 — Planned -->
+        <div class="rm-quarter planned" data-filter="planned">
+            <div class="rm-quarter-dot"><div class="rm-dot-ring"></div></div>
+            <div class="rm-quarter-body">
+                <div class="rm-quarter-header">
+                    <span class="rm-quarter-label">Q1 2027</span>
+                    <span class="rm-status-badge">Planned</span>
+                </div>
+                <div class="rm-features">
+                    <div class="rm-feature-card">
+                        <div class="rm-card-top">
+                            <div class="rm-feature-icon"><i class="fas fa-link"></i></div>
+                            <i class="fas fa-chevron-down rm-card-chevron"></i>
+                        </div>
+                        <div class="rm-feature-name">Brokerage API Integrations</div>
+                        <div class="rm-feature-desc">Connect your broker for paper trading and one-click order execution.</div>
+                        <div class="rm-card-detail">
+                            <div class="rm-card-detail-inner">Connect TD Ameritrade, Schwab, or Interactive Brokers. Execute paper trades directly from the planner with one click, and go live when you're confident.</div>
+                        </div>
+                    </div>
+                    <div class="rm-feature-card">
+                        <div class="rm-card-top">
+                            <div class="rm-feature-icon"><i class="fas fa-flask"></i></div>
+                            <i class="fas fa-chevron-down rm-card-chevron"></i>
+                        </div>
+                        <div class="rm-feature-name">Backtesting Tool</div>
+                        <div class="rm-feature-desc">Validate your strategy against years of historical data before going live.</div>
+                        <div class="rm-card-detail">
+                            <div class="rm-card-detail-inner">Run any signal strategy against up to 10 years of historical data. See win rate, max drawdown, and Sharpe ratio before risking real capital.</div>
+                        </div>
+                    </div>
+                    <div class="rm-feature-card">
+                        <div class="rm-card-top">
+                            <div class="rm-feature-icon"><i class="fas fa-sliders"></i></div>
+                            <i class="fas fa-chevron-down rm-card-chevron"></i>
+                        </div>
+                        <div class="rm-feature-name">Custom Watchlist &amp; Alerts</div>
+                        <div class="rm-feature-desc">Build personal watchlists with custom price &amp; indicator alert thresholds.</div>
+                        <div class="rm-card-detail">
+                            <div class="rm-card-detail-inner">Add any ticker and set price alerts, RSI thresholds, or moving average crossover triggers. Get notified instantly when your conditions are met.</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Q2 2027 — Planned -->
+        <div class="rm-quarter planned" data-filter="planned">
+            <div class="rm-quarter-dot"><div class="rm-dot-ring"></div></div>
+            <div class="rm-quarter-body">
+                <div class="rm-quarter-header">
+                    <span class="rm-quarter-label">Q2 2027</span>
+                    <span class="rm-status-badge">Planned</span>
+                </div>
+                <div class="rm-features">
+                    <div class="rm-feature-card">
+                        <div class="rm-card-top">
+                            <div class="rm-feature-icon"><i class="fab fa-apple"></i></div>
+                            <i class="fas fa-chevron-down rm-card-chevron"></i>
+                        </div>
+                        <div class="rm-feature-name">iOS Application</div>
+                        <div class="rm-feature-desc">Full Blue Chip Signals experience on iPhone — signals, journal &amp; dashboard.</div>
+                        <div class="rm-card-detail">
+                            <div class="rm-card-detail-inner">Built natively for iPhone. Receive push notifications, view your dashboard, log trades, and check signals — the full platform from your pocket.</div>
+                        </div>
+                    </div>
+                    <div class="rm-feature-card">
+                        <div class="rm-card-top">
+                            <div class="rm-feature-icon"><i class="fab fa-android"></i></div>
+                            <i class="fas fa-chevron-down rm-card-chevron"></i>
+                        </div>
+                        <div class="rm-feature-name">Android Application</div>
+                        <div class="rm-feature-desc">Complete feature parity on Android devices at launch.</div>
+                        <div class="rm-card-detail">
+                            <div class="rm-card-detail-inner">Full feature parity with iOS at launch — available on the Google Play Store with the same native performance and real-time signal delivery.</div>
+                        </div>
+                    </div>
+                    <div class="rm-feature-card">
+                        <div class="rm-card-top">
+                            <div class="rm-feature-icon"><i class="fas fa-crown"></i></div>
+                            <i class="fas fa-chevron-down rm-card-chevron"></i>
+                        </div>
+                        <div class="rm-feature-name">Bundle Member Early Access</div>
+                        <div class="rm-feature-desc">Bundle members get priority beta access to both apps before public release.</div>
+                        <div class="rm-card-detail">
+                            <div class="rm-card-detail-inner">Bundle members get private beta access 60 days before the public launch. Help shape the final product and be the first to trade with both apps.</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div><!-- end .rm-timeline -->
+
+    <!-- ======================== CTA ======================== -->
+    <div class="rm-cta">
+        <div class="rm-cta-box">
+            <h2>Get access to <em>every update</em> — included</h2>
+            <p>Bundle members receive all new features at no extra cost, plus first-in-line access to the mobile applications when they launch.</p>
+            <a href="book-demo.html" class="rm-cta-btn"><i class="fas fa-calendar-check"></i> Book a Demo</a>
+        </div>
+    </div>
+
+    <div id="footer-placeholder" data-footer-type="standard-social"></div>
+    <script src="assets/js/footer-component.js"></script>
+
+    <script>
+    (function () {
+        'use strict';
+
+        /* ================================================================
+           1. ANIMATED HERO COUNTERS
+        ================================================================ */
+        function animateCounter(el) {
+            var target = parseInt(el.getAttribute('data-target'), 10);
+            var duration = target >= 1000 ? 1600 : 1000;
+            var start = null;
+
+            function ease(t) { return t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t; }
+
+            function step(timestamp) {
+                if (!start) start = timestamp;
+                var progress = Math.min((timestamp - start) / duration, 1);
+                var val = Math.round(ease(progress) * target);
+                    el.textContent = el.hasAttribute('data-no-format') ? val : val.toLocaleString();
+                if (progress < 1) requestAnimationFrame(step);
+                else el.textContent = el.hasAttribute('data-no-format') ? target : target.toLocaleString();
+            }
+
+            requestAnimationFrame(step);
+        }
+
+        /* Run counters once hero animation delay clears */
+        setTimeout(function () {
+            document.querySelectorAll('.rm-stat-num[data-target]').forEach(animateCounter);
+        }, 700);
+
+        /* ================================================================
+           2. PROGRESS BAR
+        ================================================================ */
+        var COMPLETED_PHASES = 1;
+        var TOTAL_PHASES     = 7;
+        var PCT = Math.round((COMPLETED_PHASES / TOTAL_PHASES) * 100);
+
+        var fillEl = document.getElementById('rm-progress-fill');
+        var pctEl  = document.getElementById('rm-progress-pct');
+
+        /* Animate in after a short delay */
+        setTimeout(function () {
+            if (fillEl) fillEl.style.width = PCT + '%';
+            if (pctEl)  animateCounter(Object.assign(document.createElement('span'), {
+                /* inline counter for pct — just set text directly */
+            }));
+            /* Simple pct counter */
+            if (pctEl) {
+                var pctStart = null;
+                function stepPct(ts) {
+                    if (!pctStart) pctStart = ts;
+                    var p = Math.min((ts - pctStart) / 1200, 1);
+                    var ease = p < 0.5 ? 2*p*p : -1 + (4-2*p)*p;
+                    pctEl.textContent = Math.round(ease * PCT) + '%';
+                    if (p < 1) requestAnimationFrame(stepPct);
+                    else pctEl.textContent = PCT + '%';
+                }
+                requestAnimationFrame(stepPct);
+            }
+        }, 400);
+
+        /* ================================================================
+           3. SCROLL-REVEAL with IntersectionObserver
+        ================================================================ */
+        var quarters = Array.from(document.querySelectorAll('.rm-quarter'));
+
+        var revealObserver = new IntersectionObserver(function (entries) {
+            entries.forEach(function (entry) {
+                if (entry.isIntersecting) {
+                    /* Stagger based on index among visible siblings */
+                    var idx = quarters.indexOf(entry.target);
+                    var visibleBefore = quarters.slice(0, idx).filter(function (q) {
+                        return !q.classList.contains('rm-hidden');
+                    }).length;
+                    entry.target.style.transitionDelay = (visibleBefore % 3 * 0.1) + 's';
+                    entry.target.classList.add('is-visible');
+                    revealObserver.unobserve(entry.target);
+                }
+            });
+        }, { threshold: 0.12 });
+
+        quarters.forEach(function (q) { revealObserver.observe(q); });
+
+        /* ================================================================
+           4. DRAWING TIMELINE LINE ON SCROLL
+        ================================================================ */
+        var lineTrack = document.querySelector('.rm-line-track');
+        var lineFill  = document.getElementById('rm-line-fill');
+        var timeline  = document.getElementById('rm-timeline');
+
+        function updateLine() {
+            if (!lineTrack || !lineFill || !timeline) return;
+            var trackRect  = lineTrack.getBoundingClientRect();
+            var trackTop   = trackRect.top + window.scrollY;
+            var trackH     = lineTrack.offsetHeight;
+            /* Line should be "filled" to wherever the bottom-center of the viewport is */
+            var viewBottom = window.scrollY + window.innerHeight * 0.75;
+            var pct = Math.max(0, Math.min(1, (viewBottom - trackTop) / trackH));
+            lineFill.style.transform = 'scaleY(' + pct + ')';
+        }
+
+        window.addEventListener('scroll', updateLine, { passive: true });
+        window.addEventListener('resize', updateLine, { passive: true });
+        /* Initial call after paint */
+        setTimeout(updateLine, 200);
+
+        /* ================================================================
+           5. FILTER TABS
+        ================================================================ */
+        var filterBtns = document.querySelectorAll('.rm-filter-btn');
+
+        filterBtns.forEach(function (btn) {
+            btn.addEventListener('click', function () {
+                var filter = btn.getAttribute('data-filter');
+
+                /* Update active button styling */
+                filterBtns.forEach(function (b) {
+                    b.className = 'rm-filter-btn';
+                });
+                btn.classList.add('active-' + filter);
+
+                /* Show / hide quarters */
+                quarters.forEach(function (q) {
+                    var match = filter === 'all' || q.getAttribute('data-filter') === filter;
+                    if (match) {
+                        q.classList.remove('rm-hidden');
+                        /* Re-trigger reveal if not yet visible */
+                        if (!q.classList.contains('is-visible')) {
+                            setTimeout(function () { q.classList.add('is-visible'); }, 50);
+                        }
+                    } else {
+                        q.classList.add('rm-hidden');
+                    }
+                });
+
+                /* Recalculate line after layout settles */
+                setTimeout(updateLine, 400);
+            });
+        });
+
+        /* ================================================================
+           6. EXPANDABLE CARDS (accordion per quarter)
+        ================================================================ */
+        document.querySelectorAll('.rm-feature-card').forEach(function (card) {
+            card.addEventListener('click', function (e) {
+                var isExpanded = card.classList.contains('expanded');
+                /* Close all cards in same quarter */
+                var parent = card.closest('.rm-quarter');
+                if (parent) {
+                    parent.querySelectorAll('.rm-feature-card.expanded').forEach(function (c) {
+                        c.classList.remove('expanded');
+                    });
+                }
+                /* Toggle clicked card */
+                if (!isExpanded) card.classList.add('expanded');
+            });
+        });
+
+    })();
+    </script>
+</body>
+</html>

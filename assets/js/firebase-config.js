@@ -9,7 +9,10 @@ import {
     onAuthStateChanged,
     setPersistence,
     browserLocalPersistence,
-    browserSessionPersistence
+    browserSessionPersistence,
+    updatePassword,
+    reauthenticateWithCredential,
+    EmailAuthProvider
 } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-auth.js";
 import { 
     getFirestore,
@@ -55,6 +58,9 @@ export {
     setPersistence,
     browserLocalPersistence,
     browserSessionPersistence,
+    updatePassword,
+    reauthenticateWithCredential,
+    EmailAuthProvider,
     doc,
     getDoc,
     setDoc,

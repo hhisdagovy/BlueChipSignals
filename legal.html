@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Legal Hub – Blue Chip Signals</title>
+    <link rel="icon" type="image/png" href="assets/images/logo.png">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="assets/css/signal-style.css">
+    <style>
+        body { overflow-x: hidden; }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0; left: 50%; transform: translateX(-50%);
+            width: 900px; height: 600px;
+            background: radial-gradient(ellipse at center, rgba(201,176,55,0.07) 0%, transparent 70%);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        /* ── Hero ── */
+        .lh-hero {
+            padding: 8rem 2rem 5rem;
+            max-width: 1100px;
+            margin: 0 auto;
+            position: relative;
+            z-index: 1;
+            text-align: center;
+            opacity: 0;
+            transform: translateY(16px);
+            animation: lhFadeUp 0.6s ease 0.1s forwards;
+        }
+
+        @keyframes lhFadeUp {
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .lh-label {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.45rem;
+            font-size: 0.72rem;
+            font-weight: 700;
+            letter-spacing: 0.14em;
+            text-transform: uppercase;
+            color: var(--primary-gold);
+            background: rgba(201,176,55,0.08);
+            border: 1px solid rgba(201,176,55,0.22);
+            border-radius: 100px;
+            padding: 0.35em 1.1em;
+            margin-bottom: 1.4rem;
+        }
+
+        .lh-hero h1 {
+            font-size: clamp(2.2rem, 5vw, 3.2rem);
+            font-weight: 800;
+            letter-spacing: -0.02em;
+            line-height: 1.12;
+            color: #f0ece0;
+            margin: 0 0 1.1rem;
+        }
+
+        .lh-hero h1 em {
+            font-style: italic;
+            background: linear-gradient(135deg, var(--primary-gold) 0%, var(--secondary-gold) 50%, var(--primary-gold) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            display: inline-block;
+            padding-bottom: 0.08em;
+        }
+
+        .lh-hero-desc {
+            font-size: 1.05rem;
+            color: rgba(240,236,224,0.55);
+            max-width: 540px;
+            margin: 0 auto 0.5rem;
+            line-height: 1.7;
+        }
+
+        /* ── Cards grid ── */
+        .lh-cards {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 0 2rem 6rem;
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1.25rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        .lh-card {
+            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 18px;
+            padding: 2rem 2rem 1.75rem;
+            display: flex;
+            flex-direction: column;
+            text-decoration: none;
+            transition: border-color 0.25s, background 0.25s, transform 0.25s;
+            opacity: 0;
+            transform: translateY(20px);
+            animation: lhFadeUp 0.55s ease forwards;
+        }
+
+        .lh-card:nth-child(1) { animation-delay: 0.25s; }
+        .lh-card:nth-child(2) { animation-delay: 0.35s; }
+        .lh-card:nth-child(3) { animation-delay: 0.45s; }
+
+        .lh-card:hover {
+            border-color: rgba(201,176,55,0.3);
+            background: rgba(201,176,55,0.04);
+            transform: translateY(-3px);
+        }
+
+        .lh-card-icon {
+            width: 44px; height: 44px;
+            border-radius: 12px;
+            background: rgba(201,176,55,0.1);
+            border: 1px solid rgba(201,176,55,0.22);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1rem;
+            color: var(--primary-gold);
+            margin-bottom: 1.25rem;
+        }
+
+        .lh-card-tag {
+            font-size: 0.65rem;
+            font-weight: 700;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            color: rgba(201,176,55,0.7);
+            margin-bottom: 0.4rem;
+        }
+
+        .lh-card h2 {
+            font-size: 1.15rem;
+            font-weight: 700;
+            color: #f0ece0;
+            margin: 0 0 0.65rem;
+            line-height: 1.25;
+        }
+
+        .lh-card p {
+            font-size: 0.85rem;
+            color: rgba(240,236,224,0.5);
+            line-height: 1.65;
+            flex: 1;
+            margin: 0 0 1.5rem;
+        }
+
+        .lh-card-footer {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .lh-card-date {
+            font-size: 0.72rem;
+            color: rgba(240,236,224,0.3);
+        }
+
+        .lh-card-arrow {
+            font-size: 0.78rem;
+            font-weight: 700;
+            letter-spacing: 0.04em;
+            color: var(--primary-gold);
+            display: flex;
+            align-items: center;
+            gap: 0.3rem;
+            transition: gap 0.2s;
+        }
+
+        .lh-card:hover .lh-card-arrow { gap: 0.55rem; }
+
+        /* ── Divider ── */
+        .lh-divider {
+            max-width: 1100px;
+            margin: 0 auto;
+            border: none;
+            border-top: 1px solid rgba(201,176,55,0.1);
+            position: relative;
+            z-index: 1;
+        }
+
+        /* ── Contact strip ── */
+        .lh-contact {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 3rem 2rem 5rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 1.5rem;
+            flex-wrap: wrap;
+            position: relative;
+            z-index: 1;
+        }
+
+        .lh-contact-text h3 {
+            font-size: 1rem;
+            font-weight: 700;
+            color: #f0ece0;
+            margin: 0 0 0.25rem;
+        }
+
+        .lh-contact-text p {
+            font-size: 0.84rem;
+            color: rgba(240,236,224,0.45);
+            margin: 0;
+        }
+
+        .lh-contact-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: rgba(201,176,55,0.1);
+            border: 1px solid rgba(201,176,55,0.3);
+            color: var(--primary-gold);
+            font-size: 0.84rem;
+            font-weight: 600;
+            padding: 0.65rem 1.4rem;
+            border-radius: 100px;
+            text-decoration: none;
+            transition: background 0.2s, border-color 0.2s;
+        }
+
+        .lh-contact-btn:hover {
+            background: rgba(201,176,55,0.18);
+            border-color: rgba(201,176,55,0.5);
+        }
+
+        @media (max-width: 768px) {
+            .lh-cards { grid-template-columns: 1fr; }
+            .lh-contact { flex-direction: column; align-items: flex-start; }
+        }
+
+        @media (min-width: 769px) and (max-width: 1024px) {
+            .lh-cards { grid-template-columns: 1fr 1fr; }
+        }
+    </style>
+</head>
+<body>
+
+    <div id="nav-placeholder" data-nav-type="public"></div>
+    <script src="assets/js/nav-component.js"></script>
+
+    <!-- Hero -->
+    <div class="lh-hero">
+        <span class="lh-label"><i class="fas fa-scale-balanced"></i> Blue Chip Signals</span>
+        <h1>Legal <em>Hub</em></h1>
+        <p class="lh-hero-desc">Information related to our terms of service, policies, and legal disclosures. Select a document below to read.</p>
+    </div>
+
+    <hr class="lh-divider">
+
+    <!-- Document Cards -->
+    <div class="lh-cards">
+
+        <a href="terms.html" class="lh-card">
+            <div class="lh-card-icon"><i class="fas fa-file-contract"></i></div>
+            <div class="lh-card-tag">Legal Document</div>
+            <h2>Terms of Service</h2>
+            <p>Access rights, account security, intellectual property, payment terms, liability limitations, and the governing rules for using our platform.</p>
+            <div class="lh-card-footer">
+                <span class="lh-card-date">Effective Nov 10, 2025</span>
+                <span class="lh-card-arrow">Read <i class="fas fa-arrow-right"></i></span>
+            </div>
+        </a>
+
+        <a href="privacy.html" class="lh-card">
+            <div class="lh-card-icon"><i class="fas fa-shield-halved"></i></div>
+            <div class="lh-card-tag">Legal Document</div>
+            <h2>Privacy Policy</h2>
+            <p>How we collect, use, store, and protect your personal information, including your data rights, cookie usage, and third-party services we rely on.</p>
+            <div class="lh-card-footer">
+                <span class="lh-card-date">Effective Nov 10, 2025</span>
+                <span class="lh-card-arrow">Read <i class="fas fa-arrow-right"></i></span>
+            </div>
+        </a>
+
+        <a href="disclaimer.html" class="lh-card">
+            <div class="lh-card-icon"><i class="fas fa-triangle-exclamation"></i></div>
+            <div class="lh-card-tag">Legal Document</div>
+            <h2>Risk Disclaimer</h2>
+            <p>Important disclosures about the nature of our content, the risks involved in trading financial instruments, and our non-advisory status.</p>
+            <div class="lh-card-footer">
+                <span class="lh-card-date">Effective Nov 10, 2025</span>
+                <span class="lh-card-arrow">Read <i class="fas fa-arrow-right"></i></span>
+            </div>
+        </a>
+
+    </div>
+
+    <hr class="lh-divider">
+
+    <!-- Contact strip -->
+    <div class="lh-contact">
+        <div class="lh-contact-text">
+            <h3>Legal &amp; Compliance Inquiries</h3>
+            <p>For billing questions, legal correspondence, or account matters, reach out directly.</p>
+        </div>
+        <a href="contact.html" class="lh-contact-btn">
+            <i class="fas fa-envelope"></i> Contact Support
+        </a>
+    </div>
+
+    <div id="footer-placeholder" data-footer-type="minimal" data-base=""></div>
+    <script src="assets/js/footer-component.js"></script>
+
+</body>
+</html>

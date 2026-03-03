@@ -795,30 +795,6 @@
             valuesObserver.observe(valuesGrid);
         }
 
-        /* ---- Auth button ---- */
-        (function() {
-            var isLoggedIn = localStorage.getItem('bluechip_logged_in') || sessionStorage.getItem('bluechip_logged_in');
-            if (!isLoggedIn) return;
-            function updateAuthButton() {
-                var btn = document.getElementById('authButton');
-                if (!btn) return;
-                btn.removeAttribute('href');
-                btn.innerHTML = '<i class="fas fa-sign-out-alt"></i> Logout';
-                btn.style.cursor = 'pointer';
-                btn.onclick = function(e) {
-                    e.preventDefault();
-                    localStorage.clear();
-                    sessionStorage.clear();
-                    window.location.href = 'login.html';
-                    return false;
-                };
-            }
-            if (document.readyState === 'loading') {
-                document.addEventListener('DOMContentLoaded', updateAuthButton);
-            } else {
-                updateAuthButton();
-            }
-        })();
     </script>
 </body>
 </html>

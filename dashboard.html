@@ -2021,9 +2021,12 @@
                 const avatarEl = document.getElementById('dashAvatar');
                 if (avatarEl) avatarEl.textContent = firstName.charAt(0).toUpperCase();
 
-                /* Admin nav flag — read by nav-component.js synchronously */
+                /* Admin nav flag — set synchronously for future page loads,
+                   then fire event so nav-component.js can inject the link
+                   into the already-rendered nav without a page refresh. */
                 if ((userData.role || '').toLowerCase() === 'admin') {
                     localStorage.setItem('bluechip_is_admin', '1');
+                    window.dispatchEvent(new Event('adminConfirmed'));
                 } else {
                     localStorage.removeItem('bluechip_is_admin');
                 }

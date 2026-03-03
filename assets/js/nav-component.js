@@ -229,4 +229,23 @@
         '</div>';
     }
 
+    /* ── Admin link injection ──────────────────────────────────────────────
+       Fired by dashboard.html after onAuthStateChanged confirms admin role.
+       Injects the ADMIN link into the live nav without requiring a refresh.
+       Guards against double-injection so it's safe to fire multiple times. */
+    window.addEventListener('adminConfirmed', function () {
+        var navLinks = nav.querySelector('.nav-links');
+        if (!navLinks) return;
+        if (navLinks.querySelector('.admin-nav-link')) return; /* already present */
+
+        var logoutLi = navLinks.querySelector('li:last-child');
+        var adminLi  = document.createElement('li');
+        adminLi.innerHTML =
+            '<a href="' + base + 'admin.html" class="admin-nav-link" ' +
+            'style="color:var(--primary-gold);font-weight:700;">' +
+            '<i class="fas fa-shield-halved" style="font-size:0.8em;margin-right:0.3em;"></i>ADMIN</a>';
+
+        navLinks.insertBefore(adminLi, logoutLi);
+    });
+
 })();

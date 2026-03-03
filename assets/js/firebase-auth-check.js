@@ -88,41 +88,50 @@ export function requirePlan(planType, ticker, loginPath, upgradePath) {
 
     const _check = async (user) => {
         if (!user) { _login(); return; }
+
+        /* ── 1. Load user profile (critical — failure redirects to login) ── */
+        let userData;
         try {
-            /* Fetch user profile and site settings in parallel */
-            const [userSnap, siteSnap] = await Promise.all([
-                getDoc(doc(db, 'users', user.uid)),
-                getDoc(doc(db, 'settings', 'site'))
-            ]);
-
+            const userSnap = await getDoc(doc(db, 'users', user.uid));
             if (!userSnap.exists()) { _login(); return; }
-
-            const { plan, allowedTicker, subscriptionStatus, role } = userSnap.data();
-            const isAdmin = (role || '').toLowerCase() === 'admin';
-
-            /* Maintenance mode — admins always bypass */
-            if (!isAdmin && siteSnap.exists() && siteSnap.data().maintenanceMode) {
-                _maintenance(); return;
-            }
-
-            /* Subscription status — 'Inactive' blocks access regardless of plan */
-            if (!isAdmin && (subscriptionStatus || '').toLowerCase() === 'inactive') {
-                _upgrade(); return;
-            }
-
-            /* Plan check */
-            if (planType === 'bundle') {
-                if (plan !== 'bundle') _upgrade();
-            } else {
-                const t       = (ticker        || '').toUpperCase();
-                const allowed = (allowedTicker || '').toUpperCase();
-                if (plan !== 'bundle' && !(plan === 'single' && allowed === t)) {
-                    _upgrade();
-                }
-            }
+            userData = userSnap.data();
         } catch (err) {
-            console.error('requirePlan error:', err);
-            _login();
+            console.error('requirePlan user fetch error:', err);
+            _login(); return;
+        }
+
+        const { plan, allowedTicker, subscriptionStatus, role } = userData;
+        const isAdmin = (role || '').toLowerCase() === 'admin';
+
+        /* ── 2. Load site settings (non-critical — failure is silently skipped) ──
+           Kept in its own try/catch so a Firestore permission error on the
+           settings collection never triggers _login(). */
+        if (!isAdmin) {
+            try {
+                const siteSnap = await getDoc(doc(db, 'settings', 'site'));
+                if (siteSnap.exists() && siteSnap.data().maintenanceMode) {
+                    _maintenance(); return;
+                }
+            } catch (siteErr) {
+                /* settings/site unreadable — skip maintenance check, continue */
+                console.warn('requirePlan: could not read settings/site —', siteErr.code);
+            }
+        }
+
+        /* ── 3. Subscription status ── */
+        if (!isAdmin && (subscriptionStatus || '').toLowerCase() === 'inactive') {
+            _upgrade(); return;
+        }
+
+        /* ── 4. Plan check ── */
+        if (planType === 'bundle') {
+            if (plan !== 'bundle') _upgrade();
+        } else {
+            const t       = (ticker        || '').toUpperCase();
+            const allowed = (allowedTicker || '').toUpperCase();
+            if (plan !== 'bundle' && !(plan === 'single' && allowed === t)) {
+                _upgrade();
+            }
         }
     };
 

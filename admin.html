@@ -898,8 +898,12 @@
             createUserWithEmailAndPassword,
             signOut as secondarySignOut
         } from 'https://www.gstatic.com/firebasejs/11.0.2/firebase-auth.js';
-        import { deleteDoc } from
-            'https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js';
+        import {
+            deleteDoc,
+            getFirestore,
+            doc as secDoc,
+            setDoc as secSetDoc
+        } from 'https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js';
 
         /* ── Firebase config (needed for secondary app) ── */
         const firebaseConfig = {
@@ -1208,10 +1212,12 @@
 
                 const cred   = await createUserWithEmailAndPassword(secAuth, email, password);
                 const newUid = cred.user.uid;
-                await secondarySignOut(secAuth);
 
-                /* Write a complete Firestore profile */
-                await setDoc(doc(db, 'users', newUid), {
+                /* Write Firestore profile BEFORE signing out the secondary app.
+                   The new user is currently authenticated on secAuth, so
+                   request.auth.uid === newUid — Firestore security rules pass. */
+                const secDb = getFirestore(secondaryApp);
+                await secSetDoc(secDoc(secDb, 'users', newUid), {
                     email,
                     firstName,
                     displayName:        lastName ? `${firstName} ${lastName}` : firstName,
@@ -1225,6 +1231,8 @@
                     joinedDate:         new Date().toISOString(),
                     createdAt:          new Date().toISOString()
                 });
+
+                await secondarySignOut(secAuth);
 
                 showMsg('addMsg', `User ${email} created successfully!`, 'success');
                 document.getElementById('addUserForm').reset();

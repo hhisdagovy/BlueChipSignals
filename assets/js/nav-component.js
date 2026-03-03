@@ -222,7 +222,7 @@
 
     /* Minimal nav — just the logo bar, no links (e.g. welcome-setup.html). */
     function minimalNav() {
-        return '<div class="nav-container">' +
+        return '<div class="nav-container" style="justify-content:center;">' +
             '<div class="logo">' +
                 '<a href="' + base + 'index.html"><img src="' + base + 'assets/images/Crest logo.png" alt="Blue Chip Signals Logo"></a>' +
             '</div>' +

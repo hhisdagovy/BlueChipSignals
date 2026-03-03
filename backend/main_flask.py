@@ -8,6 +8,8 @@ from flask_cors import CORS
 from datetime import datetime
 import sqlite3
 import json
+import re
+import os
 from functools import wraps
 
 app = Flask(__name__)
@@ -138,6 +140,113 @@ def get_latest_signals():
     
     conn.close()
     return jsonify({'signals': signals})
+
+# ============================================
+# TELEGRAM WEBHOOK
+# ============================================
+
+def parse_signal_message(text):
+    """
+    Parse a signal message in the format sent by all 6 bots, e.g.:
+        🚨 SPY Buy Signal [Breakout]
+        Price: $592.10
+        VWAP: $589.45
+        MFI: 67.32
+        Suggested Contract:
+        Ticker: SPY
+        C/P: Call
+        Strike Price: $595.00
+        Premium: $3.20
+        Volume: 142300
+        Exp: 2026-03-10
+    Returns a dict ready to insert, or None if parsing fails.
+    """
+    try:
+        stock   = re.search(r'🚨\s+(\w+)\s+(?:Buy|Sell)\s+Signal', text)
+        price   = re.search(r'Price:\s*\$?([\d.]+)', text)
+        vwap    = re.search(r'VWAP:\s*\$?([\d.]+)', text)
+        mfi     = re.search(r'MFI:\s*([\d.]+)', text)
+        cp      = re.search(r'C/P:\s*(\w+)', text)
+        strike  = re.search(r'Strike Price:\s*\$?([\d.]+)', text)
+        premium = re.search(r'Premium:\s*\$?([\d.]+)', text)
+        volume  = re.search(r'Volume:\s*([\d]+)', text)
+        exp     = re.search(r'Exp:\s*(\S+)', text)
+
+        if not all([stock, price, vwap, mfi, cp, strike, premium, exp]):
+            return None
+
+        contract_type = cp.group(1).strip()
+        if contract_type.lower() == 'call':
+            contract_type = 'Call'
+        elif contract_type.lower() == 'put':
+            contract_type = 'Put'
+
+        return {
+            'stock':         stock.group(1).upper(),
+            'price':         float(price.group(1)),
+            'vwap':          float(vwap.group(1)),
+            'mfi':           float(mfi.group(1)),
+            'contract_type': contract_type,
+            'strike_price':  float(strike.group(1)),
+            'premium':       float(premium.group(1)),
+            'expiration':    exp.group(1),
+            'volume':        int(volume.group(1)) if volume else 0,
+        }
+    except Exception:
+        return None
+
+
+@app.route('/telegram/webhook', methods=['POST'])
+def telegram_webhook():
+    # Verify secret token set in Railway env vars
+    webhook_secret = os.environ.get('TELEGRAM_WEBHOOK_SECRET', '')
+    if webhook_secret:
+        incoming = request.headers.get('X-Telegram-Bot-Api-Secret-Token', '')
+        if incoming != webhook_secret:
+            return jsonify({'error': 'Unauthorized'}), 401
+
+    update = request.get_json(silent=True)
+    if not update:
+        return jsonify({'ok': True})
+
+    # channel_post is the update type for messages the bot sends to a channel
+    post = update.get('channel_post') or update.get('message')
+    if not post:
+        return jsonify({'ok': True})
+
+    text = post.get('text', '')
+    if not text or 'Buy Signal' not in text:
+        return jsonify({'ok': True})
+
+    signal = parse_signal_message(text)
+    if not signal:
+        return jsonify({'ok': True, 'note': 'Message received but could not be parsed'})
+
+    try:
+        conn = sqlite3.connect('signals.db')
+        c = conn.cursor()
+        c.execute('''
+            INSERT INTO signals
+            (stock, price, vwap, mfi, contract_type, strike_price, premium, expiration, volume)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ''', (
+            signal['stock'],
+            signal['price'],
+            signal['vwap'],
+            signal['mfi'],
+            signal['contract_type'],
+            signal['strike_price'],
+            signal['premium'],
+            signal['expiration'],
+            signal['volume'],
+        ))
+        conn.commit()
+        signal_id = c.lastrowid
+        conn.close()
+        return jsonify({'ok': True, 'signal_id': signal_id})
+    except Exception as e:
+        return jsonify({'ok': False, 'error': str(e)}), 500
+
 
 # ============================================
 # ADMIN PANEL

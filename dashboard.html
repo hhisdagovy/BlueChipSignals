@@ -2136,6 +2136,8 @@
     <script type="module" src="assets/js/bls-data.js"></script>
     <!-- Backend signals -->
     <script src="assets/js/backend-signals.js" defer></script>
+    <!-- Demo mode data -->
+    <script src="assets/js/demo-data.js"></script>
 
     <!-- Guide Picker Modal Logic -->
     <script>
@@ -2688,6 +2690,17 @@
 
             const userData = await getUserProfile(user.uid, user.email);
             if (!userData) return; /* getUserProfile already redirected */
+
+            /* ── Demo account shortcut ── */
+            if (userData.isDemo) {
+                updateDashboard(window.BCS_DEMO.USER);
+                injectAnnouncementBanner(
+                    'You\'re viewing a demo. Actual results vary per user. ' +
+                    '<a href="pricing.html" style="color:inherit;font-weight:800;text-decoration:underline;">Get Access &rarr;</a>',
+                    'info'
+                );
+                return;
+            }
 
             const isAdmin = (userData.role || '').toLowerCase() === 'admin';
 

@@ -367,6 +367,70 @@ def admin_dashboard():
                                    signals_today=signals_today,
                                    recent_signals=recent_signals)
 
+@app.route('/admin/demo-accounts', methods=['GET', 'POST'])
+@admin_required
+def demo_accounts():
+    message = None
+    error   = None
+
+    if request.method == 'POST':
+        action = request.form.get('action', '').strip()
+        email  = request.form.get('email', '').strip().lower()
+
+        if not email:
+            error = 'Please enter an email address.'
+        elif not _firestore_client:
+            error = 'Firestore is not configured on this server (FIREBASE_SERVICE_ACCOUNT_JSON missing).'
+        else:
+            try:
+                import firebase_admin.auth as fb_auth
+                user_record = fb_auth.get_user_by_email(email)
+                uid = user_record.uid
+                if action == 'add':
+                    _firestore_client.collection('users').document(uid).set(
+                        {
+                            'isDemo':             True,
+                            'setupCompleted':     True,
+                            'plan':               'bundle',
+                            'subscriptionStatus': 'Active',
+                        },
+                        merge=True
+                    )
+                    message = f'✓ {email} is now a demo account.'
+                elif action == 'remove':
+                    _firestore_client.collection('users').document(uid).set(
+                        {'isDemo': False},
+                        merge=True
+                    )
+                    message = f'✓ Demo status removed from {email}.'
+                else:
+                    error = 'Unknown action.'
+            except Exception as e:
+                error = f'Error: {e}'
+
+    # Fetch current demo accounts
+    demo_users = []
+    if _firestore_client:
+        try:
+            docs = _firestore_client.collection('users').where('isDemo', '==', True).stream()
+            for d in docs:
+                data = d.to_dict()
+                # Try to resolve a display email via Firebase Auth
+                try:
+                    import firebase_admin.auth as fb_auth
+                    u = fb_auth.get_user(d.id)
+                    demo_users.append({'email': u.email or d.id, 'uid': d.id})
+                except Exception:
+                    demo_users.append({'email': data.get('email', d.id), 'uid': d.id})
+        except Exception as e:
+            error = (error or '') + f' (list fetch error: {e})'
+
+    return render_template_string(DEMO_ACCOUNTS_HTML,
+                                  demo_users=demo_users,
+                                  message=message,
+                                  error=error)
+
+
 @app.route('/admin/post-signal', methods=['GET', 'POST'])
 @admin_required
 def post_signal():
@@ -593,7 +657,8 @@ ADMIN_DASHBOARD_HTML = '''
     <div class="header">
         <h1>Admin Dashboard</h1>
         <div>
-            <a href="/admin/post-signal" class="btn" style="margin-right: 1rem;">Post Signal</a>
+            <a href="/admin/post-signal" class="btn" style="margin-right: 0.75rem;">Post Signal</a>
+            <a href="/admin/demo-accounts" class="btn" style="margin-right: 0.75rem; background: rgba(201,176,55,0.15); color: #c9b037; border: 1px solid rgba(201,176,55,0.4);">Demo Accounts</a>
             <a href="/admin/logout" class="btn logout-btn">Logout</a>
         </div>
     </div>
@@ -666,6 +731,138 @@ ADMIN_DASHBOARD_HTML = '''
             }
         }
     </script>
+</body>
+</html>
+'''
+
+DEMO_ACCOUNTS_HTML = '''
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Demo Accounts - Admin</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background: #0a0e27; color: #fff; padding: 2rem;
+        }
+        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; }
+        h1 { color: #b3a17d; }
+        .btn {
+            padding: 0.6rem 1.2rem;
+            background: linear-gradient(135deg, #b3a17d, #E2CFB5);
+            color: #000; border: none; border-radius: 8px;
+            cursor: pointer; text-decoration: none;
+            display: inline-block; font-weight: 600;
+        }
+        .btn:hover { transform: translateY(-2px); }
+        .btn-ghost {
+            background: rgba(179,161,125,0.12);
+            color: #b3a17d;
+            border: 1px solid rgba(179,161,125,0.35);
+        }
+        .logout-btn { background: rgba(255,59,59,0.2); color: #ff3b3b; border: 1px solid #ff3b3b; }
+        .card {
+            background: rgba(26,31,46,0.7);
+            border: 1px solid rgba(179,161,125,0.2);
+            border-radius: 12px; padding: 1.75rem; margin-bottom: 1.5rem;
+        }
+        h2 { color: #b3a17d; margin-bottom: 1rem; font-size: 1rem; text-transform: uppercase; letter-spacing: 0.06em; }
+        .form-row { display: flex; gap: 0.75rem; align-items: center; flex-wrap: wrap; }
+        input[type="email"] {
+            flex: 1; min-width: 220px;
+            padding: 0.7rem 1rem;
+            background: rgba(179,161,125,0.08);
+            border: 1px solid rgba(179,161,125,0.3);
+            border-radius: 8px; color: #fff; font-size: 0.95rem;
+        }
+        input[type="email"]:focus { outline: none; border-color: #b3a17d; }
+        .msg-success {
+            background: rgba(46,125,50,0.15); border: 1px solid rgba(76,175,80,0.3);
+            color: #81c784; border-radius: 8px; padding: 0.7rem 1rem; margin-bottom: 1rem;
+        }
+        .msg-error {
+            background: rgba(255,59,59,0.12); border: 1px solid rgba(255,59,59,0.3);
+            color: #ff6b6b; border-radius: 8px; padding: 0.7rem 1rem; margin-bottom: 1rem;
+        }
+        .demo-list { display: flex; flex-direction: column; gap: 0.6rem; }
+        .demo-row {
+            display: flex; align-items: center; justify-content: space-between;
+            background: rgba(201,176,55,0.07); border: 1px solid rgba(201,176,55,0.2);
+            border-radius: 8px; padding: 0.75rem 1rem; gap: 1rem;
+        }
+        .demo-email { color: #c9b037; font-weight: 600; font-size: 0.9rem; }
+        .demo-uid   { color: rgba(255,255,255,0.3); font-size: 0.72rem; font-family: monospace; }
+        .remove-btn {
+            background: rgba(255,59,59,0.12); color: #ff6b6b;
+            border: 1px solid rgba(255,59,59,0.3); border-radius: 6px;
+            padding: 0.3rem 0.8rem; cursor: pointer; font-size: 0.8rem; font-weight: 600;
+            white-space: nowrap;
+        }
+        .remove-btn:hover { background: rgba(255,59,59,0.25); }
+        .empty { color: rgba(255,255,255,0.3); font-size: 0.88rem; padding: 0.5rem 0; }
+        .note { color: rgba(255,255,255,0.35); font-size: 0.78rem; margin-top: 0.75rem; line-height: 1.5; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1><i class="fas fa-eye" style="color:#c9b037;margin-right:0.5rem;"></i> Demo Accounts</h1>
+        <div>
+            <a href="/admin/post-signal" class="btn btn-ghost" style="margin-right:0.75rem;">Post Signal</a>
+            <a href="/admin" class="btn btn-ghost" style="margin-right:0.75rem;">Dashboard</a>
+            <a href="/admin/logout" class="btn logout-btn">Logout</a>
+        </div>
+    </div>
+
+    {% if message %}
+    <div class="msg-success"><i class="fas fa-circle-check"></i> {{ message }}</div>
+    {% endif %}
+    {% if error %}
+    <div class="msg-error"><i class="fas fa-circle-exclamation"></i> {{ error }}</div>
+    {% endif %}
+
+    <!-- Add demo account -->
+    <div class="card">
+        <h2>Make an Account a Demo</h2>
+        <form method="POST" class="form-row">
+            <input type="email" name="email" placeholder="user@example.com" required>
+            <input type="hidden" name="action" value="add">
+            <button type="submit" class="btn">Make Demo</button>
+        </form>
+        <p class="note">
+            <i class="fas fa-circle-info"></i>
+            The account must already exist in Firebase Auth.
+            This sets <code>isDemo: true</code>, <code>plan: bundle</code>, and <code>subscriptionStatus: Active</code>
+            on their Firestore document so they see mock data on all pages.
+        </p>
+    </div>
+
+    <!-- Current demo accounts -->
+    <div class="card">
+        <h2>Current Demo Accounts</h2>
+        {% if demo_users %}
+        <div class="demo-list">
+            {% for u in demo_users %}
+            <div class="demo-row">
+                <div>
+                    <div class="demo-email"><i class="fas fa-eye" style="font-size:0.75rem;margin-right:0.4rem;"></i>{{ u.email }}</div>
+                    <div class="demo-uid">uid: {{ u.uid }}</div>
+                </div>
+                <form method="POST" style="margin:0;">
+                    <input type="hidden" name="email" value="{{ u.email }}">
+                    <input type="hidden" name="action" value="remove">
+                    <button type="submit" class="remove-btn" onclick="return confirm(\'Remove demo status from {{ u.email }}?\')">
+                        <i class="fas fa-xmark"></i> Remove
+                    </button>
+                </form>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <p class="empty">No demo accounts configured yet.</p>
+        {% endif %}
+    </div>
 </body>
 </html>
 '''

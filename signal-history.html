@@ -468,6 +468,7 @@
 
     </div><!-- /main-content -->
 
+    <script src="assets/js/demo-data.js"></script>
     <script type="module">
         import {
             auth, db, onAuthStateChanged, doc, getDoc
@@ -490,6 +491,7 @@
         let _hasMore      = false;
         let _userPlan     = 'bundle';
         let _allowedTicker = null;
+        let _demoMode     = false;
 
         /* Active filter state */
         let _filterTicker    = 'ALL';
@@ -527,6 +529,30 @@
 
         /* ── Fetch a page of signals ── */
         async function fetchPage(reset) {
+            /* Demo mode — filter and render DEMO_SIGNALS client-side */
+            if (_demoMode) {
+                let filtered = window.BCS_DEMO.SIGNALS.slice();
+                const ticker = _allowedTicker || (_filterTicker !== 'ALL' ? _filterTicker : null);
+                if (ticker) filtered = filtered.filter(s => s.stock === ticker);
+                if (_filterDirection !== 'ALL') {
+                    const dir = _filterDirection.charAt(0).toUpperCase() + _filterDirection.slice(1).toLowerCase();
+                    filtered = filtered.filter(s => s.contractType === dir);
+                }
+                if (_filterFrom) filtered = filtered.filter(s => new Date(s.timestamp) >= _filterFrom);
+                if (_filterTo)   filtered = filtered.filter(s => new Date(s.timestamp) <= _filterTo);
+                filtered.sort(function (a, b) {
+                    var av = a[_sortCol], bv = b[_sortCol];
+                    if (typeof av === 'number' && typeof bv === 'number')
+                        return _sortDir === 'desc' ? bv - av : av - bv;
+                    return _sortDir === 'desc'
+                        ? String(bv || '').localeCompare(String(av || ''))
+                        : String(av || '').localeCompare(String(bv || ''));
+                });
+                renderRows(filtered, true);
+                document.getElementById('hist-load-more').style.display = 'none';
+                return;
+            }
+
             if (reset) {
                 _lastDoc = null;
                 document.getElementById('hist-tbody').innerHTML =
@@ -758,6 +784,18 @@
                 userData = snap.data();
             } catch (e) {
                 console.error('[BCS History] Firestore error', e);
+                return;
+            }
+
+            /* ── Demo account shortcut ── */
+            if (userData.isDemo) {
+                _demoMode  = true;
+                _userPlan  = 'bundle';
+                const badgeEl = document.getElementById('hist-plan-badge');
+                if (badgeEl) badgeEl.textContent = 'Demo';
+                wireFilters();
+                fetchPage(true);
+                window.BCS_DEMO.injectBanner();
                 return;
             }
 

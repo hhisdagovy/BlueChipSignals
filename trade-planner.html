@@ -893,6 +893,7 @@
     <!-- Footer -->
     <div id="footer-placeholder" data-footer-type="standard-social" data-base=""></div>
     <script src="assets/js/footer-component.js"></script>
+    <script src="assets/js/demo-data.js"></script>
 
     <script type="module">
         import { auth, db, onAuthStateChanged, doc, getDoc, updateDoc } from './assets/js/firebase-config.js';
@@ -1325,6 +1326,14 @@
             }
             try {
                 const snap = await getDoc(doc(db, 'users', user.uid));
+                /* ── Demo account shortcut ── */
+                if (snap.exists() && snap.data().isDemo) {
+                    plans = window.BCS_DEMO.PLANS.slice();
+                    renderAllPlans();
+                    updateStats();
+                    window.BCS_DEMO.injectBanner();
+                    return;
+                }
                 if (!snap.exists() || snap.data().plan !== 'bundle') {
                     window.location.href = 'upgrade.html';
                     return;

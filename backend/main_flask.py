@@ -482,26 +482,17 @@ def demo_accounts():
 @admin_required
 def post_signal():
     if request.method == 'POST':
-        conn = sqlite3.connect('signals.db')
-        c = conn.cursor()
-        c.execute('''
-            INSERT INTO signals 
-            (stock, price, vwap, mfi, contract_type, strike_price, premium, expiration, volume)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-        ''', (
-            request.form['stock'],
-            float(request.form['price']),
-            float(request.form['vwap']),
-            float(request.form['mfi']),
-            request.form['contract_type'],
-            float(request.form['strike']),
-            float(request.form['premium']),
-            request.form['expiration'],
-            int(request.form.get('volume', 0))
-        ))
-        conn.commit()
-        conn.close()
-        
+        insert_signal(
+            stock=request.form['stock'].upper().strip(),
+            price=float(request.form['price']),
+            vwap=float(request.form['vwap']),
+            mfi=float(request.form['mfi']),
+            contract_type=request.form['contract_type'],
+            strike_price=float(request.form['strike']),
+            premium=float(request.form['premium']),
+            expiration=request.form['expiration'],
+            volume=int(request.form.get('volume', 0))
+        )
         return redirect('/admin')
     
     return render_template_string(POST_SIGNAL_HTML)
@@ -1136,14 +1127,8 @@ POST_SIGNAL_HTML = '''
         <form method="POST">
             <div class="form-group">
                 <label for="stock">Stock Symbol</label>
-                <select name="stock" id="stock" required>
-                    <option value="SPY">SPY</option>
-                    <option value="TSLA">TSLA</option>
-                    <option value="META">META</option>
-                    <option value="AAPL">AAPL</option>
-                    <option value="NVDA">NVDA</option>
-                    <option value="AMZN">AMZN</option>
-                </select>
+                <input type="text" name="stock" id="stock" placeholder="e.g. AAPL, SPY, NVDA"
+                       required style="text-transform:uppercase;">
             </div>
             <div class="form-group">
                 <label for="price">Price</label>

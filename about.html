@@ -306,7 +306,8 @@
             flex-wrap: wrap;
         }
         .founder-linkedin,
-        .founder-telegram {
+        .founder-telegram,
+        .founder-email {
             display: inline-flex;
             align-items: center;
             gap: 0.5rem;
@@ -333,6 +334,15 @@
         .founder-telegram:hover {
             background: rgba(38,165,228,0.1);
             border-color: #26a5e4;
+        }
+        .founder-email {
+            color: var(--primary-gold);
+            border: 1px solid rgba(201,176,55,0.35);
+        }
+        .founder-email:hover {
+            background: rgba(201,176,55,0.1);
+            border-color: var(--primary-gold);
+            transform: translateY(-2px);
             transform: translateY(-2px);
         }
 
@@ -682,6 +692,9 @@
                         </a>
                         <a href="https://t.me/hhisdagovy" target="_blank" rel="noopener" class="founder-telegram">
                             <i class="fab fa-telegram-plane"></i> Telegram
+                        </a>
+                        <a href="mailto:hamza@bluechipsignals.online" class="founder-email">
+                            <i class="fas fa-envelope"></i> Email
                         </a>
                     </div>
                     <img src="assets/images/Crest logo.png" alt="" class="founder-stamp" aria-hidden="true">

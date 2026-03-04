@@ -233,6 +233,18 @@
 
         .card-stripe-note i { margin-right: 0.3rem; }
 
+        /* ---- Stripe buy button centering ---- */
+        .stripe-btn-wrap {
+            display: flex;
+            justify-content: center;
+            width: 100%;
+            margin-bottom: 0.5rem;
+        }
+
+        .stripe-btn-wrap stripe-buy-button {
+            width: 100%;
+        }
+
         /* ---- Features list ---- */
         .card-features-title {
             font-size: 0.72rem;
@@ -426,10 +438,12 @@
                     <div class="card-savings-badge"><i class="fas fa-tag"></i> Save $1,000 today</div>
                 </div>
 
-                <stripe-buy-button
-                    buy-button-id="buy_btn_1T72wjE15xwxzVuy2l9kLlou"
-                    publishable-key="pk_live_51RXYqUE15xwxzVuyFOMaVT2Xq32jXOo1ipJcaBFR6Ur5wlp7bVaR7X49oDZH1XIaXEQBnOafNwTLGXLLzpaOX8Y100rXvYOkYX"
-                ></stripe-buy-button>
+                <div class="stripe-btn-wrap">
+                    <stripe-buy-button
+                        buy-button-id="buy_btn_1T72wjE15xwxzVuy2l9kLlou"
+                        publishable-key="pk_live_51RXYqUE15xwxzVuyFOMaVT2Xq32jXOo1ipJcaBFR6Ur5wlp7bVaR7X49oDZH1XIaXEQBnOafNwTLGXLLzpaOX8Y100rXvYOkYX"
+                    ></stripe-buy-button>
+                </div>
                 <div class="card-stripe-note"><i class="fab fa-stripe"></i> Secured by Stripe</div>
 
                 <div class="card-features-title">What's included</div>
@@ -455,10 +469,12 @@
                     <div class="card-savings-badge"><i class="fas fa-tag"></i> Save $5,000 today</div>
                 </div>
 
-                <stripe-buy-button
-                    buy-button-id="buy_btn_1T7348E15xwxzVuyiw8ItG94"
-                    publishable-key="pk_live_51RXYqUE15xwxzVuyFOMaVT2Xq32jXOo1ipJcaBFR6Ur5wlp7bVaR7X49oDZH1XIaXEQBnOafNwTLGXLLzpaOX8Y100rXvYOkYX"
-                ></stripe-buy-button>
+                <div class="stripe-btn-wrap">
+                    <stripe-buy-button
+                        buy-button-id="buy_btn_1T7348E15xwxzVuyiw8ItG94"
+                        publishable-key="pk_live_51RXYqUE15xwxzVuyFOMaVT2Xq32jXOo1ipJcaBFR6Ur5wlp7bVaR7X49oDZH1XIaXEQBnOafNwTLGXLLzpaOX8Y100rXvYOkYX"
+                    ></stripe-buy-button>
+                </div>
                 <div class="card-stripe-note"><i class="fab fa-stripe"></i> Secured by Stripe</div>
 
                 <div class="card-features-title">Everything in Single, plus</div>

@@ -507,7 +507,7 @@ def edit_signal(signal_id):
         c.execute('''
             UPDATE signals
             SET stock=?, price=?, vwap=?, mfi=?, contract_type=?,
-                strike_price=?, premium=?, expiration=?, volume=?
+                strike_price=?, premium=?, expiration=?, volume=?, timestamp=?
             WHERE id=?
         ''', (
             request.form['stock'].upper(),
@@ -519,6 +519,7 @@ def edit_signal(signal_id):
             float(request.form['premium']),
             request.form['expiration'],
             int(request.form.get('volume', 0)),
+            request.form.get('signal_timestamp', '').replace('T', ' ') or None,
             signal_id
         ))
         conn.commit()
@@ -527,7 +528,7 @@ def edit_signal(signal_id):
 
     c.execute('''
         SELECT id, stock, price, vwap, mfi, contract_type, strike_price,
-               premium, expiration, volume
+               premium, expiration, volume, timestamp
         FROM signals WHERE id=?
     ''', (signal_id,))
     row = c.fetchone()
@@ -536,17 +537,21 @@ def edit_signal(signal_id):
     if not row:
         return 'Signal not found', 404
 
+    ts_raw = row[10] or ''
+    ts_local = ts_raw[:16].replace(' ', 'T') if ts_raw else ''
+
     signal = {
-        'id':            row[0],
-        'stock':         row[1],
-        'price':         row[2],
-        'vwap':          row[3],
-        'mfi':           row[4],
-        'contract_type': row[5],
-        'strike_price':  row[6],
-        'premium':       row[7],
-        'expiration':    row[8],
-        'volume':        row[9] or 0,
+        'id':              row[0],
+        'stock':           row[1],
+        'price':           row[2],
+        'vwap':            row[3],
+        'mfi':             row[4],
+        'contract_type':   row[5],
+        'strike_price':    row[6],
+        'premium':         row[7],
+        'expiration':      row[8],
+        'volume':          row[9] or 0,
+        'timestamp_local': ts_local,
     }
     return render_template_string(EDIT_SIGNAL_HTML, signal=signal)
 
@@ -597,7 +602,13 @@ def edit_firestore_signal(doc_id):
     ref = _firestore_client.collection('signals').document(doc_id)
 
     if request.method == 'POST':
-        ref.update({
+        from datetime import datetime, timezone
+        ts_raw = request.form.get('signal_timestamp', '')
+        try:
+            new_ts = datetime.strptime(ts_raw, '%Y-%m-%dT%H:%M').replace(tzinfo=timezone.utc)
+        except ValueError:
+            new_ts = None
+        update_data = {
             'stock':        request.form['stock'].upper(),
             'price':        float(request.form['price']),
             'vwap':         float(request.form['vwap']),
@@ -607,24 +618,35 @@ def edit_firestore_signal(doc_id):
             'premium':      float(request.form['premium']),
             'expiration':   request.form['expiration'],
             'volume':       int(request.form.get('volume', 0)),
-        })
+        }
+        if new_ts:
+            update_data['timestamp'] = new_ts
+        ref.update(update_data)
         return redirect('/admin/manage-signals')
 
     doc = ref.get()
     if not doc.exists:
         return 'Signal not found', 404
     data = doc.to_dict()
+    ts = data.get('timestamp')
+    if hasattr(ts, 'strftime'):
+        ts_local = ts.strftime('%Y-%m-%dT%H:%M')
+    elif ts:
+        ts_local = str(ts)[:16].replace(' ', 'T')
+    else:
+        ts_local = ''
     signal = {
-        'doc_id':        doc_id,
-        'stock':         data.get('stock', ''),
-        'price':         data.get('price', 0),
-        'vwap':          data.get('vwap', 0),
-        'mfi':           data.get('mfi', 0),
-        'contract_type': data.get('contractType', 'Call'),
-        'strike_price':  data.get('strike', 0),
-        'premium':       data.get('premium', 0),
-        'expiration':    data.get('expiration', ''),
-        'volume':        data.get('volume', 0),
+        'doc_id':           doc_id,
+        'stock':            data.get('stock', ''),
+        'price':            data.get('price', 0),
+        'vwap':             data.get('vwap', 0),
+        'mfi':              data.get('mfi', 0),
+        'contract_type':    data.get('contractType', 'Call'),
+        'strike_price':     data.get('strike', 0),
+        'premium':          data.get('premium', 0),
+        'expiration':       data.get('expiration', ''),
+        'volume':           data.get('volume', 0),
+        'timestamp_local':  ts_local,
     }
     return render_template_string(EDIT_SIGNAL_HTML, signal=signal,
                                   form_action='/admin/manage-signals/' + doc_id + '/edit')
@@ -1381,6 +1403,11 @@ EDIT_SIGNAL_HTML = '''
                 <label for="expiration">Expiration Date</label>
                 <input type="date" name="expiration" id="expiration"
                        value="{{ signal.expiration }}" required>
+            </div>
+            <div class="form-group">
+                <label for="signal_timestamp">Signal Date &amp; Time (UTC)</label>
+                <input type="datetime-local" name="signal_timestamp" id="signal_timestamp"
+                       value="{{ signal.timestamp_local }}" required>
             </div>
             <button type="submit">Save Changes</button>
             <a href="{{ form_action.rsplit('/', 2)[0] if form_action else '/admin' }}" class="back-btn">Cancel</a>

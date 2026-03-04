@@ -293,7 +293,7 @@ def telegram_webhook():
     if not post:
         return jsonify({'ok': True})
 
-    text = post.get('text', '')
+    text = post.get('text', '') or post.get('caption', '')
     if not text or 'Buy Signal' not in text:
         return jsonify({'ok': True})
 

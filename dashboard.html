@@ -2317,6 +2317,9 @@
     <script type="module">
         import { auth, db, onAuthStateChanged, signOut, doc, getDoc, setDoc } from './assets/js/firebase-config.js';
 
+        /* Expose db so backend-signals.js (non-module) can use Firestore directly */
+        window._bcsDb = db;
+
         async function getUserProfile(userId, userEmail) {
             try {
                 const userDocRef = doc(db, 'users', userId);

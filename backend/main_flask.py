@@ -513,6 +513,97 @@ def edit_signal(signal_id):
     return render_template_string(EDIT_SIGNAL_HTML, signal=signal)
 
 
+@app.route('/admin/manage-signals')
+@admin_required
+def manage_signals():
+    signals = []
+    error = None
+    if _firestore_client:
+        try:
+            docs = _firestore_client.collection('signals') \
+                       .order_by('timestamp', direction='DESCENDING') \
+                       .limit(100) \
+                       .stream()
+            for d in docs:
+                data = d.to_dict()
+                ts = data.get('timestamp')
+                if hasattr(ts, 'isoformat'):
+                    ts_str = ts.strftime('%Y-%m-%d %H:%M')
+                elif ts:
+                    ts_str = str(ts)[:16]
+                else:
+                    ts_str = '—'
+                signals.append({
+                    'doc_id':       d.id,
+                    'stock':        data.get('stock', ''),
+                    'price':        data.get('price', 0),
+                    'contract_type': data.get('contractType', ''),
+                    'strike':       data.get('strike', 0),
+                    'premium':      data.get('premium', 0),
+                    'expiration':   data.get('expiration', ''),
+                    'timestamp':    ts_str,
+                })
+        except Exception as e:
+            error = str(e)
+    else:
+        error = 'Firestore is not configured.'
+    return render_template_string(MANAGE_SIGNALS_HTML, signals=signals, error=error)
+
+
+@app.route('/admin/manage-signals/<doc_id>/edit', methods=['GET', 'POST'])
+@admin_required
+def edit_firestore_signal(doc_id):
+    if not _firestore_client:
+        return 'Firestore not configured', 500
+
+    ref = _firestore_client.collection('signals').document(doc_id)
+
+    if request.method == 'POST':
+        ref.update({
+            'stock':        request.form['stock'].upper(),
+            'price':        float(request.form['price']),
+            'vwap':         float(request.form['vwap']),
+            'mfi':          float(request.form['mfi']),
+            'contractType': request.form['contract_type'],
+            'strike':       float(request.form['strike']),
+            'premium':      float(request.form['premium']),
+            'expiration':   request.form['expiration'],
+            'volume':       int(request.form.get('volume', 0)),
+        })
+        return redirect('/admin/manage-signals')
+
+    doc = ref.get()
+    if not doc.exists:
+        return 'Signal not found', 404
+    data = doc.to_dict()
+    signal = {
+        'doc_id':        doc_id,
+        'stock':         data.get('stock', ''),
+        'price':         data.get('price', 0),
+        'vwap':          data.get('vwap', 0),
+        'mfi':           data.get('mfi', 0),
+        'contract_type': data.get('contractType', 'Call'),
+        'strike_price':  data.get('strike', 0),
+        'premium':       data.get('premium', 0),
+        'expiration':    data.get('expiration', ''),
+        'volume':        data.get('volume', 0),
+    }
+    return render_template_string(EDIT_SIGNAL_HTML, signal=signal,
+                                  form_action='/admin/manage-signals/' + doc_id + '/edit')
+
+
+@app.route('/admin/manage-signals/<doc_id>/delete', methods=['POST'])
+@admin_required
+def delete_firestore_signal(doc_id):
+    if not _firestore_client:
+        return jsonify({'error': 'Firestore not configured'}), 500
+    try:
+        _firestore_client.collection('signals').document(doc_id).delete()
+        return redirect('/admin/manage-signals')
+    except Exception as e:
+        return str(e), 500
+
+
 # ============================================
 # HTML TEMPLATES
 # ============================================
@@ -726,6 +817,7 @@ ADMIN_DASHBOARD_HTML = '''
         <h1>Admin Dashboard</h1>
         <div>
             <a href="/admin/post-signal" class="btn" style="margin-right: 0.75rem;">Post Signal</a>
+            <a href="/admin/manage-signals" class="btn" style="margin-right: 0.75rem; background: rgba(91,158,255,0.15); color: #5b9eff; border: 1px solid rgba(91,158,255,0.4);">Manage Signals</a>
             <a href="/admin/demo-accounts" class="btn" style="margin-right: 0.75rem; background: rgba(201,176,55,0.15); color: #c9b037; border: 1px solid rgba(201,176,55,0.4);">Demo Accounts</a>
             <a href="/admin/logout" class="btn logout-btn">Logout</a>
         </div>
@@ -1041,6 +1133,107 @@ POST_SIGNAL_HTML = '''
 </html>
 '''
 
+MANAGE_SIGNALS_HTML = '''
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Manage Signals - Admin</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #0a0e27; color: #fff; padding: 2rem;
+        }
+        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; }
+        h1 { color: #b3a17d; }
+        .btn {
+            padding: 0.6rem 1.2rem;
+            background: linear-gradient(135deg, #b3a17d, #E2CFB5);
+            color: #000; border: none; border-radius: 8px;
+            cursor: pointer; text-decoration: none; display: inline-block; font-weight: 600;
+        }
+        .btn:hover { opacity: 0.9; }
+        .back-btn {
+            background: rgba(179,161,125,0.15); color: #b3a17d;
+            border: 1px solid rgba(179,161,125,0.3);
+        }
+        .table-wrap { background: rgba(26,31,46,0.5); border-radius: 10px; padding: 1.5rem; overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { padding: 0.9rem 1rem; text-align: left; border-bottom: 1px solid rgba(179,161,125,0.15); }
+        th { color: #b3a17d; font-weight: 600; }
+        .stock-badge {
+            padding: 0.25rem 0.7rem; border-radius: 5px; font-weight: bold; font-size: 0.85rem;
+            background: rgba(179,161,125,0.2); color: #b3a17d;
+        }
+        .edit-btn {
+            background: rgba(179,161,125,0.15); color: #b3a17d;
+            border: 1px solid rgba(179,161,125,0.4);
+            padding: 0.3rem 0.7rem; border-radius: 6px; font-size: 0.8rem;
+            font-weight: 600; text-decoration: none; display: inline-block; margin-right: 0.4rem;
+        }
+        .edit-btn:hover { background: rgba(179,161,125,0.28); }
+        .danger-btn {
+            background: rgba(255,59,59,0.15); color: #ff3b3b;
+            border: 1px solid rgba(255,59,59,0.4);
+            padding: 0.3rem 0.7rem; border-radius: 6px; cursor: pointer;
+            font-size: 0.8rem; font-weight: 600;
+        }
+        .danger-btn:hover { background: rgba(255,59,59,0.28); }
+        .error { color: #ff3b3b; margin-bottom: 1rem; }
+        .empty { color: #aaa; text-align: center; padding: 2rem; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Manage Signals (Firestore)</h1>
+        <a href="/admin" class="btn back-btn">← Back to Dashboard</a>
+    </div>
+    {% if error %}
+    <p class="error">Error: {{ error }}</p>
+    {% endif %}
+    <div class="table-wrap">
+        <table>
+            <thead>
+                <tr>
+                    <th>Stock</th>
+                    <th>Price</th>
+                    <th>Contract</th>
+                    <th>Strike</th>
+                    <th>Premium</th>
+                    <th>Expiration</th>
+                    <th>Time</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for s in signals %}
+                <tr id="row-{{ s.doc_id }}">
+                    <td><span class="stock-badge">{{ s.stock }}</span></td>
+                    <td>${{ "%.2f"|format(s.price) }}</td>
+                    <td>{{ s.contract_type }}</td>
+                    <td>${{ "%.2f"|format(s.strike) }}</td>
+                    <td>${{ "%.2f"|format(s.premium) }}</td>
+                    <td>{{ s.expiration }}</td>
+                    <td>{{ s.timestamp }}</td>
+                    <td style="white-space:nowrap;">
+                        <a href="/admin/manage-signals/{{ s.doc_id }}/edit" class="edit-btn">Edit</a>
+                        <form method="POST" action="/admin/manage-signals/{{ s.doc_id }}/delete"
+                              style="display:inline;"
+                              onsubmit="return confirm('Delete this signal?');">
+                            <button type="submit" class="danger-btn">Delete</button>
+                        </form>
+                    </td>
+                </tr>
+                {% else %}
+                <tr><td colspan="8" class="empty">No signals found in Firestore.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</body>
+</html>
+'''
+
 EDIT_SIGNAL_HTML = '''
 <!DOCTYPE html>
 <html>
@@ -1093,9 +1286,9 @@ EDIT_SIGNAL_HTML = '''
 </head>
 <body>
     <div class="container">
-        <h1>Edit Signal #{{ signal.id }}</h1>
+        <h1>Edit Signal{% if signal.id %} #{{ signal.id }}{% endif %}</h1>
         <p class="subtitle">Changes are saved immediately and reflected on the website.</p>
-        <form method="POST">
+        <form method="POST" {% if form_action %}action="{{ form_action }}"{% endif %}>
             <div class="form-group">
                 <label for="stock">Stock Symbol</label>
                 <input type="text" name="stock" id="stock"
@@ -1150,7 +1343,7 @@ EDIT_SIGNAL_HTML = '''
                        value="{{ signal.expiration }}" required>
             </div>
             <button type="submit">Save Changes</button>
-            <a href="/admin" class="back-btn">Cancel</a>
+            <a href="{{ form_action.rsplit('/', 2)[0] if form_action else '/admin' }}" class="back-btn">Cancel</a>
         </form>
     </div>
 </body>

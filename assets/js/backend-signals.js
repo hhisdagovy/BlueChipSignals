@@ -37,8 +37,8 @@
         } catch (_) { return exp; }
     }
 
-    /* ── Fetch ── */
-    async function fetchSignals() {
+    /* ── Fetch (REST fallback only) ── */
+    async function fetchSignalsREST() {
         try {
             const res = await fetch(BACKEND_URL + '/api/signals/latest?limit=' + _limit, { cache: 'no-store' });
             const data = await res.json();
@@ -214,37 +214,77 @@
         });
     }
 
-    /* ── Run cycle ── */
-    async function _run() {
-        const raw = await fetchSignals();
+    /* ── Normalize flat Firestore/demo signal → nested contract shape for buildCard ── */
+    function normalizeFirestoreDoc(data, id) {
+        /* Convert Firestore Timestamp object to "YYYY-MM-DD HH:MM:SS" string */
+        var ts = data.timestamp;
+        if (ts && typeof ts.toDate === 'function') {
+            ts = ts.toDate().toISOString().replace('T', ' ').slice(0, 19);
+        } else if (ts instanceof Date) {
+            ts = ts.toISOString().replace('T', ' ').slice(0, 19);
+        } else if (!ts) {
+            ts = new Date().toISOString().replace('T', ' ').slice(0, 19);
+        }
+        return {
+            id:        id || data.id,
+            stock:     data.stock,
+            price:     data.price,
+            vwap:      data.vwap,
+            mfi:       data.mfi,
+            timestamp: ts,
+            contract: {
+                type:       data.contractType,
+                strike:     data.strike,
+                premium:    data.premium,
+                expiration: data.expiration,
+                volume:     data.volume || 0
+            }
+        };
+    }
+
+    /* ── Firestore real-time listener ── */
+    function listenFirestore() {
+        var db = window._bcsDb;
+        if (!db) {
+            /* No db available — fall back to REST API polling */
+            _runREST();
+            return;
+        }
+
+        import('https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js')
+            .then(function (fs) {
+                var constraints = [fs.orderBy('timestamp', 'desc'), fs.limit(_limit)];
+                if (_tickerFilter) constraints.unshift(fs.where('stock', '==', _tickerFilter));
+                var q = fs.query(fs.collection(db, 'signals'), ...constraints);
+
+                fs.onSnapshot(q, function (snap) {
+                    _allSignals = snap.docs.map(function (d) {
+                        return normalizeFirestoreDoc(d.data(), d.id);
+                    });
+                    renderSignals(_allSignals);
+                }, function (err) {
+                    console.warn('[BCS] Firestore snapshot error:', err);
+                    renderSignals(null);
+                });
+            })
+            .catch(function (e) {
+                console.warn('[BCS] Could not load Firestore SDK, falling back to REST:', e);
+                _runREST();
+            });
+    }
+
+    /* ── REST polling fallback ── */
+    async function _runREST() {
+        const raw = await fetchSignalsREST();
         if (raw !== null) _allSignals = raw;
         renderSignals(_allSignals.length ? _allSignals : raw);
 
         if (_interval) clearInterval(_interval);
         _interval = setInterval(async function () {
-            const fresh = await fetchSignals();
+            const fresh = await fetchSignalsREST();
             if (fresh !== null) _allSignals = fresh;
             renderSignals(_allSignals);
         }, 5 * 60 * 1000);
-    }
-
-    /* ── Normalize flat demo signal shape → nested contract shape ── */
-    function normalizeDemoSignal(s) {
-        return {
-            id:        s.id,
-            stock:     s.stock,
-            price:     s.price,
-            vwap:      s.vwap,
-            mfi:       s.mfi,
-            timestamp: s.timestamp,
-            contract: {
-                type:       s.contractType,
-                strike:     s.strike,
-                premium:    s.premium,
-                expiration: s.expiration,
-                volume:     0
-            }
-        };
     }
 
     /* ── Public API — called by dashboard.html after Firebase auth resolves ── */
@@ -258,16 +298,18 @@
             /* Inject the interactive filter bar only for bundle/legacy users */
             if (!_tickerFilter) injectFilterBar();
 
-            /* Demo mode: render mock signals, skip API fetch + polling */
+            /* Demo mode: render mock signals, skip Firestore fetch */
             if (window._BCS_DEMO_SIGNALS) {
-                var demoSignals = window._BCS_DEMO_SIGNALS.map(normalizeDemoSignal);
+                var demoSignals = window._BCS_DEMO_SIGNALS.map(function (s) {
+                    return normalizeFirestoreDoc(s, s.id);
+                });
                 window._BCS_DEMO_SIGNALS = null;
                 _allSignals = demoSignals;
                 renderSignals(demoSignals);
                 return;
             }
 
-            _run();
+            listenFirestore();
         },
 
         /* Re-filter the cached signals without a new fetch */

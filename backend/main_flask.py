@@ -241,7 +241,7 @@ def parse_signal_message(text):
     Returns a dict ready to insert, or None if parsing fails.
     """
     try:
-        stock   = re.search(r'🚨\s+(\w+)\s+(?:Buy|Sell)\s+Signal', text)
+        stock   = re.search(r'(\w+)\s+(?:Buy|Sell)\s+Signal', text)
         price   = re.search(r'Price:\s*\$?([\d.]+)', text)
         vwap    = re.search(r'VWAP:\s*\$?([\d.]+)', text)
         mfi     = re.search(r'MFI:\s*([\d.]+)', text)

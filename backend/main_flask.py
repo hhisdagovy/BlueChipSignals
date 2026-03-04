@@ -504,6 +504,16 @@ def edit_signal(signal_id):
     c = conn.cursor()
 
     if request.method == 'POST':
+        from datetime import datetime, timezone, timedelta
+        EST = timezone(timedelta(hours=-5))
+        ts_str = request.form.get('signal_timestamp', '')
+        try:
+            new_ts_utc = datetime.strptime(ts_str, '%Y-%m-%dT%H:%M') \
+                                 .replace(tzinfo=EST) \
+                                 .astimezone(timezone.utc) \
+                                 .strftime('%Y-%m-%d %H:%M:%S')
+        except ValueError:
+            new_ts_utc = None
         c.execute('''
             UPDATE signals
             SET stock=?, price=?, vwap=?, mfi=?, contract_type=?,
@@ -519,7 +529,7 @@ def edit_signal(signal_id):
             float(request.form['premium']),
             request.form['expiration'],
             int(request.form.get('volume', 0)),
-            request.form.get('signal_timestamp', '').replace('T', ' ') or None,
+            new_ts_utc,
             signal_id
         ))
         conn.commit()
@@ -537,8 +547,17 @@ def edit_signal(signal_id):
     if not row:
         return 'Signal not found', 404
 
+    from datetime import datetime, timezone, timedelta
+    EST = timezone(timedelta(hours=-5))
     ts_raw = row[10] or ''
-    ts_local = ts_raw[:16].replace(' ', 'T') if ts_raw else ''
+    if ts_raw:
+        try:
+            ts_utc = datetime.strptime(ts_raw[:19], '%Y-%m-%d %H:%M:%S').replace(tzinfo=timezone.utc)
+            ts_local = ts_utc.astimezone(EST).strftime('%Y-%m-%dT%H:%M')
+        except ValueError:
+            ts_local = ts_raw[:16].replace(' ', 'T')
+    else:
+        ts_local = ''
 
     signal = {
         'id':              row[0],
@@ -601,11 +620,16 @@ def edit_firestore_signal(doc_id):
 
     ref = _firestore_client.collection('signals').document(doc_id)
 
+    from datetime import datetime, timezone, timedelta
+    EST = timezone(timedelta(hours=-5))
+
     if request.method == 'POST':
-        from datetime import datetime, timezone
         ts_raw = request.form.get('signal_timestamp', '')
         try:
-            new_ts = datetime.strptime(ts_raw, '%Y-%m-%dT%H:%M').replace(tzinfo=timezone.utc)
+            # Parse as EST, convert to UTC for storage
+            new_ts = datetime.strptime(ts_raw, '%Y-%m-%dT%H:%M') \
+                             .replace(tzinfo=EST) \
+                             .astimezone(timezone.utc)
         except ValueError:
             new_ts = None
         update_data = {
@@ -629,8 +653,9 @@ def edit_firestore_signal(doc_id):
         return 'Signal not found', 404
     data = doc.to_dict()
     ts = data.get('timestamp')
-    if hasattr(ts, 'strftime'):
-        ts_local = ts.strftime('%Y-%m-%dT%H:%M')
+    if hasattr(ts, 'astimezone'):
+        # Convert UTC → EST for display
+        ts_local = ts.astimezone(EST).strftime('%Y-%m-%dT%H:%M')
     elif ts:
         ts_local = str(ts)[:16].replace(' ', 'T')
     else:
@@ -1405,7 +1430,7 @@ EDIT_SIGNAL_HTML = '''
                        value="{{ signal.expiration }}" required>
             </div>
             <div class="form-group">
-                <label for="signal_timestamp">Signal Date &amp; Time (UTC)</label>
+                <label for="signal_timestamp">Signal Date &amp; Time (EST)</label>
                 <input type="datetime-local" name="signal_timestamp" id="signal_timestamp"
                        value="{{ signal.timestamp_local }}" required>
             </div>

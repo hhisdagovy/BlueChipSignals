@@ -342,27 +342,74 @@ def admin_logout():
 @app.route('/admin')
 @admin_required
 def admin_dashboard():
-    conn = sqlite3.connect('signals.db')
-    c = conn.cursor()
-    
-    c.execute('SELECT COUNT(*) FROM signals')
-    total_signals = c.fetchone()[0]
-    
-    c.execute('SELECT COUNT(*) FROM signals WHERE DATE(timestamp) = DATE("now")')
-    signals_today = c.fetchone()[0]
-    
-    c.execute('''
-        SELECT id, stock, price, vwap, mfi, contract_type, strike_price, 
-               premium, expiration, timestamp 
-        FROM signals 
-        ORDER BY timestamp DESC 
-        LIMIT 20
-    ''')
-    recent_signals = c.fetchall()
-    
-    conn.close()
-    
-    return render_template_string(ADMIN_DASHBOARD_HTML, 
+    recent_signals = []
+    total_signals  = 0
+    signals_today  = 0
+
+    if _firestore_client:
+        try:
+            from datetime import datetime, timezone
+            docs = _firestore_client.collection('signals') \
+                       .order_by('timestamp', direction='DESCENDING') \
+                       .limit(20) \
+                       .stream()
+            today_str = datetime.now(timezone.utc).strftime('%Y-%m-%d')
+            for d in docs:
+                data = d.to_dict()
+                ts = data.get('timestamp')
+                if hasattr(ts, 'isoformat'):
+                    ts_str = ts.strftime('%Y-%m-%d %H:%M')
+                    if ts_str.startswith(today_str):
+                        signals_today += 1
+                else:
+                    ts_str = str(ts)[:16] if ts else '—'
+                recent_signals.append({
+                    'doc_id':        d.id,
+                    'stock':         data.get('stock', ''),
+                    'price':         data.get('price', 0),
+                    'vwap':          data.get('vwap', 0),
+                    'mfi':           data.get('mfi', 0),
+                    'contract_type': data.get('contractType', ''),
+                    'strike':        data.get('strike', 0),
+                    'premium':       data.get('premium', 0),
+                    'timestamp':     ts_str,
+                })
+            total_signals = len(recent_signals)
+        except Exception:
+            pass
+
+    # Fall back to SQLite if Firestore returned nothing
+    if not recent_signals:
+        try:
+            conn = sqlite3.connect('signals.db')
+            c = conn.cursor()
+            c.execute('SELECT COUNT(*) FROM signals')
+            total_signals = c.fetchone()[0]
+            c.execute('SELECT COUNT(*) FROM signals WHERE DATE(timestamp) = DATE("now")')
+            signals_today = c.fetchone()[0]
+            c.execute('''
+                SELECT id, stock, price, vwap, mfi, contract_type, strike_price,
+                       premium, expiration, timestamp
+                FROM signals ORDER BY timestamp DESC LIMIT 20
+            ''')
+            for row in c.fetchall():
+                recent_signals.append({
+                    'doc_id':        None,
+                    'sqlite_id':     row[0],
+                    'stock':         row[1],
+                    'price':         row[2],
+                    'vwap':          row[3],
+                    'mfi':           row[4],
+                    'contract_type': row[5],
+                    'strike':        row[6],
+                    'premium':       row[7],
+                    'timestamp':     row[9].split('.')[0] if row[9] and '.' in row[9] else (row[9] or '—'),
+                })
+            conn.close()
+        except Exception:
+            pass
+
+    return render_template_string(ADMIN_DASHBOARD_HTML,
                                    total_signals=total_signals,
                                    signals_today=signals_today,
                                    recent_signals=recent_signals)
@@ -855,18 +902,26 @@ ADMIN_DASHBOARD_HTML = '''
             </thead>
             <tbody id="signals-tbody">
                 {% for signal in recent_signals %}
-                <tr id="row-{{ signal[0] }}">
-                    <td><span class="stock-badge stock-{{ signal[1]|lower }}">{{ signal[1] }}</span></td>
-                    <td>${{ "%.2f"|format(signal[2]) }}</td>
-                    <td>${{ "%.2f"|format(signal[3]) }}</td>
-                    <td>{{ "%.2f"|format(signal[4]) }}</td>
-                    <td>{{ signal[5] }}</td>
-                    <td>${{ "%.2f"|format(signal[6]) }}</td>
-                    <td>${{ "%.2f"|format(signal[7]) }}</td>
-                    <td>{{ signal[9].split('.')[0] if '.' in signal[9] else signal[9] }}</td>
+                <tr id="row-{{ signal.doc_id or signal.sqlite_id }}">
+                    <td><span class="stock-badge stock-{{ signal.stock|lower }}">{{ signal.stock }}</span></td>
+                    <td>${{ "%.2f"|format(signal.price) }}</td>
+                    <td>${{ "%.2f"|format(signal.vwap) }}</td>
+                    <td>{{ "%.2f"|format(signal.mfi) }}</td>
+                    <td>{{ signal.contract_type }}</td>
+                    <td>${{ "%.2f"|format(signal.strike) }}</td>
+                    <td>${{ "%.2f"|format(signal.premium) }}</td>
+                    <td>{{ signal.timestamp }}</td>
                     <td style="white-space:nowrap;">
-                        <a href="/admin/edit-signal/{{ signal[0] }}" class="edit-btn">Edit</a>
-                        <button class="danger-btn" onclick="deleteSignal({{ signal[0] }})">Delete</button>
+                        {% if signal.doc_id %}
+                        <a href="/admin/manage-signals/{{ signal.doc_id }}/edit" class="edit-btn">Edit</a>
+                        <form method="POST" action="/admin/manage-signals/{{ signal.doc_id }}/delete"
+                              style="display:inline;" onsubmit="return confirm('Delete this signal?');">
+                            <button type="submit" class="danger-btn">Delete</button>
+                        </form>
+                        {% else %}
+                        <a href="/admin/edit-signal/{{ signal.sqlite_id }}" class="edit-btn">Edit</a>
+                        <button class="danger-btn" onclick="deleteSignal({{ signal.sqlite_id }})">Delete</button>
+                        {% endif %}
                     </td>
                 </tr>
                 {% endfor %}

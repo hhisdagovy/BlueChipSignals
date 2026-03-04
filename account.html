@@ -444,34 +444,6 @@
         .alert-error   { background: rgba(255,59,59,0.08); border: 1px solid rgba(255,59,59,0.3);  color: var(--danger-red); }
 
         /* ================================================================
-           DELETE CONFIRM
-        ================================================================ */
-        .delete-confirm-wrap { margin-top: 1.25rem; display: none; }
-        .delete-confirm-wrap.visible { display: block; }
-
-        .delete-confirm-wrap label {
-            display: block;
-            color: var(--danger-red);
-            font-size: 0.84rem;
-            margin-bottom: 0.45rem;
-        }
-
-        .delete-confirm-wrap .input-wrap input {
-            border-color: rgba(255,59,59,0.3);
-        }
-        .delete-confirm-wrap .input-wrap input:focus {
-            border-color: var(--danger-red);
-            box-shadow: 0 0 0 3px rgba(255,59,59,0.1);
-        }
-
-        .delete-confirm-btns {
-            display: flex;
-            gap: 0.75rem;
-            margin-top: 1rem;
-            flex-wrap: wrap;
-        }
-
-        /* ================================================================
            RESPONSIVE
         ================================================================ */
         @media (max-width: 768px) {
@@ -517,7 +489,6 @@
         <button class="acc-tab active" data-tab="profile"><i class="fas fa-user"></i> Profile</button>
         <button class="acc-tab" data-tab="subscription"><i class="fas fa-crown"></i> Subscription</button>
         <button class="acc-tab" data-tab="security"><i class="fas fa-lock"></i> Security</button>
-        <button class="acc-tab danger-tab" data-tab="danger"><i class="fas fa-exclamation-triangle"></i> Danger Zone</button>
     </div>
 
     <!-- ================================================================
@@ -674,43 +645,6 @@
             </div>
         </div>
 
-        <!-- DANGER ZONE TAB -->
-        <div class="acc-panel" id="panel-danger">
-            <div class="acc-card danger-card">
-                <div class="acc-card-title">
-                    <div class="acc-card-icon"><i class="fas fa-exclamation-triangle"></i></div>
-                    <h2>Danger Zone</h2>
-                </div>
-
-                <p style="color:var(--gray-text);margin-bottom:1.25rem;font-size:0.88rem;line-height:1.6;">
-                    Permanently deletes your account, all trade logs, and trade plans. Your access is removed immediately. <strong style="color:rgba(255,255,255,0.65);">This cannot be undone.</strong>
-                </p>
-
-                <div id="deleteError" class="alert alert-error">
-                    <i class="fas fa-exclamation-circle"></i> <span id="deleteErrorMsg">Unable to delete account.</span>
-                </div>
-
-                <button class="btn btn-danger" id="deleteAccountBtn" onclick="showDeleteConfirm()">
-                    <i class="fas fa-trash"></i> Delete Account
-                </button>
-
-                <div class="delete-confirm-wrap" id="deleteConfirmWrap">
-                    <label for="deleteConfirmInput">Type <strong>DELETE</strong> to confirm permanent deletion:</label>
-                    <div class="input-wrap">
-                        <i class="fas fa-exclamation-triangle input-icon" style="color:rgba(255,59,59,0.5);"></i>
-                        <input type="text" id="deleteConfirmInput" placeholder="DELETE" autocomplete="off">
-                    </div>
-                    <div class="delete-confirm-btns">
-                        <button class="btn btn-danger" id="confirmDeleteBtn" onclick="confirmDeleteAccount()">
-                            <i class="fas fa-trash"></i> Yes, Delete My Account
-                        </button>
-                        <button class="btn btn-secondary" onclick="hideDeleteConfirm()">
-                            Cancel
-                        </button>
-                    </div>
-                </div>
-            </div>
-        </div>
 
     </div><!-- end .acc-main -->
 
@@ -786,58 +720,7 @@
             doc, getDoc, updateDoc
         } from './assets/js/firebase-config.js';
 
-        import {
-            deleteDoc
-        } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
-
-        import {
-            deleteUser
-        } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-auth.js";
-
         let currentUser = null;
-
-        /* ---- Expose delete helpers to inline onclick handlers ---- */
-        window.showDeleteConfirm = function () {
-            document.getElementById('deleteConfirmWrap').classList.add('visible');
-            document.getElementById('deleteAccountBtn').style.display = 'none';
-        };
-
-        window.hideDeleteConfirm = function () {
-            document.getElementById('deleteConfirmWrap').classList.remove('visible');
-            document.getElementById('deleteAccountBtn').style.display = '';
-            document.getElementById('deleteConfirmInput').value = '';
-            hideAlert('deleteError');
-        };
-
-        window.confirmDeleteAccount = async function () {
-            if (!currentUser) return;
-            const input = document.getElementById('deleteConfirmInput').value.trim();
-            if (input !== 'DELETE') {
-                showAlert('deleteError', 'You must type DELETE exactly to confirm.');
-                return;
-            }
-            const btn = document.getElementById('confirmDeleteBtn');
-            btn.disabled = true;
-            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Deleting…';
-            try {
-                await deleteDoc(doc(db, 'users', currentUser.uid));
-                await deleteUser(currentUser);
-                localStorage.removeItem('bluechip_logged_in');
-                localStorage.removeItem('bluechip_user_email');
-                localStorage.removeItem('bluechip_is_admin');
-                sessionStorage.removeItem('bluechip_logged_in');
-                sessionStorage.removeItem('bluechip_user_email');
-                window.location.href = 'index.html';
-            } catch (err) {
-                btn.disabled = false;
-                btn.innerHTML = '<i class="fas fa-trash"></i> Yes, Delete My Account';
-                if (err.code === 'auth/requires-recent-login') {
-                    showAlert('deleteError', 'For security, please log out and log back in before deleting your account.');
-                } else {
-                    showAlert('deleteError', 'Could not delete account: ' + (err.message || err.code));
-                }
-            }
-        };
 
         /* ---- Real Firebase logout ---- */
         window.logout = async function () {

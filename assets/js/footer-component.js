@@ -20,6 +20,9 @@
             '<a href="https://www.instagram.com/bluechip.signals/" target="_blank" aria-label="Instagram">' +
                 '<i class="fab fa-instagram"></i>' +
             '</a>' +
+            '<a href="https://www.linkedin.com/company/blue-chip-signals" target="_blank" aria-label="LinkedIn">' +
+                '<i class="fab fa-linkedin"></i>' +
+            '</a>' +
         '</div>';
 
         var copyright = '&copy; 2026 Blue Chip Signals. All rights reserved.';

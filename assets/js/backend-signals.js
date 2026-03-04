@@ -86,6 +86,14 @@
                 '<span class="sig-contract-chip">' + premium + ' prem</span>' +
                 '<span class="sig-contract-chip">Exp ' + expFmt + '</span>' +
             '</div>' +
+
+            '<div class="sig-log-row">' +
+                '<button class="sig-log-btn" onclick="logDashboardSignalToJournal(this)" ' +
+                    'data-signal=\'' + JSON.stringify(s).replace(/'/g, '&#39;') + '\'>' +
+                    '<i class="fas fa-book-open"></i> Log Trade' +
+                '</button>' +
+            '</div>' +
+
         '</div>';
     }
 
@@ -131,6 +139,37 @@
             card.style.setProperty('--sig-top', style.top);
         });
     }
+
+    /* ── Log a dashboard signal to the trading journal ── */
+    window.logDashboardSignalToJournal = function(btn) {
+        var s = JSON.parse(btn.dataset.signal);
+        var dateStr = '';
+        if (s.timestamp) {
+            var d = new Date(s.timestamp + 'Z');
+            if (!isNaN(d)) {
+                var pad = function(n) { return String(n).padStart(2, '0'); };
+                dateStr = d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()) +
+                          'T' + pad(d.getHours()) + ':' + pad(d.getMinutes());
+            }
+        }
+        var contractType = s.contract.type || '';
+        var optionType   = contractType.charAt(0).toUpperCase() + contractType.slice(1).toLowerCase();
+        localStorage.setItem('bcs_pending_journal_trade', JSON.stringify({
+            source:         'signal',
+            ticker:         s.stock,
+            tradeType:      'Option',
+            direction:      'Long',
+            optionType:     optionType,
+            entryPrice:     s.contract.premium,
+            strikePrice:    s.contract.strike,
+            expirationDate: s.contract.expiration,
+            contracts:      1,
+            date:           dateStr,
+            notes:          'Signal: ' + s.stock + ' ' + contractType.toUpperCase() +
+                            ' $' + s.contract.strike + ' \u2014 Stock entry: $' + s.price
+        }));
+        window.location.href = 'trading-journal.html';
+    };
 
     /* ── Filter bar (injected for bundle users only) ── */
     function injectFilterBar() {

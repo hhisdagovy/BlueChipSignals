@@ -228,6 +228,25 @@
         }, 5 * 60 * 1000);
     }
 
+    /* ── Normalize flat demo signal shape → nested contract shape ── */
+    function normalizeDemoSignal(s) {
+        return {
+            id:        s.id,
+            stock:     s.stock,
+            price:     s.price,
+            vwap:      s.vwap,
+            mfi:       s.mfi,
+            timestamp: s.timestamp,
+            contract: {
+                type:       s.contractType,
+                strike:     s.strike,
+                premium:    s.premium,
+                expiration: s.expiration,
+                volume:     0
+            }
+        };
+    }
+
     /* ── Public API — called by dashboard.html after Firebase auth resolves ── */
     window.BCSSignals = {
         init: function (options) {
@@ -238,6 +257,15 @@
 
             /* Inject the interactive filter bar only for bundle/legacy users */
             if (!_tickerFilter) injectFilterBar();
+
+            /* Demo mode: render mock signals, skip API fetch + polling */
+            if (window._BCS_DEMO_SIGNALS) {
+                var demoSignals = window._BCS_DEMO_SIGNALS.map(normalizeDemoSignal);
+                window._BCS_DEMO_SIGNALS = null;
+                _allSignals = demoSignals;
+                renderSignals(demoSignals);
+                return;
+            }
 
             _run();
         },

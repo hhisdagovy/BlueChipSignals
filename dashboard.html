@@ -2693,7 +2693,14 @@
 
             /* ── Demo account shortcut ── */
             if (userData.isDemo) {
-                updateDashboard(window.BCS_DEMO.USER);
+                /* Attach trades + plans so renderPortfolioStats has data */
+                const demoUserData = Object.assign({}, window.BCS_DEMO.USER, {
+                    trades:     window.BCS_DEMO.TRADES,
+                    tradePlans: window.BCS_DEMO.PLANS
+                });
+                /* Signal the signals widget to use demo data instead of fetching */
+                window._BCS_DEMO_SIGNALS = window.BCS_DEMO.SIGNALS;
+                updateDashboard(demoUserData);
                 injectAnnouncementBanner(
                     'You\'re viewing a demo. Actual results vary per user. ' +
                     '<a href="pricing.html" style="color:inherit;font-weight:800;text-decoration:underline;">Get Access &rarr;</a>',

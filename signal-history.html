@@ -343,6 +343,21 @@
             cursor: not-allowed;
         }
 
+        /* ── Log Trade button ── */
+        .hist-log-btn {
+            font-size: 0.68rem;
+            font-weight: 700;
+            cursor: pointer;
+            padding: 0.3rem 0.7rem;
+            border-radius: 6px;
+            background: rgba(201,176,55,0.12);
+            border: 1px solid rgba(201,176,55,0.35);
+            color: var(--primary-gold);
+            white-space: nowrap;
+            transition: background 0.15s;
+        }
+        .hist-log-btn:hover { background: rgba(201,176,55,0.25); }
+
         /* ── Responsive ── */
         @media (max-width: 768px) {
             .main-content { padding: 0 1rem 2rem; }
@@ -433,10 +448,11 @@
                             <th data-col="expiration">Expiry <i class="fas fa-sort sort-icon"></i></th>
                             <th data-col="vwap">VWAP <i class="fas fa-sort sort-icon"></i></th>
                             <th data-col="mfi">MFI <i class="fas fa-sort sort-icon"></i></th>
+                            <th>Action</th>
                         </tr>
                     </thead>
                     <tbody id="hist-tbody">
-                        <tr><td colspan="9" class="hist-state">
+                        <tr><td colspan="10" class="hist-state">
                             <i class="fas fa-circle-notch fa-spin"></i> Loading signals…
                         </td></tr>
                     </tbody>
@@ -514,7 +530,7 @@
             if (reset) {
                 _lastDoc = null;
                 document.getElementById('hist-tbody').innerHTML =
-                    '<tr><td colspan="9" class="hist-state"><i class="fas fa-circle-notch fa-spin"></i> Loading…</td></tr>';
+                    '<tr><td colspan="10" class="hist-state"><i class="fas fa-circle-notch fa-spin"></i> Loading…</td></tr>';
             }
 
             const btn = document.getElementById('hist-load-btn');
@@ -550,7 +566,7 @@
             } catch (err) {
                 console.error('[BCS History]', err);
                 document.getElementById('hist-tbody').innerHTML =
-                    '<tr><td colspan="9" class="hist-state"><i class="fas fa-circle-exclamation"></i> Error loading signals. Please refresh.</td></tr>';
+                    '<tr><td colspan="10" class="hist-state"><i class="fas fa-circle-exclamation"></i> Error loading signals. Please refresh.</td></tr>';
             }
         }
 
@@ -560,7 +576,7 @@
             const countEl = document.getElementById('hist-row-count');
 
             if (replace && signals.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="9" class="hist-state"><i class="fas fa-satellite-dish"></i> No signals found for this filter.</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="10" class="hist-state"><i class="fas fa-satellite-dish"></i> No signals found for this filter.</td></tr>';
                 if (countEl) countEl.textContent = '0';
                 return;
             }
@@ -589,6 +605,16 @@
                     } catch (_) { expStr = s.expiration; }
                 }
 
+                const signalData = JSON.stringify({
+                    stock:        s.stock,
+                    contractType: s.contractType,
+                    price:        s.price,
+                    premium:      s.premium,
+                    strike:       s.strike,
+                    expiration:   s.expiration,
+                    timestamp:    s.timestamp ? (s.timestamp.seconds ? { seconds: s.timestamp.seconds } : s.timestamp) : null
+                }).replace(/'/g, '&#39;');
+
                 return `<tr>
                     <td class="hist-muted">${dateStr}</td>
                     <td><span class="hist-ticker-badge" style="background:${style.bg};color:${style.color};">${s.stock || '—'}</span></td>
@@ -599,6 +625,7 @@
                     <td class="hist-muted">${expStr}</td>
                     <td>${s.vwap != null ? '$' + parseFloat(s.vwap).toFixed(2) : '—'}</td>
                     <td>${s.mfi != null ? parseFloat(s.mfi).toFixed(1) : '—'}</td>
+                    <td><button class="hist-log-btn" onclick='logSignalToJournal(this)' data-signal='${signalData}'><i class="fas fa-book-open"></i> Log Trade</button></td>
                 </tr>`;
             }).join('');
 
@@ -614,6 +641,42 @@
                 countEl.textContent = replace ? signals.length : current + signals.length;
             }
         }
+
+        /* ── Log signal to trading journal ── */
+        window.logSignalToJournal = function(btn) {
+            const s = JSON.parse(btn.dataset.signal);
+
+            let dateStr = '';
+            if (s.timestamp) {
+                let d;
+                if (s.timestamp.seconds) {
+                    d = new Date(s.timestamp.seconds * 1000);
+                } else {
+                    d = new Date(s.timestamp);
+                }
+                if (!isNaN(d)) {
+                    const pad = n => String(n).padStart(2, '0');
+                    dateStr = `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+                }
+            }
+
+            const pending = {
+                source:         'signal',
+                ticker:         s.stock,
+                tradeType:      'Option',
+                direction:      'Long',
+                optionType:     s.contractType,
+                entryPrice:     s.premium,
+                strikePrice:    s.strike,
+                expirationDate: s.expiration,
+                contracts:      1,
+                date:           dateStr,
+                notes:          `Signal: ${s.stock} ${s.contractType} $${s.strike} — Stock entry: $${s.price}`
+            };
+
+            localStorage.setItem('bcs_pending_journal_trade', JSON.stringify(pending));
+            window.location.href = 'trading-journal.html';
+        };
 
         /* ── Filter pill event wiring ── */
         function wireFilters() {

@@ -1190,7 +1190,13 @@
                     document.getElementById('entryReason').value = pending.notes;
                 }
 
-                document.getElementById('modalTitle').textContent = 'New Trade (from Planner)';
+                if (pending.strikePrice)    document.getElementById('strikePrice').value    = pending.strikePrice;
+                if (pending.expirationDate) document.getElementById('expirationDate').value = pending.expirationDate;
+                if (pending.contracts)      document.getElementById('contracts').value      = pending.contracts;
+                if (pending.date)           document.getElementById('tradeDate').value      = pending.date;
+
+                document.getElementById('modalTitle').textContent =
+                    pending.source === 'signal' ? 'Log Trade (from Signal)' : 'New Trade (from Planner)';
                 openTradeModal();
 
                 // Switch to the Trades tab so it's visible when the modal closes

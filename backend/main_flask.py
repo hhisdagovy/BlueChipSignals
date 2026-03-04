@@ -459,6 +459,60 @@ def post_signal():
     
     return render_template_string(POST_SIGNAL_HTML)
 
+@app.route('/admin/edit-signal/<int:signal_id>', methods=['GET', 'POST'])
+@admin_required
+def edit_signal(signal_id):
+    conn = sqlite3.connect('signals.db')
+    c = conn.cursor()
+
+    if request.method == 'POST':
+        c.execute('''
+            UPDATE signals
+            SET stock=?, price=?, vwap=?, mfi=?, contract_type=?,
+                strike_price=?, premium=?, expiration=?, volume=?
+            WHERE id=?
+        ''', (
+            request.form['stock'].upper(),
+            float(request.form['price']),
+            float(request.form['vwap']),
+            float(request.form['mfi']),
+            request.form['contract_type'],
+            float(request.form['strike']),
+            float(request.form['premium']),
+            request.form['expiration'],
+            int(request.form.get('volume', 0)),
+            signal_id
+        ))
+        conn.commit()
+        conn.close()
+        return redirect('/admin')
+
+    c.execute('''
+        SELECT id, stock, price, vwap, mfi, contract_type, strike_price,
+               premium, expiration, volume
+        FROM signals WHERE id=?
+    ''', (signal_id,))
+    row = c.fetchone()
+    conn.close()
+
+    if not row:
+        return 'Signal not found', 404
+
+    signal = {
+        'id':            row[0],
+        'stock':         row[1],
+        'price':         row[2],
+        'vwap':          row[3],
+        'mfi':           row[4],
+        'contract_type': row[5],
+        'strike_price':  row[6],
+        'premium':       row[7],
+        'expiration':    row[8],
+        'volume':        row[9] or 0,
+    }
+    return render_template_string(EDIT_SIGNAL_HTML, signal=signal)
+
+
 # ============================================
 # HTML TEMPLATES
 # ============================================
@@ -633,6 +687,20 @@ ADMIN_DASHBOARD_HTML = '''
             font-weight: 600;
         }
         .danger-btn:hover { background: rgba(255,59,59,0.28); }
+        .edit-btn {
+            background: rgba(179, 161, 125, 0.15);
+            color: #b3a17d;
+            border: 1px solid rgba(179,161,125,0.4);
+            padding: 0.35rem 0.75rem;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.8rem;
+            font-weight: 600;
+            text-decoration: none;
+            display: inline-block;
+            margin-right: 0.4rem;
+        }
+        .edit-btn:hover { background: rgba(179,161,125,0.28); }
         .stock-badge {
             padding: 0.3rem 0.8rem;
             border-radius: 5px;
@@ -704,7 +772,10 @@ ADMIN_DASHBOARD_HTML = '''
                     <td>${{ "%.2f"|format(signal[6]) }}</td>
                     <td>${{ "%.2f"|format(signal[7]) }}</td>
                     <td>{{ signal[9].split('.')[0] if '.' in signal[9] else signal[9] }}</td>
-                    <td><button class="danger-btn" onclick="deleteSignal({{ signal[0] }})">Delete</button></td>
+                    <td style="white-space:nowrap;">
+                        <a href="/admin/edit-signal/{{ signal[0] }}" class="edit-btn">Edit</a>
+                        <button class="danger-btn" onclick="deleteSignal({{ signal[0] }})">Delete</button>
+                    </td>
                 </tr>
                 {% endfor %}
             </tbody>
@@ -964,6 +1035,122 @@ POST_SIGNAL_HTML = '''
             </div>
             <button type="submit">Post Signal</button>
             <a href="/admin" class="back-btn">Back to Dashboard</a>
+        </form>
+    </div>
+</body>
+</html>
+'''
+
+EDIT_SIGNAL_HTML = '''
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Edit Signal - Admin</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #0a0e27;
+            color: #fff;
+            padding: 2rem;
+        }
+        .container { max-width: 800px; margin: 0 auto; }
+        h1 { color: #b3a17d; margin-bottom: 0.5rem; }
+        .subtitle { color: #aaa; margin-bottom: 2rem; font-size: 0.9rem; }
+        .form-group { margin-bottom: 1.5rem; }
+        label { display: block; margin-bottom: 0.5rem; color: #b3a17d; }
+        input, select {
+            width: 100%;
+            padding: 0.8rem;
+            background: rgba(179, 161, 125, 0.1);
+            border: 1px solid rgba(179, 161, 125, 0.3);
+            border-radius: 8px;
+            color: #fff;
+            font-size: 1rem;
+        }
+        .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+        button[type="submit"] {
+            padding: 1rem 2rem;
+            background: linear-gradient(135deg, #b3a17d, #E2CFB5);
+            color: #000;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+        button[type="submit"]:hover { opacity: 0.9; }
+        .back-btn {
+            background: rgba(179, 161, 125, 0.2);
+            color: #b3a17d;
+            border: 1px solid rgba(179,161,125,0.3);
+            margin-left: 1rem;
+            text-decoration: none;
+            display: inline-block;
+            padding: 1rem 2rem;
+            border-radius: 8px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Edit Signal #{{ signal.id }}</h1>
+        <p class="subtitle">Changes are saved immediately and reflected on the website.</p>
+        <form method="POST">
+            <div class="form-group">
+                <label for="stock">Stock Symbol</label>
+                <input type="text" name="stock" id="stock"
+                       value="{{ signal.stock }}" required style="text-transform:uppercase;">
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="price">Price ($)</label>
+                    <input type="number" step="0.01" name="price" id="price"
+                           value="{{ signal.price }}" required>
+                </div>
+                <div class="form-group">
+                    <label for="vwap">VWAP ($)</label>
+                    <input type="number" step="0.01" name="vwap" id="vwap"
+                           value="{{ signal.vwap }}" required>
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="mfi">MFI</label>
+                <input type="number" step="0.01" name="mfi" id="mfi"
+                       value="{{ signal.mfi }}" required>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="contract_type">Contract Type</label>
+                    <select name="contract_type" id="contract_type" required>
+                        <option value="Call" {{ 'selected' if signal.contract_type == 'Call' }}>Call</option>
+                        <option value="Put"  {{ 'selected' if signal.contract_type == 'Put'  }}>Put</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="strike">Strike Price ($)</label>
+                    <input type="number" step="0.01" name="strike" id="strike"
+                           value="{{ signal.strike_price }}" required>
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="premium">Premium ($)</label>
+                    <input type="number" step="0.01" name="premium" id="premium"
+                           value="{{ signal.premium }}" required>
+                </div>
+                <div class="form-group">
+                    <label for="volume">Volume</label>
+                    <input type="number" name="volume" id="volume"
+                           value="{{ signal.volume }}">
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="expiration">Expiration Date</label>
+                <input type="date" name="expiration" id="expiration"
+                       value="{{ signal.expiration }}" required>
+            </div>
+            <button type="submit">Save Changes</button>
+            <a href="/admin" class="back-btn">Cancel</a>
         </form>
     </div>
 </body>

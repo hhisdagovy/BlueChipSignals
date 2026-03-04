@@ -7,6 +7,7 @@
     <link rel="icon" type="image/png" href="assets/images/Crest logo.png">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="assets/css/signal-style.css">
+    <script async src="https://js.stripe.com/v3/buy-button.js"></script>
     <style>
         body { overflow-x: hidden; }
 
@@ -425,10 +426,10 @@
                     <div class="card-savings-badge"><i class="fas fa-tag"></i> Save $1,000 today</div>
                 </div>
 
-                <!-- REPLACE WITH STRIPE PAYMENT LINK FOR SINGLE CHANNEL ($1,995) -->
-                <a href="#" class="card-cta-btn" id="stripe-single">
-                    Get Started <i class="fas fa-arrow-right"></i>
-                </a>
+                <stripe-buy-button
+                    buy-button-id="buy_btn_1T72wjE15xwxzVuy2l9kLlou"
+                    publishable-key="pk_live_51RXYqUE15xwxzVuyFOMaVT2Xq32jXOo1ipJcaBFR6Ur5wlp7bVaR7X49oDZH1XIaXEQBnOafNwTLGXLLzpaOX8Y100rXvYOkYX"
+                ></stripe-buy-button>
                 <div class="card-stripe-note"><i class="fab fa-stripe"></i> Secured by Stripe</div>
 
                 <div class="card-features-title">What's included</div>
@@ -454,10 +455,10 @@
                     <div class="card-savings-badge"><i class="fas fa-tag"></i> Save $5,000 today</div>
                 </div>
 
-                <!-- REPLACE WITH STRIPE PAYMENT LINK FOR FULL BUNDLE ($4,995) -->
-                <a href="#" class="card-cta-btn" id="stripe-bundle">
-                    Get Full Bundle <i class="fas fa-arrow-right"></i>
-                </a>
+                <stripe-buy-button
+                    buy-button-id="buy_btn_1T7348E15xwxzVuyiw8ItG94"
+                    publishable-key="pk_live_51RXYqUE15xwxzVuyFOMaVT2Xq32jXOo1ipJcaBFR6Ur5wlp7bVaR7X49oDZH1XIaXEQBnOafNwTLGXLLzpaOX8Y100rXvYOkYX"
+                ></stripe-buy-button>
                 <div class="card-stripe-note"><i class="fab fa-stripe"></i> Secured by Stripe</div>
 
                 <div class="card-features-title">Everything in Single, plus</div>

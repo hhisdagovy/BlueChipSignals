@@ -671,13 +671,13 @@
             <div class="rm-progress-meta">
                 <div class="rm-progress-title">Overall Progress</div>
                 <div class="rm-progress-sub">
-                    <span class="rm-ip-dot"></span>Phase 2 of 7 active &nbsp;·&nbsp; Q2 2027 target
+                    <span class="rm-ip-dot"></span><span id="rm-progress-sub-text">Phase 2 of 7 active</span> &nbsp;·&nbsp; Q2 2027 target
                 </div>
             </div>
             <div class="rm-progress-bar-wrap">
                 <div class="rm-progress-labels">
-                    <span>1 phase complete</span>
-                    <span>6 remaining</span>
+                    <span id="rm-progress-complete-label">1 phase complete</span>
+                    <span id="rm-progress-remaining-label">6 remaining</span>
                 </div>
                 <div class="rm-progress-track">
                     <div class="rm-progress-fill" id="rm-progress-fill"></div>
@@ -1154,14 +1154,24 @@
                 container.innerHTML = snap.docs.map(d => buildMilestoneHTML(d.data())).join('');
                 bindQuarters(container);
 
-                /* Update progress bar from real Firestore data */
+                /* Update ALL progress bar elements from real Firestore data */
                 const totalPhases     = snap.docs.length;
                 const completedPhases = snap.docs.filter(d => d.data().status === 'completed').length;
+                const inProgressPhases = snap.docs.filter(d => d.data().status === 'in-progress').length;
+                const remainingPhases = totalPhases - completedPhases;
                 const pct = totalPhases > 0 ? Math.round((completedPhases / totalPhases) * 100) : 0;
-                const fillEl = document.getElementById('rm-progress-fill');
-                const pctEl  = document.getElementById('rm-progress-pct');
-                if (fillEl) fillEl.style.width = pct + '%';
-                if (pctEl)  pctEl.textContent  = pct + '%';
+
+                const fillEl     = document.getElementById('rm-progress-fill');
+                const pctEl      = document.getElementById('rm-progress-pct');
+                const subText    = document.getElementById('rm-progress-sub-text');
+                const complLabel = document.getElementById('rm-progress-complete-label');
+                const remLabel   = document.getElementById('rm-progress-remaining-label');
+
+                if (fillEl)     fillEl.style.width  = pct + '%';
+                if (pctEl)      pctEl.textContent   = pct + '%';
+                if (complLabel) complLabel.textContent = completedPhases + (completedPhases === 1 ? ' phase complete' : ' phases complete');
+                if (remLabel)   remLabel.textContent   = remainingPhases + ' remaining';
+                if (subText)    subText.textContent    = 'Phase ' + (completedPhases + 1) + ' of ' + totalPhases + ' active';
 
                 /* Re-apply active filter if one is set */
                 const activeBtn = document.querySelector('.rm-filter-btn[class*="active-"]');
@@ -1213,35 +1223,9 @@
         }, 700);
 
         /* ================================================================
-           2. PROGRESS BAR
+           2. PROGRESS BAR — driven entirely by Firestore (see module script)
+           The fill and labels are set once Firestore resolves. No hardcoded values.
         ================================================================ */
-        var COMPLETED_PHASES = 1;
-        var TOTAL_PHASES     = 7;
-        var PCT = Math.round((COMPLETED_PHASES / TOTAL_PHASES) * 100);
-
-        var fillEl = document.getElementById('rm-progress-fill');
-        var pctEl  = document.getElementById('rm-progress-pct');
-
-        /* Animate in after a short delay */
-        setTimeout(function () {
-            if (fillEl) fillEl.style.width = PCT + '%';
-            if (pctEl)  animateCounter(Object.assign(document.createElement('span'), {
-                /* inline counter for pct — just set text directly */
-            }));
-            /* Simple pct counter */
-            if (pctEl) {
-                var pctStart = null;
-                function stepPct(ts) {
-                    if (!pctStart) pctStart = ts;
-                    var p = Math.min((ts - pctStart) / 1200, 1);
-                    var ease = p < 0.5 ? 2*p*p : -1 + (4-2*p)*p;
-                    pctEl.textContent = Math.round(ease * PCT) + '%';
-                    if (p < 1) requestAnimationFrame(stepPct);
-                    else pctEl.textContent = PCT + '%';
-                }
-                requestAnimationFrame(stepPct);
-            }
-        }, 400);
 
         /* ================================================================
            3. SCROLL-REVEAL with IntersectionObserver

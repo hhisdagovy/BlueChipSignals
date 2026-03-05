@@ -695,6 +695,9 @@
             <div class="rm-line-fill" id="rm-line-fill"></div>
         </div>
 
+        <!-- Hardcoded milestones — hidden once Firestore data is seeded -->
+        <div id="rm-hardcoded-milestones">
+
         <!-- Launched — completed -->
         <div class="rm-quarter completed" data-filter="completed">
             <div class="rm-quarter-dot"><div class="rm-dot-ring"></div></div>
@@ -1039,8 +1042,10 @@
             </div>
         </div>
 
-        <!-- Admin-added milestones rendered here -->
-        <div id="rm-dynamic-milestones"></div>
+        </div><!-- end #rm-hardcoded-milestones -->
+
+        <!-- All milestones from Firestore rendered here (replaces hardcoded when seeded) -->
+        <div id="rm-firestore-milestones"></div>
 
     </div><!-- end .rm-timeline -->
 
@@ -1056,7 +1061,7 @@
     <div id="footer-placeholder" data-footer-type="standard-social"></div>
     <script src="assets/js/footer-component.js"></script>
 
-    <!-- Dynamic milestones from Firestore (admin-added) -->
+    <!-- Milestones from Firestore — replaces hardcoded set once admin seeds -->
     <script type="module">
         import { db, collection, getDocs, query } from './assets/js/firebase-config.js';
         import { orderBy } from 'https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js';
@@ -1068,18 +1073,28 @@
             planned:    'Planned'
         };
 
+        function resolveIcon(raw) {
+            if (!raw) return 'fas fa-star';
+            // already has a valid prefix (fas, fab, far, fal, fat)
+            if (/^fa[bsrlt] /.test(raw)) return raw;
+            // strip any stray prefix and default to fas
+            return 'fas ' + raw.replace(/^fa[bsrlt]?\s*/, '');
+        }
+
         function buildMilestoneHTML(m) {
             const statusClass = m.status || 'planned';
             const badge       = STATUS_BADGE[statusClass] || 'Planned';
+            const isDone      = statusClass === 'completed';
+
             const featureCards = (m.features || []).map(f => {
-                const icon   = (f.icon || 'fa-star').replace(/^fas? /, '');
-                const detail = f.detail
+                const iconClass = resolveIcon(f.icon);
+                const detail    = f.detail
                     ? `<div class="rm-card-detail"><div class="rm-card-detail-inner">${f.detail}</div></div>`
                     : '';
                 return `
-                <div class="rm-feature-card">
+                <div class="rm-feature-card${isDone ? ' is-done' : ''}">
                     <div class="rm-card-top">
-                        <div class="rm-feature-icon"><i class="fas ${icon}"></i></div>
+                        <div class="rm-feature-icon"><i class="${iconClass}"></i></div>
                         <i class="fas fa-chevron-down rm-card-chevron"></i>
                     </div>
                     <div class="rm-feature-name">${f.name || ''}</div>
@@ -1089,7 +1104,7 @@
             }).join('');
 
             return `
-            <div class="rm-quarter ${statusClass}" data-filter="${statusClass}" data-dynamic="true">
+            <div class="rm-quarter ${statusClass}" data-filter="${statusClass}">
                 <div class="rm-quarter-dot"><div class="rm-dot-ring"></div></div>
                 <div class="rm-quarter-body">
                     <div class="rm-quarter-header">
@@ -1101,64 +1116,60 @@
             </div>`;
         }
 
-        async function loadDynamicMilestones() {
-            const container = document.getElementById('rm-dynamic-milestones');
-            if (!container) return;
-            try {
-                const q    = query(collection(db, 'roadmap_milestones'), orderBy('createdAt', 'asc'));
-                const snap = await getDocs(q);
-                if (snap.empty) return;
-
-                container.innerHTML = snap.docs.map(d => buildMilestoneHTML(d.data())).join('');
-
-                /* Plug new quarters into the existing filter + reveal systems */
-                const allQuarters = Array.from(document.querySelectorAll('.rm-quarter'));
-
-                /* Scroll-reveal: observe new quarters */
-                const revealObserver = new IntersectionObserver(function (entries) {
-                    entries.forEach(function (entry) {
-                        if (entry.isIntersecting) {
-                            entry.target.classList.add('is-visible');
-                            revealObserver.unobserve(entry.target);
-                        }
-                    });
-                }, { threshold: 0.12 });
-
-                container.querySelectorAll('.rm-quarter').forEach(q => revealObserver.observe(q));
-
-                /* Accordion: bind click events for new cards */
-                container.querySelectorAll('.rm-feature-card').forEach(function (card) {
-                    card.addEventListener('click', function () {
-                        var isExpanded = card.classList.contains('expanded');
-                        var parent = card.closest('.rm-quarter');
-                        if (parent) {
-                            parent.querySelectorAll('.rm-feature-card.expanded').forEach(function (c) {
-                                c.classList.remove('expanded');
-                            });
-                        }
-                        if (!isExpanded) card.classList.add('expanded');
-                    });
+        function bindQuarters(container) {
+            /* Scroll-reveal */
+            const observer = new IntersectionObserver(function (entries) {
+                entries.forEach(function (entry) {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('is-visible');
+                        observer.unobserve(entry.target);
+                    }
                 });
+            }, { threshold: 0.12 });
+            container.querySelectorAll('.rm-quarter').forEach(q => observer.observe(q));
 
-                /* Filter: re-apply the currently active filter if one is set */
-                const activeFilterBtn = document.querySelector('.rm-filter-btn[class*="active-"]');
-                if (activeFilterBtn) {
-                    const currentFilter = activeFilterBtn.getAttribute('data-filter');
-                    if (currentFilter && currentFilter !== 'all') {
+            /* Accordion */
+            container.querySelectorAll('.rm-feature-card').forEach(function (card) {
+                card.addEventListener('click', function () {
+                    var wasExpanded = card.classList.contains('expanded');
+                    var parent = card.closest('.rm-quarter');
+                    if (parent) parent.querySelectorAll('.rm-feature-card.expanded').forEach(c => c.classList.remove('expanded'));
+                    if (!wasExpanded) card.classList.add('expanded');
+                });
+            });
+        }
+
+        async function loadFirestoreMilestones() {
+            try {
+                const q    = query(collection(db, 'roadmap_milestones'), orderBy('order', 'asc'));
+                const snap = await getDocs(q);
+                if (snap.empty) return; // Firestore not seeded yet — keep hardcoded
+
+                /* Hide hardcoded, show Firestore milestones */
+                const hardcoded = document.getElementById('rm-hardcoded-milestones');
+                const container = document.getElementById('rm-firestore-milestones');
+                if (!container) return;
+
+                if (hardcoded) hardcoded.style.display = 'none';
+                container.innerHTML = snap.docs.map(d => buildMilestoneHTML(d.data())).join('');
+                bindQuarters(container);
+
+                /* Re-apply active filter if one is set */
+                const activeBtn = document.querySelector('.rm-filter-btn[class*="active-"]');
+                if (activeBtn) {
+                    const f = activeBtn.getAttribute('data-filter');
+                    if (f && f !== 'all') {
                         container.querySelectorAll('.rm-quarter').forEach(function (q) {
-                            if (q.getAttribute('data-filter') !== currentFilter) {
-                                q.classList.add('rm-hidden');
-                            }
+                            if (q.getAttribute('data-filter') !== f) q.classList.add('rm-hidden');
                         });
                     }
                 }
-
             } catch (e) {
-                console.warn('[BCS Roadmap] Could not load dynamic milestones:', e);
+                console.warn('[BCS Roadmap] Could not load milestones:', e);
             }
         }
 
-        loadDynamicMilestones();
+        loadFirestoreMilestones();
     </script>
 
     <script>

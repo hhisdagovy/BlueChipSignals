@@ -1110,12 +1110,27 @@
 
         <!-- Roadmap Panel -->
         <div class="admin-panel" id="panel-roadmap">
+
+            <!-- Seed notice (shown only when no milestones exist) -->
+            <div class="admin-card" id="rm-seed-card" style="margin-bottom:1.5rem;display:none;">
+                <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:1rem;">
+                    <div>
+                        <div style="font-weight:700;color:#fff;margin-bottom:0.3rem;">No milestones in Firestore yet</div>
+                        <div style="font-size:0.82rem;color:rgba(255,255,255,0.45);">Seed the 7 default milestones from the hardcoded roadmap to get started. You can edit them after.</div>
+                    </div>
+                    <button id="seedDefaultsBtn" class="form-submit-btn" style="max-width:220px;white-space:nowrap;">
+                        <i class="fas fa-seedling"></i> Initialize Defaults
+                    </button>
+                </div>
+            </div>
+
             <div class="admin-card" style="margin-bottom:1.5rem;">
-                <h3 style="font-size:1rem;font-weight:700;color:var(--gold);margin:0 0 1.25rem;display:flex;align-items:center;gap:0.5rem;">
+                <h3 id="rm-form-title" style="font-size:1rem;font-weight:700;color:var(--gold);margin:0 0 1.25rem;display:flex;align-items:center;gap:0.5rem;">
                     <i class="fas fa-plus-circle"></i> Add New Milestone
                 </h3>
                 <div class="form-msg" id="roadmapMsg"></div>
                 <form id="addMilestoneForm">
+                    <input type="hidden" id="editMilestoneId">
                     <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1rem;">
                         <div class="form-group">
                             <label class="form-label">Quarter / Label <span style="color:#ef4444">*</span></label>
@@ -1140,21 +1155,25 @@
                                 <i class="fas fa-plus"></i> Add Feature
                             </button>
                         </div>
-                        <div id="rm-features-list">
-                            <!-- Feature rows injected here -->
-                        </div>
+                        <div id="rm-features-list"></div>
                     </div>
 
-                    <button type="submit" class="form-submit-btn" id="saveMilestoneBtn" style="max-width:220px;">
-                        <i class="fas fa-floppy-disk"></i> Save Milestone
-                    </button>
+                    <div style="display:flex;gap:0.75rem;flex-wrap:wrap;">
+                        <button type="submit" class="form-submit-btn" id="saveMilestoneBtn" style="max-width:220px;">
+                            <i class="fas fa-floppy-disk"></i> Save Milestone
+                        </button>
+                        <button type="button" id="cancelEditBtn" style="display:none;max-width:160px;font-size:0.82rem;font-weight:700;padding:0.6rem 1.2rem;border-radius:8px;border:1px solid rgba(255,255,255,0.15);background:transparent;color:rgba(255,255,255,0.55);cursor:pointer;">
+                            <i class="fas fa-xmark"></i> Cancel Edit
+                        </button>
+                    </div>
                 </form>
             </div>
 
             <div class="admin-card">
                 <h3 style="font-size:1rem;font-weight:700;color:var(--gold);margin:0 0 1.25rem;display:flex;align-items:center;gap:0.5rem;">
-                    <i class="fas fa-list"></i> Existing Admin Milestones
+                    <i class="fas fa-list"></i> All Milestones
                 </h3>
+                <p style="font-size:0.75rem;color:rgba(255,255,255,0.3);margin:-0.75rem 0 1rem;">Use ↑ ↓ to reorder. Changes are saved instantly.</p>
                 <div id="rm-milestones-list">
                     <p style="color:rgba(255,255,255,0.35);font-size:0.85rem;">Loading…</p>
                 </div>
@@ -1726,100 +1745,150 @@
            ROADMAP MILESTONES
         ══════════════════════════════════════════════════════ */
 
-        const STATUS_BADGE = {
+        const RM_STATUS_BADGE = {
             completed:  'Completed',
             inprogress: 'In Progress',
             soon:       'Coming Soon',
             planned:    'Planned'
         };
 
-        /* ── Load & render existing milestones ── */
+        let _rmMilestones    = [];   // sorted by order, {id, ...data}
+        let _editingMilestoneId = null;
+
+        /* ── Load & render milestone list ── */
         async function loadRoadmapMilestones() {
-            const listEl = document.getElementById('rm-milestones-list');
+            const listEl   = document.getElementById('rm-milestones-list');
+            const seedCard = document.getElementById('rm-seed-card');
             if (!listEl) return;
             try {
-                const q = query(collection(db, 'roadmap_milestones'), orderBy('createdAt', 'asc'));
+                const q    = query(collection(db, 'roadmap_milestones'), orderBy('order', 'asc'));
                 const snap = await getDocs(q);
+
+                _rmMilestones = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+
+                if (seedCard) seedCard.style.display = snap.empty ? 'block' : 'none';
+
                 if (snap.empty) {
-                    listEl.innerHTML = '<p style="color:rgba(255,255,255,0.35);font-size:0.85rem;">No admin-added milestones yet.</p>';
+                    listEl.innerHTML = '<p style="color:rgba(255,255,255,0.35);font-size:0.85rem;">No milestones yet — click "Initialize Defaults" above to seed from the hardcoded roadmap.</p>';
                     return;
                 }
-                listEl.innerHTML = snap.docs.map(d => {
-                    const m = d.data();
-                    const featureNames = (m.features || []).map(f => `<span style="font-size:0.72rem;color:rgba(255,255,255,0.5);background:rgba(255,255,255,0.05);border-radius:4px;padding:0.15rem 0.45rem;">${f.name}</span>`).join(' ');
+
+                listEl.innerHTML = _rmMilestones.map((m, idx) => {
+                    const featurePills = (m.features || []).map(f =>
+                        `<span style="font-size:0.7rem;color:rgba(255,255,255,0.5);background:rgba(255,255,255,0.05);border-radius:4px;padding:0.12rem 0.4rem;">${f.name}</span>`
+                    ).join(' ');
+                    const isFirst = idx === 0;
+                    const isLast  = idx === _rmMilestones.length - 1;
                     return `
-                    <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:1rem;padding:0.85rem 1rem;border:1px solid rgba(255,255,255,0.07);border-radius:10px;margin-bottom:0.6rem;">
-                        <div>
-                            <div style="font-weight:700;color:#fff;margin-bottom:0.35rem;">${m.label}
-                                <span style="font-size:0.65rem;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;padding:0.15rem 0.5rem;border-radius:20px;margin-left:0.5rem;background:rgba(201,176,55,0.12);color:var(--gold);">${STATUS_BADGE[m.status] || m.status}</span>
-                            </div>
-                            <div style="display:flex;flex-wrap:wrap;gap:0.3rem;">${featureNames || '<span style="font-size:0.72rem;color:rgba(255,255,255,0.28);">No features</span>'}</div>
+                    <div style="display:flex;align-items:flex-start;gap:0.5rem;padding:0.85rem 1rem;border:1px solid rgba(255,255,255,0.07);border-radius:10px;margin-bottom:0.6rem;">
+                        <div style="display:flex;flex-direction:column;gap:0.25rem;flex-shrink:0;">
+                            <button onclick="reorderMilestone('${m.id}','up')" ${isFirst ? 'disabled' : ''} style="width:26px;height:26px;border-radius:5px;border:1px solid rgba(255,255,255,0.1);background:rgba(255,255,255,0.04);color:rgba(255,255,255,${isFirst?'0.2':'0.6'});cursor:${isFirst?'default':'pointer'};font-size:0.7rem;display:flex;align-items:center;justify-content:center;">↑</button>
+                            <button onclick="reorderMilestone('${m.id}','down')" ${isLast ? 'disabled' : ''} style="width:26px;height:26px;border-radius:5px;border:1px solid rgba(255,255,255,0.1);background:rgba(255,255,255,0.04);color:rgba(255,255,255,${isLast?'0.2':'0.6'});cursor:${isLast?'default':'pointer'};font-size:0.7rem;display:flex;align-items:center;justify-content:center;">↓</button>
                         </div>
-                        <button onclick="deleteMilestone('${d.id}')" style="flex-shrink:0;padding:0.35rem 0.75rem;border-radius:6px;border:1px solid rgba(239,68,68,0.35);background:rgba(239,68,68,0.08);color:#ef4444;font-size:0.72rem;font-weight:700;cursor:pointer;">
-                            <i class="fas fa-trash"></i>
-                        </button>
+                        <div style="flex:1;min-width:0;">
+                            <div style="font-weight:700;color:#fff;margin-bottom:0.3rem;">${m.label}
+                                <span style="font-size:0.63rem;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;padding:0.12rem 0.45rem;border-radius:20px;margin-left:0.4rem;background:rgba(201,176,55,0.12);color:var(--gold);">${RM_STATUS_BADGE[m.status] || m.status}</span>
+                            </div>
+                            <div style="display:flex;flex-wrap:wrap;gap:0.25rem;">${featurePills || '<span style="font-size:0.7rem;color:rgba(255,255,255,0.25);">No features</span>'}</div>
+                        </div>
+                        <div style="display:flex;gap:0.4rem;flex-shrink:0;">
+                            <button onclick="editMilestone('${m.id}')" style="padding:0.32rem 0.65rem;border-radius:6px;border:1px solid rgba(201,176,55,0.3);background:rgba(201,176,55,0.08);color:var(--gold);font-size:0.72rem;font-weight:700;cursor:pointer;"><i class="fas fa-pen"></i></button>
+                            <button onclick="deleteMilestone('${m.id}')" style="padding:0.32rem 0.65rem;border-radius:6px;border:1px solid rgba(239,68,68,0.3);background:rgba(239,68,68,0.08);color:#ef4444;font-size:0.72rem;font-weight:700;cursor:pointer;"><i class="fas fa-trash"></i></button>
+                        </div>
                     </div>`;
                 }).join('');
             } catch (e) {
-                listEl.innerHTML = `<p style="color:#ef4444;font-size:0.85rem;">Error loading milestones: ${e.message}</p>`;
+                listEl.innerHTML = `<p style="color:#ef4444;font-size:0.85rem;">Error: ${e.message}</p>`;
             }
         }
 
-        /* ── Add a feature row to the form ── */
+        /* ── Add a feature row ── */
         let featureRowCount = 0;
-        function addFeatureRow() {
+        function addFeatureRow(prefill) {
             featureRowCount++;
-            const container = document.getElementById('rm-features-list');
+            const n   = featureRowCount;
             const row = document.createElement('div');
-            row.className = 'rm-feature-row';
-            row.dataset.row = featureRowCount;
+            row.className    = 'rm-feature-row';
+            row.dataset.row  = n;
             row.style.cssText = 'border:1px solid rgba(255,255,255,0.07);border-radius:8px;padding:0.75rem;margin-bottom:0.6rem;position:relative;';
             row.innerHTML = `
                 <button type="button" onclick="this.closest('.rm-feature-row').remove()" style="position:absolute;top:0.5rem;right:0.5rem;width:22px;height:22px;border-radius:50%;border:none;background:rgba(239,68,68,0.15);color:#ef4444;font-size:0.65rem;cursor:pointer;display:flex;align-items:center;justify-content:center;"><i class="fas fa-xmark"></i></button>
-                <div style="display:grid;grid-template-columns:120px 1fr;gap:0.75rem;margin-bottom:0.6rem;">
+                <div style="display:grid;grid-template-columns:130px 1fr;gap:0.75rem;margin-bottom:0.6rem;">
                     <div class="form-group" style="margin:0;">
-                        <label class="form-label" style="font-size:0.65rem;">FA Icon Class</label>
-                        <input type="text" name="feature-icon-${featureRowCount}" class="form-input" placeholder="fa-robot" style="font-size:0.8rem;">
+                        <label class="form-label" style="font-size:0.65rem;">FA Icon <span style="opacity:.5">(e.g. fas fa-robot)</span></label>
+                        <input type="text" name="feature-icon-${n}" class="form-input" placeholder="fas fa-star" value="${prefill?.icon||''}" style="font-size:0.8rem;">
                     </div>
                     <div class="form-group" style="margin:0;">
                         <label class="form-label" style="font-size:0.65rem;">Feature Name <span style="color:#ef4444">*</span></label>
-                        <input type="text" name="feature-name-${featureRowCount}" class="form-input" placeholder="e.g. AI Signal Assistant" required style="font-size:0.8rem;">
+                        <input type="text" name="feature-name-${n}" class="form-input" placeholder="e.g. AI Signal Assistant" value="${prefill?.name||''}" required style="font-size:0.8rem;">
                     </div>
                 </div>
                 <div class="form-group" style="margin:0 0 0.6rem;">
                     <label class="form-label" style="font-size:0.65rem;">Short Description</label>
-                    <input type="text" name="feature-desc-${featureRowCount}" class="form-input" placeholder="One-line summary shown on the card" style="font-size:0.8rem;">
+                    <input type="text" name="feature-desc-${n}" class="form-input" placeholder="One-line summary" value="${(prefill?.desc||'').replace(/"/g,'&quot;')}" style="font-size:0.8rem;">
                 </div>
                 <div class="form-group" style="margin:0;">
                     <label class="form-label" style="font-size:0.65rem;">Detail (shown on expand)</label>
-                    <textarea name="feature-detail-${featureRowCount}" class="form-input" rows="2" placeholder="Longer explanation shown when the card is clicked" style="font-size:0.8rem;resize:vertical;"></textarea>
+                    <textarea name="feature-detail-${n}" class="form-input" rows="2" placeholder="Longer explanation" style="font-size:0.8rem;resize:vertical;">${prefill?.detail||''}</textarea>
                 </div>`;
-            container.appendChild(row);
+            document.getElementById('rm-features-list').appendChild(row);
         }
 
-        document.getElementById('addFeatureRowBtn').addEventListener('click', addFeatureRow);
+        document.getElementById('addFeatureRowBtn').addEventListener('click', () => addFeatureRow());
+        addFeatureRow(); // start with one row
 
-        /* Start with one feature row */
-        addFeatureRow();
+        /* ── Edit milestone (populate form) ── */
+        window.editMilestone = function(id) {
+            const m = _rmMilestones.find(x => x.id === id);
+            if (!m) return;
+            _editingMilestoneId = id;
+            document.getElementById('editMilestoneId').value = id;
+            document.getElementById('rm-label').value  = m.label  || '';
+            document.getElementById('rm-status').value = m.status || '';
+            document.getElementById('rm-features-list').innerHTML = '';
+            featureRowCount = 0;
+            (m.features || []).forEach(f => addFeatureRow(f));
+            if (!m.features?.length) addFeatureRow();
+            document.getElementById('rm-form-title').innerHTML = '<i class="fas fa-pen"></i> Edit Milestone';
+            document.getElementById('saveMilestoneBtn').innerHTML = '<i class="fas fa-floppy-disk"></i> Update Milestone';
+            document.getElementById('cancelEditBtn').style.display = '';
+            clearMsg('roadmapMsg');
+            document.getElementById('addMilestoneForm').scrollIntoView({ behavior: 'smooth', block: 'start' });
+        };
 
-        /* ── Save new milestone ── */
+        /* ── Cancel edit ── */
+        document.getElementById('cancelEditBtn').addEventListener('click', () => {
+            _editingMilestoneId = null;
+            document.getElementById('editMilestoneId').value = '';
+            document.getElementById('addMilestoneForm').reset();
+            document.getElementById('rm-features-list').innerHTML = '';
+            featureRowCount = 0;
+            addFeatureRow();
+            document.getElementById('rm-form-title').innerHTML = '<i class="fas fa-plus-circle"></i> Add New Milestone';
+            document.getElementById('saveMilestoneBtn').innerHTML = '<i class="fas fa-floppy-disk"></i> Save Milestone';
+            document.getElementById('cancelEditBtn').style.display = 'none';
+            clearMsg('roadmapMsg');
+        });
+
+        /* ── Save / update milestone ── */
         document.getElementById('addMilestoneForm').addEventListener('submit', async (e) => {
             e.preventDefault();
-            const btn = document.getElementById('saveMilestoneBtn');
+            const btn  = document.getElementById('saveMilestoneBtn');
             btn.disabled = true;
             btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving…';
             clearMsg('roadmapMsg');
 
+            const editId = document.getElementById('editMilestoneId').value;
             const label  = document.getElementById('rm-label').value.trim();
             const status = document.getElementById('rm-status').value;
 
             const features = [];
             document.querySelectorAll('.rm-feature-row').forEach(row => {
-                const n = row.dataset.row;
+                const n    = row.dataset.row;
                 const name = (row.querySelector(`[name="feature-name-${n}"]`)?.value || '').trim();
                 if (!name) return;
                 features.push({
-                    icon:   (row.querySelector(`[name="feature-icon-${n}"]`)?.value || '').trim() || 'fa-star',
+                    icon:   (row.querySelector(`[name="feature-icon-${n}"]`)?.value || '').trim() || 'fas fa-star',
                     name,
                     desc:   (row.querySelector(`[name="feature-desc-${n}"]`)?.value || '').trim(),
                     detail: (row.querySelector(`[name="feature-detail-${n}"]`)?.value || '').trim()
@@ -1827,13 +1896,24 @@
             });
 
             try {
-                await addDoc(collection(db, 'roadmap_milestones'), {
-                    label,
-                    status,
-                    features,
-                    createdAt: serverTimestamp()
-                });
-                showMsg('roadmapMsg', `Milestone "${label}" saved successfully.`, 'success');
+                if (editId) {
+                    await updateDoc(doc(db, 'roadmap_milestones', editId), { label, status, features });
+                    showMsg('roadmapMsg', `"${label}" updated.`, 'success');
+                    _editingMilestoneId = null;
+                    document.getElementById('editMilestoneId').value = '';
+                    document.getElementById('rm-form-title').innerHTML = '<i class="fas fa-plus-circle"></i> Add New Milestone';
+                    document.getElementById('cancelEditBtn').style.display = 'none';
+                    btn.innerHTML = '<i class="fas fa-floppy-disk"></i> Save Milestone';
+                } else {
+                    const nextOrder = _rmMilestones.length > 0
+                        ? Math.max(..._rmMilestones.map(m => m.order ?? 0)) + 1
+                        : 0;
+                    await addDoc(collection(db, 'roadmap_milestones'), {
+                        label, status, features, order: nextOrder, createdAt: serverTimestamp()
+                    });
+                    showMsg('roadmapMsg', `"${label}" added.`, 'success');
+                    btn.innerHTML = '<i class="fas fa-floppy-disk"></i> Save Milestone';
+                }
                 e.target.reset();
                 document.getElementById('rm-features-list').innerHTML = '';
                 featureRowCount = 0;
@@ -1841,11 +1921,34 @@
                 loadRoadmapMilestones();
             } catch (err) {
                 showMsg('roadmapMsg', 'Error: ' + err.message, 'error');
+                btn.innerHTML = '<i class="fas fa-floppy-disk"></i> Save Milestone';
             } finally {
                 btn.disabled = false;
-                btn.innerHTML = '<i class="fas fa-floppy-disk"></i> Save Milestone';
             }
         });
+
+        /* ── Reorder (swap order values with neighbour) ── */
+        window.reorderMilestone = async function(id, direction) {
+            const idx = _rmMilestones.findIndex(m => m.id === id);
+            if (idx < 0) return;
+            const swapIdx = direction === 'up' ? idx - 1 : idx + 1;
+            if (swapIdx < 0 || swapIdx >= _rmMilestones.length) return;
+
+            const a = _rmMilestones[idx];
+            const b = _rmMilestones[swapIdx];
+            const aOrder = a.order ?? idx;
+            const bOrder = b.order ?? swapIdx;
+
+            try {
+                await Promise.all([
+                    updateDoc(doc(db, 'roadmap_milestones', a.id), { order: bOrder }),
+                    updateDoc(doc(db, 'roadmap_milestones', b.id), { order: aOrder })
+                ]);
+                loadRoadmapMilestones();
+            } catch (e) {
+                alert('Reorder failed: ' + e.message);
+            }
+        };
 
         /* ── Delete milestone ── */
         window.deleteMilestone = async function(id) {
@@ -1857,6 +1960,65 @@
                 alert('Error: ' + e.message);
             }
         };
+
+        /* ── Seed default milestones ── */
+        document.getElementById('seedDefaultsBtn').addEventListener('click', async () => {
+            if (!confirm('This will add the 7 default milestones to Firestore. Continue?')) return;
+            const btn = document.getElementById('seedDefaultsBtn');
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Seeding…';
+
+            const defaults = [
+                { order: 0, label: 'Launched', status: 'completed', features: [
+                    { icon: 'fas fa-chart-line',    name: '6 Live Signal Channels',  desc: 'SPY, AAPL, TSLA, META, NVDA & AMZN with entry & exit signals.',          detail: 'Covers 6 of the most traded US equities. Each channel provides daily analysis, key price levels, and specific entry/exit zones based on our proprietary methodology.' },
+                    { icon: 'fas fa-book',          name: 'Trading Journal',         desc: 'Full P/L tracking with open & closed trade logging.',                      detail: 'Log trades with entry price, exit price, quantity, and notes. Automatically calculates P/L, win rate, and running totals across all positions.' },
+                    { icon: 'fas fa-crosshairs',    name: 'Trade Idea Planner',      desc: 'Plan entries, targets & stops before pulling the trigger.',                detail: 'Set up trade plans before the market opens. Define your entry, stop-loss, and target with automatic R:R ratio calculation to validate every setup.' },
+                    { icon: 'fas fa-graduation-cap',name: '13 Educational Guides',   desc: 'Deep-dive strategy guides for every supported ticker.',                    detail: 'Covers earnings cycles, trend following, support/resistance, options volume, and macroeconomic catalysts — one guide per stock plus cross-market strategy guides.' },
+                    { icon: 'fas fa-gauge-high',    name: 'Member Dashboard',        desc: 'Portfolio overview, Fear & Greed gauge & live economic indicators.',       detail: 'Real-time Fear & Greed gauge, live CPI/PPI economic data from the BLS API, and a full portfolio overview with win rate and P/L stats — all in one place.' }
+                ]},
+                { order: 1, label: 'Q1 2026', status: 'inprogress', features: [
+                    { icon: 'fas fa-calendar-days', name: 'Trading Activity Heatmap',         desc: 'See your full year of trading activity at a glance on the dashboard.',     detail: 'A calendar heatmap showing every day you logged a trade this year. Includes streak tracking, most-active day, longest streak, and current streak stats.' },
+                    { icon: 'fas fa-chart-bar',     name: 'Live Economic Indicators',         desc: 'Real-time CPI, PPI & Fed Funds Rate on your dashboard.',                  detail: 'Pulls CPI and PPI data directly from the BLS public API. Fed Funds Rate updates automatically after each FOMC meeting — no manual refreshing needed.' },
+                    { icon: 'fas fa-mobile-screen', name: 'Mobile Responsive Improvements',  desc: 'Polished layouts across all pages for phones & tablets.',                  detail: 'A full audit and redesign of every page for touch screens — optimized tap targets, readable fonts, and smooth scrolling across iOS and Android browsers.' }
+                ]},
+                { order: 2, label: 'Q2 2026', status: 'soon', features: [
+                    { icon: 'fas fa-bell',       name: 'Automated Sell Signal Alerts', desc: 'Get notified the moment a position hits its exit target or stop-loss level.', detail: 'When your position approaches its target or stop-loss, you\'ll get a push notification before the signal triggers — giving you time to act, not react.' },
+                    { icon: 'fas fa-envelope',   name: 'Email & SMS Notifications',   desc: 'Never miss a signal — receive alerts directly to your phone or inbox.',        detail: 'Choose your preferred channel — email, SMS, or both. Set quiet hours and choose which signal channels you want to receive alerts for.' },
+                    { icon: 'fas fa-chart-pie',  name: 'Journal Analytics',           desc: 'Visual P/L charts, win-rate trends & performance breakdowns over time.',      detail: 'Visual charts showing P/L by ticker, by month, and by trade type. See your win rate trend over time and identify which setups perform best for you.' }
+                ]},
+                { order: 3, label: 'Q3 2026', status: 'planned', features: [
+                    { icon: 'fas fa-water',        name: 'Options Flow Integration', desc: 'Track unusual options activity across all 6 covered tickers.',                  detail: 'Identify when large institutions are making unusual bets through the options market — often a leading indicator of significant price moves before they happen.' },
+                    { icon: 'fas fa-calendar-check',name: 'Earnings Calendar',       desc: 'Pre-earnings signal recommendations with historical context.',                  detail: 'Know exactly when each covered stock reports and get pre-built signal scenarios for earnings plays — both bullish and bearish setups with historical win rates.' },
+                    { icon: 'fas fa-book-open',    name: 'Expanded Guide Library',   desc: '10+ new strategy guides covering advanced setups and market conditions.',      detail: 'New guides covering scalping, swing trading on earnings, macro-driven setups, and sector rotation — expanding well beyond the current 13-guide library.' }
+                ]},
+                { order: 4, label: 'Q4 2026', status: 'planned', features: [
+                    { icon: 'fas fa-brain',           name: 'AI Signal Confidence Scoring', desc: 'Each signal gets an AI-generated confidence score based on market conditions.', detail: 'Our model evaluates trend strength, volume confirmation, macro backdrop, and historical pattern similarity to produce a 1–10 confidence score for every signal.' },
+                    { icon: 'fas fa-scale-balanced',  name: 'Portfolio Benchmarking',       desc: 'Compare your returns against SPY and see exactly where you\'re winning.',       detail: 'See your cumulative P/L plotted against SPY\'s performance over the same period. Know at a glance whether you\'re outperforming the market.' },
+                    { icon: 'fas fa-users',           name: 'Member Community Hub',         desc: 'Private Discord integration and early-access forum for bundle members.',        detail: 'A private Discord server for bundle members only, plus an in-app discussion board for sharing trade ideas, asking questions, and peer feedback.' }
+                ]},
+                { order: 5, label: 'Q1 2027', status: 'planned', features: [
+                    { icon: 'fas fa-link',    name: 'Brokerage API Integrations', desc: 'Connect your broker for paper trading and one-click order execution.',          detail: 'Connect TD Ameritrade, Schwab, or Interactive Brokers. Execute paper trades directly from the planner with one click, and go live when you\'re confident.' },
+                    { icon: 'fas fa-flask',   name: 'Backtesting Tool',           desc: 'Validate your strategy against years of historical data before going live.',   detail: 'Run any signal strategy against up to 10 years of historical data. See win rate, max drawdown, and Sharpe ratio before risking real capital.' },
+                    { icon: 'fas fa-sliders', name: 'Custom Watchlist & Alerts',  desc: 'Build personal watchlists with custom price & indicator alert thresholds.',   detail: 'Add any ticker and set price alerts, RSI thresholds, or moving average crossover triggers. Get notified instantly when your conditions are met.' }
+                ]},
+                { order: 6, label: 'Q2 2027', status: 'planned', features: [
+                    { icon: 'fab fa-apple',   name: 'iOS Application',            desc: 'Full Blue Chip Signals experience on iPhone — signals, journal & dashboard.', detail: 'Built natively for iPhone. Receive push notifications, view your dashboard, log trades, and check signals — the full platform from your pocket.' },
+                    { icon: 'fab fa-android', name: 'Android Application',        desc: 'Complete feature parity on Android devices at launch.',                       detail: 'Full feature parity with iOS at launch — available on the Google Play Store with the same native performance and real-time signal delivery.' },
+                    { icon: 'fas fa-crown',   name: 'Bundle Member Early Access', desc: 'Bundle members get priority beta access to both apps before public release.', detail: 'Bundle members get private beta access 60 days before the public launch. Help shape the final product and be the first to trade with both apps.' }
+                ]}
+            ];
+
+            try {
+                await Promise.all(defaults.map(m =>
+                    addDoc(collection(db, 'roadmap_milestones'), { ...m, createdAt: serverTimestamp() })
+                ));
+                loadRoadmapMilestones();
+            } catch (e) {
+                alert('Seed failed: ' + e.message);
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fas fa-seedling"></i> Initialize Defaults';
+            }
+        });
     </script>
 </body>
 </html>

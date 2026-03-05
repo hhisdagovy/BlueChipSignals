@@ -766,6 +766,112 @@
             .channel-row { gap: 0.6rem; }
             .toggle-row { gap: 0.75rem; }
         }
+
+        /* ── Icon Picker ── */
+        .icon-picker-trigger {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.4rem 0.7rem;
+            border-radius: 7px;
+            border: 1px solid rgba(255,255,255,0.12);
+            background: rgba(255,255,255,0.04);
+            color: rgba(255,255,255,0.75);
+            font-size: 0.8rem;
+            cursor: pointer;
+            width: 100%;
+            text-align: left;
+            transition: border-color 0.15s;
+        }
+        .icon-picker-trigger:hover { border-color: rgba(201,176,55,0.45); color: #fff; }
+        .icon-picker-trigger i { font-size: 1rem; color: var(--gold); min-width: 18px; text-align: center; }
+
+        #rm-icon-picker {
+            position: fixed;
+            z-index: 9999;
+            background: #0f1320;
+            border: 1px solid rgba(201,176,55,0.25);
+            border-radius: 12px;
+            box-shadow: 0 12px 40px rgba(0,0,0,0.6);
+            padding: 0.75rem;
+            width: 320px;
+            display: none;
+        }
+        #rm-icon-picker.open { display: block; }
+
+        #rm-icon-search {
+            width: 100%;
+            box-sizing: border-box;
+            padding: 0.45rem 0.7rem;
+            border-radius: 7px;
+            border: 1px solid rgba(255,255,255,0.12);
+            background: rgba(255,255,255,0.05);
+            color: #fff;
+            font-size: 0.82rem;
+            margin-bottom: 0.6rem;
+            outline: none;
+        }
+        #rm-icon-search:focus { border-color: rgba(201,176,55,0.5); }
+
+        #rm-icon-grid {
+            display: grid;
+            grid-template-columns: repeat(8, 1fr);
+            gap: 4px;
+            max-height: 240px;
+            overflow-y: auto;
+        }
+        #rm-icon-grid::-webkit-scrollbar { width: 4px; }
+        #rm-icon-grid::-webkit-scrollbar-track { background: transparent; }
+        #rm-icon-grid::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.15); border-radius: 4px; }
+
+        .icon-grid-btn {
+            width: 34px;
+            height: 34px;
+            border-radius: 6px;
+            border: 1px solid transparent;
+            background: rgba(255,255,255,0.04);
+            color: rgba(255,255,255,0.65);
+            font-size: 0.95rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.12s, border-color 0.12s, color 0.12s;
+            position: relative;
+        }
+        .icon-grid-btn:hover {
+            background: rgba(201,176,55,0.15);
+            border-color: rgba(201,176,55,0.4);
+            color: var(--gold);
+        }
+        .icon-grid-btn.selected {
+            background: rgba(201,176,55,0.2);
+            border-color: var(--gold);
+            color: var(--gold);
+        }
+        .icon-grid-btn[title]:hover::after {
+            content: attr(title);
+            position: absolute;
+            bottom: calc(100% + 4px);
+            left: 50%;
+            transform: translateX(-50%);
+            background: #1a2035;
+            border: 1px solid rgba(255,255,255,0.1);
+            color: rgba(255,255,255,0.85);
+            font-size: 0.6rem;
+            padding: 0.2rem 0.45rem;
+            border-radius: 4px;
+            white-space: nowrap;
+            pointer-events: none;
+            z-index: 10000;
+        }
+        #rm-picker-no-results {
+            font-size: 0.78rem;
+            color: rgba(255,255,255,0.3);
+            text-align: center;
+            padding: 1rem 0;
+            display: none;
+        }
     </style>
 </head>
 <body>
@@ -1811,12 +1917,18 @@
             row.className    = 'rm-feature-row';
             row.dataset.row  = n;
             row.style.cssText = 'border:1px solid rgba(255,255,255,0.07);border-radius:8px;padding:0.75rem;margin-bottom:0.6rem;position:relative;';
+            const iconCls   = prefill?.icon || 'fas fa-star';
+            const iconLabel = iconCls.replace(/^fa[bsrlt]?\s+fa-/, '').replace(/-/g,' ').replace(/\b\w/g,c=>c.toUpperCase());
             row.innerHTML = `
                 <button type="button" onclick="this.closest('.rm-feature-row').remove()" style="position:absolute;top:0.5rem;right:0.5rem;width:22px;height:22px;border-radius:50%;border:none;background:rgba(239,68,68,0.15);color:#ef4444;font-size:0.65rem;cursor:pointer;display:flex;align-items:center;justify-content:center;"><i class="fas fa-xmark"></i></button>
-                <div style="display:grid;grid-template-columns:130px 1fr;gap:0.75rem;margin-bottom:0.6rem;">
+                <div style="display:grid;grid-template-columns:150px 1fr;gap:0.75rem;margin-bottom:0.6rem;">
                     <div class="form-group" style="margin:0;">
-                        <label class="form-label" style="font-size:0.65rem;">FA Icon <span style="opacity:.5">(e.g. fas fa-robot)</span></label>
-                        <input type="text" name="feature-icon-${n}" class="form-input" placeholder="fas fa-star" value="${prefill?.icon||''}" style="font-size:0.8rem;">
+                        <label class="form-label" style="font-size:0.65rem;">Icon</label>
+                        <input type="hidden" name="feature-icon-${n}" value="${iconCls}">
+                        <button type="button" class="icon-picker-trigger" id="icon-trigger-${n}">
+                            <i class="${iconCls}"></i>
+                            <span>${iconLabel}</span>
+                        </button>
                     </div>
                     <div class="form-group" style="margin:0;">
                         <label class="form-label" style="font-size:0.65rem;">Feature Name <span style="color:#ef4444">*</span></label>
@@ -1832,6 +1944,15 @@
                     <textarea name="feature-detail-${n}" class="form-input" rows="2" placeholder="Longer explanation" style="font-size:0.8rem;resize:vertical;">${prefill?.detail||''}</textarea>
                 </div>`;
             document.getElementById('rm-features-list').appendChild(row);
+
+            // Wire the icon picker trigger for this row
+            const trigger = row.querySelector(`#icon-trigger-${n}`);
+            const hidden  = row.querySelector(`[name="feature-icon-${n}"]`);
+            if (trigger && hidden) {
+                trigger.addEventListener('click', function() {
+                    window.openIconPicker(hidden, trigger);
+                });
+            }
         }
 
         document.getElementById('addFeatureRowBtn').addEventListener('click', () => addFeatureRow());
@@ -2019,6 +2140,146 @@
                 btn.innerHTML = '<i class="fas fa-seedling"></i> Initialize Defaults';
             }
         });
+    </script>
+
+    <!-- ── Icon Picker ── -->
+    <div id="rm-icon-picker">
+        <input type="text" id="rm-icon-search" placeholder="Search icons…" autocomplete="off">
+        <div id="rm-icon-grid"></div>
+        <div id="rm-picker-no-results">No icons found</div>
+    </div>
+
+    <script>
+    (function () {
+        const ICONS = [
+            // Finance & Trading
+            { c:'fas fa-chart-line',       l:'Chart Line'    },{ c:'fas fa-chart-bar',        l:'Chart Bar'     },
+            { c:'fas fa-chart-pie',        l:'Chart Pie'     },{ c:'fas fa-chart-area',       l:'Chart Area'    },
+            { c:'fas fa-arrow-trend-up',   l:'Trend Up'      },{ c:'fas fa-arrow-trend-down', l:'Trend Down'    },
+            { c:'fas fa-coins',            l:'Coins'         },{ c:'fas fa-dollar-sign',      l:'Dollar'        },
+            { c:'fas fa-wallet',           l:'Wallet'        },{ c:'fas fa-piggy-bank',       l:'Piggy Bank'    },
+            { c:'fas fa-scale-balanced',   l:'Balance'       },{ c:'fas fa-gauge-high',       l:'Gauge'         },
+            { c:'fas fa-signal',           l:'Signal'        },{ c:'fas fa-satellite-dish',   l:'Satellite'     },
+            { c:'fas fa-water',            l:'Flow'          },{ c:'fas fa-fire',             l:'Hot/Fire'      },
+            { c:'fas fa-percent',          l:'Percent'       },{ c:'fas fa-infinity',         l:'Infinity'      },
+            { c:'fas fa-gem',              l:'Gem'           },{ c:'fas fa-medal',            l:'Medal'         },
+            // Alerts & Comms
+            { c:'fas fa-bell',             l:'Bell'          },{ c:'fas fa-bell-slash',       l:'Bell Off'      },
+            { c:'fas fa-envelope',         l:'Email'         },{ c:'fas fa-message',          l:'Message'       },
+            { c:'fas fa-comment',          l:'Comment'       },{ c:'fas fa-paper-plane',      l:'Send'          },
+            { c:'fas fa-at',               l:'At / Email'    },{ c:'fas fa-phone',            l:'Phone'         },
+            // AI & Tech
+            { c:'fas fa-brain',            l:'Brain/AI'      },{ c:'fas fa-robot',            l:'Robot'         },
+            { c:'fas fa-microchip',        l:'Chip'          },{ c:'fas fa-code',             l:'Code'          },
+            { c:'fas fa-terminal',         l:'Terminal'      },{ c:'fas fa-database',         l:'Database'      },
+            { c:'fas fa-server',           l:'Server'        },{ c:'fas fa-wifi',             l:'Wi-Fi'         },
+            { c:'fas fa-network-wired',    l:'Network'       },{ c:'fas fa-satellite',        l:'Satellite 2'   },
+            { c:'fas fa-cloud',            l:'Cloud'         },{ c:'fas fa-hard-drive',       l:'Storage'       },
+            // Tools
+            { c:'fas fa-sliders',          l:'Sliders'       },{ c:'fas fa-flask',            l:'Flask'         },
+            { c:'fas fa-crosshairs',       l:'Crosshairs'    },{ c:'fas fa-filter',           l:'Filter'        },
+            { c:'fas fa-magnifying-glass', l:'Search'        },{ c:'fas fa-cog',              l:'Settings'      },
+            { c:'fas fa-gears',            l:'Gears'         },{ c:'fas fa-wrench',           l:'Wrench'        },
+            { c:'fas fa-screwdriver-wrench',l:'Tools'        },{ c:'fas fa-link',             l:'Link'          },
+            { c:'fas fa-plug',             l:'Plug'          },{ c:'fas fa-puzzle-piece',     l:'Puzzle'        },
+            { c:'fas fa-layer-group',      l:'Layers'        },{ c:'fas fa-table',            l:'Table'         },
+            { c:'fas fa-list',             l:'List'          },{ c:'fas fa-tags',             l:'Tags'          },
+            // Education & Docs
+            { c:'fas fa-graduation-cap',   l:'Education'     },{ c:'fas fa-book',             l:'Book'          },
+            { c:'fas fa-book-open',        l:'Book Open'     },{ c:'fas fa-file',             l:'File'          },
+            { c:'fas fa-file-lines',       l:'File Text'     },{ c:'fas fa-lightbulb',        l:'Idea'          },
+            { c:'fas fa-pen',              l:'Pen'           },{ c:'fas fa-clipboard',        l:'Clipboard'     },
+            // Calendar & Time
+            { c:'fas fa-calendar',         l:'Calendar'      },{ c:'fas fa-calendar-days',    l:'Cal Days'      },
+            { c:'fas fa-calendar-check',   l:'Cal Check'     },{ c:'fas fa-clock',            l:'Clock'         },
+            { c:'fas fa-rotate',           l:'Refresh'       },{ c:'fas fa-hourglass-half',   l:'Hourglass'     },
+            { c:'fas fa-stopwatch',        l:'Stopwatch'     },{ c:'fas fa-timeline',         l:'Timeline'      },
+            // Users & Social
+            { c:'fas fa-users',            l:'Users'         },{ c:'fas fa-user',             l:'User'          },
+            { c:'fas fa-crown',            l:'Crown'         },{ c:'fas fa-trophy',           l:'Trophy'        },
+            { c:'fas fa-star',             l:'Star'          },{ c:'fas fa-heart',            l:'Heart'         },
+            { c:'fas fa-thumbs-up',        l:'Like'          },{ c:'fas fa-handshake',        l:'Handshake'     },
+            { c:'fas fa-user-group',       l:'Group'         },{ c:'fas fa-people-group',     l:'Community'     },
+            // Devices & Platforms
+            { c:'fas fa-mobile-screen',    l:'Mobile'        },{ c:'fas fa-desktop',          l:'Desktop'       },
+            { c:'fas fa-tablet',           l:'Tablet'        },{ c:'fab fa-apple',            l:'Apple'         },
+            { c:'fab fa-android',          l:'Android'       },{ c:'fab fa-discord',          l:'Discord'       },
+            { c:'fab fa-telegram',         l:'Telegram'      },{ c:'fab fa-google-play',      l:'Google Play'   },
+            // Misc
+            { c:'fas fa-shield-halved',    l:'Shield'        },{ c:'fas fa-lock',             l:'Lock'          },
+            { c:'fas fa-key',              l:'Key'           },{ c:'fas fa-map',              l:'Map'           },
+            { c:'fas fa-road',             l:'Road'          },{ c:'fas fa-rocket',           l:'Rocket'        },
+            { c:'fas fa-bolt',             l:'Lightning'     },{ c:'fas fa-flag',             l:'Flag'          },
+            { c:'fas fa-bullseye',         l:'Target'        },{ c:'fas fa-eye',              l:'Eye'           },
+            { c:'fas fa-wand-magic-sparkles',l:'Magic'       },{ c:'fas fa-chart-simple',     l:'Chart Simple'  },
+        ];
+
+        const picker   = document.getElementById('rm-icon-picker');
+        const grid     = document.getElementById('rm-icon-grid');
+        const search   = document.getElementById('rm-icon-search');
+        const noResult = document.getElementById('rm-picker-no-results');
+        let _targetInput  = null; // the hidden input being set
+        let _targetBtn    = null; // the trigger button to update preview
+
+        function renderGrid(filter) {
+            const q = (filter || '').toLowerCase();
+            const filtered = q ? ICONS.filter(i => i.l.toLowerCase().includes(q) || i.c.includes(q)) : ICONS;
+            noResult.style.display = filtered.length ? 'none' : 'block';
+            const current = _targetInput ? _targetInput.value : '';
+            grid.innerHTML = filtered.map(i =>
+                `<button type="button" class="icon-grid-btn${i.c===current?' selected':''}" title="${i.l}" data-cls="${i.c}">
+                    <i class="${i.c}"></i>
+                </button>`
+            ).join('');
+        }
+
+        function openPicker(hiddenInput, triggerBtn) {
+            _targetInput = hiddenInput;
+            _targetBtn   = triggerBtn;
+            search.value = '';
+            renderGrid('');
+            picker.classList.add('open');
+
+            // Position below the trigger button
+            const rect = triggerBtn.getBoundingClientRect();
+            const spaceBelow = window.innerHeight - rect.bottom;
+            if (spaceBelow >= 320) {
+                picker.style.top  = (rect.bottom + window.scrollY + 4) + 'px';
+            } else {
+                picker.style.top  = (rect.top + window.scrollY - 320) + 'px';
+            }
+            const left = Math.min(rect.left, window.innerWidth - 330);
+            picker.style.left = Math.max(8, left) + 'px';
+            search.focus();
+        }
+
+        window.openIconPicker = openPicker;
+
+        grid.addEventListener('click', function(e) {
+            const btn = e.target.closest('.icon-grid-btn');
+            if (!btn) return;
+            const cls = btn.dataset.cls;
+            if (_targetInput) _targetInput.value = cls;
+            if (_targetBtn) {
+                _targetBtn.querySelector('i').className = cls;
+                _targetBtn.querySelector('span').textContent = btn.getAttribute('title');
+            }
+            picker.classList.remove('open');
+        });
+
+        search.addEventListener('input', function() { renderGrid(this.value); });
+
+        document.addEventListener('click', function(e) {
+            if (!picker.classList.contains('open')) return;
+            if (!picker.contains(e.target) && e.target !== _targetBtn && !_targetBtn?.contains(e.target)) {
+                picker.classList.remove('open');
+            }
+        }, true);
+
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') picker.classList.remove('open');
+        });
+    })();
     </script>
 </body>
 </html>

@@ -23,7 +23,7 @@
     /* ── Carousel state ── */
     var _carouselIndex   = 0;
     var _carouselSignals = [];     // current filtered set rendered in carousel
-    var _navBound        = false;  // arrow + card delegation bound once
+    var _autoplayTimer   = null;   // auto-rotate interval
 
     /* ── Helpers ── */
     function timeAgo(ts) {
@@ -134,22 +134,12 @@
             });
         }
 
-        /* Update counter */
-        var counterEl = document.getElementById('sig-carousel-counter');
-        if (counterEl) counterEl.textContent = (index + 1) + ' / ' + n;
-
         /* Sync track height to active card */
         var active = container.querySelector('.sig-card.active');
         if (active) container.style.height = active.offsetHeight + 'px';
-
-        /* Show/hide arrows based on whether there's more than one card */
-        var prevBtn = document.getElementById('sig-prev-btn');
-        var nextBtn = document.getElementById('sig-next-btn');
-        if (prevBtn) prevBtn.style.visibility = n > 1 ? 'visible' : 'hidden';
-        if (nextBtn) nextBtn.style.visibility = n > 1 ? 'visible' : 'hidden';
     }
 
-    /* ── Carousel: inject cards + dots, then position ── */
+    /* ── Carousel: inject cards + dots, start auto-rotate ── */
     function _renderCarousel() {
         var container = document.getElementById('latest-signals-list');
         if (!container) return;
@@ -174,6 +164,19 @@
             });
         }
 
+        /* Click on peeking prev/next cards to advance */
+        container.addEventListener('click', function (e) {
+            var card = e.target.closest('.sig-card');
+            if (!card) return;
+            var total = _carouselSignals.length;
+            if (!total) return;
+            if (card.classList.contains('next')) {
+                _updateCarousel((_carouselIndex + 1) % total);
+            } else if (card.classList.contains('prev')) {
+                _updateCarousel((_carouselIndex - 1 + total) % total);
+            }
+        });
+
         /* Hide footer when empty */
         var footer = document.querySelector('.sig-carousel-footer');
         if (footer) footer.style.display = n > 0 ? '' : 'none';
@@ -186,6 +189,13 @@
             var active = container.querySelector('.sig-card.active');
             if (active) container.style.height = active.offsetHeight + 'px';
         });
+
+        /* Auto-rotate every 3 seconds, matching homepage carousel */
+        if (_autoplayTimer) clearInterval(_autoplayTimer);
+        _autoplayTimer = setInterval(function () {
+            if (!_carouselSignals.length) return;
+            _updateCarousel((_carouselIndex + 1) % _carouselSignals.length);
+        }, 3000);
     }
 
     /* ── Carousel: store filtered set and re-render from index 0 ── */
@@ -193,47 +203,6 @@
         _carouselSignals = signals;
         _carouselIndex   = 0;
         _renderCarousel();
-    }
-
-    /* ── Carousel: bind arrow + card-click navigation (once) ── */
-    function _bindCarouselNav() {
-        if (_navBound) return;
-        _navBound = true;
-
-        var prevBtn = document.getElementById('sig-prev-btn');
-        var nextBtn = document.getElementById('sig-next-btn');
-        var container = document.getElementById('latest-signals-list');
-
-        if (prevBtn) {
-            prevBtn.addEventListener('click', function () {
-                var n = _carouselSignals.length;
-                if (!n) return;
-                _updateCarousel((_carouselIndex - 1 + n) % n);
-            });
-        }
-
-        if (nextBtn) {
-            nextBtn.addEventListener('click', function () {
-                var n = _carouselSignals.length;
-                if (!n) return;
-                _updateCarousel((_carouselIndex + 1) % n);
-            });
-        }
-
-        /* Click prev/next peeking cards to advance */
-        if (container) {
-            container.addEventListener('click', function (e) {
-                var card = e.target.closest('.sig-card');
-                if (!card) return;
-                var n = _carouselSignals.length;
-                if (!n) return;
-                if (card.classList.contains('next')) {
-                    _updateCarousel((_carouselIndex + 1) % n);
-                } else if (card.classList.contains('prev')) {
-                    _updateCarousel((_carouselIndex - 1 + n) % n);
-                }
-            });
-        }
     }
 
     /* ── Render (applies active filter on top of _allSignals) ── */
@@ -433,9 +402,6 @@
             _limit           = _tickerFilter ? 30 : 50;
             _activeTicker    = 'ALL';
             _activeDirection = 'ALL';
-
-            /* Bind carousel navigation controls once */
-            _bindCarouselNav();
 
             /* Inject the interactive filter bar only for bundle/legacy users */
             if (!_tickerFilter) injectFilterBar();

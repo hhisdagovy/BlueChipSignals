@@ -2240,13 +2240,13 @@
             renderGrid('');
             picker.classList.add('open');
 
-            // Position below the trigger button
+            // Position below the trigger button (fixed = viewport-relative, no scrollY)
             const rect = triggerBtn.getBoundingClientRect();
             const spaceBelow = window.innerHeight - rect.bottom;
             if (spaceBelow >= 320) {
-                picker.style.top  = (rect.bottom + window.scrollY + 4) + 'px';
+                picker.style.top = (rect.bottom + 4) + 'px';
             } else {
-                picker.style.top  = (rect.top + window.scrollY - 320) + 'px';
+                picker.style.top = Math.max(8, rect.top - 320) + 'px';
             }
             const left = Math.min(rect.left, window.innerWidth - 330);
             picker.style.left = Math.max(8, left) + 'px';
@@ -2258,6 +2258,7 @@
         grid.addEventListener('click', function(e) {
             const btn = e.target.closest('.icon-grid-btn');
             if (!btn) return;
+            e.stopPropagation();
             const cls = btn.dataset.cls;
             if (_targetInput) _targetInput.value = cls;
             if (_targetBtn) {

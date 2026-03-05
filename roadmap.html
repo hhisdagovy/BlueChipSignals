@@ -1154,6 +1154,15 @@
                 container.innerHTML = snap.docs.map(d => buildMilestoneHTML(d.data())).join('');
                 bindQuarters(container);
 
+                /* Update progress bar from real Firestore data */
+                const totalPhases     = snap.docs.length;
+                const completedPhases = snap.docs.filter(d => d.data().status === 'completed').length;
+                const pct = totalPhases > 0 ? Math.round((completedPhases / totalPhases) * 100) : 0;
+                const fillEl = document.getElementById('rm-progress-fill');
+                const pctEl  = document.getElementById('rm-progress-pct');
+                if (fillEl) fillEl.style.width = pct + '%';
+                if (pctEl)  pctEl.textContent  = pct + '%';
+
                 /* Re-apply active filter if one is set */
                 const activeBtn = document.querySelector('.rm-filter-btn[class*="active-"]');
                 if (activeBtn) {
@@ -1294,8 +1303,8 @@
                 });
                 btn.classList.add('active-' + filter);
 
-                /* Show / hide quarters */
-                quarters.forEach(function (q) {
+                /* Show / hide quarters — query live so Firestore cards are included */
+                document.querySelectorAll('.rm-quarter').forEach(function (q) {
                     var match = filter === 'all' || q.getAttribute('data-filter') === filter;
                     if (match) {
                         q.classList.remove('rm-hidden');

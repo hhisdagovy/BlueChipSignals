@@ -1300,10 +1300,10 @@
 
         /* ── Latest Signals Section ── */
         .signals-section {
-            background: rgba(10, 14, 22, 0.7);
+            background: #0a0e16;
             border: 1px solid rgba(201, 176, 55, 0.18);
             border-radius: 16px;
-            padding: 1.5rem;
+            padding: 1.25rem;
             margin-bottom: 1.25rem;
             box-shadow: 0 6px 24px rgba(0, 0, 0, 0.3);
         }
@@ -1312,9 +1312,11 @@
             display: flex;
             align-items: center;
             justify-content: space-between;
-            margin-bottom: 1.25rem;
+            margin-bottom: 1rem;
             flex-wrap: wrap;
             gap: 0.5rem;
+            position: relative;
+            z-index: 10;
         }
 
         .signals-section-left {
@@ -1382,17 +1384,18 @@
         .sig-carousel-track {
             position: relative;
             width: 100%;
-            max-width: 480px;
+            max-width: 460px;
             margin: 0 auto;
-            min-height: 240px;
+            min-height: 185px;
+            overflow: hidden;
         }
 
         /* ── Individual signal card (carousel mode) ── */
         .sig-card {
             background: #0d1120;
-            border: 1px solid rgba(201, 176, 55, 0.1);
+            border: 1px solid rgba(201, 176, 55, 0.12);
             border-radius: 12px;
-            padding: 1rem;
+            padding: 0.85rem;
             position: absolute;
             width: 100%;
             box-sizing: border-box;
@@ -1400,12 +1403,11 @@
             left: 0;
             overflow: hidden;
             transform-origin: center;
-            cursor: pointer;
-            transform: translateY(100px) scale(0.8);
+            transform: translateY(30px) scale(0.97);
             opacity: 0;
             z-index: 1;
             pointer-events: none;
-            transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+            transition: all 0.55s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
         .sig-card.active {
@@ -1416,21 +1418,21 @@
         }
 
         .sig-card.next {
-            transform: translateY(80px) scale(0.9);
-            opacity: 0.5;
+            transform: translateY(30px) scale(0.97);
+            opacity: 0;
             z-index: 2;
-            pointer-events: auto;
+            pointer-events: none;
         }
 
         .sig-card.prev {
-            transform: translateY(-80px) scale(0.9);
-            opacity: 0.5;
+            transform: translateY(-30px) scale(0.97);
+            opacity: 0;
             z-index: 2;
-            pointer-events: auto;
+            pointer-events: none;
         }
 
         .sig-card.hidden {
-            transform: translateY(100px) scale(0.8);
+            transform: translateY(30px) scale(0.97);
             opacity: 0;
             z-index: 1;
             pointer-events: none;
@@ -1453,7 +1455,7 @@
             display: flex;
             align-items: center;
             justify-content: space-between;
-            margin-bottom: 0.8rem;
+            margin-bottom: 0.55rem;
         }
 
         .sig-card-left {
@@ -1498,18 +1500,18 @@
         }
 
         .sig-entry-price {
-            font-size: 1.5rem;
+            font-size: 1.25rem;
             font-weight: 900;
             color: var(--light-text);
             letter-spacing: -0.02em;
             line-height: 1;
-            margin-bottom: 0.7rem;
+            margin-bottom: 0.5rem;
         }
 
         .sig-stats-row {
             display: flex;
             gap: 1.1rem;
-            margin-bottom: 0.7rem;
+            margin-bottom: 0.5rem;
         }
 
         .sig-stat {

@@ -92,13 +92,6 @@
                 '<span class="sig-contract-chip">Exp ' + expFmt + '</span>' +
             '</div>' +
 
-            '<div class="sig-log-row">' +
-                '<button class="sig-log-btn" onclick="logDashboardSignalToJournal(this)" ' +
-                    'data-signal=\'' + JSON.stringify(s).replace(/'/g, '&#39;') + '\'>' +
-                    '<i class="fas fa-book-open"></i> Log Trade' +
-                '</button>' +
-            '</div>' +
-
         '</div>';
     }
 
@@ -403,8 +396,6 @@
             _activeTicker    = 'ALL';
             _activeDirection = 'ALL';
 
-            /* Inject the interactive filter bar only for bundle/legacy users */
-            if (!_tickerFilter) injectFilterBar();
 
             /* Demo mode: render mock signals, skip Firestore fetch */
             if (window._BCS_DEMO_SIGNALS) {

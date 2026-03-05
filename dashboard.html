@@ -1369,67 +1369,6 @@
             color: rgba(255,255,255,0.22);
         }
 
-        /* ── Signal filter bar (bundle users only) ── */
-        .sig-filter-bar {
-            display: flex;
-            flex-wrap: wrap;
-            align-items: center;
-            gap: 0.4rem;
-            padding: 0.65rem 0 0.1rem;
-            border-top: 1px solid rgba(201,176,55,0.1);
-            margin-top: 0.85rem;
-        }
-
-        .sig-filter-group {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 0.3rem;
-            align-items: center;
-        }
-
-        .sig-filter-divider {
-            width: 1px;
-            height: 18px;
-            background: rgba(255,255,255,0.1);
-            margin: 0 0.2rem;
-        }
-
-        .sig-filter-pill {
-            font-size: 0.67rem;
-            font-weight: 700;
-            letter-spacing: 0.04em;
-            padding: 0.22rem 0.6rem;
-            border-radius: 50px;
-            border: 1px solid rgba(255,255,255,0.12);
-            background: transparent;
-            color: rgba(255,255,255,0.45);
-            cursor: pointer;
-            transition: all 0.18s ease;
-            white-space: nowrap;
-        }
-
-        .sig-filter-pill:hover {
-            border-color: rgba(201,176,55,0.4);
-            color: rgba(255,255,255,0.8);
-        }
-
-        .sig-filter-pill.active {
-            background: rgba(201,176,55,0.15);
-            border-color: rgba(201,176,55,0.55);
-            color: var(--primary-gold);
-        }
-
-        .sig-filter-pill.call.active {
-            background: rgba(74,222,128,0.12);
-            border-color: rgba(74,222,128,0.4);
-            color: #4ade80;
-        }
-
-        .sig-filter-pill.put.active {
-            background: rgba(248,113,113,0.12);
-            border-color: rgba(248,113,113,0.4);
-            color: #f87171;
-        }
 
         /* ── Carousel wrapper ── */
         .sig-carousel-outer {
@@ -1442,13 +1381,15 @@
         /* ── Sliding track ── */
         .sig-carousel-track {
             position: relative;
-            width: 90%;
+            width: 100%;
+            max-width: 480px;
+            margin: 0 auto;
             min-height: 240px;
         }
 
         /* ── Individual signal card (carousel mode) ── */
         .sig-card {
-            background: rgba(15, 19, 32, 0.65);
+            background: #0d1120;
             border: 1px solid rgba(201, 176, 55, 0.1);
             border-radius: 12px;
             padding: 1rem;
@@ -1610,26 +1551,6 @@
             white-space: nowrap;
         }
 
-        .sig-log-row {
-            padding-top: 0.6rem;
-            border-top: 1px solid rgba(255,255,255,0.06);
-            margin-top: 0.5rem;
-        }
-
-        .sig-log-btn {
-            width: 100%;
-            font-size: 0.72rem;
-            font-weight: 700;
-            cursor: pointer;
-            padding: 0.4rem 0;
-            border-radius: 6px;
-            background: rgba(201,176,55,0.12);
-            border: 1px solid rgba(201,176,55,0.3);
-            color: var(--primary-gold);
-            transition: background 0.15s;
-        }
-
-        .sig-log-btn:hover { background: rgba(201,176,55,0.25); }
 
         .sig-empty {
             font-size: 0.85rem;

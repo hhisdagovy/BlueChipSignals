@@ -106,7 +106,7 @@
         el.innerHTML =
             '<i class="fas fa-eye" style="flex-shrink:0;"></i>' +
             '<span>You\'re viewing a demo. Actual results vary per user.</span>' +
-            '<a href="pricing.html" style="color:inherit;font-weight:800;text-decoration:underline;margin-left:auto;white-space:nowrap;">Get Access &rarr;</a>' +
+            '<a href="pricing" style="color:inherit;font-weight:800;text-decoration:underline;margin-left:auto;white-space:nowrap;">Get Access &rarr;</a>' +
             '<button onclick="this.parentElement.remove()" style="background:none;border:none;color:inherit;cursor:pointer;padding:0 0 0 0.5rem;font-size:1rem;line-height:1;" title="Dismiss"><i class="fas fa-xmark"></i></button>';
         var main = document.querySelector('.main-content') || document.body;
         main.insertBefore(el, main.firstChild);

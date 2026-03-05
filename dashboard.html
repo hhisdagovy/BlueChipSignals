@@ -1768,7 +1768,7 @@
                         <i class="fas fa-crown"></i>
                         <span id="subscriptionStatus">Premium Active</span>
                     </span>
-                    <a href="account.html" class="dash-settings-btn">
+                    <a href="account" class="dash-settings-btn">
                         <i class="fas fa-gear"></i> Settings
                     </a>
                 </div>
@@ -1937,8 +1937,8 @@
 
                 <!-- Ghost links to the full tools -->
                 <div class="stats-tool-links" id="stats-tool-links">
-                    <a href="trading-journal.html" class="stats-tool-link"><i class="fas fa-book"></i> Journal</a>
-                    <a href="trade-planner.html"   class="stats-tool-link"><i class="fas fa-crosshairs"></i> Planner</a>
+                    <a href="trading-journal" class="stats-tool-link"><i class="fas fa-book"></i> Journal</a>
+                    <a href="trade-planner"   class="stats-tool-link"><i class="fas fa-crosshairs"></i> Planner</a>
                 </div>
             </div>
 
@@ -2431,7 +2431,7 @@
                 toolLinks.insertAdjacentHTML('beforeend', `<div class="bundle-gate-overlay">
                     <i class="fas fa-lock"></i>
                     <span>Full Bundle required</span>
-                    <a href="upgrade.html">Upgrade &rarr;</a>
+                    <a href="upgrade">Upgrade &rarr;</a>
                 </div>`);
             }
 
@@ -2442,7 +2442,7 @@
                 heatmapCard.insertAdjacentHTML('beforeend', `<div class="bundle-gate-overlay">
                     <i class="fas fa-lock"></i>
                     <span>Trading Activity — Full Bundle only</span>
-                    <a href="upgrade.html">Upgrade &rarr;</a>
+                    <a href="upgrade">Upgrade &rarr;</a>
                 </div>`);
             }
         }
@@ -2504,7 +2504,7 @@
 
             if (listEl) {
                 if (active.length === 0) {
-                    listEl.innerHTML = '<div class="stats-empty">No active plans — <a href="trade-planner.html" style="color:var(--primary-gold);text-decoration:none;">add one</a></div>';
+                    listEl.innerHTML = '<div class="stats-empty">No active plans — <a href="trade-planner" style="color:var(--primary-gold);text-decoration:none;">add one</a></div>';
                 } else {
                     const MAX  = 4;
                     const show = active.slice(0, MAX);
@@ -2530,7 +2530,7 @@
 
                     if (more > 0) {
                         listEl.innerHTML += '<div style="padding:0.4rem 0 0;text-align:right;">' +
-                            '<a href="trade-planner.html" class="stats-more-link">+' + more + ' more &rarr;</a></div>';
+                            '<a href="trade-planner" class="stats-more-link">+' + more + ' more &rarr;</a></div>';
                     }
                 }
             }
@@ -2702,7 +2702,7 @@
                 updateDashboard(demoUserData);
                 injectAnnouncementBanner(
                     'You\'re viewing a demo. Actual results vary per user. ' +
-                    '<a href="pricing.html" style="color:inherit;font-weight:800;text-decoration:underline;">Get Access &rarr;</a>',
+                    '<a href="pricing" style="color:inherit;font-weight:800;text-decoration:underline;">Get Access &rarr;</a>',
                     'info'
                 );
                 return;

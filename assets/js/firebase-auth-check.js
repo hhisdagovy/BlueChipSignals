@@ -5,10 +5,10 @@ import { auth, db, onAuthStateChanged, signOut, doc, getDoc } from './firebase-c
 /**
  * Protect a page: redirect unauthenticated users immediately.
  * Call once near the top of any page that requires login.
- * @param {string} redirectPath - Relative path to redirect to (e.g. '../../book-demo.html')
+ * @param {string} redirectPath - Relative path to redirect to (e.g. '../../book-demo')
  */
 export function requireAuth(redirectPath) {
-    const _redirect = () => { window.location.href = redirectPath || 'book-demo.html'; };
+    const _redirect = () => { window.location.href = redirectPath || 'book-demo'; };
 
     onAuthStateChanged(auth, (user) => {
         if (!user) _redirect();
@@ -27,7 +27,7 @@ export function requireAuth(redirectPath) {
 
 /**
  * Sign the current user out and redirect to the login page.
- * @param {string} loginPath - Relative path to login.html (e.g. '../../login.html')
+ * @param {string} loginPath - Relative path to login.html (e.g. '../../login')
  */
 export async function performFirebaseLogout(loginPath) {
     try {
@@ -36,7 +36,7 @@ export async function performFirebaseLogout(loginPath) {
         localStorage.removeItem('bluechip_user_email');
         sessionStorage.removeItem('bluechip_logged_in');
         sessionStorage.removeItem('bluechip_user_email');
-        window.location.href = loginPath || 'login.html';
+        window.location.href = loginPath || 'login';
     } catch (error) {
         console.error('Logout error:', error);
     }
@@ -46,10 +46,10 @@ export async function performFirebaseLogout(loginPath) {
  * Landing-page guard: redirect already-logged-in users away from public pages.
  * Call on index.html (and any other marketing page) so returning users go
  * straight to their dashboard without seeing the landing page again.
- * @param {string} destination - Where to send logged-in users (e.g. 'dashboard.html')
+ * @param {string} destination - Where to send logged-in users (e.g. 'dashboard')
  */
 export function redirectIfLoggedIn(destination) {
-    const _redirect = () => { window.location.href = destination || 'dashboard.html'; };
+    const _redirect = () => { window.location.href = destination || 'dashboard'; };
 
     onAuthStateChanged(auth, (user) => {
         if (user) _redirect();
@@ -73,17 +73,17 @@ export function redirectIfLoggedIn(destination) {
  *
  * @param {'bundle'|'ticker'} planType
  * @param {string|null}       ticker      - e.g. 'SPY', 'AAPL' (ignored when planType='bundle')
- * @param {string}            loginPath   - e.g. '../../login.html'
- * @param {string}            upgradePath - e.g. '../../upgrade.html'
+ * @param {string}            loginPath   - e.g. '../../login'
+ * @param {string}            upgradePath - e.g. '../../upgrade'
  */
 export function requirePlan(planType, ticker, loginPath, upgradePath) {
-    const _login   = () => { window.location.href = loginPath   || '../../login.html'; };
-    const _upgrade = () => { window.location.href = upgradePath || '../../upgrade.html'; };
+    const _login   = () => { window.location.href = loginPath   || '../../login'; };
+    const _upgrade = () => { window.location.href = upgradePath || '../../upgrade'; };
 
     /* Derive the maintenance page path from the loginPath (same directory level) */
     const _maintenance = () => {
-        const base = (loginPath || '../../login.html').replace(/[^/]+$/, '');
-        window.location.href = base + 'maintenance.html';
+        const base = (loginPath || '../../login').replace(/[^/]+$/, '');
+        window.location.href = base + 'maintenance';
     };
 
     const _check = async (user) => {
@@ -145,7 +145,7 @@ export function requirePlan(planType, ticker, loginPath, upgradePath) {
 /**
  * Wire the injected #authButton and #dashboardLink to the current auth state.
  * Call after nav-component.js has run so the elements exist in the DOM.
- * @param {string} loginPath - Relative path to login.html (e.g. '../../login.html')
+ * @param {string} loginPath - Relative path to login.html (e.g. '../../login')
  */
 export function updateAuthButton(loginPath) {
     onAuthStateChanged(auth, (user) => {

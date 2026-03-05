@@ -269,7 +269,7 @@
             notes:          'Signal: ' + s.stock + ' ' + contractType.toUpperCase() +
                             ' $' + s.contract.strike + ' \u2014 Stock entry: $' + s.price
         }));
-        window.location.href = 'trading-journal.html';
+        window.location.href = 'trading-journal';
     };
 
     /* ── Filter bar (injected for bundle users only) ── */

@@ -117,7 +117,7 @@
             localStorage.removeItem('bluechip_is_admin');
             sessionStorage.removeItem('bluechip_logged_in');
             sessionStorage.removeItem('bluechip_user_email');
-            window.location.href = base + 'login.html';
+            window.location.href = base + 'login';
         };
     }
 
@@ -125,12 +125,12 @@
        via redirectIfLoggedIn() on each page. */
     function publicNav() {
         var stocks = [
-            { sym: 'SPY',  name: 'S&amp;P 500 ETF',   path: 'pages/signals/spy-signal.html'  },
-            { sym: 'META', name: 'Meta Platforms',     path: 'pages/signals/meta-signal.html' },
-            { sym: 'AAPL', name: 'Apple Inc.',         path: 'pages/signals/aapl-signal.html' },
-            { sym: 'TSLA', name: 'Tesla Inc.',         path: 'pages/signals/tsla-signal.html' },
-            { sym: 'NVDA', name: 'NVIDIA Corp.',       path: 'pages/signals/nvda-signal.html' },
-            { sym: 'AMZN', name: 'Amazon.com',         path: 'pages/signals/amzn-signal.html' }
+            { sym: 'SPY',  name: 'S&amp;P 500 ETF',   path: 'pages/signals/spy-signal'  },
+            { sym: 'META', name: 'Meta Platforms',     path: 'pages/signals/meta-signal' },
+            { sym: 'AAPL', name: 'Apple Inc.',         path: 'pages/signals/aapl-signal' },
+            { sym: 'TSLA', name: 'Tesla Inc.',         path: 'pages/signals/tsla-signal' },
+            { sym: 'NVDA', name: 'NVIDIA Corp.',       path: 'pages/signals/nvda-signal' },
+            { sym: 'AMZN', name: 'Amazon.com',         path: 'pages/signals/amzn-signal' }
         ];
 
         var desktopDropdownItems = stocks.map(function(s) {
@@ -149,7 +149,7 @@
 
         return '<div class="nav-container">' +
             '<div class="logo">' +
-                '<a href="' + base + 'index.html"><img src="' + base + 'assets/images/Crest logo.png" alt="Blue Chip Signals Logo"></a>' +
+                '<a href="' + base + 'index"><img src="' + base + 'assets/images/Crest logo.png" alt="Blue Chip Signals Logo"></a>' +
             '</div>' +
             '<button class="hamburger-menu" aria-label="Toggle menu">' +
                 '<span class="bar"></span>' +
@@ -162,11 +162,11 @@
                     '<ul class="nav-stocks-dropdown">' + desktopDropdownItems + '</ul>' +
                 '</li>' +
                 '<li class="nav-stocks-mobile-li"><button class="nav-stocks-mobile-btn">SUPPORTED STOCKS <span>&#8250;</span></button></li>' +
-                '<li><a href="' + base + 'roadmap.html">ROADMAP</a></li>' +
-                '<li><a href="' + base + 'contact.html">CONTACT</a></li>' +
-                '<li><a href="' + base + 'faq.html">FAQ</a></li>' +
-                '<li><a href="' + base + 'about.html">ABOUT US</a></li>' +
-                '<li><a href="' + base + 'login.html" class="login-btn" id="authButton">' +
+                '<li><a href="' + base + 'roadmap">ROADMAP</a></li>' +
+                '<li><a href="' + base + 'contact">CONTACT</a></li>' +
+                '<li><a href="' + base + 'faq">FAQ</a></li>' +
+                '<li><a href="' + base + 'about">ABOUT US</a></li>' +
+                '<li><a href="' + base + 'login" class="login-btn" id="authButton">' +
                     '<i class="fas fa-sign-in-alt"></i> Login' +
                 '</a></li>' +
             '</ul>' +
@@ -191,13 +191,13 @@
         try { isAdmin = localStorage.getItem('bluechip_is_admin') === '1'; } catch (e) {}
 
         var adminLink = isAdmin
-            ? '<li><a href="' + base + 'admin.html" class="admin-nav-link" style="color:var(--primary-gold);font-weight:700;">' +
+            ? '<li><a href="' + base + 'admin" class="admin-nav-link" style="color:var(--primary-gold);font-weight:700;">' +
               '<i class="fas fa-shield-halved" style="font-size:0.8em;margin-right:0.3em;"></i>ADMIN</a></li>'
             : '';
 
         return '<div class="nav-container">' +
             '<div class="logo">' +
-                '<a href="' + base + 'dashboard.html"><img src="' + base + 'assets/images/Crest logo.png" alt="Blue Chip Signals Logo"></a>' +
+                '<a href="' + base + 'dashboard"><img src="' + base + 'assets/images/Crest logo.png" alt="Blue Chip Signals Logo"></a>' +
             '</div>' +
             '<button class="hamburger-menu" aria-label="Toggle menu">' +
                 '<span class="bar"></span>' +
@@ -205,12 +205,12 @@
                 '<span class="bar"></span>' +
             '</button>' +
             '<ul class="nav-links">' +
-                '<li><a href="' + base + 'signal-history.html">HISTORY</a></li>' +
-                '<li><a href="' + base + 'trading-journal.html">JOURNAL</a></li>' +
-                '<li><a href="' + base + 'trade-planner.html">PLANNER</a></li>' +
-                '<li><a href="' + base + 'roadmap.html">ROADMAP</a></li>' +
-                '<li><a href="' + base + 'contact.html">CONTACT</a></li>' +
-                '<li><a href="' + base + 'faq.html">FAQ</a></li>' +
+                '<li><a href="' + base + 'signal-history">HISTORY</a></li>' +
+                '<li><a href="' + base + 'trading-journal">JOURNAL</a></li>' +
+                '<li><a href="' + base + 'trade-planner">PLANNER</a></li>' +
+                '<li><a href="' + base + 'roadmap">ROADMAP</a></li>' +
+                '<li><a href="' + base + 'contact">CONTACT</a></li>' +
+                '<li><a href="' + base + 'faq">FAQ</a></li>' +
                 adminLink +
                 '<li>' +
                     '<button class="logout-btn" onclick="logout()">' +
@@ -225,7 +225,7 @@
     function minimalNav() {
         return '<div class="nav-container" style="justify-content:center;">' +
             '<div class="logo">' +
-                '<a href="' + base + 'index.html"><img src="' + base + 'assets/images/Crest logo.png" alt="Blue Chip Signals Logo"></a>' +
+                '<a href="' + base + 'index"><img src="' + base + 'assets/images/Crest logo.png" alt="Blue Chip Signals Logo"></a>' +
             '</div>' +
         '</div>';
     }
@@ -242,7 +242,7 @@
         var logoutLi = navLinks.querySelector('li:last-child');
         var adminLi  = document.createElement('li');
         adminLi.innerHTML =
-            '<a href="' + base + 'admin.html" class="admin-nav-link" ' +
+            '<a href="' + base + 'admin" class="admin-nav-link" ' +
             'style="color:var(--primary-gold);font-weight:700;">' +
             '<i class="fas fa-shield-halved" style="font-size:0.8em;margin-right:0.3em;"></i>ADMIN</a>';
 

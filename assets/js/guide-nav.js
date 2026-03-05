@@ -4,55 +4,55 @@
     var GUIDES = {
         SPY: {
             label: 'SPY Guides',
-            signalPage: '../signals/spy-signal.html',
+            signalPage: '../signals/spy-signal',
             guides: [
-                { icon: 'fas fa-chart-pie',     title: 'Economic Data Monitor',    desc: 'CPI, PPI, Fed decisions & GDP — get ahead of market-moving releases.',        path: '../guides/spy-economic-data.html' },
-                { icon: 'fas fa-heartbeat',     title: 'Fear & Greed / VIX',       desc: 'Monitor the VIX and sentiment index to time your SPY entries.',               path: '../guides/spy-vix.html' },
-                { icon: 'fas fa-calculator',    title: 'S/R Level Calculator',     desc: 'Key support and resistance zones using pivot points and Fibonacci.',           path: '../guides/spy-support-resistance.html' }
+                { icon: 'fas fa-chart-pie',     title: 'Economic Data Monitor',    desc: 'CPI, PPI, Fed decisions & GDP — get ahead of market-moving releases.',        path: '../guides/spy-economic-data' },
+                { icon: 'fas fa-heartbeat',     title: 'Fear & Greed / VIX',       desc: 'Monitor the VIX and sentiment index to time your SPY entries.',               path: '../guides/spy-vix' },
+                { icon: 'fas fa-calculator',    title: 'S/R Level Calculator',     desc: 'Key support and resistance zones using pivot points and Fibonacci.',           path: '../guides/spy-support-resistance' }
             ]
         },
         TSLA: {
             label: 'TSLA Guides',
-            signalPage: '../signals/tsla-signal.html',
+            signalPage: '../signals/tsla-signal',
             guides: [
-                { icon: 'fas fa-truck',         title: 'Delivery Report Calendar', desc: 'Tesla\'s quarterly delivery numbers — the biggest recurring catalyst.',        path: '../guides/tsla-delivery-production.html' },
-                { icon: 'fas fa-chart-line',    title: 'Trend Analyzer',           desc: 'Identify TSLA\'s trend direction and manage volatility in winning trades.',    path: '../guides/tsla-trend-following.html' }
+                { icon: 'fas fa-truck',         title: 'Delivery Report Calendar', desc: 'Tesla\'s quarterly delivery numbers — the biggest recurring catalyst.',        path: '../guides/tsla-delivery-production' },
+                { icon: 'fas fa-chart-line',    title: 'Trend Analyzer',           desc: 'Identify TSLA\'s trend direction and manage volatility in winning trades.',    path: '../guides/tsla-trend-following' }
             ]
         },
         META: {
             label: 'META Guides',
-            signalPage: '../signals/meta-signal.html',
+            signalPage: '../signals/meta-signal',
             guides: [
-                { icon: 'fas fa-ad',            title: 'Ad Revenue Tracker',       desc: 'Quarterly ad revenue trends and seasonal patterns that drive big moves.',      path: '../guides/meta-ad-revenue-growth.html' },
-                { icon: 'fas fa-chart-area',    title: 'Earnings Trading Guide',   desc: 'Position before and after META earnings + the four critical gap levels.',     path: '../guides/meta-earnings-trading.html' },
-                { icon: 'fas fa-gavel',         title: 'Regulatory News Monitor',  desc: 'EU privacy rulings, antitrust cases & FTC actions that move META.',            path: '../guides/meta-regulatory-news.html' }
+                { icon: 'fas fa-ad',            title: 'Ad Revenue Tracker',       desc: 'Quarterly ad revenue trends and seasonal patterns that drive big moves.',      path: '../guides/meta-ad-revenue-growth' },
+                { icon: 'fas fa-chart-area',    title: 'Earnings Trading Guide',   desc: 'Position before and after META earnings + the four critical gap levels.',     path: '../guides/meta-earnings-trading' },
+                { icon: 'fas fa-gavel',         title: 'Regulatory News Monitor',  desc: 'EU privacy rulings, antitrust cases & FTC actions that move META.',            path: '../guides/meta-regulatory-news' }
             ]
         },
         AAPL: {
             label: 'AAPL Guides',
-            signalPage: '../signals/aapl-signal.html',
+            signalPage: '../signals/aapl-signal',
             guides: [
-                { icon: 'fas fa-industry',      title: 'Product Cycles & Suppliers', desc: 'iPhone cycle playbook and key supply-chain signals from TSMC & Foxconn.',   path: '../guides/aapl-product-cycles.html' },
-                { icon: 'fas fa-chart-line',    title: 'Orderly Pullbacks Guide',    desc: 'Identify high-probability bounce entries within AAPL\'s structured trends.', path: '../guides/aapl-orderly-pullbacks.html' },
-                { icon: 'fas fa-eye',           title: 'Options Volume Monitor',     desc: 'Track unusual options activity to spot institutional positioning early.',     path: '../guides/aapl-options-volume.html' }
+                { icon: 'fas fa-industry',      title: 'Product Cycles & Suppliers', desc: 'iPhone cycle playbook and key supply-chain signals from TSMC & Foxconn.',   path: '../guides/aapl-product-cycles' },
+                { icon: 'fas fa-chart-line',    title: 'Orderly Pullbacks Guide',    desc: 'Identify high-probability bounce entries within AAPL\'s structured trends.', path: '../guides/aapl-orderly-pullbacks' },
+                { icon: 'fas fa-eye',           title: 'Options Volume Monitor',     desc: 'Track unusual options activity to spot institutional positioning early.',     path: '../guides/aapl-options-volume' }
             ]
         },
         NVDA: {
             label: 'NVDA Guides',
-            signalPage: '../signals/nvda-signal.html',
+            signalPage: '../signals/nvda-signal',
             guides: [
-                { icon: 'fas fa-robot',         title: 'AI & Sector Tracker',      desc: 'AI news, compute demand, NVIDIA partnerships & SMH sector correlation.',      path: '../guides/nvda-ai-sector-news.html' },
-                { icon: 'fas fa-calendar-alt',  title: 'Earnings Calendar',        desc: 'NVDA earnings history and typical post-earnings move size.',                   path: '../guides/nvda-earnings-history.html' },
-                { icon: 'fas fa-chart-area',    title: 'Parabolic Move Guide',     desc: 'Manage entries and exits during NVDA\'s characteristic parabolic phases.',    path: '../guides/nvda-parabolic-moves.html' }
+                { icon: 'fas fa-robot',         title: 'AI & Sector Tracker',      desc: 'AI news, compute demand, NVIDIA partnerships & SMH sector correlation.',      path: '../guides/nvda-ai-sector-news' },
+                { icon: 'fas fa-calendar-alt',  title: 'Earnings Calendar',        desc: 'NVDA earnings history and typical post-earnings move size.',                   path: '../guides/nvda-earnings-history' },
+                { icon: 'fas fa-chart-area',    title: 'Parabolic Move Guide',     desc: 'Manage entries and exits during NVDA\'s characteristic parabolic phases.',    path: '../guides/nvda-parabolic-moves' }
             ]
         },
         AMZN: {
             label: 'AMZN Guides',
-            signalPage: '../signals/amzn-signal.html',
+            signalPage: '../signals/amzn-signal',
             guides: [
-                { icon: 'fas fa-cloud',         title: 'AWS News Tracker',          desc: 'Monitor AWS announcements and cloud revenue trends driving AMZN moves.',     path: '../guides/amzn-aws-news.html' },
-                { icon: 'fas fa-shopping-cart', title: 'Prime Day Calendar',        desc: 'Annual Prime Day history and typical AMZN price behaviour around events.',   path: '../guides/amzn-prime-day.html' },
-                { icon: 'fas fa-layer-group',   title: 'Support/Resistance Zones',  desc: 'Key structural zones where AMZN consistently finds buyers or sellers.',      path: '../guides/amzn-support-resistance.html' }
+                { icon: 'fas fa-cloud',         title: 'AWS News Tracker',          desc: 'Monitor AWS announcements and cloud revenue trends driving AMZN moves.',     path: '../guides/amzn-aws-news' },
+                { icon: 'fas fa-shopping-cart', title: 'Prime Day Calendar',        desc: 'Annual Prime Day history and typical AMZN price behaviour around events.',   path: '../guides/amzn-prime-day' },
+                { icon: 'fas fa-layer-group',   title: 'Support/Resistance Zones',  desc: 'Key structural zones where AMZN consistently finds buyers or sellers.',      path: '../guides/amzn-support-resistance' }
             ]
         }
     };

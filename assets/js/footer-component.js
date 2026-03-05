@@ -10,8 +10,8 @@
     placeholder.parentNode.replaceChild(footer, placeholder);
 
     function buildFooter(type, base) {
-        var termsLink = '<a href="' + base + 'legal.html">Terms &amp; Legal</a>';
-        var homeLink  = '<a href="' + base + 'index.html">Back to Home</a>';
+        var termsLink = '<a href="' + base + 'legal">Terms &amp; Legal</a>';
+        var homeLink  = '<a href="' + base + 'index">Back to Home</a>';
 
         var social = '<div class="social-media">' +
             '<a href="https://www.tiktok.com/@bluechip.signals" target="_blank" aria-label="TikTok">' +

@@ -1254,10 +1254,6 @@
             doc, getDoc, getDocs, setDoc, updateDoc, collection, query
         } from './assets/js/firebase-config.js';
 
-        import {
-            addDoc, deleteDoc, orderBy, serverTimestamp
-        } from 'https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js';
-
         import { initializeApp, getApps } from
             'https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js';
         import {
@@ -1266,7 +1262,7 @@
             signOut as secondarySignOut
         } from 'https://www.gstatic.com/firebasejs/11.0.2/firebase-auth.js';
         import {
-            deleteDoc,
+            addDoc, deleteDoc, orderBy, serverTimestamp,
             getFirestore,
             doc as secDoc,
             setDoc as secSetDoc

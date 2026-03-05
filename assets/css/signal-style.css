@@ -1819,21 +1819,44 @@ stripe-buy-button {
     margin: 0;
 }
 
-.sp-why-grid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 1.25rem;
+/* Marquee wrapper */
+.sp-why-marquee-wrap {
+    overflow: hidden;
+    -webkit-mask-image: linear-gradient(to right, transparent 0%, black 8%, black 92%, transparent 100%);
+    mask-image: linear-gradient(to right, transparent 0%, black 8%, black 92%, transparent 100%);
+    padding: 1rem 0 2rem;
+}
+
+/* Scrolling track — contains cards × 2 for seamless loop */
+.sp-why-track {
+    display: flex;
+    gap: 0;
+    width: max-content;
+    will-change: transform;
+    animation: sp-why-scroll 45s linear infinite;
+}
+
+@keyframes sp-why-scroll {
+    from { transform: translateX(0); }
+    to   { transform: translateX(var(--sp-why-shift, -50%)); }
 }
 
 .sp-why-card {
+    flex: 0 0 270px;
+    margin-right: 1.5rem;
     background: rgba(26,31,46,0.55);
     border: 1px solid rgba(201,176,55,0.14);
     border-radius: 18px;
     padding: 1.75rem 1.5rem;
     position: relative;
     overflow: hidden;
-    transition: border-color 0.25s, transform 0.25s, box-shadow 0.25s;
+    cursor: default;
+    user-select: none;
+    transition: border-color 0.3s, transform 0.3s, box-shadow 0.3s;
 }
+
+/* Wave effect — odd/even offset */
+.sp-why-track .sp-why-card:nth-child(even) { transform: translateY(28px); }
 
 .sp-why-card::before {
     content: attr(data-index);
@@ -1848,9 +1871,9 @@ stripe-buy-button {
 }
 
 .sp-why-card:hover {
-    border-color: rgba(201,176,55,0.4);
-    transform: translateY(-4px);
-    box-shadow: 0 12px 32px rgba(0,0,0,0.3);
+    border-color: rgba(201,176,55,0.55);
+    transform: translateY(-8px) !important;
+    box-shadow: 0 0 28px rgba(201,176,55,0.18), 0 16px 40px rgba(0,0,0,0.4);
 }
 
 .sp-why-card .sp-why-icon {
@@ -2217,7 +2240,7 @@ stripe-buy-button {
     .sp-description { max-width: 100%; }
     .sp-stat-chips { justify-content: center; }
     .sp-cta-btn { align-self: center; }
-    .sp-why-grid { grid-template-columns: repeat(2, 1fr); }
+    .sp-why-track { animation-duration: 90s; }
     .sp-strategy-grid { grid-template-columns: 1fr; }
     .sp-metrics-grid { grid-template-columns: repeat(2, 1fr); }
 }
@@ -2267,7 +2290,7 @@ stripe-buy-button {
         justify-content: center;
         padding: 1.5rem 0;
     }
-    .sp-why-grid { grid-template-columns: 1fr; }
+    .sp-why-track { animation-duration: 120s; }
     .sp-metrics-grid { grid-template-columns: repeat(2, 1fr); }
     .sp-cta-card { padding: 2.5rem 1.5rem; }
     .sp-cta-card h2 { font-size: 1.5rem; }

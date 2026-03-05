@@ -89,13 +89,23 @@
                 <span class="sp-section-label">Why this ticker</span>
                 <h2>Why Trade AAPL?</h2>
             </div>
-            <div class="sp-why-grid">
-                <div class="sp-why-card" data-index="01"><div class="sp-why-icon"><i class="fas fa-chart-line"></i></div><h3>Structured Trends</h3><p>AAPL trends in an exceptionally orderly way, making VWAP and support/resistance strategies highly reliable.</p></div>
-                <div class="sp-why-card" data-index="02"><div class="sp-why-icon"><i class="fas fa-building"></i></div><h3>Institutional Favorite</h3><p>The most widely held stock by institutions worldwide — constant buying pressure creates strong technical floors.</p></div>
-                <div class="sp-why-card" data-index="03"><div class="sp-why-icon"><i class="fas fa-mobile-alt"></i></div><h3>Product Cycle Catalysts</h3><p>iPhone, Mac, and services launches create predictable momentum windows our signals are tuned to capture.</p></div>
-                <div class="sp-why-card" data-index="04"><div class="sp-why-icon"><i class="fas fa-globe"></i></div><h3>Market Bellwether</h3><p>AAPL moves with the market, making it easier to trade in alignment with macro sentiment.</p></div>
-                <div class="sp-why-card" data-index="05"><div class="sp-why-icon"><i class="fas fa-arrows-alt-h"></i></div><h3>Tight Spreads</h3><p>Among the most liquid options in existence — minimal slippage on every entry and exit.</p></div>
-                <div class="sp-why-card" data-index="06"><div class="sp-why-icon"><i class="fas fa-shield-alt"></i></div><h3>Lower Risk Profile</h3><p>Compared to single-stock names, AAPL's steady volatility makes risk management straightforward.</p></div>
+            <div class="sp-why-marquee-wrap">
+                <div class="sp-why-track">
+                    <!-- Set 1 -->
+                    <div class="sp-why-card" data-index="01"><div class="sp-why-icon"><i class="fas fa-chart-line"></i></div><h3>Structured Trends</h3><p>AAPL trends in an exceptionally orderly way, making VWAP and support/resistance strategies highly reliable.</p></div>
+                    <div class="sp-why-card" data-index="02"><div class="sp-why-icon"><i class="fas fa-building"></i></div><h3>Institutional Favorite</h3><p>The most widely held stock by institutions worldwide — constant buying pressure creates strong technical floors.</p></div>
+                    <div class="sp-why-card" data-index="03"><div class="sp-why-icon"><i class="fas fa-mobile-alt"></i></div><h3>Product Cycle Catalysts</h3><p>iPhone, Mac, and services launches create predictable momentum windows our signals are tuned to capture.</p></div>
+                    <div class="sp-why-card" data-index="04"><div class="sp-why-icon"><i class="fas fa-globe"></i></div><h3>Market Bellwether</h3><p>AAPL moves with the market, making it easier to trade in alignment with macro sentiment.</p></div>
+                    <div class="sp-why-card" data-index="05"><div class="sp-why-icon"><i class="fas fa-arrows-alt-h"></i></div><h3>Tight Spreads</h3><p>Among the most liquid options in existence — minimal slippage on every entry and exit.</p></div>
+                    <div class="sp-why-card" data-index="06"><div class="sp-why-icon"><i class="fas fa-shield-alt"></i></div><h3>Lower Risk Profile</h3><p>Compared to single-stock names, AAPL's steady volatility makes risk management straightforward.</p></div>
+                    <!-- Set 2 — duplicate for seamless loop -->
+                    <div class="sp-why-card" aria-hidden="true" data-index="01"><div class="sp-why-icon"><i class="fas fa-chart-line"></i></div><h3>Structured Trends</h3><p>AAPL trends in an exceptionally orderly way, making VWAP and support/resistance strategies highly reliable.</p></div>
+                    <div class="sp-why-card" aria-hidden="true" data-index="02"><div class="sp-why-icon"><i class="fas fa-building"></i></div><h3>Institutional Favorite</h3><p>The most widely held stock by institutions worldwide — constant buying pressure creates strong technical floors.</p></div>
+                    <div class="sp-why-card" aria-hidden="true" data-index="03"><div class="sp-why-icon"><i class="fas fa-mobile-alt"></i></div><h3>Product Cycle Catalysts</h3><p>iPhone, Mac, and services launches create predictable momentum windows our signals are tuned to capture.</p></div>
+                    <div class="sp-why-card" aria-hidden="true" data-index="04"><div class="sp-why-icon"><i class="fas fa-globe"></i></div><h3>Market Bellwether</h3><p>AAPL moves with the market, making it easier to trade in alignment with macro sentiment.</p></div>
+                    <div class="sp-why-card" aria-hidden="true" data-index="05"><div class="sp-why-icon"><i class="fas fa-arrows-alt-h"></i></div><h3>Tight Spreads</h3><p>Among the most liquid options in existence — minimal slippage on every entry and exit.</p></div>
+                    <div class="sp-why-card" aria-hidden="true" data-index="06"><div class="sp-why-icon"><i class="fas fa-shield-alt"></i></div><h3>Lower Risk Profile</h3><p>Compared to single-stock names, AAPL's steady volatility makes risk management straightforward.</p></div>
+                </div>
             </div>
         </section>
 
@@ -227,6 +237,25 @@
     </script>
     <script>
         (function () {
+            /* Why marquee shift */
+            function setWhyMarqueeShift() {
+                var track = document.querySelector('.sp-why-track');
+                if (!track) return;
+                var cards = track.querySelectorAll('.sp-why-card:not([aria-hidden])');
+                var totalPx = 0;
+                cards.forEach(function (card) {
+                    var style = window.getComputedStyle(card);
+                    totalPx += card.offsetWidth + parseFloat(style.marginRight || 0);
+                });
+                track.style.setProperty('--sp-why-shift', '-' + totalPx + 'px');
+            }
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', setWhyMarqueeShift);
+            } else {
+                setWhyMarqueeShift();
+            }
+            window.addEventListener('resize', setWhyMarqueeShift);
+
             /* Section scroll reveal */
             var obs = new IntersectionObserver(function (entries) {
                 entries.forEach(function (e) {

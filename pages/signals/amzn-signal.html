@@ -90,13 +90,23 @@
                 <span class="sp-section-label">Why this ticker</span>
                 <h2>Why Trade AMZN?</h2>
             </div>
-            <div class="sp-why-grid">
-                <div class="sp-why-card" data-index="01"><div class="sp-why-icon"><i class="fas fa-cloud"></i></div><h3>AWS Dominance</h3><p>Amazon Web Services is the world's largest cloud provider — a high-margin business that drives institutional accumulation.</p></div>
-                <div class="sp-why-card" data-index="02"><div class="sp-why-icon"><i class="fas fa-shopping-cart"></i></div><h3>E-Commerce Leader</h3><p>Amazon's retail dominance creates predictable seasonal patterns aligned with Prime Day and holiday cycles.</p></div>
-                <div class="sp-why-card" data-index="03"><div class="sp-why-icon"><i class="fas fa-sync-alt"></i></div><h3>Mean Reversion Setup</h3><p>AMZN consistently returns to key support levels after overextended moves, creating reliable reversal entries.</p></div>
-                <div class="sp-why-card" data-index="04"><div class="sp-why-icon"><i class="fas fa-calendar-star"></i></div><h3>Prime Day Catalyst</h3><p>Annual Prime Day events drive predictable volume spikes and momentum that our signals are tuned to capture.</p></div>
-                <div class="sp-why-card" data-index="05"><div class="sp-why-icon"><i class="fas fa-water"></i></div><h3>Excellent Liquidity</h3><p>Deep options market with tight bid-ask spreads, ensuring reliable fills even during high-volatility sessions.</p></div>
-                <div class="sp-why-card" data-index="06"><div class="sp-why-icon"><i class="fas fa-layer-group"></i></div><h3>Dual Revenue Streams</h3><p>Retail + cloud diversification means AMZN has multiple catalysts per quarter, creating frequent signal opportunities.</p></div>
+            <div class="sp-why-marquee-wrap">
+                <div class="sp-why-track">
+                    <!-- Set 1 -->
+                    <div class="sp-why-card" data-index="01"><div class="sp-why-icon"><i class="fas fa-cloud"></i></div><h3>AWS Dominance</h3><p>Amazon Web Services is the world's largest cloud provider — a high-margin business that drives institutional accumulation.</p></div>
+                    <div class="sp-why-card" data-index="02"><div class="sp-why-icon"><i class="fas fa-shopping-cart"></i></div><h3>E-Commerce Leader</h3><p>Amazon's retail dominance creates predictable seasonal patterns aligned with Prime Day and holiday cycles.</p></div>
+                    <div class="sp-why-card" data-index="03"><div class="sp-why-icon"><i class="fas fa-sync-alt"></i></div><h3>Mean Reversion Setup</h3><p>AMZN consistently returns to key support levels after overextended moves, creating reliable reversal entries.</p></div>
+                    <div class="sp-why-card" data-index="04"><div class="sp-why-icon"><i class="fas fa-calendar-star"></i></div><h3>Prime Day Catalyst</h3><p>Annual Prime Day events drive predictable volume spikes and momentum that our signals are tuned to capture.</p></div>
+                    <div class="sp-why-card" data-index="05"><div class="sp-why-icon"><i class="fas fa-water"></i></div><h3>Excellent Liquidity</h3><p>Deep options market with tight bid-ask spreads, ensuring reliable fills even during high-volatility sessions.</p></div>
+                    <div class="sp-why-card" data-index="06"><div class="sp-why-icon"><i class="fas fa-layer-group"></i></div><h3>Dual Revenue Streams</h3><p>Retail + cloud diversification means AMZN has multiple catalysts per quarter, creating frequent signal opportunities.</p></div>
+                    <!-- Set 2 — duplicate for seamless loop -->
+                    <div class="sp-why-card" aria-hidden="true" data-index="01"><div class="sp-why-icon"><i class="fas fa-cloud"></i></div><h3>AWS Dominance</h3><p>Amazon Web Services is the world's largest cloud provider — a high-margin business that drives institutional accumulation.</p></div>
+                    <div class="sp-why-card" aria-hidden="true" data-index="02"><div class="sp-why-icon"><i class="fas fa-shopping-cart"></i></div><h3>E-Commerce Leader</h3><p>Amazon's retail dominance creates predictable seasonal patterns aligned with Prime Day and holiday cycles.</p></div>
+                    <div class="sp-why-card" aria-hidden="true" data-index="03"><div class="sp-why-icon"><i class="fas fa-sync-alt"></i></div><h3>Mean Reversion Setup</h3><p>AMZN consistently returns to key support levels after overextended moves, creating reliable reversal entries.</p></div>
+                    <div class="sp-why-card" aria-hidden="true" data-index="04"><div class="sp-why-icon"><i class="fas fa-calendar-star"></i></div><h3>Prime Day Catalyst</h3><p>Annual Prime Day events drive predictable volume spikes and momentum that our signals are tuned to capture.</p></div>
+                    <div class="sp-why-card" aria-hidden="true" data-index="05"><div class="sp-why-icon"><i class="fas fa-water"></i></div><h3>Excellent Liquidity</h3><p>Deep options market with tight bid-ask spreads, ensuring reliable fills even during high-volatility sessions.</p></div>
+                    <div class="sp-why-card" aria-hidden="true" data-index="06"><div class="sp-why-icon"><i class="fas fa-layer-group"></i></div><h3>Dual Revenue Streams</h3><p>Retail + cloud diversification means AMZN has multiple catalysts per quarter, creating frequent signal opportunities.</p></div>
+                </div>
             </div>
         </section>
 
@@ -228,6 +238,25 @@
     </script>
     <script>
         (function () {
+            /* Why marquee shift */
+            function setWhyMarqueeShift() {
+                var track = document.querySelector('.sp-why-track');
+                if (!track) return;
+                var cards = track.querySelectorAll('.sp-why-card:not([aria-hidden])');
+                var totalPx = 0;
+                cards.forEach(function (card) {
+                    var style = window.getComputedStyle(card);
+                    totalPx += card.offsetWidth + parseFloat(style.marginRight || 0);
+                });
+                track.style.setProperty('--sp-why-shift', '-' + totalPx + 'px');
+            }
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', setWhyMarqueeShift);
+            } else {
+                setWhyMarqueeShift();
+            }
+            window.addEventListener('resize', setWhyMarqueeShift);
+
             /* Section scroll reveal */
             var obs = new IntersectionObserver(function (entries) {
                 entries.forEach(function (e) {

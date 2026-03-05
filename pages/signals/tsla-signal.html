@@ -90,13 +90,23 @@
                 <span class="sp-section-label">Why this ticker</span>
                 <h2>Why Trade TSLA?</h2>
             </div>
-            <div class="sp-why-grid">
-                <div class="sp-why-card" data-index="01"><div class="sp-why-icon"><i class="fas fa-fire"></i></div><h3>Extreme Volatility</h3><p>TSLA's massive daily swings create outsized premium opportunities not available in calmer stocks.</p></div>
-                <div class="sp-why-card" data-index="02"><div class="sp-why-icon"><i class="fas fa-user-tie"></i></div><h3>Elon Musk Catalyst</h3><p>News-driven moves from Elon's tweets and decisions create predictable breakout setups our signals capture.</p></div>
-                <div class="sp-why-card" data-index="03"><div class="sp-why-icon"><i class="fas fa-trending-up"></i></div><h3>Trend Persistence</h3><p>Tesla trends hard in both directions — perfect for momentum-based breakout entries with defined risk.</p></div>
-                <div class="sp-why-card" data-index="04"><div class="sp-why-icon"><i class="fas fa-newspaper"></i></div><h3>News-Driven Moves</h3><p>Delivery reports, production data, and social media activity create frequent high-probability setups.</p></div>
-                <div class="sp-why-card" data-index="05"><div class="sp-why-icon"><i class="fas fa-water"></i></div><h3>Massive Liquidity</h3><p>100M+ shares trade daily, meaning tight option spreads and reliable fills even during volatile sessions.</p></div>
-                <div class="sp-why-card" data-index="06"><div class="sp-why-icon"><i class="fas fa-gem"></i></div><h3>Premium Opportunities</h3><p>High IV creates rich option premiums that reward disciplined, well-timed entries with strong R:R ratios.</p></div>
+            <div class="sp-why-marquee-wrap">
+                <div class="sp-why-track">
+                    <!-- Set 1 -->
+                    <div class="sp-why-card" data-index="01"><div class="sp-why-icon"><i class="fas fa-fire"></i></div><h3>Extreme Volatility</h3><p>TSLA's massive daily swings create outsized premium opportunities not available in calmer stocks.</p></div>
+                    <div class="sp-why-card" data-index="02"><div class="sp-why-icon"><i class="fas fa-user-tie"></i></div><h3>Elon Musk Catalyst</h3><p>News-driven moves from Elon's tweets and decisions create predictable breakout setups our signals capture.</p></div>
+                    <div class="sp-why-card" data-index="03"><div class="sp-why-icon"><i class="fas fa-arrow-trend-up"></i></div><h3>Trend Persistence</h3><p>Tesla trends hard in both directions — perfect for momentum-based breakout entries with defined risk.</p></div>
+                    <div class="sp-why-card" data-index="04"><div class="sp-why-icon"><i class="fas fa-newspaper"></i></div><h3>News-Driven Moves</h3><p>Delivery reports, production data, and social media activity create frequent high-probability setups.</p></div>
+                    <div class="sp-why-card" data-index="05"><div class="sp-why-icon"><i class="fas fa-water"></i></div><h3>Massive Liquidity</h3><p>100M+ shares trade daily, meaning tight option spreads and reliable fills even during volatile sessions.</p></div>
+                    <div class="sp-why-card" data-index="06"><div class="sp-why-icon"><i class="fas fa-gem"></i></div><h3>Premium Opportunities</h3><p>High IV creates rich option premiums that reward disciplined, well-timed entries with strong R:R ratios.</p></div>
+                    <!-- Set 2 — duplicate for seamless loop -->
+                    <div class="sp-why-card" aria-hidden="true" data-index="01"><div class="sp-why-icon"><i class="fas fa-fire"></i></div><h3>Extreme Volatility</h3><p>TSLA's massive daily swings create outsized premium opportunities not available in calmer stocks.</p></div>
+                    <div class="sp-why-card" aria-hidden="true" data-index="02"><div class="sp-why-icon"><i class="fas fa-user-tie"></i></div><h3>Elon Musk Catalyst</h3><p>News-driven moves from Elon's tweets and decisions create predictable breakout setups our signals capture.</p></div>
+                    <div class="sp-why-card" aria-hidden="true" data-index="03"><div class="sp-why-icon"><i class="fas fa-arrow-trend-up"></i></div><h3>Trend Persistence</h3><p>Tesla trends hard in both directions — perfect for momentum-based breakout entries with defined risk.</p></div>
+                    <div class="sp-why-card" aria-hidden="true" data-index="04"><div class="sp-why-icon"><i class="fas fa-newspaper"></i></div><h3>News-Driven Moves</h3><p>Delivery reports, production data, and social media activity create frequent high-probability setups.</p></div>
+                    <div class="sp-why-card" aria-hidden="true" data-index="05"><div class="sp-why-icon"><i class="fas fa-water"></i></div><h3>Massive Liquidity</h3><p>100M+ shares trade daily, meaning tight option spreads and reliable fills even during volatile sessions.</p></div>
+                    <div class="sp-why-card" aria-hidden="true" data-index="06"><div class="sp-why-icon"><i class="fas fa-gem"></i></div><h3>Premium Opportunities</h3><p>High IV creates rich option premiums that reward disciplined, well-timed entries with strong R:R ratios.</p></div>
+                </div>
             </div>
         </section>
 
@@ -227,6 +237,25 @@
     </script>
     <script>
         (function () {
+            /* Why marquee shift */
+            function setWhyMarqueeShift() {
+                var track = document.querySelector('.sp-why-track');
+                if (!track) return;
+                var cards = track.querySelectorAll('.sp-why-card:not([aria-hidden])');
+                var totalPx = 0;
+                cards.forEach(function (card) {
+                    var style = window.getComputedStyle(card);
+                    totalPx += card.offsetWidth + parseFloat(style.marginRight || 0);
+                });
+                track.style.setProperty('--sp-why-shift', '-' + totalPx + 'px');
+            }
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', setWhyMarqueeShift);
+            } else {
+                setWhyMarqueeShift();
+            }
+            window.addEventListener('resize', setWhyMarqueeShift);
+
             /* Section scroll reveal */
             var obs = new IntersectionObserver(function (entries) {
                 entries.forEach(function (e) {

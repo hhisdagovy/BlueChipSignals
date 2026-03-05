@@ -20,6 +20,11 @@
     var _activeTicker    = 'ALL';  // user-selected filter pill
     var _activeDirection = 'ALL';  // 'ALL' | 'CALL' | 'PUT'
 
+    /* ── Carousel state ── */
+    var _carouselIndex   = 0;
+    var _carouselSignals = [];     // current filtered set rendered in carousel
+    var _navBound        = false;  // arrow + card delegation bound once
+
     /* ── Helpers ── */
     function timeAgo(ts) {
         const diff = Math.floor((Date.now() - new Date(ts + 'Z').getTime()) / 1000);
@@ -97,14 +102,151 @@
         '</div>';
     }
 
+    /* ── Carousel: update classes + dots + counter ── */
+    function _updateCarousel(index) {
+        var container = document.getElementById('latest-signals-list');
+        if (!container) return;
+
+        var cards = container.querySelectorAll('.sig-card');
+        var n = cards.length;
+        if (!n) return;
+
+        _carouselIndex = index;
+
+        cards.forEach(function (card, i) {
+            card.classList.remove('active', 'next', 'prev', 'hidden');
+            if (i === index) {
+                card.classList.add('active');
+            } else if (i === (index + 1) % n) {
+                card.classList.add('next');
+            } else if (i === (index - 1 + n) % n) {
+                card.classList.add('prev');
+            } else {
+                card.classList.add('hidden');
+            }
+        });
+
+        /* Update dots */
+        var dotsEl = document.getElementById('sig-carousel-dots');
+        if (dotsEl) {
+            dotsEl.querySelectorAll('.sig-carousel-dot').forEach(function (dot, i) {
+                dot.classList.toggle('active', i === index);
+            });
+        }
+
+        /* Update counter */
+        var counterEl = document.getElementById('sig-carousel-counter');
+        if (counterEl) counterEl.textContent = (index + 1) + ' / ' + n;
+
+        /* Sync track height to active card */
+        var active = container.querySelector('.sig-card.active');
+        if (active) container.style.height = active.offsetHeight + 'px';
+
+        /* Show/hide arrows based on whether there's more than one card */
+        var prevBtn = document.getElementById('sig-prev-btn');
+        var nextBtn = document.getElementById('sig-next-btn');
+        if (prevBtn) prevBtn.style.visibility = n > 1 ? 'visible' : 'hidden';
+        if (nextBtn) nextBtn.style.visibility = n > 1 ? 'visible' : 'hidden';
+    }
+
+    /* ── Carousel: inject cards + dots, then position ── */
+    function _renderCarousel() {
+        var container = document.getElementById('latest-signals-list');
+        if (!container) return;
+
+        var n = _carouselSignals.length;
+
+        /* Inject all cards */
+        container.innerHTML = _carouselSignals.map(buildCard).join('');
+
+        /* Build dots */
+        var dotsEl = document.getElementById('sig-carousel-dots');
+        if (dotsEl) {
+            dotsEl.innerHTML = _carouselSignals.map(function (_, i) {
+                return '<button class="sig-carousel-dot" aria-label="Signal ' + (i + 1) + '" data-idx="' + i + '"></button>';
+            }).join('');
+
+            /* Dot click events */
+            dotsEl.querySelectorAll('.sig-carousel-dot').forEach(function (dot) {
+                dot.addEventListener('click', function () {
+                    _updateCarousel(parseInt(this.dataset.idx, 10));
+                });
+            });
+        }
+
+        /* Hide footer when empty */
+        var footer = document.querySelector('.sig-carousel-footer');
+        if (footer) footer.style.display = n > 0 ? '' : 'none';
+
+        /* Initial positioning */
+        _updateCarousel(0);
+
+        /* Correct track height after paint (cards are position:absolute so track has 0 natural height) */
+        requestAnimationFrame(function () {
+            var active = container.querySelector('.sig-card.active');
+            if (active) container.style.height = active.offsetHeight + 'px';
+        });
+    }
+
+    /* ── Carousel: store filtered set and re-render from index 0 ── */
+    function _buildCarousel(signals) {
+        _carouselSignals = signals;
+        _carouselIndex   = 0;
+        _renderCarousel();
+    }
+
+    /* ── Carousel: bind arrow + card-click navigation (once) ── */
+    function _bindCarouselNav() {
+        if (_navBound) return;
+        _navBound = true;
+
+        var prevBtn = document.getElementById('sig-prev-btn');
+        var nextBtn = document.getElementById('sig-next-btn');
+        var container = document.getElementById('latest-signals-list');
+
+        if (prevBtn) {
+            prevBtn.addEventListener('click', function () {
+                var n = _carouselSignals.length;
+                if (!n) return;
+                _updateCarousel((_carouselIndex - 1 + n) % n);
+            });
+        }
+
+        if (nextBtn) {
+            nextBtn.addEventListener('click', function () {
+                var n = _carouselSignals.length;
+                if (!n) return;
+                _updateCarousel((_carouselIndex + 1) % n);
+            });
+        }
+
+        /* Click prev/next peeking cards to advance */
+        if (container) {
+            container.addEventListener('click', function (e) {
+                var card = e.target.closest('.sig-card');
+                if (!card) return;
+                var n = _carouselSignals.length;
+                if (!n) return;
+                if (card.classList.contains('next')) {
+                    _updateCarousel((_carouselIndex + 1) % n);
+                } else if (card.classList.contains('prev')) {
+                    _updateCarousel((_carouselIndex - 1 + n) % n);
+                }
+            });
+        }
+    }
+
     /* ── Render (applies active filter on top of _allSignals) ── */
     function renderSignals(signals) {
-        const container = document.getElementById('latest-signals-list');
-        const badge     = document.getElementById('latest-signals-count');
+        var container = document.getElementById('latest-signals-list');
+        var badge     = document.getElementById('latest-signals-count');
         if (!container) return;
 
         if (signals === null) {
+            container.style.height = '';
             container.innerHTML = '<p class="sig-empty"><i class="fas fa-circle-exclamation"></i> Could not reach signals server. Retrying…</p>';
+            var footer = document.querySelector('.sig-carousel-footer');
+            if (footer) footer.style.display = 'none';
             return;
         }
 
@@ -127,17 +269,14 @@
         if (badge) badge.textContent = signals.length;
 
         if (signals.length === 0) {
+            container.style.height = '';
             container.innerHTML = '<p class="sig-empty"><i class="fas fa-satellite-dish"></i> No signals match this filter.</p>';
+            var footer = document.querySelector('.sig-carousel-footer');
+            if (footer) footer.style.display = 'none';
             return;
         }
 
-        container.innerHTML = signals.map(buildCard).join('');
-
-        container.querySelectorAll('.sig-card').forEach(function (card, i) {
-            const s     = signals[i];
-            const style = STOCK_STYLES[s.stock] || STOCK_STYLES.SPY;
-            card.style.setProperty('--sig-top', style.top);
-        });
+        _buildCarousel(signals);
     }
 
     /* ── Log a dashboard signal to the trading journal ── */
@@ -195,7 +334,7 @@
 
         header.after(bar);
 
-        /* Event delegation */
+        /* Event delegation — filter changes snap carousel back to index 0 */
         bar.addEventListener('click', function (e) {
             var pill = e.target.closest('.sig-filter-pill');
             if (!pill) return;
@@ -294,6 +433,9 @@
             _limit           = _tickerFilter ? 30 : 50;
             _activeTicker    = 'ALL';
             _activeDirection = 'ALL';
+
+            /* Bind carousel navigation controls once */
+            _bindCarouselNav();
 
             /* Inject the interactive filter bar only for bundle/legacy users */
             if (!_tickerFilter) injectFilterBar();

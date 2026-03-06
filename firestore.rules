@@ -24,6 +24,13 @@ service cloud.firestore {
       allow write: if isAdmin();
     }
 
+    // settings: dashboard config (maintenance mode, signal channel status, announcements)
+    // must be readable before auth resolves, so public read is intentional
+    match /settings/{docId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
     // ── Authenticated-only collections ──────────────────────────────────────
     // signals: members must be signed in to read
     match /signals/{docId} {

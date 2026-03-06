@@ -907,15 +907,7 @@
                         <option value="Stock">Stocks</option>
                         <option value="Option">Options</option>
                     </select>
-                    <select id="filterTicker" onchange="filterTrades()">
-                        <option value="">All Tickers</option>
-                        <option value="SPY">SPY</option>
-                        <option value="AAPL">AAPL</option>
-                        <option value="TSLA">TSLA</option>
-                        <option value="META">META</option>
-                        <option value="NVDA">NVDA</option>
-                        <option value="AMZN">AMZN</option>
-                    </select>
+                    <input type="text" id="filterTicker" placeholder="Filter by ticker…" oninput="filterTrades()" autocomplete="off" style="padding:0.38rem 0.75rem;background:rgba(10,14,22,0.8);border:1px solid rgba(201,176,55,0.18);border-radius:8px;color:var(--light-text);font-size:0.8rem;font-family:inherit;transition:border-color 0.2s;text-transform:uppercase;width:130px;" onfocus="this.style.borderColor='var(--primary-gold)';this.style.outline='none'" onblur="this.style.borderColor='rgba(201,176,55,0.18)'">
                     <select id="filterStatus" onchange="filterTrades()">
                         <option value="">All Status</option>
                         <option value="Open">Open</option>
@@ -1038,18 +1030,9 @@
                     </div>
                     <div class="form-group">
                         <label for="ticker">Ticker</label>
-                        <select id="ticker" required>
-                            <option value="">Select Ticker</option>
-                            <option value="SPY">SPY</option>
-                            <option value="AAPL">AAPL</option>
-                            <option value="TSLA">TSLA</option>
-                            <option value="META">META</option>
-                            <option value="NVDA">NVDA</option>
-                            <option value="AMZN">AMZN</option>
-                            <option value="Other">Other</option>
-                        </select>
+                        <input type="text" id="ticker" placeholder="e.g. SPY, AAPL, TSLA…" required autocomplete="off" style="text-transform:uppercase;">
                     </div>
-                    <div class="form-group">
+                    <div class="form-group direction-field">
                         <label for="direction">Direction</label>
                         <select id="direction" required>
                             <option value="">Select Direction</option>
@@ -1176,8 +1159,11 @@
                 // Set trade type and direction
                 document.getElementById('tradeType').value = pending.tradeType || 'Stock';
                 toggleTradeTypeFields();
-                document.getElementById('ticker').value     = pending.ticker    || '';
-                document.getElementById('direction').value  = pending.direction  || '';
+                document.getElementById('ticker').value = (pending.ticker || '').toUpperCase();
+                // Only set direction for stock trades
+                if ((pending.tradeType || 'Stock') === 'Stock' && pending.direction) {
+                    document.getElementById('direction').value = pending.direction;
+                }
 
                 if (pending.tradeType === 'Option' && pending.optionType) {
                     document.getElementById('optionType').value = pending.optionType;
@@ -1213,6 +1199,8 @@
             const tradeType = document.getElementById('tradeType').value;
             const optionFields = document.querySelectorAll('.option-field');
             const stockFields = document.querySelectorAll('.stock-field');
+            const directionField = document.querySelector('.direction-field');
+            const directionSelect = document.getElementById('direction');
 
             if (tradeType === 'Option') {
                 optionFields.forEach(field => {
@@ -1225,6 +1213,9 @@
                     const input = field.querySelector('input, select');
                     if (input) input.required = false;
                 });
+                // Hide direction for options — it's implied by Call/Put
+                if (directionField) directionField.style.display = 'none';
+                if (directionSelect) directionSelect.required = false;
                 document.getElementById('entryPriceLabel').textContent = 'Entry Premium ($)';
                 document.getElementById('exitPriceLabel').textContent = 'Exit Premium ($)';
             } else {
@@ -1238,6 +1229,9 @@
                     const input = field.querySelector('input, select');
                     if (input) input.required = true;
                 });
+                // Show direction for stocks
+                if (directionField) directionField.style.display = 'flex';
+                if (directionSelect) directionSelect.required = true;
                 document.getElementById('entryPriceLabel').textContent = 'Entry Price ($)';
                 document.getElementById('exitPriceLabel').textContent = 'Exit Price ($)';
             }
@@ -1249,12 +1243,18 @@
 
             const tradeType = document.getElementById('tradeType').value;
 
+            // For options, direction is implied by Call (Long) / Put (Short)
+            const optType = tradeType === 'Option' ? document.getElementById('optionType').value : null;
+            const direction = tradeType === 'Option'
+                ? (optType === 'Call' ? 'Long' : optType === 'Put' ? 'Short' : '')
+                : document.getElementById('direction').value;
+
             const trade = {
                 id: editingTradeId || Date.now().toString(),
                 tradeType: tradeType,
                 date: document.getElementById('tradeDate').value,
-                ticker: document.getElementById('ticker').value,
-                direction: document.getElementById('direction').value,
+                ticker: document.getElementById('ticker').value.trim().toUpperCase(),
+                direction: direction,
                 strategy: document.getElementById('strategy').value,
                 entryPrice: parseFloat(document.getElementById('entryPrice').value),
                 exitPrice: document.getElementById('exitPrice').value ? parseFloat(document.getElementById('exitPrice').value) : null,
@@ -1356,6 +1356,7 @@
         // Reset form
         function resetForm() {
             document.getElementById('tradeForm').reset();
+            document.getElementById('ticker').value = '';
             const now = new Date();
             now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
             document.getElementById('tradeDate').value = now.toISOString().slice(0, 16);
@@ -1374,8 +1375,11 @@
             document.getElementById('tradeType').value = trade.tradeType || 'Stock';
             toggleTradeTypeFields();
             document.getElementById('tradeDate').value = trade.date;
-            document.getElementById('ticker').value = trade.ticker;
-            document.getElementById('direction').value = trade.direction;
+            document.getElementById('ticker').value = trade.ticker || '';
+            // Only set direction for stock trades; options derive it from optionType
+            if ((trade.tradeType || 'Stock') === 'Stock') {
+                document.getElementById('direction').value = trade.direction || '';
+            }
             document.getElementById('strategy').value = trade.strategy;
             document.getElementById('entryPrice').value = trade.entryPrice;
             document.getElementById('exitPrice').value = trade.exitPrice || '';
@@ -1430,7 +1434,7 @@
 
             let filtered = [...trades];
             if (tradeType) filtered = filtered.filter(t => (t.tradeType || 'Stock') === tradeType);
-            if (ticker) filtered = filtered.filter(t => t.ticker === ticker);
+            if (ticker) filtered = filtered.filter(t => t.ticker && t.ticker.toUpperCase().includes(ticker.toUpperCase()));
             if (status) filtered = filtered.filter(t => t.status === status);
             if (strategy) filtered = filtered.filter(t => t.strategy === strategy);
 

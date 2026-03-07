@@ -245,6 +245,134 @@
             display: none;
         }
 
+        /* ---- Forgot Password Modal ---- */
+        .fp-backdrop {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.72);
+            z-index: 2000;
+            align-items: center;
+            justify-content: center;
+            backdrop-filter: blur(4px);
+            -webkit-backdrop-filter: blur(4px);
+        }
+
+        .fp-backdrop.active { display: flex; }
+
+        .fp-modal {
+            background: rgba(12, 16, 26, 0.98);
+            border: 1px solid rgba(201, 176, 55, 0.25);
+            border-radius: 18px;
+            padding: 2rem;
+            max-width: 400px;
+            width: 92%;
+            box-shadow: 0 24px 64px rgba(0,0,0,0.55);
+        }
+
+        .fp-modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 1rem;
+        }
+
+        .fp-modal-title {
+            font-size: 1.2rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--primary-gold), var(--secondary-gold));
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .fp-modal-desc {
+            font-size: 0.88rem;
+            color: var(--gray-text);
+            margin-bottom: 1.25rem;
+            line-height: 1.5;
+        }
+
+        .fp-close {
+            background: none;
+            border: none;
+            color: var(--gray-text);
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: color 0.2s;
+            padding: 0.15rem;
+            flex-shrink: 0;
+        }
+
+        .fp-close:hover { color: #ef4444; }
+
+        .fp-input {
+            width: 100%;
+            padding: 0.85rem 1rem;
+            background: var(--field-bg);
+            border: 1px solid rgba(201, 176, 55, 0.2);
+            border-radius: 10px;
+            color: var(--light-text);
+            font-size: 0.95rem;
+            font-family: inherit;
+            transition: border-color 0.25s, box-shadow 0.25s;
+            box-sizing: border-box;
+            margin-bottom: 1rem;
+        }
+
+        .fp-input:focus {
+            outline: none;
+            border-color: var(--primary-gold);
+            box-shadow: 0 0 0 3px rgba(201,176,55,0.1);
+        }
+
+        .fp-input::placeholder { color: var(--gray-text); }
+
+        .fp-submit {
+            width: 100%;
+            padding: 0.85rem;
+            background: linear-gradient(135deg, var(--primary-gold), var(--secondary-gold));
+            color: var(--darker-bg);
+            border: none;
+            border-radius: 50px;
+            font-size: 0.95rem;
+            font-weight: 700;
+            font-family: inherit;
+            cursor: pointer;
+            transition: transform 0.25s, box-shadow 0.25s;
+        }
+
+        .fp-submit:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(201,176,55,0.35);
+        }
+
+        .fp-submit:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .fp-feedback {
+            font-size: 0.86rem;
+            padding: 0.7rem 0.85rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            display: none;
+        }
+
+        .fp-feedback.success {
+            background: rgba(74,222,128,0.1);
+            border: 1px solid rgba(74,222,128,0.35);
+            color: #4ade80;
+        }
+
+        .fp-feedback.error {
+            background: rgba(239,68,68,0.1);
+            border: 1px solid rgba(239,68,68,0.3);
+            color: #f87171;
+        }
+
         /* Footer */
         footer {
             background: var(--darker-bg);
@@ -308,7 +436,7 @@
                         <input type="checkbox" id="remember" name="remember">
                         <label for="remember">Remember me</label>
                     </div>
-                    <a href="#" class="forgot-password">Forgot password?</a>
+                    <a href="#" class="forgot-password" id="forgotPasswordLink">Forgot password?</a>
                 </div>
 
                 <button type="submit" class="login-button">
@@ -330,6 +458,20 @@
             <div class="signup-link">
                 Don't have an account? <a href="https://calendly.com/bluechipsignals/30min" target="_blank" rel="noopener">Book a Demo</a>
             </div>
+        </div>
+    </div>
+
+    <!-- Forgot Password Modal -->
+    <div class="fp-backdrop" id="fpBackdrop">
+        <div class="fp-modal">
+            <div class="fp-modal-header">
+                <span class="fp-modal-title"><i class="fas fa-key"></i> Reset Password</span>
+                <button class="fp-close" id="fpClose"><i class="fas fa-times"></i></button>
+            </div>
+            <p class="fp-modal-desc">Enter the email address on your account and we'll send you a link to reset your password.</p>
+            <div class="fp-feedback" id="fpFeedback"></div>
+            <input type="email" class="fp-input" id="fpEmail" placeholder="Your email address" autocomplete="email">
+            <button class="fp-submit" id="fpSubmit"><i class="fas fa-paper-plane"></i> Send Reset Link</button>
         </div>
     </div>
 
@@ -368,7 +510,8 @@
             browserSessionPersistence,
             doc,
             getDoc,
-            setDoc
+            setDoc,
+            sendPasswordResetEmail
         } from './assets/js/firebase-config.js';
 
         // Form submission with Firebase Authentication
@@ -504,6 +647,84 @@
                 errorMessage.textContent = errorMsg;
                 errorMessage.style.display = 'block';
                 console.error('Google Sign-In error:', error);
+            }
+        });
+        // ---- Forgot Password ----
+        const fpBackdrop = document.getElementById('fpBackdrop');
+        const fpClose    = document.getElementById('fpClose');
+        const fpSubmit   = document.getElementById('fpSubmit');
+        const fpEmail    = document.getElementById('fpEmail');
+        const fpFeedback = document.getElementById('fpFeedback');
+
+        function openFpModal() {
+            fpBackdrop.classList.add('active');
+            fpFeedback.style.display = 'none';
+            fpEmail.value = document.getElementById('email').value || '';
+            fpSubmit.disabled = false;
+            fpSubmit.innerHTML = '<i class="fas fa-paper-plane"></i> Send Reset Link';
+            setTimeout(() => fpEmail.focus(), 80);
+        }
+
+        function closeFpModal() {
+            fpBackdrop.classList.remove('active');
+        }
+
+        document.getElementById('forgotPasswordLink').addEventListener('click', (e) => {
+            e.preventDefault();
+            openFpModal();
+        });
+
+        fpClose.addEventListener('click', closeFpModal);
+
+        fpBackdrop.addEventListener('click', (e) => {
+            if (e.target === fpBackdrop) closeFpModal();
+        });
+
+        fpEmail.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') fpSubmit.click();
+        });
+
+        fpSubmit.addEventListener('click', async () => {
+            const email = fpEmail.value.trim();
+            fpFeedback.style.display = 'none';
+
+            if (!email) {
+                fpFeedback.textContent = 'Please enter your email address.';
+                fpFeedback.className = 'fp-feedback error';
+                fpFeedback.style.display = 'block';
+                fpEmail.focus();
+                return;
+            }
+
+            fpSubmit.disabled = true;
+            fpSubmit.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Sending…';
+
+            try {
+                await sendPasswordResetEmail(auth, email);
+                fpFeedback.textContent = 'Reset link sent! Check your inbox (and spam folder).';
+                fpFeedback.className = 'fp-feedback success';
+                fpFeedback.style.display = 'block';
+                fpSubmit.innerHTML = '<i class="fas fa-check"></i> Email Sent';
+            } catch (err) {
+                let msg = 'Something went wrong. Please try again.';
+                if (err.code === 'auth/user-not-found') {
+                    // Don't reveal whether the email exists — generic message
+                    msg = 'If an account exists for that email, a reset link has been sent.';
+                    fpFeedback.className = 'fp-feedback success';
+                } else if (err.code === 'auth/invalid-email') {
+                    msg = 'Please enter a valid email address.';
+                    fpFeedback.className = 'fp-feedback error';
+                } else if (err.code === 'auth/too-many-requests') {
+                    msg = 'Too many requests. Please wait a moment and try again.';
+                    fpFeedback.className = 'fp-feedback error';
+                } else {
+                    fpFeedback.className = 'fp-feedback error';
+                }
+                fpFeedback.textContent = msg;
+                fpFeedback.style.display = 'block';
+                fpSubmit.disabled = false;
+                fpSubmit.innerHTML = '<i class="fas fa-paper-plane"></i> Send Reset Link';
+                console.error('Password reset error:', err);
             }
         });
     </script>

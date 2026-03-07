@@ -12,7 +12,8 @@ import {
     browserSessionPersistence,
     updatePassword,
     reauthenticateWithCredential,
-    EmailAuthProvider
+    EmailAuthProvider,
+    sendPasswordResetEmail
 } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-auth.js";
 import { 
     getFirestore,
@@ -61,6 +62,7 @@ export {
     updatePassword,
     reauthenticateWithCredential,
     EmailAuthProvider,
+    sendPasswordResetEmail,
     doc,
     getDoc,
     setDoc,

@@ -15,7 +15,7 @@
             label: 'TSLA Guides',
             signalPage: '../signals/tsla-signal',
             guides: [
-                { icon: 'fas fa-truck',         title: 'Delivery Report Calendar', desc: 'Tesla\'s quarterly delivery numbers — the biggest recurring catalyst.',        path: '../guides/tsla-delivery-production' },
+                { icon: 'fas fa-chart-line',    title: 'Quarterly Financials',     desc: 'Tesla\'s quarterly earnings — revenue, EPS, and margins — the biggest recurring catalyst.', path: '../guides/tsla-delivery-production' },
                 { icon: 'fas fa-chart-line',    title: 'Trend Analyzer',           desc: 'Identify TSLA\'s trend direction and manage volatility in winning trades.',    path: '../guides/tsla-trend-following' }
             ]
         },

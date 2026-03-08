@@ -444,13 +444,13 @@
                         </div>
                     </div>
                     <div class="metric-value">
-                        512,000
-                        <span class="metric-change change-positive">+22%</span>
+                        <span id="prod-num">512,000</span>
+                        <span class="metric-change change-positive" id="prod-change">+22%</span>
                     </div>
                     <ul class="metric-details">
-                        <li><span>Model S/X:</span><span>22,000</span></li>
-                        <li><span>Model 3/Y:</span><span>458,000</span></li>
-                        <li><span>Cybertruck:</span><span>32,000</span></li>
+                        <li><span>Model S/X:</span><span id="prod-sx">22,000</span></li>
+                        <li><span>Model 3/Y:</span><span id="prod-3y">458,000</span></li>
+                        <li><span>Cybertruck:</span><span id="prod-ct">32,000</span></li>
                     </ul>
                 </div>
 
@@ -463,13 +463,13 @@
                         </div>
                     </div>
                     <div class="metric-value">
-                        508,000
-                        <span class="metric-change change-positive">+24%</span>
+                        <span id="del-num">508,000</span>
+                        <span class="metric-change change-positive" id="del-change">+24%</span>
                     </div>
                     <ul class="metric-details">
-                        <li><span>Model S/X:</span><span>21,500</span></li>
-                        <li><span>Model 3/Y:</span><span>455,000</span></li>
-                        <li><span>Beat Estimate:</span><span>+8,000</span></li>
+                        <li><span>Model S/X:</span><span id="del-sx">21,500</span></li>
+                        <li><span>Model 3/Y:</span><span id="del-3y">455,000</span></li>
+                        <li><span id="del-beat-label">Beat Estimate:</span><span id="del-beat">+8,000</span></li>
                     </ul>
                 </div>
 
@@ -482,12 +482,12 @@
                         </div>
                     </div>
                     <div class="metric-value">
-                        24%
-                        <span class="metric-change change-positive">+6%</span>
+                        <span id="yoy-num">24%</span>
+                        <span class="metric-change change-positive" id="yoy-change">+6%</span>
                     </div>
                     <ul class="metric-details">
-                        <li><span>Q3 2025:</span><span>508K</span></li>
-                        <li><span>Q3 2024:</span><span>410K</span></li>
+                        <li><span id="yoy-cur-label">Q3 2025:</span><span id="yoy-cur-val">508K</span></li>
+                        <li><span id="yoy-prev-label">Q3 2024:</span><span id="yoy-prev-val">410K</span></li>
                         <li><span>Target Rate:</span><span>30%</span></li>
                     </ul>
                 </div>
@@ -501,13 +501,13 @@
                         </div>
                     </div>
                     <div class="metric-value">
-                        102%
-                        <span class="metric-change change-positive">Beat</span>
+                        <span id="guid-num">102%</span>
+                        <span class="metric-change change-positive" id="guid-change">Beat</span>
                     </div>
                     <ul class="metric-details">
-                        <li><span>Guided:</span><span>500K</span></li>
-                        <li><span>Actual:</span><span>508K</span></li>
-                        <li><span>Beat by:</span><span>8K units</span></li>
+                        <li><span>Guided:</span><span id="guid-est">500K</span></li>
+                        <li><span>Actual:</span><span id="guid-actual">508K</span></li>
+                        <li><span id="guid-beatby-label">Beat by:</span><span id="guid-beatby">8K units</span></li>
                     </ul>
                 </div>
             </div>
@@ -569,7 +569,7 @@
                             <th>Stock Reaction</th>
                         </tr>
                     </thead>
-                    <tbody>
+                    <tbody id="delivery-table-body">
                         <tr>
                             <td>Q3 2025</td>
                             <td>508,000</td>
@@ -802,12 +802,259 @@
             
             resultDiv.style.display = 'block';
         }
-        });
     </script>
 
     <script type="module">
         import { requirePlan } from '../../assets/js/firebase-auth-check.js';
+        import { db, collection, getDocs, query } from '../../assets/js/firebase-config.js';
+        import { orderBy } from 'https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js';
+
         requirePlan('ticker', 'TSLA', '../../login.html', '../../upgrade.html');
+
+        /* ================================================================
+           FMP CONFIGURATION
+           Get a free API key at https://financialmodelingprep.com/developer
+           Free tier: 250 calls/day — more than enough for this page.
+           Restrict the key to your domain in the FMP dashboard.
+        ================================================================ */
+        const FMP_KEY  = 'YOUR_FMP_API_KEY_HERE'; // ← replace with your key
+        const FMP_BASE = 'https://financialmodelingprep.com/api/v3';
+
+        /* ================================================================
+           FIRESTORE — fetch all delivery report documents
+           Collection: tsla_delivery_reports
+           Each doc fields:
+             quarter      : "Q3 2025"        (display name)
+             deliveryDate : "2025-10-02"     (YYYY-MM-DD, used for stock reaction)
+             production   : 512000
+             deliveries   : 508000
+             modelSX      : 21500
+             model3Y      : 455000
+             cybertruck   : 32000            (0 for quarters before 2023)
+             wsEstimate   : 500000           (you update this before each release)
+             order        : 1               (1 = most recent, increment each quarter)
+        ================================================================ */
+        async function fetchDeliveryReports() {
+            const q    = query(collection(db, 'tsla_delivery_reports'), orderBy('order', 'asc'));
+            const snap = await getDocs(q);
+            return snap.docs.map(d => d.data());
+        }
+
+        /* ================================================================
+           FMP — fetch 3 years of daily TSLA closing prices
+           Returns a map of { "YYYY-MM-DD": closePrice }
+        ================================================================ */
+        async function fetchPriceMap() {
+            const from = new Date();
+            from.setFullYear(from.getFullYear() - 3);
+            const fromStr = from.toISOString().slice(0, 10);
+            const res  = await fetch(`${FMP_BASE}/historical-price-full/TSLA?from=${fromStr}&apikey=${FMP_KEY}`);
+            if (!res.ok) throw new Error('FMP price fetch failed: ' + res.status);
+            const json = await res.json();
+            const map  = {};
+            (json.historical || []).forEach(d => { map[d.date] = d.close; });
+            return map;
+        }
+
+        /* ================================================================
+           STOCK REACTION — % change from prior close to delivery-day close
+           Handles weekends/holidays by searching up to 3 days forward.
+        ================================================================ */
+        function calcStockReaction(deliveryDate, priceMap) {
+            const sortedDesc = Object.keys(priceMap).sort().reverse();
+
+            // Find the first trading day on or after the delivery date (max +3 days)
+            const cutoff   = addDays(deliveryDate, 3);
+            const tradingDay = sortedDesc.find(d => d >= deliveryDate && d <= cutoff);
+            if (!tradingDay) return null;
+
+            const idx     = sortedDesc.indexOf(tradingDay);
+            const prevDay = sortedDesc[idx + 1];
+            if (!prevDay) return null;
+
+            return ((priceMap[tradingDay] - priceMap[prevDay]) / priceMap[prevDay]) * 100;
+        }
+
+        function addDays(dateStr, n) {
+            const d = new Date(dateStr + 'T00:00:00');
+            d.setDate(d.getDate() + n);
+            return d.toISOString().slice(0, 10);
+        }
+
+        /* ================================================================
+           HELPERS
+        ================================================================ */
+        function fmtNum(n)  { return n.toLocaleString(); }
+        function fmtK(n)    {
+            if (n >= 1000000) return (n / 1000000).toFixed(2) + 'M';
+            if (n >= 1000)    return Math.round(n / 1000) + 'K';
+            return String(n);
+        }
+        function pct(a, b)  { return ((a - b) / b * 100).toFixed(1); }
+        function signedPct(val) { return (parseFloat(val) >= 0 ? '+' : '') + val + '%'; }
+        function changeClass(val) { return parseFloat(val) >= 0 ? 'change-positive' : 'change-negative'; }
+
+        function setText(id, text)  { const el = document.getElementById(id); if (el) el.textContent = text; }
+        function setClass(id, cls)  { const el = document.getElementById(id); if (el) el.className = 'metric-change ' + cls; }
+
+        /* ================================================================
+           POPULATE KEY METRICS CARDS
+        ================================================================ */
+        function populateMetricCards(latest, priorYearSame) {
+            /* --- Card 1: Total Production --- */
+            setText('prod-num', fmtNum(latest.production));
+            if (priorYearSame) {
+                const p = pct(latest.production, priorYearSame.production);
+                setText('prod-change', signedPct(p));
+                setClass('prod-change', changeClass(p));
+            }
+            if (latest.modelSX !== undefined)   setText('prod-sx', fmtNum(latest.modelSX));
+            if (latest.model3Y !== undefined)   setText('prod-3y', fmtNum(latest.model3Y));
+            if (latest.cybertruck !== undefined) setText('prod-ct', fmtNum(latest.cybertruck));
+
+            /* --- Card 2: Total Deliveries --- */
+            setText('del-num', fmtNum(latest.deliveries));
+            if (priorYearSame) {
+                const p = pct(latest.deliveries, priorYearSame.deliveries);
+                setText('del-change', signedPct(p));
+                setClass('del-change', changeClass(p));
+            }
+            if (latest.modelSX !== undefined) setText('del-sx', fmtNum(latest.modelSX));
+            if (latest.model3Y !== undefined) setText('del-3y', fmtNum(latest.model3Y));
+            const beatAmt = latest.deliveries - (latest.wsEstimate || 0);
+            if (latest.wsEstimate) {
+                setText('del-beat-label', beatAmt >= 0 ? 'Beat Estimate:' : 'Missed by:');
+                setText('del-beat', (beatAmt >= 0 ? '+' : '') + fmtNum(Math.abs(beatAmt)));
+            }
+
+            /* --- Card 3: YoY Delivery Growth --- */
+            if (priorYearSame) {
+                const yoy = pct(latest.deliveries, priorYearSame.deliveries);
+                setText('yoy-num', Math.abs(parseFloat(yoy)).toFixed(0) + '%');
+                setText('yoy-change', signedPct(yoy));
+                setClass('yoy-change', changeClass(yoy));
+                setText('yoy-cur-label',  latest.quarter + ':');
+                setText('yoy-cur-val',    fmtK(latest.deliveries));
+                setText('yoy-prev-label', priorYearSame.quarter + ':');
+                setText('yoy-prev-val',   fmtK(priorYearSame.deliveries));
+            }
+
+            /* --- Card 4: Guidance vs Actual --- */
+            if (latest.wsEstimate) {
+                const guidPct  = ((latest.deliveries / latest.wsEstimate) * 100).toFixed(0);
+                const beat     = latest.deliveries >= latest.wsEstimate;
+                setText('guid-num', guidPct + '%');
+                setText('guid-change', beat ? 'Beat' : 'Miss');
+                setClass('guid-change', beat ? 'change-positive' : 'change-negative');
+                setText('guid-est',    fmtK(latest.wsEstimate));
+                setText('guid-actual', fmtK(latest.deliveries));
+                const diff = latest.deliveries - latest.wsEstimate;
+                setText('guid-beatby-label', diff >= 0 ? 'Beat by:' : 'Missed by:');
+                setText('guid-beatby', (diff >= 0 ? '+' : '-') + fmtK(Math.abs(diff)) + ' units');
+            }
+        }
+
+        /* ================================================================
+           POPULATE HISTORICAL TABLE
+        ================================================================ */
+        function populateTable(reports, priceMap) {
+            const tbody = document.getElementById('delivery-table-body');
+            if (!tbody) return;
+
+            /* Sort most-recent first (lowest order number = most recent) */
+            const sorted = [...reports].sort((a, b) => a.order - b.order);
+
+            tbody.innerHTML = sorted.map((r, i) => {
+                /* vs Wall Street Estimate */
+                let vsEstText = '—', vsEstClass = '';
+                if (r.wsEstimate) {
+                    const v = pct(r.deliveries, r.wsEstimate);
+                    vsEstText  = signedPct(v);
+                    vsEstClass = changeClass(v);
+                }
+
+                /* YoY — find same quarter label one year back */
+                const qLabel   = r.quarter.split(' ')[0]; // "Q3"
+                const qYear    = parseInt((r.quarter.split(' ')[1] || '0'), 10);
+                const priorYr  = sorted.find(rr => {
+                    const parts = rr.quarter.split(' ');
+                    return parts[0] === qLabel && parseInt(parts[1], 10) === qYear - 1;
+                });
+                let yoyText = '—', yoyClass = '';
+                if (priorYr) {
+                    const y = pct(r.deliveries, priorYr.deliveries);
+                    yoyText  = signedPct(y);
+                    yoyClass = changeClass(y);
+                }
+
+                /* Stock Reaction — from FMP */
+                let reactText = '—', reactClass = '';
+                if (r.deliveryDate && priceMap) {
+                    const reaction = calcStockReaction(r.deliveryDate, priceMap);
+                    if (reaction !== null) {
+                        reactClass = reaction >= 0 ? 'change-positive' : 'change-negative';
+                        reactText  = (reaction >= 0 ? '+' : '') + reaction.toFixed(1) + '%';
+                    }
+                }
+
+                return `<tr>
+                    <td>${r.quarter}</td>
+                    <td>${fmtNum(r.deliveries)}</td>
+                    <td class="${vsEstClass}">${vsEstText}</td>
+                    <td class="${yoyClass}">${yoyText}</td>
+                    <td class="${reactClass}">${reactText}</td>
+                </tr>`;
+            }).join('');
+        }
+
+        /* ================================================================
+           PRE-FILL CALCULATOR
+           Auto-populate "Prior Quarter Deliveries" with the second-most-recent
+           quarter's delivery count so users don't have to look it up.
+        ================================================================ */
+        function prefillCalculator(reports) {
+            const sorted = [...reports].sort((a, b) => a.order - b.order);
+            if (sorted.length < 2) return;
+            const priorQ = sorted[1]; // second most recent = prior quarter
+            const input  = document.getElementById('prior-quarter');
+            if (input && !input.value) {
+                input.value       = priorQ.deliveries;
+                input.placeholder = fmtNum(priorQ.deliveries);
+            }
+        }
+
+        /* ================================================================
+           INIT — fetch both sources in parallel, populate page
+        ================================================================ */
+        async function loadDeliveryData() {
+            try {
+                const [reports, priceMap] = await Promise.all([
+                    fetchDeliveryReports(),
+                    fetchPriceMap()
+                ]);
+
+                if (reports.length === 0) return; // No Firestore data — keep hardcoded fallback
+
+                const sorted      = [...reports].sort((a, b) => a.order - b.order);
+                const latest      = sorted[0];
+                const qLabel      = latest.quarter.split(' ')[0];
+                const qYear       = parseInt((latest.quarter.split(' ')[1] || '0'), 10);
+                const priorYrSame = sorted.find(r => {
+                    const parts = r.quarter.split(' ');
+                    return parts[0] === qLabel && parseInt(parts[1], 10) === qYear - 1;
+                });
+
+                populateMetricCards(latest, priorYrSame);
+                populateTable(sorted, priceMap);
+                prefillCalculator(sorted);
+
+            } catch (e) {
+                console.warn('[BCS TSLA] Delivery data load error:', e);
+                /* Fail silently — hardcoded numbers stay visible */
+            }
+        }
+
+        loadDeliveryData();
     </script>
 
     <script>

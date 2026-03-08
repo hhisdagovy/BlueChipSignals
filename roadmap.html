@@ -954,7 +954,7 @@
            RESPONSIVE
         ================================================================ */
         @media (max-width: 768px) {
-            .rm-hero { padding: 7rem 1.25rem 3rem; }
+            .rm-hero { padding: 7rem 1.25rem 2.5rem; }
             .rm-filter-bar, .rm-progress-wrap { padding-left: 1.25rem; padding-right: 1.25rem; }
             .rm-deck-section { padding: 2rem 1.25rem 4rem; }
             .rm-deck-row { gap: 0.65rem; }
@@ -965,10 +965,29 @@
             .rm-popout-panel { border-radius: 16px; max-height: 88vh; }
             .rm-popout-body { padding: 0.5rem 1.1rem 1.5rem; }
             .rm-cta { padding: 0 1.25rem 4rem; }
-            .rm-hero-stats { display: flex; width: 100%; }
-            .rm-hero-stat { padding: 0.9rem 0; flex: 1; }
-            .rm-stat-num { font-size: 1.5rem; }
-            .rm-stat-label { font-size: 0.6rem; }
+
+            /* Stat strip — 2×2 grid on mobile so 2027 doesn't orphan */
+            .rm-hero-stats {
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                width: 100%;
+            }
+            .rm-hero-stat { padding: 0.75rem 0.5rem; }
+            /* Reset vertical separators for grid layout */
+            .rm-hero-stat + .rm-hero-stat::before { display: none; }
+            /* Add border between the 4 cells instead */
+            .rm-hero-stat:nth-child(2) { border-left: 1px solid rgba(201,176,55,0.18); }
+            .rm-hero-stat:nth-child(3) { border-top: 1px solid rgba(201,176,55,0.18); }
+            .rm-hero-stat:nth-child(4) { border-top: 1px solid rgba(201,176,55,0.18); border-left: 1px solid rgba(201,176,55,0.18); }
+            .rm-stat-num { font-size: 1.35rem; }
+            .rm-stat-label { font-size: 0.58rem; letter-spacing: 0.07em; }
+
+            /* Legend badges — smaller on mobile */
+            .rm-legend-item { font-size: 0.68rem; padding: 0.22rem 0.6rem; }
+            .rm-legend-dot { width: 6px; height: 6px; }
+
+            /* Filter bar tabs — smaller on mobile */
+            .rm-filter-btn { font-size: 0.72rem; padding: 0.4rem 0.85rem; }
         }
     </style>
 </head>

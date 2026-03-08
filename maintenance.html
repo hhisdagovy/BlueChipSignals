@@ -214,8 +214,32 @@
             font-size: 0.9rem;
             color: rgba(var(--white-rgb), 0.55);
             line-height: 1.75;
-            margin-bottom: 2.25rem;
+            margin-bottom: 1.5rem;
             min-height: 2.5rem;
+        }
+
+        /* ── Go to Dashboard (per-page maintenance only) ── */
+        .maint-dashboard-btn {
+            display: none;
+            margin-bottom: 2rem;
+        }
+        .maint-dashboard-btn.visible {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.65rem 1.5rem;
+            background: rgba(var(--gold-rgb), 0.12);
+            border: 1px solid rgba(var(--gold-rgb), 0.35);
+            border-radius: 10px;
+            color: var(--primary-gold);
+            font-size: 0.88rem;
+            font-weight: 600;
+            text-decoration: none;
+            transition: background 0.2s, border-color 0.2s;
+        }
+        .maint-dashboard-btn.visible:hover {
+            background: rgba(var(--gold-rgb), 0.18);
+            border-color: rgba(var(--gold-rgb), 0.5);
         }
 
         /* ── Footer ── */
@@ -283,6 +307,10 @@
             We'll be back shortly — thank you for your patience.
         </p>
 
+        <a href="dashboard.html" class="maint-dashboard-btn" id="goToDashboardBtn">
+            <i class="fas fa-home"></i> Go to Dashboard
+        </a>
+
         <!-- Footer -->
         <div class="footer">
             <span>&copy; <span id="maintenanceYear">2026</span></span>
@@ -314,6 +342,12 @@
                         document.getElementById('maintenanceMsg').innerHTML = data.maintenanceMessage;
                     }
                     messageSet = true;
+                }
+
+                /* Per-page only: show "Go to Dashboard" if dashboard is not in maintenance */
+                const btn = document.getElementById('goToDashboardBtn');
+                if (btn && pageParam && !(pages['dashboard'] && pages['dashboard'].enabled)) {
+                    btn.classList.add('visible');
                 }
 
                 /* Redirect when maintenance is lifted */

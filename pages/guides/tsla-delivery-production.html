@@ -812,21 +812,12 @@
 
     <script type="module">
         import { requirePlan } from '../../assets/js/firebase-auth-check.js';
+        import { ALPHA_VANTAGE_KEY } from '../../assets/js/config.js';
         requirePlan('ticker', 'TSLA', '../../login.html', '../../upgrade.html');
 
-        /* ================================================================
-           FMP CONFIGURATION
-           Get a free key at https://financialmodelingprep.com/developer
-           Free tier: 250 calls/day. Restrict the key to your domain.
-           3 calls are made on page load (income-statement, earnings-surprises,
-           historical-price-full) — well within the free tier limit.
-        ================================================================ */
-        const FMP_KEY  = '%%FMP_API_KEY%%';
-        const FMP_BASE = 'https://financialmodelingprep.com/api/v3';
+        const AV_BASE = 'https://www.alphavantage.co/query';
+        const CACHE_TTL = 24 * 60 * 60 * 1000; // 24 hours
 
-        /* ================================================================
-           HELPERS
-        ================================================================ */
         function fmtB(n) {
             /* Format raw dollar value (e.g. 25182340000) as "$25.2B" */
             return '$' + (n / 1e9).toFixed(1) + 'B';
@@ -849,30 +840,73 @@
         }
 
         /* ================================================================
-           FMP FETCHERS
+           ALPHA VANTAGE FETCHERS (with 24h cache to reduce API calls)
         ================================================================ */
-        async function fetchIncomeStatements() {
-            const res  = await fetch(`${FMP_BASE}/income-statement/TSLA?period=quarter&limit=8&apikey=${FMP_KEY}`);
-            if (!res.ok) throw new Error('FMP income statement failed');
-            return res.json(); // array of quarters, most recent first
+        async function fetchIncomeStatement() {
+            const key = 'bcs_tsla_income';
+            const cached = localStorage.getItem(key);
+            if (cached) {
+                const { data, ts } = JSON.parse(cached);
+                if (Date.now() - ts < CACHE_TTL) return data;
+            }
+            const res = await fetch(`${AV_BASE}?function=INCOME_STATEMENT&symbol=TSLA&apikey=${ALPHA_VANTAGE_KEY}`);
+            if (!res.ok) throw new Error('Alpha Vantage income statement failed');
+            const json = await res.json();
+            if (json.Information || json['Error Message']) throw new Error(json.Information || json['Error Message']);
+            const reports = json.quarterlyReports || [];
+            const data = reports.map(r => {
+                const rev = parseFloat(r.totalRevenue || r.revenue || 0);
+                const gp  = parseFloat(r.grossProfit || 0);
+                const cor = parseFloat(r.costOfRevenue || r.costofGoodsAndServicesSold || 0);
+                return {
+                    date:             r.fiscalDateEnding,
+                    revenue:          rev,
+                    grossProfit:      gp,
+                    costOfRevenue:    cor,
+                    grossProfitRatio: rev > 0 ? gp / rev : 0
+                };
+            });
+            localStorage.setItem(key, JSON.stringify({ data, ts: Date.now() }));
+            return data;
         }
 
-        async function fetchEarningsSurprises() {
-            const res  = await fetch(`${FMP_BASE}/earnings-surprises/TSLA?apikey=${FMP_KEY}`);
-            if (!res.ok) throw new Error('FMP earnings surprises failed');
-            return res.json(); // array, most recent first
+        async function fetchEarnings() {
+            const key = 'bcs_tsla_earnings';
+            const cached = localStorage.getItem(key);
+            if (cached) {
+                const { data, ts } = JSON.parse(cached);
+                if (Date.now() - ts < CACHE_TTL) return data;
+            }
+            const res = await fetch(`${AV_BASE}?function=EARNINGS&symbol=TSLA&apikey=${ALPHA_VANTAGE_KEY}`);
+            if (!res.ok) throw new Error('Alpha Vantage earnings failed');
+            const json = await res.json();
+            if (json.Information || json['Error Message']) throw new Error(json.Information || json['Error Message']);
+            const reports = json.quarterlyEarnings || [];
+            const data = reports.map(r => ({
+                date:                 r.reportedDate || r.fiscalDateEnding,
+                fiscalDateEnding:     r.fiscalDateEnding,
+                actualEarningResult:  parseFloat(r.reportedEPS || 0),
+                estimatedEarning:     parseFloat(r.estimatedEPS || 0)
+            }));
+            localStorage.setItem(key, JSON.stringify({ data, ts: Date.now() }));
+            return data;
         }
 
         async function fetchPriceMap() {
-            /* 3 years of daily closes for stock reaction calculation */
-            const from = new Date();
-            from.setFullYear(from.getFullYear() - 3);
-            const fromStr = from.toISOString().slice(0, 10);
-            const res  = await fetch(`${FMP_BASE}/historical-price-full/TSLA?from=${fromStr}&apikey=${FMP_KEY}`);
-            if (!res.ok) throw new Error('FMP prices failed');
+            const key = 'bcs_tsla_prices';
+            const cached = localStorage.getItem(key);
+            if (cached) {
+                const { data, ts } = JSON.parse(cached);
+                if (Date.now() - ts < CACHE_TTL) return data;
+            }
+            const res = await fetch(`${AV_BASE}?function=TIME_SERIES_DAILY&symbol=TSLA&outputsize=full&apikey=${ALPHA_VANTAGE_KEY}`);
+            if (!res.ok) throw new Error('Alpha Vantage prices failed');
             const json = await res.json();
-            const map  = {};
-            (json.historical || []).forEach(d => { map[d.date] = d.close; });
+            if (json.Information || json['Error Message']) throw new Error(json.Information || json['Error Message']);
+            const ts = json['Time Series (Daily)'] || {};
+            const map = {};
+            Object.keys(ts).forEach(d => { map[d] = parseFloat(ts[d]['4. close']) || 0; });
+            localStorage.setItem(key, JSON.stringify({ data: map, ts: Date.now() }));
             return map;
         }
 
@@ -983,9 +1017,12 @@
             const tbody = document.getElementById('delivery-table-body');
             if (!tbody) return;
 
-            /* Build a date-keyed map for earnings surprises */
-            const surpriseMap = {};
-            surprises.forEach(s => { surpriseMap[s.date] = s; });
+            /* Match earnings to income stmts by fiscal quarter (Alpha Vantage uses fiscalDateEnding) */
+            const surpriseByFiscal = {};
+            (surprises || []).forEach(s => {
+                const key = s.fiscalDateEnding || s.date;
+                if (key) surpriseByFiscal[key] = s;
+            });
 
             tbody.innerHTML = incomeStmts.map((stmt, i) => {
                 const qLabel = quarterFromDate(stmt.date);
@@ -993,13 +1030,12 @@
                 /* Revenue */
                 const revText = fmtB(stmt.revenue);
 
-                /* EPS Beat/Miss — match by closest date */
-                const stmtDate  = stmt.date;
-                /* earnings date is usually within a few weeks of period end */
-                const surprise  = Object.values(surpriseMap).find(s => {
-                    const diff = Math.abs(new Date(s.date) - new Date(stmtDate));
-                    return diff < 60 * 24 * 60 * 60 * 1000; // within 60 days
+                /* EPS Beat/Miss — match by fiscal quarter end */
+                const surprise = surpriseByFiscal[stmt.date] || Object.values(surpriseByFiscal).find(s => {
+                    const diff = Math.abs(new Date(s.fiscalDateEnding || s.date) - new Date(stmt.date));
+                    return diff < 60 * 24 * 60 * 60 * 1000;
                 });
+                if (surprise) delete surpriseByFiscal[surprise.fiscalDateEnding || surprise.date];
                 let epsText = '—', epsClass = '';
                 if (surprise) {
                     const diff = surprise.actualEarningResult - surprise.estimatedEarning;
@@ -1039,17 +1075,17 @@
         }
 
         /* ================================================================
-           INIT — fetch all 3 FMP sources in parallel
+           INIT — fetch all 3 Alpha Vantage sources in parallel
         ================================================================ */
         async function loadFinancialsData() {
             try {
                 const [incomeStmts, surprises, priceMap] = await Promise.all([
-                    fetchIncomeStatements(),
-                    fetchEarningsSurprises(),
+                    fetchIncomeStatement(),
+                    fetchEarnings(),
                     fetchPriceMap()
                 ]);
 
-                if (!incomeStmts || incomeStmts.length === 0) return; // keep fallback
+                if (!Array.isArray(incomeStmts) || incomeStmts.length === 0) return; // keep fallback
 
                 populateMetricCards(incomeStmts, surprises);
                 populateTable(incomeStmts, surprises, priceMap);

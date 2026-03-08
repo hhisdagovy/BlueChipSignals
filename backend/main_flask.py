@@ -227,21 +227,22 @@ def delete_all_signals():
 def parse_signal_message(text):
     """
     Parse a signal message in the format sent by all 6 bots, e.g.:
-        🚨 SPY Buy Signal [Breakout]
-        Price: $592.10
-        VWAP: $589.45
-        MFI: 67.32
+        🚨 TSLA Put Momentum Signal
+        Price: $396.55
+        VWAP: $397.08
+        MFI: 35.96
         Suggested Contract:
-        Ticker: SPY
-        C/P: Call
-        Strike Price: $595.00
-        Premium: $3.20
-        Volume: 142300
-        Exp: 2026-03-10
+        Ticker: TSLA
+        C/P: Put
+        Strike Price: $400.00
+        Premium: $6.69
+        Volume: 26973
+        Exp: 2026-03-09
     Returns a dict ready to insert, or None if parsing fails.
     """
     try:
-        stock   = re.search(r'(\w+)\s+(?:Buy|Sell)\s+Signal', text)
+        # Matches: TSLA Call Momentum Signal, SPY Put Reversal Signal, etc.
+        stock   = re.search(r'(\w+)\s+(?:Call|Put|Buy|Sell)\s+\w+\s+Signal', text)
         price   = re.search(r'Price:\s*\$?([\d.]+)', text)
         vwap    = re.search(r'VWAP:\s*\$?([\d.]+)', text)
         mfi     = re.search(r'MFI:\s*([\d.]+)', text)
@@ -294,7 +295,7 @@ def telegram_webhook():
         return jsonify({'ok': True})
 
     text = post.get('text', '') or post.get('caption', '')
-    if not text or 'Buy Signal' not in text:
+    if not text or 'Signal' not in text:
         return jsonify({'ok': True})
 
     signal = parse_signal_message(text)

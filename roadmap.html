@@ -1456,8 +1456,9 @@
 
     <!-- Milestones from Firestore — replaces hardcoded set once admin seeds -->
     <script type="module">
-        import { db, collection, getDocs, query } from './assets/js/firebase-config.js';
+        import { auth, db, collection, getDocs, query, onAuthStateChanged } from './assets/js/firebase-config.js';
         import { orderBy, getDoc, doc } from 'https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js';
+        import { checkPageMaintenance } from './assets/js/firebase-auth-check.js';
 
         const STATUS_BADGE = {
             completed:  'Completed',
@@ -1583,8 +1584,19 @@
             }
         }
 
-        loadFirestoreMilestones();
-        loadSiteStats();
+        /* ── Per-page maintenance check (public page: resolve auth first for admin bypass) ── */
+        onAuthStateChanged(auth, async (user) => {
+            let isAdmin = false;
+            if (user) {
+                try {
+                    const snap = await getDoc(doc(db, 'users', user.uid));
+                    if (snap.exists()) isAdmin = (snap.data().role || '').toLowerCase() === 'admin';
+                } catch (_) {}
+            }
+            if (await checkPageMaintenance('roadmap', 'maintenance.html', isAdmin)) return;
+            loadFirestoreMilestones();
+            loadSiteStats();
+        });
     </script>
 
     <script>

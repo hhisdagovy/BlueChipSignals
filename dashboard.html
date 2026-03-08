@@ -2312,6 +2312,7 @@
     <!-- Firebase Authentication + Portfolio Stats -->
     <script type="module">
         import { auth, db, onAuthStateChanged, signOut, doc, getDoc, setDoc } from './assets/js/firebase-config.js';
+        import { checkPageMaintenance } from './assets/js/firebase-auth-check.js';
 
         /* Expose db so backend-signals.js (non-module) can use Firestore directly */
         window._bcsDb = db;
@@ -2712,13 +2713,7 @@
 
             /* ── Early gates: maintenance + inactive subscription ──
                Both checks run BEFORE updateDashboard so nothing flashes. */
-            try {
-                const siteSnap = await getDoc(doc(db, 'settings', 'site'));
-                if (siteSnap.exists() && siteSnap.data().maintenanceMode && !isAdmin) {
-                    window.location.href = 'maintenance.html';
-                    return;
-                }
-            } catch (e) { console.warn('maintenance check:', e); }
+            if (await checkPageMaintenance('dashboard', 'maintenance.html', isAdmin)) return;
 
             if (!isAdmin && (userData.subscriptionStatus || '').toLowerCase() === 'inactive') {
                 window.location.href = 'upgrade.html';

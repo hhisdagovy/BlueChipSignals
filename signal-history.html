@@ -473,6 +473,7 @@
         import {
             auth, db, onAuthStateChanged, doc, getDoc
         } from './assets/js/firebase-config.js';
+        import { checkPageMaintenance } from './assets/js/firebase-auth-check.js';
         import {
             collection, query, where, orderBy, limit, startAfter, getDocs
         } from 'https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js';
@@ -806,6 +807,9 @@
             const plan    = (userData.plan || '').toLowerCase();
             const isAdmin = (userData.role || '').toLowerCase() === 'admin';
             _userPlan     = plan;
+
+            /* Maintenance check (site-wide + per-page) */
+            if (await checkPageMaintenance('signal-history', 'maintenance.html', isAdmin)) return;
 
             /* Bundle-only gate — single-channel users are redirected to upgrade */
             if (plan !== 'bundle' && !isAdmin) {

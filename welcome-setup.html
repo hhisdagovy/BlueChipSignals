@@ -342,19 +342,26 @@
     <script src="assets/js/footer-component.js"></script>
 
     <script type="module">
-        import { auth, db, onAuthStateChanged, doc, setDoc, updateDoc } from './assets/js/firebase-config.js';
+        import { auth, db, onAuthStateChanged, doc, getDoc, setDoc, updateDoc } from './assets/js/firebase-config.js';
+        import { checkPageMaintenance } from './assets/js/firebase-auth-check.js';
 
         const setupForm = document.getElementById('setupForm');
         const submitBtn = document.getElementById('submitBtn');
         const errorMessage = document.getElementById('errorMessage');
         const successMessage = document.getElementById('successMessage');
 
-        // Check if user is authenticated
-        onAuthStateChanged(auth, (user) => {
+        // Check if user is authenticated + maintenance
+        onAuthStateChanged(auth, async (user) => {
             if (!user) {
-                // Not logged in, redirect to login
                 window.location.href = 'login.html';
+                return;
             }
+            try {
+                const snap = await getDoc(doc(db, 'users', user.uid));
+                const userData = snap.exists() ? snap.data() : null;
+                const isAdmin = userData && (userData.role || '').toLowerCase() === 'admin';
+                if (await checkPageMaintenance('welcome-setup', 'maintenance.html', isAdmin)) return;
+            } catch (_) { /* skip maintenance check on error */ }
         });
 
         // Format phone number as user types

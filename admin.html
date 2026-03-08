@@ -686,6 +686,14 @@
 
         .channel-row:last-child { border-bottom: none; }
 
+        .maintenance-pages-list { margin-top: 0.5rem; max-height: 320px; overflow-y: auto; }
+        .maintenance-page-group { margin-bottom: 1.25rem; }
+        .maintenance-page-group-title { font-size: 0.72rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: rgba(255,255,255,0.45); margin-bottom: 0.6rem; }
+        .maintenance-page-row { display: flex; align-items: center; gap: 0.75rem; padding: 0.5rem 0; border-bottom: 1px solid rgba(255,255,255,0.06); }
+        .maintenance-page-row:last-child { border-bottom: none; }
+        .maintenance-page-label { flex: 1; font-size: 0.85rem; }
+        .maintenance-page-msg { flex: 1; max-width: 220px; padding: 0.35rem 0.6rem; font-size: 0.75rem; background: rgba(0,0,0,0.25); border: 1px solid rgba(255,255,255,0.1); border-radius: 6px; }
+
         .channel-icon {
             width: 36px; height: 36px;
             border-radius: 10px;
@@ -1104,6 +1112,12 @@
                     <label class="form-label">Maintenance Message</label>
                     <input type="text" class="form-input" id="maintenanceMessage" placeholder="e.g. We'll be back shortly — scheduled maintenance in progress.">
                 </div>
+
+                <div class="admin-card-title" style="margin-top:2rem;"><i class="fas fa-file-lines"></i> Per-Page Maintenance</div>
+                <p style="font-size:0.78rem;color:rgba(255,255,255,0.38);margin:-0.5rem 0 1rem;">
+                    Put individual pages in maintenance without affecting the rest of the site. Non-admin users are redirected to the maintenance page when visiting a page in maintenance.
+                </p>
+                <div id="maintenancePagesList" class="maintenance-pages-list"></div>
 
                 <div style="margin-top:1.5rem;">
                     <button class="form-submit-btn" id="saveSettingsBtn" style="max-width:200px;">
@@ -1777,8 +1791,65 @@
 
         /* ── Site Settings & Channels ── */
 
+        const MAINTENANCE_PAGES = [
+            { id: 'dashboard', label: 'Dashboard', group: 'Core' },
+            { id: 'signal-history', label: 'Signal History', group: 'Core' },
+            { id: 'trading-journal', label: 'Trading Journal', group: 'Core' },
+            { id: 'trade-planner', label: 'Trade Planner', group: 'Core' },
+            { id: 'account', label: 'Account', group: 'Core' },
+            { id: 'roadmap', label: 'Roadmap', group: 'Core' },
+            { id: 'upgrade', label: 'Upgrade', group: 'Core' },
+            { id: 'welcome-setup', label: 'Welcome Setup', group: 'Core' },
+            { id: 'pages/guides/tsla-delivery-production', label: 'TSLA: Delivery & Production', group: 'Guides' },
+            { id: 'pages/guides/tsla-trend-following', label: 'TSLA: Trend Following', group: 'Guides' },
+            { id: 'pages/guides/nvda-earnings-history', label: 'NVDA: Earnings History', group: 'Guides' },
+            { id: 'pages/guides/nvda-ai-sector-news', label: 'NVDA: AI Sector News', group: 'Guides' },
+            { id: 'pages/guides/nvda-parabolic-moves', label: 'NVDA: Parabolic Moves', group: 'Guides' },
+            { id: 'pages/guides/meta-earnings-trading', label: 'META: Earnings Trading', group: 'Guides' },
+            { id: 'pages/guides/meta-regulatory-news', label: 'META: Regulatory News', group: 'Guides' },
+            { id: 'pages/guides/meta-ad-revenue-growth', label: 'META: Ad Revenue Growth', group: 'Guides' },
+            { id: 'pages/guides/aapl-product-cycles', label: 'AAPL: Product Cycles', group: 'Guides' },
+            { id: 'pages/guides/aapl-options-volume', label: 'AAPL: Options Volume', group: 'Guides' },
+            { id: 'pages/guides/aapl-orderly-pullbacks', label: 'AAPL: Orderly Pullbacks', group: 'Guides' },
+            { id: 'pages/guides/amzn-prime-day', label: 'AMZN: Prime Day', group: 'Guides' },
+            { id: 'pages/guides/amzn-aws-news', label: 'AMZN: AWS News', group: 'Guides' },
+            { id: 'pages/guides/amzn-support-resistance', label: 'AMZN: Support & Resistance', group: 'Guides' },
+            { id: 'pages/guides/spy-support-resistance', label: 'SPY: Support & Resistance', group: 'Guides' },
+            { id: 'pages/guides/spy-vix', label: 'SPY: VIX', group: 'Guides' },
+            { id: 'pages/guides/spy-economic-data', label: 'SPY: Economic Data', group: 'Guides' },
+            { id: 'pages/signals/spy-signal', label: 'SPY Signal', group: 'Signals' },
+            { id: 'pages/signals/aapl-signal', label: 'AAPL Signal', group: 'Signals' },
+            { id: 'pages/signals/nvda-signal', label: 'NVDA Signal', group: 'Signals' },
+            { id: 'pages/signals/meta-signal', label: 'META Signal', group: 'Signals' },
+            { id: 'pages/signals/tsla-signal', label: 'TSLA Signal', group: 'Signals' },
+            { id: 'pages/signals/amzn-signal', label: 'AMZN Signal', group: 'Signals' },
+        ];
+
+        function renderMaintenancePagesList() {
+            const container = document.getElementById('maintenancePagesList');
+            if (!container) return;
+            const groups = {};
+            MAINTENANCE_PAGES.forEach(p => { if (!groups[p.group]) groups[p.group] = []; groups[p.group].push(p); });
+            container.innerHTML = Object.entries(groups).map(([groupName, pages]) => `
+                <div class="maintenance-page-group">
+                    <div class="maintenance-page-group-title">${esc(groupName)}</div>
+                    ${pages.map(p => `
+                        <div class="maintenance-page-row" data-page-id="${esc(p.id)}">
+                            <span class="maintenance-page-label">${esc(p.label)}</span>
+                            <input type="text" class="maintenance-page-msg" data-page-id="${esc(p.id)}" placeholder="Optional message">
+                            <label class="toggle-switch">
+                                <input type="checkbox" class="maintenance-page-toggle" data-page-id="${esc(p.id)}">
+                                <span class="toggle-slider"></span>
+                            </label>
+                        </div>
+                    `).join('')}
+                </div>
+            `).join('');
+        }
+
         async function loadAllSettings() {
             try {
+                renderMaintenancePagesList();
                 const siteSnap = await getDoc(doc(db, 'settings', 'site'));
                 if (siteSnap.exists()) populateSiteSettings(siteSnap.data());
 
@@ -1797,6 +1868,15 @@
             val('announcementType',    data.announcementType || 'info');
             chk('maintenanceMode',     data.maintenanceMode);
             val('maintenanceMessage',  data.maintenanceMessage);
+            const pages = data.maintenancePages || {};
+            document.querySelectorAll('.maintenance-page-toggle').forEach(el => {
+                const entry = pages[el.dataset.pageId];
+                el.checked = !!(entry && entry.enabled);
+            });
+            document.querySelectorAll('.maintenance-page-msg').forEach(el => {
+                const entry = pages[el.dataset.pageId];
+                el.value = (entry && entry.message) || '';
+            });
         }
 
         function populateChannels(data) {
@@ -1811,12 +1891,20 @@
             btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving…';
             clearMsg('settingsMsg');
             try {
+                const maintenancePages = {};
+                document.querySelectorAll('.maintenance-page-toggle').forEach(el => {
+                    const pageId = el.dataset.pageId;
+                    const msgEl = el.closest('.maintenance-page-row')?.querySelector('.maintenance-page-msg');
+                    const msg = msgEl ? msgEl.value.trim() : '';
+                    maintenancePages[pageId] = { enabled: el.checked, message: msg || undefined };
+                });
                 await setDoc(doc(db, 'settings', 'site'), {
                     announcementActive: document.getElementById('announcementActive').checked,
                     announcementText:   document.getElementById('announcementText').value.trim(),
                     announcementType:   document.getElementById('announcementType').value,
                     maintenanceMode:    document.getElementById('maintenanceMode').checked,
                     maintenanceMessage: document.getElementById('maintenanceMessage').value.trim(),
+                    maintenancePages,
                 });
                 showMsg('settingsMsg', 'Site settings saved successfully.', 'success');
             } catch (e) {

@@ -297,22 +297,38 @@
 
         document.getElementById('maintenanceYear').textContent = new Date().getFullYear();
 
-        try {
-            const snap = await getDoc(doc(db, 'settings', 'site'));
-            if (snap.exists()) {
+        const pageParam = new URLSearchParams(window.location.search).get('page');
+        let messageSet = false;
+
+        async function checkAndRedirect() {
+            try {
+                const snap = await getDoc(doc(db, 'settings', 'site'));
+                if (!snap.exists()) return;
                 const data = snap.data();
+                const pages = data.maintenancePages || {};
 
-                /* Show custom message if set */
-                if (data.maintenanceMessage && data.maintenanceMessage.trim()) {
-                    document.getElementById('maintenanceMsg').innerHTML = data.maintenanceMessage;
+                if (!messageSet) {
+                    if (pageParam && pages[pageParam] && pages[pageParam].message && pages[pageParam].message.trim()) {
+                        document.getElementById('maintenanceMsg').innerHTML = pages[pageParam].message;
+                    } else if (data.maintenanceMessage && data.maintenanceMessage.trim()) {
+                        document.getElementById('maintenanceMsg').innerHTML = data.maintenanceMessage;
+                    }
+                    messageSet = true;
                 }
 
-                /* Redirect back to dashboard when maintenance is lifted */
-                if (!data.maintenanceMode) {
+                /* Redirect when maintenance is lifted */
+                const siteWideOff = !data.maintenanceMode;
+                const pageMaintenanceOff = pageParam && (!pages[pageParam] || !pages[pageParam].enabled);
+                if (siteWideOff) {
                     window.location.href = 'dashboard.html';
+                } else if (pageMaintenanceOff) {
+                    window.location.href = pageParam + '.html';
                 }
-            }
-        } catch (_) { /* fail silently — static page still renders */ }
+            } catch (_) { /* fail silently */ }
+        }
+
+        await checkAndRedirect();
+        setInterval(checkAndRedirect, 12000);
     </script>
 </body>
 </html>

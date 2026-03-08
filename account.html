@@ -719,6 +719,7 @@
             updatePassword, reauthenticateWithCredential, EmailAuthProvider,
             doc, getDoc, updateDoc
         } from './assets/js/firebase-config.js';
+        import { checkPageMaintenance } from './assets/js/firebase-auth-check.js';
 
         let currentUser = null;
 
@@ -824,8 +825,11 @@
             currentUser = user;
             try {
                 const snap = await getDoc(doc(db, 'users', user.uid));
+                const userData = snap.exists() ? snap.data() : null;
+                const isAdmin = userData && (userData.role || '').toLowerCase() === 'admin';
+                if (await checkPageMaintenance('account', 'maintenance.html', isAdmin)) return;
                 if (snap.exists()) {
-                    populatePage(snap.data(), user);
+                    populatePage(userData, user);
                 } else {
                     document.getElementById('email').value = user.email || '';
                 }

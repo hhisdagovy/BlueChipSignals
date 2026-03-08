@@ -3,6 +3,51 @@
 import { auth, db, onAuthStateChanged, signOut, doc, getDoc } from './firebase-config.js';
 
 /**
+ * Derive a stable page ID from the current pathname.
+ * e.g. "/dashboard.html" → "dashboard", "/pages/guides/tsla-delivery-production.html" → "pages/guides/tsla-delivery-production"
+ * @returns {string}
+ */
+export function getPageId() {
+    const path = (typeof window !== 'undefined' && window.location.pathname) || '';
+    return path.replace(/^\//, '').replace(/\.html$/, '') || 'index';
+}
+
+/**
+ * Check if the current page (or given pageId) is in maintenance.
+ * Redirects to maintenance page if so. Admins bypass.
+ * @param {string} pageId - Page identifier (e.g. 'dashboard', 'pages/guides/tsla-delivery-production')
+ * @param {string} maintenancePath - Relative path to maintenance.html (e.g. 'maintenance.html', '../../maintenance.html')
+ * @param {boolean} isAdmin - If true, skip check and return without redirecting
+ * @returns {Promise<boolean>} - True if redirect was triggered, false otherwise
+ */
+export async function checkPageMaintenance(pageId, maintenancePath, isAdmin) {
+    if (isAdmin) return false;
+    try {
+        const siteSnap = await getDoc(doc(db, 'settings', 'site'));
+        if (!siteSnap.exists()) return false;
+        const data = siteSnap.data();
+
+        /* Site-wide maintenance */
+        if (data.maintenanceMode) {
+            window.location.href = maintenancePath;
+            return true;
+        }
+
+        /* Per-page maintenance */
+        const pages = data.maintenancePages || {};
+        const pageEntry = pages[pageId];
+        if (pageEntry && pageEntry.enabled) {
+            const sep = maintenancePath.indexOf('?') >= 0 ? '&' : '?';
+            window.location.href = maintenancePath + sep + 'page=' + encodeURIComponent(pageId);
+            return true;
+        }
+    } catch (e) {
+        console.warn('checkPageMaintenance: could not read settings/site —', e?.code || e);
+    }
+    return false;
+}
+
+/**
  * Protect a page: redirect unauthenticated users immediately.
  * Call once near the top of any page that requires login.
  * @param {string} redirectPath - Relative path to redirect to (e.g. '../../book-demo')
@@ -75,16 +120,14 @@ export function redirectIfLoggedIn(destination) {
  * @param {string|null}       ticker      - e.g. 'SPY', 'AAPL' (ignored when planType='bundle')
  * @param {string}            loginPath   - e.g. '../../login'
  * @param {string}            upgradePath - e.g. '../../upgrade'
+ * @param {string}            [pageId]   - Optional page ID for per-page maintenance (default: derived from pathname)
  */
-export function requirePlan(planType, ticker, loginPath, upgradePath) {
+export function requirePlan(planType, ticker, loginPath, upgradePath, pageId) {
     const _login   = () => { window.location.href = loginPath   || '../../login'; };
     const _upgrade = () => { window.location.href = upgradePath || '../../upgrade'; };
 
-    /* Derive the maintenance page path from the loginPath (same directory level) */
-    const _maintenance = () => {
-        const base = (loginPath || '../../login').replace(/[^/]+$/, '');
-        window.location.href = base + 'maintenance';
-    };
+    const _pageId = pageId != null ? pageId : getPageId();
+    const _maintenancePath = (loginPath || '../../login').replace(/[^/]+$/, '') + 'maintenance.html';
 
     const _check = async (user) => {
         if (!user) { _login(); return; }
@@ -103,20 +146,8 @@ export function requirePlan(planType, ticker, loginPath, upgradePath) {
         const { plan, allowedTicker, subscriptionStatus, role } = userData;
         const isAdmin = (role || '').toLowerCase() === 'admin';
 
-        /* ── 2. Load site settings (non-critical — failure is silently skipped) ──
-           Kept in its own try/catch so a Firestore permission error on the
-           settings collection never triggers _login(). */
-        if (!isAdmin) {
-            try {
-                const siteSnap = await getDoc(doc(db, 'settings', 'site'));
-                if (siteSnap.exists() && siteSnap.data().maintenanceMode) {
-                    _maintenance(); return;
-                }
-            } catch (siteErr) {
-                /* settings/site unreadable — skip maintenance check, continue */
-                console.warn('requirePlan: could not read settings/site —', siteErr.code);
-            }
-        }
+        /* ── 2. Site-wide and per-page maintenance (non-critical — failure is silently skipped) ── */
+        if (await checkPageMaintenance(_pageId, _maintenancePath, isAdmin)) return;
 
         /* ── 3. Subscription status ── */
         if (!isAdmin && (subscriptionStatus || '').toLowerCase() === 'inactive') {

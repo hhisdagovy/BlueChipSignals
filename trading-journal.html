@@ -1130,6 +1130,7 @@
 
     <script type="module">
         import { auth, db, onAuthStateChanged, doc, getDoc, setDoc, updateDoc } from './assets/js/firebase-config.js';
+        import { checkPageMaintenance } from './assets/js/firebase-auth-check.js';
 
         // Trading Journal Application
         let trades = [];
@@ -1938,6 +1939,9 @@
                     window.location.href = 'upgrade.html';
                     return;
                 }
+                const userData = snap.data();
+                const isAdmin = (userData.role || '').toLowerCase() === 'admin';
+                if (await checkPageMaintenance('trading-journal', 'maintenance.html', isAdmin)) return;
             } catch (e) {
                 console.error('Plan check error:', e);
             }

@@ -440,6 +440,7 @@
             display: none;
             align-items: center; gap: 0.5rem;
             margin-bottom: 1.25rem;
+            color: rgba(255,255,255,0.95);
         }
 
         .form-msg.show { display: flex; }
@@ -447,13 +448,13 @@
         .form-msg.success {
             background: rgba(46,125,50,0.14);
             border: 1px solid rgba(76,175,80,0.25);
-            color: #81c784;
+            color: #a5d6a7;
         }
 
         .form-msg.error {
             background: rgba(211,47,47,0.1);
             border: 1px solid rgba(244,67,54,0.25);
-            color: #e57373;
+            color: #ef9a9a;
         }
 
         .form-submit-btn {
@@ -1761,15 +1762,22 @@
 
         function showMsg(id, msg, type) {
             const el = document.getElementById(id);
+            if (!el) return;
             el.innerHTML = `<i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-circle'}"></i> ${msg}`;
             el.className = `form-msg ${type} show`;
-            setTimeout(() => el.classList.remove('show'), 6000);
+            el.style.display = 'flex';
+            setTimeout(() => {
+                el.classList.remove('show');
+                el.style.display = '';
+            }, 6000);
         }
 
         function clearMsg(id) {
             const el = document.getElementById(id);
+            if (!el) return;
             el.className = 'form-msg';
             el.innerHTML = '';
+            el.style.display = 'none';
         }
 
         function formatDate(raw) {
@@ -1885,20 +1893,23 @@
             });
         }
 
-        document.getElementById('saveSettingsBtn').addEventListener('click', async () => {
-            const btn = document.getElementById('saveSettingsBtn');
-            btn.disabled = true;
-            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving…';
-            clearMsg('settingsMsg');
-            try {
-                const maintenancePages = {};
-                document.querySelectorAll('.maintenance-page-toggle').forEach(el => {
-                    const pageId = el.dataset.pageId;
-                    const msgEl = el.closest('.maintenance-page-row')?.querySelector('.maintenance-page-msg');
-                    const msg = msgEl ? msgEl.value.trim() : '';
-                    maintenancePages[pageId] = { enabled: el.checked, message: msg || undefined };
-                });
-                await setDoc(doc(db, 'settings', 'site'), {
+        const saveSettingsBtn = document.getElementById('saveSettingsBtn');
+        if (saveSettingsBtn) {
+            saveSettingsBtn.addEventListener('click', async () => {
+                const btn = document.getElementById('saveSettingsBtn');
+                btn.disabled = true;
+                btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving…';
+                clearMsg('settingsMsg');
+                try {
+                    const maintenancePages = {};
+                    document.querySelectorAll('.maintenance-page-toggle').forEach(el => {
+                        const pageId = el.dataset.pageId;
+                        const msgEl = el.closest('.maintenance-page-row')?.querySelector('.maintenance-page-msg');
+                        const msg = msgEl ? msgEl.value.trim() : '';
+                        maintenancePages[pageId] = { enabled: el.checked };
+                        if (msg) maintenancePages[pageId].message = msg;
+                    });
+                    await setDoc(doc(db, 'settings', 'site'), {
                     announcementActive: document.getElementById('announcementActive').checked,
                     announcementText:   document.getElementById('announcementText').value.trim(),
                     announcementType:   document.getElementById('announcementType').value,
@@ -1908,32 +1919,38 @@
                 });
                 showMsg('settingsMsg', 'Site settings saved successfully.', 'success');
             } catch (e) {
-                showMsg('settingsMsg', 'Error: ' + e.message, 'error');
+                console.error('Save settings error:', e);
+                showMsg('settingsMsg', 'Error: ' + (e.message || String(e)), 'error');
             } finally {
                 btn.disabled = false;
                 btn.innerHTML = '<i class="fas fa-floppy-disk"></i> Save Settings';
             }
         });
+        }
 
-        document.getElementById('saveChannelsBtn').addEventListener('click', async () => {
-            const btn = document.getElementById('saveChannelsBtn');
-            btn.disabled = true;
-            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving…';
-            clearMsg('channelsMsg');
-            try {
-                const data = {};
-                document.querySelectorAll('.channel-toggle').forEach(t => {
-                    data[t.dataset.channel] = t.checked;
-                });
-                await setDoc(doc(db, 'settings', 'signals'), data);
-                showMsg('channelsMsg', 'Channel settings saved successfully.', 'success');
-            } catch (e) {
-                showMsg('channelsMsg', 'Error: ' + e.message, 'error');
-            } finally {
-                btn.disabled = false;
-                btn.innerHTML = '<i class="fas fa-floppy-disk"></i> Save Channel Status';
-            }
-        });
+        const saveChannelsBtn = document.getElementById('saveChannelsBtn');
+        if (saveChannelsBtn) {
+            saveChannelsBtn.addEventListener('click', async () => {
+                const btn = document.getElementById('saveChannelsBtn');
+                btn.disabled = true;
+                btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving…';
+                clearMsg('channelsMsg');
+                try {
+                    const data = {};
+                    document.querySelectorAll('.channel-toggle').forEach(t => {
+                        data[t.dataset.channel] = t.checked;
+                    });
+                    await setDoc(doc(db, 'settings', 'signals'), data);
+                    showMsg('channelsMsg', 'Channel settings saved successfully.', 'success');
+                } catch (e) {
+                    console.error('Save channels error:', e);
+                    showMsg('channelsMsg', 'Error: ' + (e.message || String(e)), 'error');
+                } finally {
+                    btn.disabled = false;
+                    btn.innerHTML = '<i class="fas fa-floppy-disk"></i> Save Channel Status';
+                }
+            });
+        }
 
         /* ══════════════════════════════════════════════════════
            ROADMAP MILESTONES

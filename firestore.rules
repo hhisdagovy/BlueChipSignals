@@ -24,6 +24,12 @@ service cloud.firestore {
       allow write: if isAdmin();
     }
 
+    // site_config: public read for stats (signal channels, educational guides, etc.)
+    match /site_config/{docId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
     // settings: dashboard config (maintenance mode, signal channel status, announcements)
     // must be readable before auth resolves, so public read is intentional
     match /settings/{docId} {

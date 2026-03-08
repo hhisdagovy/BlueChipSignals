@@ -19,7 +19,7 @@
 
         .news-categories {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(min(300px, 100%), 1fr));
             gap: 1.5rem;
             margin-top: 1.5rem;
         }
@@ -87,7 +87,7 @@
 
         .news-sources-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(min(300px, 100%), 1fr));
             gap: 1.5rem;
             margin: 2rem 0;
         }
@@ -425,6 +425,8 @@
 
         .step-content {
             flex: 1;
+            min-width: 0;
+            overflow-wrap: break-word;
         }
 
         .step-content h5 {
@@ -446,12 +448,16 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            min-width: 0;
         }
 
         .source-link strong {
             color: var(--primary-gold);
             display: block;
             margin-bottom: 0.3rem;
+            overflow-wrap: break-word;
         }
 
         .source-link small {
@@ -532,6 +538,8 @@
             padding: 1rem;
             border-radius: 8px;
             border-left: 3px solid var(--primary-gold);
+            min-width: 0;
+            overflow-wrap: break-word;
         }
 
         .check-item strong {
@@ -603,7 +611,7 @@
 
         .tools-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(min(200px, 100%), 1fr));
             gap: 1.5rem;
             margin-top: 1.5rem;
         }
@@ -1071,7 +1079,7 @@
             </div>
 
             <h4 style="color: var(--primary-gold); margin: 1.5rem 0 1rem;">Key SMH Holdings to Watch</h4>
-            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 1.25rem; margin: 0 0 1.5rem;">
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(min(260px, 100%), 1fr)); gap: 1.25rem; margin: 0 0 1.5rem;">
                 <div style="background: var(--dark-bg); border: 1px solid rgba(201,176,55,0.2); border-radius: 10px; padding: 1.25rem;">
                     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.5rem;">
                         <strong style="color:var(--light-text);">NVIDIA (NVDA)</strong>

@@ -1921,6 +1921,7 @@ stripe-buy-button {
     margin-top: 2rem;
 }
 
+
 .sp-feature-list {
     flex: 1;
     min-width: 280px;
@@ -2293,6 +2294,18 @@ stripe-buy-button {
     }
     .sp-why-track { animation-duration: 120s; }
     .sp-metrics-grid { grid-template-columns: repeat(2, 1fr); }
+    /* Metric cards: prevent text overflow on mobile */
+    .sp-metric-card {
+        min-width: 0;
+    }
+    .sp-metric-card .sp-m-value {
+        font-size: clamp(1.2rem, 4.5vw, 1.9rem);
+        overflow-wrap: break-word;
+        word-break: break-word;
+    }
+    .sp-metric-card .sp-m-label {
+        overflow-wrap: break-word;
+    }
     .sp-cta-card { padding: 2.5rem 1.5rem; }
     .sp-cta-card h2 { font-size: 1.5rem; }
     .sp-section-header h2 { font-size: 1.4rem; }
@@ -2307,4 +2320,7 @@ stripe-buy-button {
 @media (max-width: 480px) {
     .sp-metrics-grid { grid-template-columns: 1fr 1fr; }
     .sp-strategy-grid { grid-template-columns: 1fr; }
+    .sp-metric-card .sp-m-value {
+        font-size: 1.3rem;
+    }
 }

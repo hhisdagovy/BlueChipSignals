@@ -337,5 +337,15 @@ body {
 
     .guide-content {
         padding: 2rem 1rem 4rem;
+        overflow-x: hidden;
+    }
+
+    .content-section {
+        overflow-wrap: break-word;
+        word-wrap: break-word;
+    }
+
+    .content-section [style*="grid-template-columns"] {
+        grid-template-columns: 1fr !important;
     }
 }

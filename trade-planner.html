@@ -1314,11 +1314,17 @@
                 localStorage.removeItem('bluechip_is_admin');
                 sessionStorage.removeItem('bluechip_logged_in');
                 sessionStorage.removeItem('bluechip_user_email');
-                window.location.href = 'login.html';
+                window.location.replace('login.html');
             } catch (err) {
                 console.error('Logout error:', err);
             }
         };
+
+        window.addEventListener('pageshow', (e) => {
+            if (e.persisted && !auth.currentUser) {
+                window.location.replace('login.html');
+            }
+        });
 
         onAuthStateChanged(auth, async (user) => {
             if (!user) {

@@ -81,7 +81,8 @@ export async function performFirebaseLogout(loginPath) {
         localStorage.removeItem('bluechip_user_email');
         sessionStorage.removeItem('bluechip_logged_in');
         sessionStorage.removeItem('bluechip_user_email');
-        window.location.href = loginPath || 'login';
+        /* replace() removes current page from history — prevents Back from restoring logged-in view */
+        window.location.replace(loginPath || 'login');
     } catch (error) {
         console.error('Logout error:', error);
     }

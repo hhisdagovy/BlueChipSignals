@@ -731,7 +731,7 @@
             localStorage.removeItem('bluechip_is_admin');
             sessionStorage.removeItem('bluechip_logged_in');
             sessionStorage.removeItem('bluechip_user_email');
-            window.location.href = 'login.html';
+            window.location.replace('login.html');
         };
 
         /* ---- Alert helpers ---- */
@@ -818,6 +818,13 @@
             const heroSinceEl = document.getElementById('heroSince');
             if (heroSinceEl) heroSinceEl.textContent = sinceText;
         }
+
+        /* bfcache: when user hits Back after logout, redirect to login */
+        window.addEventListener('pageshow', (e) => {
+            if (e.persisted && !auth.currentUser) {
+                window.location.replace('login.html');
+            }
+        });
 
         /* ---- Auth gate + data load ---- */
         onAuthStateChanged(auth, async (user) => {

@@ -350,6 +350,13 @@
         const errorMessage = document.getElementById('errorMessage');
         const successMessage = document.getElementById('successMessage');
 
+        /* bfcache: when user hits Back after logout, redirect to login */
+        window.addEventListener('pageshow', (e) => {
+            if (e.persisted && !auth.currentUser) {
+                window.location.replace('login.html');
+            }
+        });
+
         // Check if user is authenticated + maintenance
         onAuthStateChanged(auth, async (user) => {
             if (!user) {

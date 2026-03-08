@@ -772,6 +772,13 @@
             });
         }
 
+        /* bfcache: when user hits Back after logout, redirect to login */
+        window.addEventListener('pageshow', (e) => {
+            if (e.persisted && !auth.currentUser) {
+                window.location.replace('login.html');
+            }
+        });
+
         /* ── Auth gate ── */
         onAuthStateChanged(auth, async (user) => {
             if (!user) { window.location.href = 'login.html'; return; }

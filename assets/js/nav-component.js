@@ -117,7 +117,7 @@
             localStorage.removeItem('bluechip_is_admin');
             sessionStorage.removeItem('bluechip_logged_in');
             sessionStorage.removeItem('bluechip_user_email');
-            window.location.href = base + 'login';
+            window.location.replace(base + 'login');
         };
     }
 

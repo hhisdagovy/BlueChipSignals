@@ -2820,12 +2820,19 @@
                 localStorage.removeItem('bluechip_user_email');
                 sessionStorage.removeItem('bluechip_logged_in');
                 sessionStorage.removeItem('bluechip_user_email');
-                window.location.href = 'login.html';
+                window.location.replace('login.html');
             } catch (error) {
                 console.error('Logout error:', error);
                 alert('Error logging out. Please try again.');
             }
         };
+
+        /* bfcache: when user hits Back after logout, redirect to login immediately */
+        window.addEventListener('pageshow', (e) => {
+            if (e.persisted && !auth.currentUser) {
+                window.location.replace('login.html');
+            }
+        });
     </script>
 </body>
 </html>

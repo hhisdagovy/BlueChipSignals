@@ -319,10 +319,12 @@
                 /* Redirect when maintenance is lifted */
                 const siteWideOff = !data.maintenanceMode;
                 const pageMaintenanceOff = pageParam && (!pages[pageParam] || !pages[pageParam].enabled);
-                if (siteWideOff) {
-                    window.location.href = 'dashboard.html';
-                } else if (pageMaintenanceOff) {
-                    window.location.href = pageParam + '.html';
+                if (pageParam) {
+                    /* Per-page maintenance: only redirect when THIS page's maintenance is lifted */
+                    if (pageMaintenanceOff) window.location.href = pageParam + '.html';
+                } else {
+                    /* Site-wide maintenance: redirect to dashboard when lifted */
+                    if (siteWideOff) window.location.href = 'dashboard.html';
                 }
             } catch (_) { /* fail silently */ }
         }

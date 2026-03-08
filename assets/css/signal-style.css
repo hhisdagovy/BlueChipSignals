@@ -1710,6 +1710,7 @@ stripe-buy-button {
 .sp-contract-row > div { min-width: 0; }
 .sp-contract-row label { color: var(--gray-text); font-size: 0.6rem; display: block; margin-bottom: 0.15rem; text-transform: uppercase; letter-spacing: 0.03em; }
 .sp-contract-row strong { color: #fff; font-size: 0.88rem; font-weight: 700; }
+.sp-contract-row strong.put { color: #ef5350; }
 
 .sp-tg-footer {
     text-align: center;

@@ -14,18 +14,31 @@
            HERO
         ================================================================ */
         .rm-hero {
-            padding: 9rem 2rem 4rem;
+            padding: 9rem 2rem 4.5rem;
             max-width: 1100px;
             margin: 0 auto;
             position: relative;
+            overflow: visible;
         }
 
+        /* Gold bloom — top centre */
         .rm-hero::before {
             content: '';
             position: absolute;
-            top: 0; left: 50%; transform: translateX(-50%);
-            width: 700px; height: 500px;
-            background: radial-gradient(ellipse at center, rgba(201,176,55,0.09) 0%, transparent 70%);
+            top: -40px; left: 30%; transform: translateX(-50%);
+            width: 900px; height: 600px;
+            background: radial-gradient(ellipse at center, rgba(201,176,55,0.11) 0%, transparent 65%);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        /* Blue accent — far right */
+        .rm-hero::after {
+            content: '';
+            position: absolute;
+            top: 60px; right: -100px;
+            width: 500px; height: 400px;
+            background: radial-gradient(ellipse at center, rgba(96,165,250,0.06) 0%, transparent 65%);
             pointer-events: none;
             z-index: 0;
         }
@@ -44,20 +57,19 @@
             border-radius: 50px;
             padding: 0.3rem 0.9rem;
             margin-bottom: 1.5rem;
-            /* hero label fade-in */
             opacity: 0;
             transform: translateY(12px);
             animation: heroFadeUp 0.55s ease 0.1s forwards;
         }
 
         .rm-hero h1 {
-            font-size: clamp(2.6rem, 5.5vw, 4.2rem);
+            font-size: clamp(2.8rem, 6vw, 4.8rem);
             font-weight: 900;
             color: var(--light-text);
-            line-height: 1.07;
-            letter-spacing: -0.025em;
-            margin-bottom: 1.25rem;
-            max-width: 760px;
+            line-height: 1.05;
+            letter-spacing: -0.03em;
+            margin-bottom: 1.4rem;
+            max-width: 800px;
             opacity: 0;
             transform: translateY(16px);
             animation: heroFadeUp 0.6s ease 0.2s forwards;
@@ -66,7 +78,8 @@
         .rm-hero h1 em {
             font-style: italic;
             display: inline-block;
-            padding-bottom: 0.12em;
+            position: relative;
+            padding-bottom: 0.08em;
             padding-right: 0.12em;
             margin-right: -0.12em;
             background: linear-gradient(135deg, var(--primary-gold), var(--secondary-gold));
@@ -75,12 +88,22 @@
             -webkit-text-fill-color: transparent;
         }
 
+        /* Gold underline accent on the em */
+        .rm-hero h1 em::after {
+            content: '';
+            position: absolute;
+            left: 0; bottom: 0;
+            width: 100%; height: 2px;
+            background: linear-gradient(90deg, var(--primary-gold), transparent);
+            border-radius: 2px;
+        }
+
         .rm-hero-desc {
             color: var(--gray-text);
             font-size: 1.05rem;
-            line-height: 1.7;
-            max-width: 600px;
-            margin-bottom: 2rem;
+            line-height: 1.75;
+            max-width: 520px;
+            margin-bottom: 2.5rem;
             opacity: 0;
             transform: translateY(12px);
             animation: heroFadeUp 0.6s ease 0.35s forwards;
@@ -90,32 +113,46 @@
             to { opacity: 1; transform: translateY(0); }
         }
 
-        /* ---- Hero counter strip ---- */
+        /* ---- Hero counter strip — unified panel ---- */
         .rm-hero-stats {
-            display: flex;
+            display: inline-flex;
             flex-wrap: wrap;
-            gap: 1rem;
-            margin-bottom: 2.25rem;
+            margin-bottom: 2rem;
             opacity: 0;
             transform: translateY(10px);
             animation: heroFadeUp 0.6s ease 0.5s forwards;
+            background: rgba(10,14,22,0.65);
+            border: 1px solid rgba(201,176,55,0.18);
+            border-radius: 18px;
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            overflow: hidden;
         }
 
         .rm-hero-stat {
-            background: rgba(10,14,22,0.7);
-            border: 1px solid rgba(201,176,55,0.15);
-            border-radius: 14px;
-            padding: 0.85rem 1.4rem;
             display: flex;
             flex-direction: column;
-            gap: 0.15rem;
-            min-width: 110px;
+            align-items: center;
+            justify-content: center;
+            gap: 0.25rem;
+            padding: 1.25rem 2rem;
+            position: relative;
+            text-align: center;
+        }
+
+        /* Vertical separator between stats */
+        .rm-hero-stat + .rm-hero-stat::before {
+            content: '';
+            position: absolute;
+            left: 0; top: 20%; height: 60%;
+            width: 1px;
+            background: rgba(201,176,55,0.18);
         }
 
         .rm-stat-num {
-            font-size: 1.7rem;
+            font-size: 2.2rem;
             font-weight: 900;
-            letter-spacing: -0.03em;
+            letter-spacing: -0.04em;
             background: linear-gradient(135deg, var(--primary-gold), var(--secondary-gold));
             -webkit-background-clip: text;
             background-clip: text;
@@ -124,18 +161,19 @@
         }
 
         .rm-stat-label {
-            font-size: 0.72rem;
-            font-weight: 600;
-            color: var(--gray-text);
+            font-size: 0.68rem;
+            font-weight: 700;
+            color: rgba(255,255,255,0.4);
             text-transform: uppercase;
-            letter-spacing: 0.06em;
+            letter-spacing: 0.1em;
+            white-space: nowrap;
         }
 
         /* ---- Legend badges ---- */
         .rm-legend {
             display: flex;
             flex-wrap: wrap;
-            gap: 0.65rem;
+            gap: 0.55rem;
             opacity: 0;
             transform: translateY(10px);
             animation: heroFadeUp 0.6s ease 0.65s forwards;
@@ -149,6 +187,7 @@
             font-weight: 600;
             padding: 0.3rem 0.8rem;
             border-radius: 20px;
+            white-space: nowrap;
         }
 
         .rm-legend-item.completed  { background: rgba(34,197,94,0.1);   border: 1px solid rgba(34,197,94,0.25);  color: #4ade80; }
@@ -156,7 +195,7 @@
         .rm-legend-item.soon       { background: rgba(96,165,250,0.1);  border: 1px solid rgba(96,165,250,0.25); color: #93c5fd; }
         .rm-legend-item.planned    { background: rgba(255,255,255,0.05);border: 1px solid rgba(255,255,255,0.12);color: rgba(255,255,255,0.55); }
 
-        .rm-legend-dot { width: 7px; height: 7px; border-radius: 50%; }
+        .rm-legend-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
         .completed  .rm-legend-dot { background: #4ade80; }
         .inprogress .rm-legend-dot { background: var(--primary-gold); animation: pulseGold 2s ease-in-out infinite; }
         .soon       .rm-legend-dot { background: #93c5fd; }
@@ -181,7 +220,7 @@
            FILTER TABS
         ================================================================ */
         .rm-filter-bar {
-            max-width: 860px;
+            max-width: 1100px;
             margin: 0 auto;
             padding: 2.5rem 2rem 0;
             display: flex;
@@ -205,7 +244,7 @@
 
         .rm-filter-btn:hover { color: var(--light-text); border-color: rgba(255,255,255,0.2); }
 
-        .rm-filter-btn.active-all     { background: rgba(255,255,255,0.08); border-color: rgba(255,255,255,0.25); color: var(--light-text); }
+        .rm-filter-btn.active-all        { background: rgba(255,255,255,0.08); border-color: rgba(255,255,255,0.25); color: var(--light-text); }
         .rm-filter-btn.active-completed  { background: rgba(34,197,94,0.12);   border-color: rgba(34,197,94,0.35);  color: #4ade80; }
         .rm-filter-btn.active-inprogress { background: rgba(201,176,55,0.12);  border-color: rgba(201,176,55,0.35); color: var(--primary-gold); }
         .rm-filter-btn.active-soon       { background: rgba(96,165,250,0.12);  border-color: rgba(96,165,250,0.35); color: #93c5fd; }
@@ -215,7 +254,7 @@
            PROGRESS BANNER
         ================================================================ */
         .rm-progress-wrap {
-            max-width: 860px;
+            max-width: 1100px;
             margin: 1.75rem auto 0;
             padding: 0 2rem;
         }
@@ -231,10 +270,7 @@
             flex-wrap: wrap;
         }
 
-        .rm-progress-meta {
-            flex: 1;
-            min-width: 180px;
-        }
+        .rm-progress-meta { flex: 1; min-width: 180px; }
 
         .rm-progress-title {
             font-size: 0.78rem;
@@ -243,10 +279,7 @@
             margin-bottom: 0.2rem;
         }
 
-        .rm-progress-sub {
-            font-size: 0.72rem;
-            color: var(--gray-text);
-        }
+        .rm-progress-sub { font-size: 0.72rem; color: var(--gray-text); }
 
         .rm-progress-sub .rm-ip-dot {
             display: inline-block;
@@ -258,10 +291,7 @@
             animation: pulseGold 2s ease-in-out infinite;
         }
 
-        .rm-progress-bar-wrap {
-            flex: 2;
-            min-width: 160px;
-        }
+        .rm-progress-bar-wrap { flex: 2; min-width: 160px; }
 
         .rm-progress-labels {
             display: flex;
@@ -295,185 +325,504 @@
         }
 
         /* ================================================================
-           TIMELINE
+           DECK SECTION
         ================================================================ */
-        .rm-timeline {
-            max-width: 860px;
+
+        /* ---- Keyframes ---- */
+        @keyframes deckCardIn {
+            from { opacity: 0; transform: translateY(22px) scale(0.95); }
+            to   { opacity: 1; transform: translateY(0) scale(1); }
+        }
+
+        @keyframes deckPop {
+            0%   { transform: translateY(0) scale(1); }
+            45%  { transform: translateY(-12px) scale(1.07); }
+            100% { transform: translateY(-8px) scale(1); }
+        }
+
+        @keyframes deckClose {
+            from { transform: translateY(-8px) scale(1); }
+            to   { transform: translateY(0) scale(1); }
+        }
+
+        @keyframes shimmerSweep {
+            0%   { background-position: -200% center; }
+            100% { background-position: 200% center; }
+        }
+
+        .rm-deck-section {
+            max-width: 1100px;
             margin: 0 auto;
-            padding: 3.5rem 2rem 6rem;
-            position: relative;
+            padding: 3rem 2rem 6rem;
         }
 
-        /* Real line element (replaces ::before) */
-        .rm-line-track {
-            position: absolute;
-            top: 3.5rem; bottom: 6rem;
-            left: calc(2rem + 24px);
-            width: 2px;
-            background: rgba(255,255,255,0.05);
-            border-radius: 2px;
-            overflow: hidden;
-        }
-
-        .rm-line-fill {
-            position: absolute;
-            top: 0; left: 0; right: 0;
-            height: 100%;
-            transform-origin: top center;
-            transform: scaleY(0);
-            background: linear-gradient(to bottom,
-                rgba(201,176,55,0.6),
-                rgba(201,176,55,0.15) 80%,
-                transparent
-            );
-            border-radius: 2px;
-        }
-
-        /* ---- Quarter group ---- */
-        .rm-quarter {
+        .rm-deck-row {
             display: flex;
-            gap: 2rem;
-            margin-bottom: 3rem;
+            flex-wrap: wrap;
+            gap: 1rem;
+            justify-content: center;
+        }
+
+        /* Hidden by filter */
+        .rm-deck-card.rm-hidden { display: none !important; }
+
+        /* ---- Individual deck card ---- */
+        .rm-deck-card {
             position: relative;
-            /* scroll-reveal start state */
-            opacity: 0;
-            transform: translateY(30px);
-            transition: opacity 0.6s ease, transform 0.6s ease;
-        }
-
-        .rm-quarter.is-visible {
-            opacity: 1;
-            transform: translateY(0);
-        }
-
-        /* hidden when filtered out */
-        .rm-quarter.rm-hidden {
-            opacity: 0 !important;
-            max-height: 0 !important;
-            margin-bottom: 0 !important;
-            padding: 0 !important;
-            overflow: hidden;
-            pointer-events: none;
-            transition: opacity 0.3s ease, max-height 0.4s ease, margin-bottom 0.4s ease;
-        }
-
-        /* Dot on the line */
-        .rm-quarter-dot {
-            flex-shrink: 0;
-            width: 50px;
+            border-radius: 18px;
+            padding: 1.4rem 1.5rem 1.2rem;
+            cursor: pointer;
+            flex: 1 1 150px;
+            max-width: 220px;
+            min-width: 140px;
+            user-select: none;
             display: flex;
             flex-direction: column;
-            align-items: center;
-            position: relative;
+            gap: 0.5rem;
+            overflow: hidden;
+            border-top: 3px solid transparent;
+            backdrop-filter: blur(14px);
+            -webkit-backdrop-filter: blur(14px);
+            /* entrance animation — delay set per-card via inline style */
+            animation: deckCardIn 0.55s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+            /* base transition for properties not covered by animations */
+            transition: border-color 0.25s, box-shadow 0.25s;
+        }
+
+        /* Shimmer overlay */
+        .rm-deck-card::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            border-radius: inherit;
+            background: linear-gradient(
+                105deg,
+                transparent 30%,
+                rgba(255,255,255,0.07) 50%,
+                transparent 70%
+            );
+            background-size: 200% 100%;
+            opacity: 0;
+            transition: opacity 0.35s ease;
+            pointer-events: none;
             z-index: 1;
         }
 
-        .rm-dot-ring {
-            width: 16px; height: 16px;
+        .rm-deck-card:hover::before {
+            opacity: 1;
+            animation: shimmerSweep 0.65s ease forwards;
+        }
+
+        /* Hover lift — only when NOT open (open state uses deckPop) */
+        .rm-deck-card:not(.is-open):hover {
+            box-shadow: 0 10px 32px rgba(0,0,0,0.35);
+        }
+
+        /* Pop-out on open */
+        .rm-deck-card.is-open {
+            animation: deckPop 0.38s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+        }
+
+        /* ---- Per-status glass backgrounds & accent bars ---- */
+        .rm-deck-card.completed {
+            background: linear-gradient(150deg, rgba(34,197,94,0.1) 0%, rgba(10,14,22,0.88) 55%);
+            border: 1px solid rgba(34,197,94,0.28);
+            border-top: 3px solid #4ade80;
+        }
+        .rm-deck-card.completed:not(.is-open):hover { border-color: rgba(34,197,94,0.45); }
+        .rm-deck-card.completed.is-open {
+            border-color: rgba(34,197,94,0.55);
+            box-shadow: 0 0 0 1px rgba(34,197,94,0.2), 0 22px 60px rgba(34,197,94,0.18);
+        }
+
+        .rm-deck-card.inprogress {
+            background: linear-gradient(150deg, rgba(201,176,55,0.12) 0%, rgba(10,14,22,0.88) 55%);
+            border: 1px solid rgba(201,176,55,0.32);
+            border-top: 3px solid var(--primary-gold);
+            box-shadow: 0 0 24px rgba(201,176,55,0.08);
+        }
+        .rm-deck-card.inprogress:not(.is-open):hover { border-color: rgba(201,176,55,0.5); }
+        .rm-deck-card.inprogress.is-open {
+            border-color: rgba(201,176,55,0.6);
+            box-shadow: 0 0 0 1px rgba(201,176,55,0.22), 0 22px 60px rgba(201,176,55,0.2);
+        }
+
+        .rm-deck-card.soon {
+            background: linear-gradient(150deg, rgba(96,165,250,0.09) 0%, rgba(10,14,22,0.88) 55%);
+            border: 1px solid rgba(96,165,250,0.22);
+            border-top: 3px solid #93c5fd;
+        }
+        .rm-deck-card.soon:not(.is-open):hover { border-color: rgba(96,165,250,0.42); }
+        .rm-deck-card.soon.is-open {
+            border-color: rgba(96,165,250,0.5);
+            box-shadow: 0 0 0 1px rgba(96,165,250,0.18), 0 22px 60px rgba(96,165,250,0.14);
+        }
+
+        .rm-deck-card.planned {
+            background: linear-gradient(150deg, rgba(255,255,255,0.04) 0%, rgba(10,14,22,0.88) 55%);
+            border: 1px solid rgba(255,255,255,0.12);
+            border-top: 3px solid rgba(255,255,255,0.3);
+        }
+        .rm-deck-card.planned:not(.is-open):hover { border-color: rgba(255,255,255,0.22); }
+        .rm-deck-card.planned.is-open {
+            border-color: rgba(255,255,255,0.28);
+            box-shadow: 0 0 0 1px rgba(255,255,255,0.08), 0 22px 60px rgba(0,0,0,0.3);
+        }
+
+        /* ---- Status dot — ring + fill style ---- */
+        .rm-deck-dot {
+            width: 10px; height: 10px;
             border-radius: 50%;
             border: 2px solid;
-            background: var(--dark-bg);
-            margin-top: 4px;
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            flex-shrink: 0;
+            position: relative;
+            z-index: 2;
         }
 
-        .rm-quarter:hover .rm-dot-ring { transform: scale(1.25); }
-
-        .rm-quarter.completed  .rm-dot-ring { border-color: #4ade80; background: rgba(34,197,94,0.2); }
-        .rm-quarter.inprogress .rm-dot-ring { border-color: var(--primary-gold); background: rgba(201,176,55,0.2); box-shadow: 0 0 0 4px rgba(201,176,55,0.12), 0 0 14px rgba(201,176,55,0.35); animation: ringPulse 2.5s ease-in-out infinite; }
-        .rm-quarter.soon       .rm-dot-ring { border-color: #93c5fd; background: rgba(96,165,250,0.1); }
-        .rm-quarter.planned    .rm-dot-ring { border-color: rgba(255,255,255,0.2); background: rgba(255,255,255,0.04); }
-
-        @keyframes ringPulse {
-            0%,100% { box-shadow: 0 0 0 0 rgba(201,176,55,0.35), 0 0 14px rgba(201,176,55,0.35); }
-            50%      { box-shadow: 0 0 0 6px rgba(201,176,55,0),  0 0 14px rgba(201,176,55,0.35); }
+        .rm-deck-card.completed  .rm-deck-dot {
+            border-color: #4ade80;
+            background: rgba(34,197,94,0.35);
+            box-shadow: 0 0 8px rgba(34,197,94,0.5);
+        }
+        .rm-deck-card.inprogress .rm-deck-dot {
+            border-color: var(--primary-gold);
+            background: rgba(201,176,55,0.3);
+            box-shadow: 0 0 10px rgba(201,176,55,0.65);
+            animation: pulseGold 2s ease-in-out infinite;
+        }
+        .rm-deck-card.soon .rm-deck-dot {
+            border-color: #93c5fd;
+            background: rgba(96,165,250,0.25);
+            box-shadow: 0 0 8px rgba(96,165,250,0.45);
+        }
+        .rm-deck-card.planned .rm-deck-dot {
+            border-color: rgba(255,255,255,0.3);
+            background: rgba(255,255,255,0.07);
         }
 
-        /* ---- Quarter content ---- */
-        .rm-quarter-body { flex: 1; padding-bottom: 0.5rem; }
-
-        .rm-quarter-header {
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-            margin-bottom: 1rem;
-        }
-
-        .rm-quarter-label {
-            font-size: 0.95rem;
-            font-weight: 800;
+        /* ---- Label ---- */
+        .rm-deck-label {
+            font-size: 1.05rem;
+            font-weight: 900;
             color: var(--light-text);
-            letter-spacing: -0.01em;
+            letter-spacing: -0.02em;
+            position: relative;
+            z-index: 2;
         }
 
+        /* ---- Status badge — shared between deck cards and fan header ---- */
         .rm-status-badge {
-            font-size: 0.68rem;
+            font-size: 0.7rem;
             font-weight: 700;
             letter-spacing: 0.08em;
             text-transform: uppercase;
-            padding: 0.2rem 0.65rem;
+            padding: 0.25rem 0.75rem;
             border-radius: 20px;
+            align-self: flex-start;
+            position: relative;
+            z-index: 2;
+            white-space: nowrap;
         }
 
-        .rm-quarter.completed  .rm-status-badge { background: rgba(34,197,94,0.12);   border: 1px solid rgba(34,197,94,0.25);  color: #4ade80; }
-        .rm-quarter.inprogress .rm-status-badge { background: rgba(201,176,55,0.12);  border: 1px solid rgba(201,176,55,0.3);  color: var(--primary-gold); }
-        .rm-quarter.soon       .rm-status-badge { background: rgba(96,165,250,0.1);   border: 1px solid rgba(96,165,250,0.25); color: #93c5fd; }
-        .rm-quarter.planned    .rm-status-badge { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.12);color: rgba(255,255,255,0.45); }
+        .rm-deck-card.completed  .rm-status-badge { background: rgba(34,197,94,0.14);   border: 1px solid rgba(34,197,94,0.3);   color: #4ade80; }
+        .rm-deck-card.inprogress .rm-status-badge { background: rgba(201,176,55,0.14);  border: 1px solid rgba(201,176,55,0.35); color: var(--primary-gold); }
+        .rm-deck-card.soon       .rm-status-badge { background: rgba(96,165,250,0.12);  border: 1px solid rgba(96,165,250,0.3);  color: #93c5fd; }
+        .rm-deck-card.planned    .rm-status-badge { background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.15);color: rgba(255,255,255,0.5); }
 
-        /* ---- Feature cards grid ---- */
-        .rm-features {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+        /* Fan header badge colours */
+        /* (status-badge theming for popout is defined in the POPOUT PANEL section below) */
+
+        /* ---- Card footer ---- */
+        .rm-deck-footer {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-top: auto;
+            padding-top: 0.65rem;
+            border-top: 1px solid rgba(255,255,255,0.07);
+            position: relative;
+            z-index: 2;
+        }
+
+        /* Feature count — colored per status */
+        .rm-deck-count {
+            font-size: 0.7rem;
+            font-weight: 700;
+            letter-spacing: 0.02em;
+        }
+        .rm-deck-card.completed  .rm-deck-count { color: rgba(74,222,128,0.75); }
+        .rm-deck-card.inprogress .rm-deck-count { color: rgba(201,176,55,0.75); }
+        .rm-deck-card.soon       .rm-deck-count { color: rgba(147,197,253,0.75); }
+        .rm-deck-card.planned    .rm-deck-count { color: rgba(255,255,255,0.4); }
+
+        .rm-deck-chevron {
+            font-size: 0.65rem;
+            color: rgba(255,255,255,0.25);
+            transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1), color 0.2s;
+        }
+
+        .rm-deck-card.is-open .rm-deck-chevron {
+            transform: rotate(180deg);
+            color: rgba(255,255,255,0.6);
+        }
+
+        /* Hidden pool of feature cards inside each deck card */
+        .rm-deck-features-pool { display: none; }
+
+        /* ================================================================
+           OVERLAY BACKDROP
+        ================================================================ */
+        .rm-overlay-backdrop {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(5, 8, 14, 0.65);
+            backdrop-filter: blur(4px);
+            -webkit-backdrop-filter: blur(4px);
+            z-index: 999;
+        }
+        .rm-overlay-backdrop.is-open {
+            display: block;
+            animation: backdropIn 0.25s ease forwards;
+        }
+
+        /* ================================================================
+           POPOUT PANEL
+        ================================================================ */
+        .rm-popout-panel {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(0.88);
+            width: min(900px, 92vw);
+            max-height: 82vh;
+            overflow: hidden;
+            border-radius: 22px;
+            background: rgba(10, 14, 22, 0.92);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            z-index: 1000;
+            transform-origin: center top;
+            flex-direction: column;
+        }
+
+        /* Top bar — holds close button, never scrolls */
+        .rm-popout-topbar {
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+            padding: 0.9rem 1rem 0;
+            flex-shrink: 0;
+        }
+
+        /* Scrollable content area */
+        .rm-popout-body {
+            overflow-y: auto;
+            padding: 0.5rem 2rem 2rem;
+            scrollbar-width: thin;
+            scrollbar-color: rgba(255,255,255,0.15) transparent;
+        }
+        .rm-popout-panel.is-open {
+            display: flex;
+            animation: popoutIn 0.38s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+        }
+        .rm-popout-panel.is-closing {
+            animation: popoutOut 0.22s ease forwards;
+        }
+
+        /* Status-colored top accent */
+        .rm-popout-panel.completed  { border-top: 3px solid #4ade80; }
+        .rm-popout-panel.inprogress { border-top: 3px solid var(--primary-gold); }
+        .rm-popout-panel.soon       { border-top: 3px solid #93c5fd; }
+        .rm-popout-panel.planned    { border-top: 3px solid rgba(255, 255, 255, 0.3); }
+
+        /* Close button */
+        .rm-popout-close {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            border: 1px solid rgba(255,255,255,0.15);
+            background: rgba(255,255,255,0.07);
+            color: rgba(255,255,255,0.6);
+            font-size: 0.85rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.18s, color 0.18s, border-color 0.18s;
+            flex-shrink: 0;
+        }
+        .rm-popout-close:hover {
+            background: rgba(255,255,255,0.15);
+            color: #fff;
+            border-color: rgba(255,255,255,0.3);
+        }
+
+        /* Status-badge theming inside popout */
+        .rm-popout-panel.completed  .rm-status-badge { background: rgba(34,197,94,0.14);   border: 1px solid rgba(34,197,94,0.3);   color: #4ade80; }
+        .rm-popout-panel.inprogress .rm-status-badge { background: rgba(201,176,55,0.14);  border: 1px solid rgba(201,176,55,0.35); color: var(--primary-gold); }
+        .rm-popout-panel.soon       .rm-status-badge { background: rgba(96,165,250,0.12);  border: 1px solid rgba(96,165,250,0.3);  color: #93c5fd; }
+        .rm-popout-panel.planned    .rm-status-badge { background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.15);color: rgba(255,255,255,0.5); }
+
+        /* Quarter header inside popout */
+        .rm-fan-quarter-header {
+            display: flex;
+            align-items: center;
             gap: 0.75rem;
-        }
-
-        .rm-feature-card {
-            background: rgba(10,14,22,0.7);
+            margin-bottom: 1.5rem;
+            padding: 1.1rem 1.25rem;
+            background: rgba(255,255,255,0.04);
             border: 1px solid rgba(255,255,255,0.07);
             border-radius: 12px;
-            padding: 1rem 1.1rem;
+        }
+
+        /* Coloured left accent on fan header — driven by popout panel status */
+        .rm-popout-panel.completed  .rm-fan-quarter-header { border-left: 3px solid #4ade80; }
+        .rm-popout-panel.inprogress .rm-fan-quarter-header { border-left: 3px solid var(--primary-gold); }
+        .rm-popout-panel.soon       .rm-fan-quarter-header { border-left: 3px solid #93c5fd; }
+        .rm-popout-panel.planned    .rm-fan-quarter-header { border-left: 3px solid rgba(255,255,255,0.3); }
+
+        .rm-fan-quarter-label {
+            font-size: 1.1rem;
+            font-weight: 900;
+            color: var(--light-text);
+            letter-spacing: -0.02em;
+        }
+
+        .rm-fan-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+            gap: 0.85rem;
+            padding: 0.25rem 0;
+        }
+
+        /* Coloured glow line above grid — driven by popout panel status */
+        .rm-popout-panel.completed  .rm-fan-grid { border-top: 1px solid rgba(34,197,94,0.15); padding-top: 1rem; }
+        .rm-popout-panel.inprogress .rm-fan-grid { border-top: 1px solid rgba(201,176,55,0.18); padding-top: 1rem; }
+        .rm-popout-panel.soon       .rm-fan-grid { border-top: 1px solid rgba(96,165,250,0.12); padding-top: 1rem; }
+        .rm-popout-panel.planned    .rm-fan-grid { border-top: 1px solid rgba(255,255,255,0.06); padding-top: 1rem; }
+
+        /* Popout animations */
+        @keyframes popoutIn {
+            from { opacity: 0; transform: translate(-50%, -48%) scale(0.88); }
+            to   { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+        }
+        @keyframes popoutOut {
+            from { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+            to   { opacity: 0; transform: translate(-50%, -48%) scale(0.92); }
+        }
+        @keyframes backdropIn {
+            from { opacity: 0; }
+            to   { opacity: 1; }
+        }
+
+        /* ================================================================
+           FEATURE CARDS
+        ================================================================ */
+        .rm-feature-card {
+            background: rgba(10,14,22,0.75);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 13px;
+            padding: 1.1rem 1.2rem;
             cursor: pointer;
-            transition: border-color 0.2s, transform 0.2s, box-shadow 0.2s;
             position: relative;
             user-select: none;
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            overflow: hidden;
+            /* Fan entrance start state */
+            opacity: 0;
+            transform: translateY(28px) scale(0.93);
         }
 
-        .rm-feature-card:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+        /* Shimmer on feature cards */
+        .rm-feature-card::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            border-radius: inherit;
+            background: linear-gradient(
+                110deg,
+                transparent 30%,
+                rgba(255,255,255,0.05) 50%,
+                transparent 70%
+            );
+            background-size: 200% 100%;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            pointer-events: none;
         }
 
-        .rm-quarter.completed  .rm-feature-card { border-color: rgba(34,197,94,0.15); }
-        .rm-quarter.completed  .rm-feature-card:hover { border-color: rgba(34,197,94,0.4); }
-        .rm-quarter.inprogress .rm-feature-card { border-color: rgba(201,176,55,0.2); }
-        .rm-quarter.inprogress .rm-feature-card:hover { border-color: rgba(201,176,55,0.5); }
-        .rm-quarter.soon       .rm-feature-card { border-color: rgba(96,165,250,0.15); }
-        .rm-quarter.soon       .rm-feature-card:hover { border-color: rgba(96,165,250,0.4); }
-        .rm-quarter.planned    .rm-feature-card:hover { border-color: rgba(255,255,255,0.2); }
+        .rm-feature-card.fan-visible {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+            transition: opacity 0.4s ease,
+                        transform 0.48s cubic-bezier(0.34, 1.56, 0.64, 1),
+                        border-color 0.2s,
+                        box-shadow 0.22s;
+        }
 
-        /* card expand state */
-        .rm-feature-card.expanded { box-shadow: 0 10px 30px rgba(0,0,0,0.35); }
-        .rm-quarter.completed  .rm-feature-card.expanded { border-color: rgba(34,197,94,0.45); }
-        .rm-quarter.inprogress .rm-feature-card.expanded { border-color: rgba(201,176,55,0.55); }
-        .rm-quarter.soon       .rm-feature-card.expanded { border-color: rgba(96,165,250,0.45); }
+        .rm-feature-card.fan-visible:hover {
+            transform: translateY(-5px) scale(1.01);
+        }
 
-        /* card top row */
+        .rm-feature-card.fan-visible:hover::before { opacity: 1; }
+
+        /* Status-tinted glass backgrounds per status */
+        .rm-popout-panel.completed  .rm-feature-card {
+            border-color: rgba(34,197,94,0.18);
+            background: linear-gradient(145deg, rgba(34,197,94,0.06) 0%, rgba(10,14,22,0.8) 60%);
+        }
+        .rm-popout-panel.completed  .rm-feature-card.fan-visible:hover {
+            border-color: rgba(34,197,94,0.45);
+            box-shadow: 0 10px 30px rgba(34,197,94,0.1);
+        }
+        .rm-popout-panel.inprogress .rm-feature-card {
+            border-color: rgba(201,176,55,0.22);
+            background: linear-gradient(145deg, rgba(201,176,55,0.07) 0%, rgba(10,14,22,0.8) 60%);
+        }
+        .rm-popout-panel.inprogress .rm-feature-card.fan-visible:hover {
+            border-color: rgba(201,176,55,0.5);
+            box-shadow: 0 10px 30px rgba(201,176,55,0.1);
+        }
+        .rm-popout-panel.soon .rm-feature-card {
+            border-color: rgba(96,165,250,0.18);
+            background: linear-gradient(145deg, rgba(96,165,250,0.06) 0%, rgba(10,14,22,0.8) 60%);
+        }
+        .rm-popout-panel.soon .rm-feature-card.fan-visible:hover {
+            border-color: rgba(96,165,250,0.45);
+            box-shadow: 0 10px 30px rgba(96,165,250,0.1);
+        }
+        .rm-popout-panel.planned .rm-feature-card.fan-visible:hover {
+            border-color: rgba(255,255,255,0.22);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+
+        /* Expanded state */
+        .rm-feature-card.expanded { box-shadow: 0 12px 32px rgba(0,0,0,0.4); }
+        .rm-popout-panel.completed  .rm-feature-card.expanded { border-color: rgba(34,197,94,0.5); }
+        .rm-popout-panel.inprogress .rm-feature-card.expanded { border-color: rgba(201,176,55,0.55); }
+        .rm-popout-panel.soon       .rm-feature-card.expanded { border-color: rgba(96,165,250,0.5); }
+
+        /* Card top row */
         .rm-card-top {
             display: flex;
             align-items: flex-start;
             justify-content: space-between;
             gap: 0.5rem;
             margin-bottom: 0.5rem;
+            position: relative;
+            z-index: 1;
         }
 
-        .rm-feature-icon {
-            font-size: 1rem;
-        }
+        .rm-feature-icon { font-size: 1.05rem; }
 
-        .rm-quarter.completed  .rm-feature-icon { color: #4ade80; }
-        .rm-quarter.inprogress .rm-feature-icon { color: var(--primary-gold); }
-        .rm-quarter.soon       .rm-feature-icon { color: #93c5fd; }
-        .rm-quarter.planned    .rm-feature-icon { color: rgba(255,255,255,0.3); }
+        .rm-popout-panel.completed  .rm-feature-icon { color: #4ade80; }
+        .rm-popout-panel.inprogress .rm-feature-icon { color: var(--primary-gold); }
+        .rm-popout-panel.soon       .rm-feature-icon { color: #93c5fd; }
+        .rm-popout-panel.planned    .rm-feature-icon { color: rgba(255,255,255,0.3); }
 
         .rm-card-chevron {
             font-size: 0.65rem;
@@ -483,34 +832,40 @@
             margin-top: 2px;
         }
 
-        .rm-feature-card.expanded .rm-card-chevron { transform: rotate(180deg); color: rgba(255,255,255,0.5); }
+        .rm-feature-card.expanded .rm-card-chevron { transform: rotate(180deg); color: rgba(255,255,255,0.55); }
 
         .rm-feature-name {
             font-size: 0.88rem;
             font-weight: 700;
             color: var(--light-text);
             margin-bottom: 0.25rem;
+            position: relative;
+            z-index: 1;
         }
 
         .rm-feature-desc {
             font-size: 0.78rem;
             color: var(--gray-text);
             line-height: 1.5;
+            position: relative;
+            z-index: 1;
         }
 
-        /* Completed check */
+        /* Completed check mark */
         .rm-feature-card.is-done .rm-feature-name::after {
             content: ' ✓';
             color: #4ade80;
             font-size: 0.8rem;
         }
 
-        /* Expandable detail */
+        /* Expandable detail panel */
         .rm-card-detail {
             max-height: 0;
             overflow: hidden;
             transition: max-height 0.35s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.3s ease;
             opacity: 0;
+            position: relative;
+            z-index: 1;
         }
 
         .rm-feature-card.expanded .rm-card-detail {
@@ -601,14 +956,19 @@
         @media (max-width: 768px) {
             .rm-hero { padding: 7rem 1.25rem 3rem; }
             .rm-filter-bar, .rm-progress-wrap { padding-left: 1.25rem; padding-right: 1.25rem; }
-            .rm-timeline { padding: 3rem 1.25rem 4rem; }
-            .rm-line-track { left: calc(1.25rem + 24px); }
-            .rm-features { grid-template-columns: 1fr; }
-            .rm-quarter { gap: 1.25rem; }
+            .rm-deck-section { padding: 2rem 1.25rem 4rem; }
+            .rm-deck-row { gap: 0.65rem; }
+            .rm-deck-card { flex: 1 1 125px; max-width: 180px; min-width: 115px; padding: 1.1rem 1.1rem 1rem; }
+            .rm-deck-label { font-size: 0.9rem; }
+            .rm-fan-grid { grid-template-columns: 1fr; padding: 0.75rem 0; }
+            .rm-fan-quarter-header { padding: 1rem 1.1rem; }
+            .rm-popout-panel { border-radius: 16px; max-height: 88vh; }
+            .rm-popout-body { padding: 0.5rem 1.1rem 1.5rem; }
             .rm-cta { padding: 0 1.25rem 4rem; }
-            .rm-hero-stats { gap: 0.65rem; }
-            .rm-hero-stat { padding: 0.7rem 1rem; min-width: 90px; }
-            .rm-stat-num { font-size: 1.35rem; }
+            .rm-hero-stats { display: flex; width: 100%; }
+            .rm-hero-stat { padding: 0.9rem 0; flex: 1; }
+            .rm-stat-num { font-size: 1.5rem; }
+            .rm-stat-label { font-size: 0.6rem; }
         }
     </style>
 </head>
@@ -628,15 +988,15 @@
             <!-- Animated stat counters -->
             <div class="rm-hero-stats">
                 <div class="rm-hero-stat">
-                    <span class="rm-stat-num" data-target="6">0</span>
+                    <span class="rm-stat-num" id="stat-signal-channels" data-target="6">0</span>
                     <span class="rm-stat-label">Signal Channels</span>
                 </div>
                 <div class="rm-hero-stat">
-                    <span class="rm-stat-num" data-target="13">0</span>
+                    <span class="rm-stat-num" id="stat-educational-guides" data-target="13">0</span>
                     <span class="rm-stat-label">Educational Guides</span>
                 </div>
                 <div class="rm-hero-stat">
-                    <span class="rm-stat-num" data-target="7">0</span>
+                    <span class="rm-stat-num" id="stat-roadmap-phases" data-target="7">0</span>
                     <span class="rm-stat-label">Roadmap Phases</span>
                 </div>
                 <div class="rm-hero-stat">
@@ -687,26 +1047,23 @@
         </div>
     </div>
 
-    <!-- ======================== TIMELINE ======================== -->
-    <div class="rm-timeline" id="rm-timeline">
+    <!-- ======================== DECK SECTION ======================== -->
+    <div class="rm-deck-section" id="rm-deck-section">
+        <div class="rm-deck-row" id="rm-deck-row">
 
-        <!-- Animated draw line -->
-        <div class="rm-line-track">
-            <div class="rm-line-fill" id="rm-line-fill"></div>
-        </div>
+            <!-- Hardcoded milestones -->
+            <div id="rm-hardcoded-milestones" style="display:contents">
 
-        <!-- Hardcoded milestones — hidden once Firestore data is seeded -->
-        <div id="rm-hardcoded-milestones">
-
-        <!-- Launched — completed -->
-        <div class="rm-quarter completed" data-filter="completed">
-            <div class="rm-quarter-dot"><div class="rm-dot-ring"></div></div>
-            <div class="rm-quarter-body">
-                <div class="rm-quarter-header">
-                    <span class="rm-quarter-label">Launched</span>
-                    <span class="rm-status-badge">Completed</span>
+            <!-- Launched — completed -->
+            <div class="rm-deck-card completed" data-filter="completed">
+                <div class="rm-deck-dot"></div>
+                <span class="rm-deck-label">Launched</span>
+                <span class="rm-status-badge">Completed</span>
+                <div class="rm-deck-footer">
+                    <span class="rm-deck-count">5 features</span>
+                    <i class="fas fa-chevron-down rm-deck-chevron"></i>
                 </div>
-                <div class="rm-features">
+                <div class="rm-deck-features-pool">
                     <div class="rm-feature-card is-done">
                         <div class="rm-card-top">
                             <div class="rm-feature-icon"><i class="fas fa-chart-line"></i></div>
@@ -759,22 +1116,22 @@
                         <div class="rm-feature-name">Member Dashboard</div>
                         <div class="rm-feature-desc">Portfolio overview, Fear &amp; Greed gauge &amp; live economic indicators.</div>
                         <div class="rm-card-detail">
-                            <div class="rm-card-detail-inner">Real-time Fear & Greed gauge, live CPI/PPI economic data from the BLS API, and a full portfolio overview with win rate and P/L stats — all in one place.</div>
+                            <div class="rm-card-detail-inner">Real-time Fear &amp; Greed gauge, live CPI/PPI economic data from the BLS API, and a full portfolio overview with win rate and P/L stats — all in one place.</div>
                         </div>
                     </div>
                 </div>
             </div>
-        </div>
 
-        <!-- Q1 2026 — In Progress -->
-        <div class="rm-quarter inprogress" data-filter="inprogress">
-            <div class="rm-quarter-dot"><div class="rm-dot-ring"></div></div>
-            <div class="rm-quarter-body">
-                <div class="rm-quarter-header">
-                    <span class="rm-quarter-label">Q1 2026</span>
-                    <span class="rm-status-badge">In Progress</span>
+            <!-- Q1 2026 — In Progress -->
+            <div class="rm-deck-card inprogress" data-filter="inprogress">
+                <div class="rm-deck-dot"></div>
+                <span class="rm-deck-label">Q1 2026</span>
+                <span class="rm-status-badge">In Progress</span>
+                <div class="rm-deck-footer">
+                    <span class="rm-deck-count">3 features</span>
+                    <i class="fas fa-chevron-down rm-deck-chevron"></i>
                 </div>
-                <div class="rm-features">
+                <div class="rm-deck-features-pool">
                     <div class="rm-feature-card">
                         <div class="rm-card-top">
                             <div class="rm-feature-icon"><i class="fas fa-calendar-days"></i></div>
@@ -810,17 +1167,17 @@
                     </div>
                 </div>
             </div>
-        </div>
 
-        <!-- Q2 2026 — Coming Soon -->
-        <div class="rm-quarter soon" data-filter="soon">
-            <div class="rm-quarter-dot"><div class="rm-dot-ring"></div></div>
-            <div class="rm-quarter-body">
-                <div class="rm-quarter-header">
-                    <span class="rm-quarter-label">Q2 2026</span>
-                    <span class="rm-status-badge">Coming Soon</span>
+            <!-- Q2 2026 — Coming Soon -->
+            <div class="rm-deck-card soon" data-filter="soon">
+                <div class="rm-deck-dot"></div>
+                <span class="rm-deck-label">Q2 2026</span>
+                <span class="rm-status-badge">Coming Soon</span>
+                <div class="rm-deck-footer">
+                    <span class="rm-deck-count">3 features</span>
+                    <i class="fas fa-chevron-down rm-deck-chevron"></i>
                 </div>
-                <div class="rm-features">
+                <div class="rm-deck-features-pool">
                     <div class="rm-feature-card">
                         <div class="rm-card-top">
                             <div class="rm-feature-icon"><i class="fas fa-bell"></i></div>
@@ -856,17 +1213,17 @@
                     </div>
                 </div>
             </div>
-        </div>
 
-        <!-- Q3 2026 — Planned -->
-        <div class="rm-quarter planned" data-filter="planned">
-            <div class="rm-quarter-dot"><div class="rm-dot-ring"></div></div>
-            <div class="rm-quarter-body">
-                <div class="rm-quarter-header">
-                    <span class="rm-quarter-label">Q3 2026</span>
-                    <span class="rm-status-badge">Planned</span>
+            <!-- Q3 2026 — Planned -->
+            <div class="rm-deck-card planned" data-filter="planned">
+                <div class="rm-deck-dot"></div>
+                <span class="rm-deck-label">Q3 2026</span>
+                <span class="rm-status-badge">Planned</span>
+                <div class="rm-deck-footer">
+                    <span class="rm-deck-count">3 features</span>
+                    <i class="fas fa-chevron-down rm-deck-chevron"></i>
                 </div>
-                <div class="rm-features">
+                <div class="rm-deck-features-pool">
                     <div class="rm-feature-card">
                         <div class="rm-card-top">
                             <div class="rm-feature-icon"><i class="fas fa-water"></i></div>
@@ -902,17 +1259,17 @@
                     </div>
                 </div>
             </div>
-        </div>
 
-        <!-- Q4 2026 — Planned -->
-        <div class="rm-quarter planned" data-filter="planned">
-            <div class="rm-quarter-dot"><div class="rm-dot-ring"></div></div>
-            <div class="rm-quarter-body">
-                <div class="rm-quarter-header">
-                    <span class="rm-quarter-label">Q4 2026</span>
-                    <span class="rm-status-badge">Planned</span>
+            <!-- Q4 2026 — Planned -->
+            <div class="rm-deck-card planned" data-filter="planned">
+                <div class="rm-deck-dot"></div>
+                <span class="rm-deck-label">Q4 2026</span>
+                <span class="rm-status-badge">Planned</span>
+                <div class="rm-deck-footer">
+                    <span class="rm-deck-count">3 features</span>
+                    <i class="fas fa-chevron-down rm-deck-chevron"></i>
                 </div>
-                <div class="rm-features">
+                <div class="rm-deck-features-pool">
                     <div class="rm-feature-card">
                         <div class="rm-card-top">
                             <div class="rm-feature-icon"><i class="fas fa-brain"></i></div>
@@ -948,17 +1305,17 @@
                     </div>
                 </div>
             </div>
-        </div>
 
-        <!-- Q1 2027 — Planned -->
-        <div class="rm-quarter planned" data-filter="planned">
-            <div class="rm-quarter-dot"><div class="rm-dot-ring"></div></div>
-            <div class="rm-quarter-body">
-                <div class="rm-quarter-header">
-                    <span class="rm-quarter-label">Q1 2027</span>
-                    <span class="rm-status-badge">Planned</span>
+            <!-- Q1 2027 — Planned -->
+            <div class="rm-deck-card planned" data-filter="planned">
+                <div class="rm-deck-dot"></div>
+                <span class="rm-deck-label">Q1 2027</span>
+                <span class="rm-status-badge">Planned</span>
+                <div class="rm-deck-footer">
+                    <span class="rm-deck-count">3 features</span>
+                    <i class="fas fa-chevron-down rm-deck-chevron"></i>
                 </div>
-                <div class="rm-features">
+                <div class="rm-deck-features-pool">
                     <div class="rm-feature-card">
                         <div class="rm-card-top">
                             <div class="rm-feature-icon"><i class="fas fa-link"></i></div>
@@ -994,17 +1351,17 @@
                     </div>
                 </div>
             </div>
-        </div>
 
-        <!-- Q2 2027 — Planned -->
-        <div class="rm-quarter planned" data-filter="planned">
-            <div class="rm-quarter-dot"><div class="rm-dot-ring"></div></div>
-            <div class="rm-quarter-body">
-                <div class="rm-quarter-header">
-                    <span class="rm-quarter-label">Q2 2027</span>
-                    <span class="rm-status-badge">Planned</span>
+            <!-- Q2 2027 — Planned -->
+            <div class="rm-deck-card planned" data-filter="planned">
+                <div class="rm-deck-dot"></div>
+                <span class="rm-deck-label">Q2 2027</span>
+                <span class="rm-status-badge">Planned</span>
+                <div class="rm-deck-footer">
+                    <span class="rm-deck-count">3 features</span>
+                    <i class="fas fa-chevron-down rm-deck-chevron"></i>
                 </div>
-                <div class="rm-features">
+                <div class="rm-deck-features-pool">
                     <div class="rm-feature-card">
                         <div class="rm-card-top">
                             <div class="rm-feature-icon"><i class="fab fa-apple"></i></div>
@@ -1040,14 +1397,31 @@
                     </div>
                 </div>
             </div>
+
+            </div><!-- end #rm-hardcoded-milestones -->
+
+            <!-- Firestore-rendered deck cards (replaces hardcoded when seeded) -->
+            <div id="rm-firestore-milestones" style="display:contents"></div>
+
+        </div><!-- end .rm-deck-row -->
+
+    </div><!-- end .rm-deck-section -->
+
+    <!-- Dim backdrop — click to close -->
+    <div id="rm-overlay-backdrop" class="rm-overlay-backdrop"></div>
+
+    <!-- Floating popout panel -->
+    <div id="rm-popout-panel" class="rm-popout-panel">
+        <div class="rm-popout-topbar">
+            <button class="rm-popout-close" id="rm-popout-close" aria-label="Close">
+                <i class="fas fa-xmark"></i>
+            </button>
         </div>
-
-        </div><!-- end #rm-hardcoded-milestones -->
-
-        <!-- All milestones from Firestore rendered here (replaces hardcoded when seeded) -->
-        <div id="rm-firestore-milestones"></div>
-
-    </div><!-- end .rm-timeline -->
+        <div class="rm-popout-body">
+            <div class="rm-fan-quarter-header" id="rm-fan-quarter-header"></div>
+            <div class="rm-fan-grid" id="rm-fan-grid"></div>
+        </div>
+    </div>
 
     <!-- ======================== CTA ======================== -->
     <div class="rm-cta">
@@ -1064,7 +1438,7 @@
     <!-- Milestones from Firestore — replaces hardcoded set once admin seeds -->
     <script type="module">
         import { db, collection, getDocs, query } from './assets/js/firebase-config.js';
-        import { orderBy } from 'https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js';
+        import { orderBy, getDoc, doc } from 'https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js';
 
         const STATUS_BADGE = {
             completed:  'Completed',
@@ -1075,9 +1449,7 @@
 
         function resolveIcon(raw) {
             if (!raw) return 'fas fa-star';
-            // already has a valid prefix (fas, fab, far, fal, fat)
             if (/^fa[bsrlt] /.test(raw)) return raw;
-            // strip any stray prefix and default to fas
             return 'fas ' + raw.replace(/^fa[bsrlt]?\s*/, '');
         }
 
@@ -1085,6 +1457,7 @@
             const statusClass = m.status || 'planned';
             const badge       = STATUS_BADGE[statusClass] || 'Planned';
             const isDone      = statusClass === 'completed';
+            const count       = (m.features || []).length;
 
             const featureCards = (m.features || []).map(f => {
                 const iconClass = resolveIcon(f.icon);
@@ -1104,60 +1477,73 @@
             }).join('');
 
             return `
-            <div class="rm-quarter ${statusClass}" data-filter="${statusClass}">
-                <div class="rm-quarter-dot"><div class="rm-dot-ring"></div></div>
-                <div class="rm-quarter-body">
-                    <div class="rm-quarter-header">
-                        <span class="rm-quarter-label">${m.label || 'Milestone'}</span>
-                        <span class="rm-status-badge">${badge}</span>
-                    </div>
-                    <div class="rm-features">${featureCards}</div>
+            <div class="rm-deck-card ${statusClass}" data-filter="${statusClass}">
+                <div class="rm-deck-dot"></div>
+                <span class="rm-deck-label">${m.label || 'Milestone'}</span>
+                <span class="rm-status-badge">${badge}</span>
+                <div class="rm-deck-footer">
+                    <span class="rm-deck-count">${count} feature${count !== 1 ? 's' : ''}</span>
+                    <i class="fas fa-chevron-down rm-deck-chevron"></i>
                 </div>
+                <div class="rm-deck-features-pool">${featureCards}</div>
             </div>`;
         }
 
-        function bindQuarters(container) {
-            /* Scroll-reveal */
-            const observer = new IntersectionObserver(function (entries) {
-                entries.forEach(function (entry) {
-                    if (entry.isIntersecting) {
-                        entry.target.classList.add('is-visible');
-                        observer.unobserve(entry.target);
-                    }
-                });
-            }, { threshold: 0.12 });
-            container.querySelectorAll('.rm-quarter').forEach(q => observer.observe(q));
+        function bindFirestoreCards(container) {
+            /* Re-apply active filter if one is set */
+            const activeBtn = document.querySelector('.rm-filter-btn[class*="active-"]');
+            if (activeBtn) {
+                const f = activeBtn.getAttribute('data-filter');
+                if (f && f !== 'all') {
+                    container.querySelectorAll('.rm-deck-card').forEach(function (card) {
+                        if (card.getAttribute('data-filter') !== f) card.classList.add('rm-hidden');
+                    });
+                }
+            }
+        }
 
-            /* Accordion */
-            container.querySelectorAll('.rm-feature-card').forEach(function (card) {
-                card.addEventListener('click', function () {
-                    var wasExpanded = card.classList.contains('expanded');
-                    var parent = card.closest('.rm-quarter');
-                    if (parent) parent.querySelectorAll('.rm-feature-card.expanded').forEach(c => c.classList.remove('expanded'));
-                    if (!wasExpanded) card.classList.add('expanded');
-                });
-            });
+        /* Update a hero stat counter with a new value and re-animate */
+        function updateHeroStat(id, value) {
+            const el = document.getElementById(id);
+            if (!el) return;
+            el.setAttribute('data-target', value);
+            el.textContent = '0';
+            /* Trigger the counter animation — defined in the inline script below */
+            if (window._bcsAnimateCounter) window._bcsAnimateCounter(el);
+        }
+
+        async function loadSiteStats() {
+            try {
+                const snap = await getDoc(doc(db, 'site_config', 'stats'));
+                if (!snap.exists()) return;
+                const data = snap.data();
+                if (data.signalChannels)    updateHeroStat('stat-signal-channels',    data.signalChannels);
+                if (data.educationalGuides) updateHeroStat('stat-educational-guides', data.educationalGuides);
+            } catch (e) {
+                console.warn('[BCS Roadmap] Could not load site stats:', e);
+            }
         }
 
         async function loadFirestoreMilestones() {
             try {
                 const q    = query(collection(db, 'roadmap_milestones'), orderBy('order', 'asc'));
                 const snap = await getDocs(q);
-                if (snap.empty) return; // Firestore not seeded yet — keep hardcoded
+                if (snap.empty) return;
 
-                /* Hide hardcoded, show Firestore milestones */
                 const hardcoded = document.getElementById('rm-hardcoded-milestones');
                 const container = document.getElementById('rm-firestore-milestones');
                 if (!container) return;
 
                 if (hardcoded) hardcoded.style.display = 'none';
                 container.innerHTML = snap.docs.map(d => buildMilestoneHTML(d.data())).join('');
-                bindQuarters(container);
+                bindFirestoreCards(container);
 
-                /* Update ALL progress bar elements from real Firestore data */
+                /* Update Roadmap Phases hero stat from real data */
+                updateHeroStat('stat-roadmap-phases', snap.docs.length);
+
+                /* Update progress bar from real Firestore data */
                 const totalPhases     = snap.docs.length;
                 const completedPhases = snap.docs.filter(d => d.data().status === 'completed').length;
-                const inProgressPhases = snap.docs.filter(d => d.data().status === 'in-progress').length;
                 const remainingPhases = totalPhases - completedPhases;
                 const pct = totalPhases > 0 ? Math.round((completedPhases / totalPhases) * 100) : 0;
 
@@ -1167,28 +1553,19 @@
                 const complLabel = document.getElementById('rm-progress-complete-label');
                 const remLabel   = document.getElementById('rm-progress-remaining-label');
 
-                if (fillEl)     fillEl.style.width  = pct + '%';
-                if (pctEl)      pctEl.textContent   = pct + '%';
+                if (fillEl)     fillEl.style.width    = pct + '%';
+                if (pctEl)      pctEl.textContent      = pct + '%';
                 if (complLabel) complLabel.textContent = completedPhases + (completedPhases === 1 ? ' phase complete' : ' phases complete');
                 if (remLabel)   remLabel.textContent   = remainingPhases + ' remaining';
                 if (subText)    subText.textContent    = 'Phase ' + (completedPhases + 1) + ' of ' + totalPhases + ' active';
 
-                /* Re-apply active filter if one is set */
-                const activeBtn = document.querySelector('.rm-filter-btn[class*="active-"]');
-                if (activeBtn) {
-                    const f = activeBtn.getAttribute('data-filter');
-                    if (f && f !== 'all') {
-                        container.querySelectorAll('.rm-quarter').forEach(function (q) {
-                            if (q.getAttribute('data-filter') !== f) q.classList.add('rm-hidden');
-                        });
-                    }
-                }
             } catch (e) {
                 console.warn('[BCS Roadmap] Could not load milestones:', e);
             }
         }
 
         loadFirestoreMilestones();
+        loadSiteStats();
     </script>
 
     <script>
@@ -1199,9 +1576,9 @@
            1. ANIMATED HERO COUNTERS
         ================================================================ */
         function animateCounter(el) {
-            var target = parseInt(el.getAttribute('data-target'), 10);
+            var target   = parseInt(el.getAttribute('data-target'), 10);
             var duration = target >= 1000 ? 1600 : 1000;
-            var start = null;
+            var start    = null;
 
             function ease(t) { return t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t; }
 
@@ -1209,7 +1586,7 @@
                 if (!start) start = timestamp;
                 var progress = Math.min((timestamp - start) / duration, 1);
                 var val = Math.round(ease(progress) * target);
-                    el.textContent = el.hasAttribute('data-no-format') ? val : val.toLocaleString();
+                el.textContent = el.hasAttribute('data-no-format') ? val : val.toLocaleString();
                 if (progress < 1) requestAnimationFrame(step);
                 else el.textContent = el.hasAttribute('data-no-format') ? target : target.toLocaleString();
             }
@@ -1217,60 +1594,137 @@
             requestAnimationFrame(step);
         }
 
-        /* Run counters once hero animation delay clears */
+        /* Expose for the Firestore module script to re-trigger on dynamic updates */
+        window._bcsAnimateCounter = animateCounter;
+
         setTimeout(function () {
             document.querySelectorAll('.rm-stat-num[data-target]').forEach(animateCounter);
         }, 700);
 
         /* ================================================================
-           2. PROGRESS BAR — driven entirely by Firestore (see module script)
-           The fill and labels are set once Firestore resolves. No hardcoded values.
+           2. DECK CARD ENTRANCE — stagger animation delays
+        ================================================================ */
+        document.querySelectorAll('.rm-deck-card').forEach(function (card, i) {
+            card.style.animationDelay = (i * 0.07) + 's';
+        });
+
+        /* ================================================================
+           3. PROGRESS BAR — driven by Firestore module script above
         ================================================================ */
 
         /* ================================================================
-           3. SCROLL-REVEAL with IntersectionObserver
+           4. DECK CARDS — click to pop out feature cards in overlay
         ================================================================ */
-        var quarters = Array.from(document.querySelectorAll('.rm-quarter'));
+        var popoutPanel  = document.getElementById('rm-popout-panel');
+        var popoutClose  = document.getElementById('rm-popout-close');
+        var backdrop     = document.getElementById('rm-overlay-backdrop');
+        var fanGrid      = document.getElementById('rm-fan-grid');
+        var fanHeader    = document.getElementById('rm-fan-quarter-header');
+        var openCard     = null;
+        var closingTimer = null;
 
-        var revealObserver = new IntersectionObserver(function (entries) {
-            entries.forEach(function (entry) {
-                if (entry.isIntersecting) {
-                    /* Stagger based on index among visible siblings */
-                    var idx = quarters.indexOf(entry.target);
-                    var visibleBefore = quarters.slice(0, idx).filter(function (q) {
-                        return !q.classList.contains('rm-hidden');
-                    }).length;
-                    entry.target.style.transitionDelay = (visibleBefore % 3 * 0.1) + 's';
-                    entry.target.classList.add('is-visible');
-                    revealObserver.unobserve(entry.target);
-                }
-            });
-        }, { threshold: 0.12 });
+        function closeFan() {
+            if (!openCard) return;
+            openCard.classList.remove('is-open');
+            openCard = null;
 
-        quarters.forEach(function (q) { revealObserver.observe(q); });
+            /* Animate out */
+            popoutPanel.classList.add('is-closing');
+            backdrop.classList.remove('is-open');
 
-        /* ================================================================
-           4. DRAWING TIMELINE LINE ON SCROLL
-        ================================================================ */
-        var lineTrack = document.querySelector('.rm-line-track');
-        var lineFill  = document.getElementById('rm-line-fill');
-        var timeline  = document.getElementById('rm-timeline');
-
-        function updateLine() {
-            if (!lineTrack || !lineFill || !timeline) return;
-            var trackRect  = lineTrack.getBoundingClientRect();
-            var trackTop   = trackRect.top + window.scrollY;
-            var trackH     = lineTrack.offsetHeight;
-            /* Line should be "filled" to wherever the bottom-center of the viewport is */
-            var viewBottom = window.scrollY + window.innerHeight * 0.75;
-            var pct = Math.max(0, Math.min(1, (viewBottom - trackTop) / trackH));
-            lineFill.style.transform = 'scaleY(' + pct + ')';
+            clearTimeout(closingTimer);
+            closingTimer = setTimeout(function () {
+                popoutPanel.className = 'rm-popout-panel';
+                fanGrid.innerHTML = '';
+                fanHeader.innerHTML = '';
+            }, 220);
         }
 
-        window.addEventListener('scroll', updateLine, { passive: true });
-        window.addEventListener('resize', updateLine, { passive: true });
-        /* Initial call after paint */
-        setTimeout(updateLine, 200);
+        function openFan(card) {
+            /* Toggle closed if already open */
+            if (openCard === card) { closeFan(); return; }
+
+            /* If something else is open, close it instantly before re-opening */
+            if (openCard) {
+                openCard.classList.remove('is-open');
+                clearTimeout(closingTimer);
+                popoutPanel.className = 'rm-popout-panel';
+                fanGrid.innerHTML = '';
+                fanHeader.innerHTML = '';
+            }
+
+            openCard = card;
+            card.classList.add('is-open');
+
+            /* Determine status class for colour theming */
+            var status = 'planned';
+            ['completed', 'inprogress', 'soon', 'planned'].forEach(function (s) {
+                if (card.classList.contains(s)) status = s;
+            });
+
+            /* Show overlay */
+            backdrop.classList.add('is-open');
+            popoutPanel.className = 'rm-popout-panel is-open ' + status;
+
+            /* Build header */
+            var labelEl = card.querySelector('.rm-deck-label');
+            var badgeEl = card.querySelector('.rm-status-badge');
+            fanHeader.innerHTML =
+                '<span class="rm-fan-quarter-label">' + (labelEl ? labelEl.textContent : '') + '</span>' +
+                (badgeEl ? badgeEl.outerHTML : '');
+
+            /* Clone feature cards from the hidden pool into the fan grid */
+            var pool   = card.querySelector('.rm-deck-features-pool');
+            var source = pool ? Array.from(pool.querySelectorAll('.rm-feature-card')) : [];
+            fanGrid.innerHTML = '';
+
+            var clones = source.map(function (fc) {
+                var clone = fc.cloneNode(true);
+                clone.classList.remove('fan-visible', 'expanded');
+                fanGrid.appendChild(clone);
+                return clone;
+            });
+
+            /* Staggered "dealing" entrance — each card 80ms after the previous */
+            clones.forEach(function (clone, i) {
+                setTimeout(function () {
+                    clone.classList.add('fan-visible');
+                }, i * 80);
+            });
+
+            /* Click-to-expand detail panel on each fanned card */
+            clones.forEach(function (clone) {
+                clone.addEventListener('click', function (e) {
+                    e.stopPropagation();
+                    var wasExpanded = clone.classList.contains('expanded');
+                    clones.forEach(function (c) { c.classList.remove('expanded'); });
+                    if (!wasExpanded) clone.classList.add('expanded');
+                });
+            });
+        }
+
+        /* Close via X button */
+        popoutClose.addEventListener('click', function (e) {
+            e.stopPropagation();
+            closeFan();
+        });
+
+        /* Close via backdrop click */
+        backdrop.addEventListener('click', closeFan);
+
+        /* Close via Escape key */
+        document.addEventListener('keydown', function (e) {
+            if (e.key === 'Escape') closeFan();
+        });
+
+        /* Event delegation — works for both hardcoded and Firestore-rendered cards */
+        document.addEventListener('click', function (e) {
+            /* Ignore clicks inside the popout panel itself */
+            if (e.target.closest('#rm-popout-panel')) return;
+            var card = e.target.closest('.rm-deck-card');
+            if (!card || card.classList.contains('rm-hidden')) return;
+            openFan(card);
+        });
 
         /* ================================================================
            5. FILTER TABS
@@ -1281,46 +1735,18 @@
             btn.addEventListener('click', function () {
                 var filter = btn.getAttribute('data-filter');
 
-                /* Update active button styling */
-                filterBtns.forEach(function (b) {
-                    b.className = 'rm-filter-btn';
-                });
+                filterBtns.forEach(function (b) { b.className = 'rm-filter-btn'; });
                 btn.classList.add('active-' + filter);
 
-                /* Show / hide quarters — query live so Firestore cards are included */
-                document.querySelectorAll('.rm-quarter').forEach(function (q) {
-                    var match = filter === 'all' || q.getAttribute('data-filter') === filter;
+                document.querySelectorAll('.rm-deck-card').forEach(function (card) {
+                    var match = filter === 'all' || card.getAttribute('data-filter') === filter;
                     if (match) {
-                        q.classList.remove('rm-hidden');
-                        /* Re-trigger reveal if not yet visible */
-                        if (!q.classList.contains('is-visible')) {
-                            setTimeout(function () { q.classList.add('is-visible'); }, 50);
-                        }
+                        card.classList.remove('rm-hidden');
                     } else {
-                        q.classList.add('rm-hidden');
+                        card.classList.add('rm-hidden');
+                        if (card === openCard) closeFan();
                     }
                 });
-
-                /* Recalculate line after layout settles */
-                setTimeout(updateLine, 400);
-            });
-        });
-
-        /* ================================================================
-           6. EXPANDABLE CARDS (accordion per quarter)
-        ================================================================ */
-        document.querySelectorAll('.rm-feature-card').forEach(function (card) {
-            card.addEventListener('click', function (e) {
-                var isExpanded = card.classList.contains('expanded');
-                /* Close all cards in same quarter */
-                var parent = card.closest('.rm-quarter');
-                if (parent) {
-                    parent.querySelectorAll('.rm-feature-card.expanded').forEach(function (c) {
-                        c.classList.remove('expanded');
-                    });
-                }
-                /* Toggle clicked card */
-                if (!isExpanded) card.classList.add('expanded');
             });
         });
 

@@ -39,6 +39,7 @@ jobs:
           POLYGON_API_KEY:   ${{ secrets.POLYGON_API_KEY }}
           ALPHA_VANTAGE_KEY: ${{ secrets.ALPHA_VANTAGE_KEY }}
           BLS_API_KEY:       ${{ secrets.BLS_API_KEY }}
+          FMP_API_KEY:       ${{ secrets.FMP_API_KEY }}
         run: |
           # Firebase API key — firebase-config.js and admin.html
           sed -i "s|%%FIREBASE_API%%|${FIREBASE_API}|g"           assets/js/firebase-config.js
@@ -52,6 +53,9 @@ jobs:
           # Alpha Vantage and BLS keys — central config only
           sed -i "s|%%ALPHA_VANTAGE_KEY%%|${ALPHA_VANTAGE_KEY}|g" assets/js/config.js
           sed -i "s|%%BLS_API_KEY%%|${BLS_API_KEY}|g"             assets/js/config.js
+
+          # FMP API key — TSLA financials guide
+          sed -i "s|%%FMP_API_KEY%%|${FMP_API_KEY}|g"             pages/guides/tsla-delivery-production.html
 
       - name: Setup Pages
         uses: actions/configure-pages@v5

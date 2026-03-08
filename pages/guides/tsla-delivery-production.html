@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TSLA Delivery & Production Numbers | Blue Chip Signals</title>
+    <title>TSLA Quarterly Financials | Blue Chip Signals</title>
     <link rel="icon" type="image/png" href="../../assets/images/Crest logo.png">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="../../assets/css/signal-style.css">
@@ -350,8 +350,8 @@
     <section class="guide-hero">
         <div class="guide-hero-content">
             <div class="guide-badge">TSLA Trading Guide</div>
-            <h1 class="guide-title">Track Delivery & Production Numbers</h1>
-            <p class="guide-subtitle">Tesla's quarterly delivery and production reports are heavily scrutinized by Wall Street. The market's reaction to these numbers often sets the tone for the stock for weeks to come.</p>
+            <h1 class="guide-title">TSLA Quarterly Financials</h1>
+            <p class="guide-subtitle">Tesla's quarterly earnings — revenue, margins, and EPS — drive the biggest TSLA price swings of the year. Understanding how to read these numbers gives you an edge before, during, and after each earnings event.</p>
         </div>
     </section>
 
@@ -364,7 +364,7 @@
         <!-- Delivery Impact Calculator -->
         <section class="content-section">
             <h2><i class="fas fa-calculator"></i> Delivery Impact Calculator</h2>
-            <p>Predict potential TSLA price movement based on delivery numbers vs. expectations:</p>
+            <p>Delivery numbers are released ~3 weeks before earnings and set expectations for revenue. Use this to estimate the likely TSLA price reaction when delivery numbers drop:</p>
             
             <div class="delivery-calculator">
                 <div class="calculator-input-group">
@@ -431,123 +431,129 @@
 
         <!-- Key Metrics Overview -->
         <section class="content-section">
-            <h2><i class="fas fa-chart-bar"></i> Key Production & Delivery Metrics</h2>
-            <p>These are the critical numbers that Wall Street watches every quarter. Understanding these metrics is essential for predicting TSLA price movements:</p>
+            <h2><i class="fas fa-chart-bar"></i> Key Financial Metrics</h2>
+            <p>The critical numbers Wall Street watches every earnings cycle — updated automatically each quarter from live financial data:</p>
             
             <div class="metrics-grid">
+
+                <!-- Card 1: Quarterly Revenue -->
                 <div class="metric-card">
                     <div class="metric-header">
-                        <div class="metric-icon production-icon"><i class="fas fa-industry"></i></div>
+                        <div class="metric-icon production-icon"><i class="fas fa-dollar-sign"></i></div>
                         <div>
-                            <h4 class="metric-title">Total Production</h4>
-                            <p class="metric-subtitle">Vehicles manufactured globally</p>
+                            <h4 class="metric-title">Quarterly Revenue</h4>
+                            <p class="metric-subtitle">Latest quarter total revenue</p>
                         </div>
                     </div>
                     <div class="metric-value">
-                        <span id="prod-num">512,000</span>
-                        <span class="metric-change change-positive" id="prod-change">+22%</span>
+                        <span id="rev-num">$25.2B</span>
+                        <span class="metric-change change-positive" id="rev-yoy-change">+8%</span>
                     </div>
                     <ul class="metric-details">
-                        <li><span>Model S/X:</span><span id="prod-sx">22,000</span></li>
-                        <li><span>Model 3/Y:</span><span id="prod-3y">458,000</span></li>
-                        <li><span>Cybertruck:</span><span id="prod-ct">32,000</span></li>
+                        <li><span id="rev-quarter-label">Latest Quarter:</span><span id="rev-quarter-val">—</span></li>
+                        <li><span id="rev-prior-label">Prior Year:</span><span id="rev-prior-val">—</span></li>
+                        <li><span>QoQ Change:</span><span id="rev-qoq-val">—</span></li>
                     </ul>
                 </div>
 
+                <!-- Card 2: EPS Actual vs Estimate -->
                 <div class="metric-card">
                     <div class="metric-header">
-                        <div class="metric-icon delivery-icon"><i class="fas fa-truck"></i></div>
+                        <div class="metric-icon delivery-icon"><i class="fas fa-chart-line"></i></div>
                         <div>
-                            <h4 class="metric-title">Total Deliveries</h4>
-                            <p class="metric-subtitle">Vehicles delivered to customers</p>
+                            <h4 class="metric-title">EPS vs Estimate</h4>
+                            <p class="metric-subtitle">Earnings per share vs Wall St.</p>
                         </div>
                     </div>
                     <div class="metric-value">
-                        <span id="del-num">508,000</span>
-                        <span class="metric-change change-positive" id="del-change">+24%</span>
+                        <span id="eps-actual">$0.72</span>
+                        <span class="metric-change change-positive" id="eps-beat-badge">Beat</span>
                     </div>
                     <ul class="metric-details">
-                        <li><span>Model S/X:</span><span id="del-sx">21,500</span></li>
-                        <li><span>Model 3/Y:</span><span id="del-3y">455,000</span></li>
-                        <li><span id="del-beat-label">Beat Estimate:</span><span id="del-beat">+8,000</span></li>
+                        <li><span>Actual EPS:</span><span id="eps-actual-val">—</span></li>
+                        <li><span>Estimate:</span><span id="eps-est-val">—</span></li>
+                        <li><span>Surprise:</span><span id="eps-surprise-val">—</span></li>
                     </ul>
                 </div>
 
+                <!-- Card 3: Revenue YoY Growth -->
                 <div class="metric-card">
                     <div class="metric-header">
-                        <div class="metric-icon growth-icon"><i class="fas fa-trending-up"></i></div>
+                        <div class="metric-icon growth-icon"><i class="fas fa-arrow-trend-up"></i></div>
                         <div>
-                            <h4 class="metric-title">YoY Growth Rate</h4>
+                            <h4 class="metric-title">Revenue YoY Growth</h4>
                             <p class="metric-subtitle">Year-over-year comparison</p>
                         </div>
                     </div>
                     <div class="metric-value">
-                        <span id="yoy-num">24%</span>
-                        <span class="metric-change change-positive" id="yoy-change">+6%</span>
+                        <span id="yoy-num">8%</span>
+                        <span class="metric-change change-positive" id="yoy-change">+4pts</span>
                     </div>
                     <ul class="metric-details">
-                        <li><span id="yoy-cur-label">Q3 2025:</span><span id="yoy-cur-val">508K</span></li>
-                        <li><span id="yoy-prev-label">Q3 2024:</span><span id="yoy-prev-val">410K</span></li>
-                        <li><span>Target Rate:</span><span>30%</span></li>
+                        <li><span id="yoy-cur-label">This Quarter:</span><span id="yoy-cur-val">—</span></li>
+                        <li><span id="yoy-prev-label">Year Ago:</span><span id="yoy-prev-val">—</span></li>
+                        <li><span>QoQ:</span><span id="yoy-qoq-val">—</span></li>
                     </ul>
                 </div>
 
+                <!-- Card 4: Gross Margin -->
                 <div class="metric-card">
                     <div class="metric-header">
-                        <div class="metric-icon guidance-icon"><i class="fas fa-bullseye"></i></div>
+                        <div class="metric-icon guidance-icon"><i class="fas fa-percent"></i></div>
                         <div>
-                            <h4 class="metric-title">Guidance vs Actual</h4>
-                            <p class="metric-subtitle">Management expectations</p>
+                            <h4 class="metric-title">Gross Margin</h4>
+                            <p class="metric-subtitle">Profitability per dollar of revenue</p>
                         </div>
                     </div>
                     <div class="metric-value">
-                        <span id="guid-num">102%</span>
-                        <span class="metric-change change-positive" id="guid-change">Beat</span>
+                        <span id="gm-num">18.2%</span>
+                        <span class="metric-change change-positive" id="gm-change">+1.1pts</span>
                     </div>
                     <ul class="metric-details">
-                        <li><span>Guided:</span><span id="guid-est">500K</span></li>
-                        <li><span>Actual:</span><span id="guid-actual">508K</span></li>
-                        <li><span id="guid-beatby-label">Beat by:</span><span id="guid-beatby">8K units</span></li>
+                        <li><span>Gross Profit:</span><span id="gm-profit-val">—</span></li>
+                        <li><span id="gm-prior-label">Prior Year:</span><span id="gm-prior-val">—</span></li>
+                        <li><span>COGS:</span><span id="gm-cogs-val">—</span></li>
                     </ul>
                 </div>
+
             </div>
         </section>
 
         <!-- Release Timeline -->
         <section class="content-section">
-            <h2><i class="fas fa-calendar"></i> Quarterly Release Timeline</h2>
-            <p>Tesla typically follows this timeline for production and delivery announcements:</p>
+            <h2><i class="fas fa-calendar"></i> Earnings Event Timeline</h2>
+            <p>Tesla's quarterly earnings cycle follows a predictable pattern. Knowing each phase helps you position at the right time and avoid common traps:</p>
             
             <div class="timeline-grid">
                 <div class="timeline-card">
                     <div class="timeline-date">Day 1-3</div>
                     <div class="timeline-content">
-                        <h4 class="timeline-title">Initial Delivery Numbers</h4>
-                        <p class="timeline-description">Tesla releases preliminary delivery and production numbers for the quarter, usually within the first few days of the new quarter.</p>
+                        <h4 class="timeline-title">Delivery Numbers Drop</h4>
+                        <p class="timeline-description">Tesla releases preliminary delivery and production counts at the very start of the new quarter. These are the first hard data point and often trigger a sharp initial move in TSLA.</p>
                     </div>
                 </div>
 
                 <div class="timeline-card">
-                    <div class="timeline-date">Day 4-7</div>
+                    <div class="timeline-date">Day 4-14</div>
                     <div class="timeline-content">
-                        <h4 class="timeline-title">Analyst Reactions</h4>
-                        <p class="timeline-description">Wall Street analysts update their models and price targets based on the delivery numbers. This can drive continued price movement.</p>
+                        <h4 class="timeline-title">Analyst Model Updates</h4>
+                        <p class="timeline-description">Wall Street analysts revise revenue and EPS estimates based on delivery counts and ASP assumptions. Price target changes from major banks drive sustained secondary momentum.</p>
                     </div>
                 </div>
 
                 <div class="timeline-card">
-                    <div class="timeline-date">Week 2-3</div>
+                    <div class="timeline-date">Week 3-4</div>
                     <div class="timeline-content">
-                        <h4 class="timeline-title">Detailed Breakdown</h4>
-                        <p class="timeline-description">More detailed production and delivery data by model and region becomes available through various sources and Tesla updates.</p>
+                        <h4 class="timeline-title">Pre-Earnings Run-Up</h4>
+                        <p class="timeline-description">Options implied volatility begins to expand as earnings approach. Retail and institutional positioning builds. TSLA often sees elevated volume and directional drift in the final week before the call.</p>
                     </div>
                 </div>
 
                 <div class="timeline-card">
-                    <div class="timeline-date">Week 4-6</div>
+                    <div class="timeline-date">Week 5-6</div>
                     <div class="timeline-content">
-                        <h4 class="timeline-title">Earnings Context</h4>
-                        <p class="timeline-description">Delivery numbers are put into context during the quarterly earnings call, with guidance for the next quarter.</p>
+                        <h4 class="timeline-title">Earnings Call & Guidance</h4>
+                        <p class="timeline-description">Revenue, gross margin, and EPS are reported. The post-market call with Elon Musk is often more market-moving than the headline numbers — margins and forward guidance set the tone for the next quarter.</p>
                     </div>
                 </div>
             </div>
@@ -555,54 +561,54 @@
 
         <!-- Historical Performance -->
         <section class="content-section">
-            <h2><i class="fas fa-history"></i> Historical Delivery Performance</h2>
-            <p>Track Tesla's delivery growth and market reactions over recent quarters:</p>
+            <h2><i class="fas fa-history"></i> Historical Financial Performance</h2>
+            <p>Track Tesla's revenue growth, earnings beats/misses, and market reactions over recent quarters — updated automatically from live data:</p>
             
             <div class="historical-data">
                 <table class="data-table">
                     <thead>
                         <tr>
                             <th>Quarter</th>
-                            <th>Deliveries</th>
-                            <th>vs Estimate</th>
-                            <th>YoY Growth</th>
+                            <th>Revenue</th>
+                            <th>EPS Beat/Miss</th>
+                            <th>Revenue YoY</th>
                             <th>Stock Reaction</th>
                         </tr>
                     </thead>
                     <tbody id="delivery-table-body">
                         <tr>
                             <td>Q3 2025</td>
-                            <td>508,000</td>
-                            <td class="change-positive">+1.6%</td>
-                            <td class="change-positive">+24%</td>
+                            <td>$25.2B</td>
+                            <td class="change-positive">+$0.12</td>
+                            <td class="change-positive">+8.2%</td>
                             <td class="change-positive">+5.2%</td>
                         </tr>
                         <tr>
                             <td>Q2 2025</td>
-                            <td>495,000</td>
-                            <td class="change-positive">+2.3%</td>
-                            <td class="change-positive">+22%</td>
+                            <td>$22.5B</td>
+                            <td class="change-positive">+$0.08</td>
+                            <td class="change-positive">+7.1%</td>
                             <td class="change-positive">+7.1%</td>
                         </tr>
                         <tr>
                             <td>Q1 2025</td>
-                            <td>478,000</td>
-                            <td class="change-negative">-1.2%</td>
-                            <td class="change-positive">+18%</td>
+                            <td>$19.3B</td>
+                            <td class="change-negative">-$0.04</td>
+                            <td class="change-positive">+5.8%</td>
                             <td class="change-negative">-3.8%</td>
                         </tr>
                         <tr>
                             <td>Q4 2024</td>
-                            <td>510,000</td>
-                            <td class="change-positive">+3.5%</td>
-                            <td class="change-positive">+28%</td>
+                            <td>$25.7B</td>
+                            <td class="change-positive">+$0.15</td>
+                            <td class="change-positive">+11.2%</td>
                             <td class="change-positive">+9.4%</td>
                         </tr>
                         <tr>
                             <td>Q3 2024</td>
-                            <td>410,000</td>
-                            <td class="change-negative">-2.1%</td>
-                            <td class="change-positive">+19%</td>
+                            <td>$23.4B</td>
+                            <td class="change-negative">-$0.06</td>
+                            <td class="change-positive">+7.8%</td>
                             <td class="change-negative">-6.7%</td>
                         </tr>
                     </tbody>
@@ -612,29 +618,29 @@
 
         <!-- Market Reaction Patterns -->
         <section class="content-section">
-            <h2><i class="fas fa-chart-area"></i> Typical Market Reactions</h2>
-            <p>Understanding how TSLA typically reacts to different delivery scenarios:</p>
+            <h2><i class="fas fa-chart-area"></i> Typical Earnings Reactions</h2>
+            <p>Understanding how TSLA typically reacts to different earnings outcomes — both the initial move and the days that follow:</p>
             
             <div class="market-reaction">
                 <div class="reaction-card">
                     <div class="reaction-icon beat-icon">📈</div>
                     <h4 class="reaction-title">Beat Estimates</h4>
                     <div class="reaction-impact change-positive">+5% to +15%</div>
-                    <p class="reaction-description">When deliveries exceed Wall Street estimates by 2%+, TSLA typically sees strong positive reaction, especially if growth rate is accelerating.</p>
+                    <p class="reaction-description">When EPS and revenue top consensus and gross margin is expanding, TSLA tends to gap up strongly. Bullish guidance from management can extend the move over several sessions.</p>
                 </div>
 
                 <div class="reaction-card">
                     <div class="reaction-icon meet-icon">➡️</div>
                     <h4 class="reaction-title">Meet Estimates</h4>
                     <div class="reaction-impact change-neutral">-2% to +3%</div>
-                    <p class="reaction-description">Meeting estimates usually results in modest movement. Direction depends on guidance, margins, and forward-looking commentary.</p>
+                    <p class="reaction-description">In-line results usually produce limited movement. Direction is often decided by margin trajectory and commentary on energy storage, FSD, and Robotaxi progress rather than the headline numbers.</p>
                 </div>
 
                 <div class="reaction-card">
                     <div class="reaction-icon miss-icon">📉</div>
                     <h4 class="reaction-title">Miss Estimates</h4>
                     <div class="reaction-impact change-negative">-8% to -20%</div>
-                    <p class="reaction-description">Missing delivery estimates often triggers sharp selloffs, particularly if it suggests demand issues or production problems.</p>
+                    <p class="reaction-description">EPS or revenue misses — especially when paired with margin compression or cautious guidance — tend to trigger sharp multi-day selloffs. TSLA's high beta amplifies negative earnings surprises significantly.</p>
                 </div>
             </div>
         </section>
@@ -643,13 +649,13 @@
         <section class="content-section">
             <h2><i class="fas fa-lightbulb"></i> Trading Strategy Guidelines</h2>
             <ul>
-                <li><strong>Pre-announcement positioning:</strong> Consider small positions 1-2 days before delivery numbers, as leaks and speculation can drive movement.</li>
-                <li><strong>Watch for guidance revisions:</strong> Tesla sometimes provides updated guidance along with delivery numbers, which can be more important than the headline figure.</li>
-                <li><strong>Monitor production vs delivery gap:</strong> Large gaps between production and deliveries can indicate logistics issues or demand softness.</li>
-                <li><strong>Regional breakdown matters:</strong> China delivery numbers are particularly scrutinized for growth and competitive dynamics.</li>
-                <li><strong>Model mix analysis:</strong> Higher-margin Model S/X deliveries are viewed more favorably than Model 3/Y volume.</li>
-                <li><strong>Seasonal adjustments:</strong> Q4 is typically the strongest quarter due to year-end push and tax incentives.</li>
-                <li><strong>Options activity:</strong> Heavy options volume before announcements can amplify price movements through gamma effects.</li>
+                <li><strong>Use delivery numbers as a pre-earnings signal:</strong> Delivery data drops ~3 weeks before earnings. A strong beat often pre-loads a bullish earnings move; a miss signals risk. Position sizing should reflect the two-step volatility window.</li>
+                <li><strong>Gross margin is the number that matters most:</strong> TSLA's price cuts have kept volume high but compressed margins. Watch for margin expansion — it's the single most bullish signal for the stock and typically drives the biggest post-earnings gaps.</li>
+                <li><strong>Listen to the guidance language:</strong> Elon Musk's commentary on Robotaxi timelines, FSD take rates, and Optimus robot production often moves the stock more than the reported financials. Have a position plan before the call.</li>
+                <li><strong>IV crush on options:</strong> Implied volatility spikes sharply in the 5-7 days before earnings. Buying options late is expensive. Consider spreads or take positions earlier to reduce premium cost.</li>
+                <li><strong>Energy storage is a growing catalyst:</strong> Tesla's Megapack and energy business is becoming a material revenue driver. Strong energy storage numbers can offset a softer auto quarter.</li>
+                <li><strong>Q4 seasonality is consistently strong:</strong> Tesla ends the year with an aggressive delivery push and historically posts its best quarterly results in Q4. Q1 is typically the weakest quarter — account for this when reading YoY growth.</li>
+                <li><strong>Watch analyst price target revisions:</strong> In the week after earnings, major bank upgrades or downgrades often drive secondary momentum of 5-10%. These can be better swing trade setups than the initial earnings gap.</li>
             </ul>
         </section>
 
@@ -806,50 +812,64 @@
 
     <script type="module">
         import { requirePlan } from '../../assets/js/firebase-auth-check.js';
-        import { db, collection, getDocs, query } from '../../assets/js/firebase-config.js';
-        import { orderBy } from 'https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js';
-
         requirePlan('ticker', 'TSLA', '../../login.html', '../../upgrade.html');
 
         /* ================================================================
            FMP CONFIGURATION
-           Get a free API key at https://financialmodelingprep.com/developer
-           Free tier: 250 calls/day — more than enough for this page.
-           Restrict the key to your domain in the FMP dashboard.
+           Get a free key at https://financialmodelingprep.com/developer
+           Free tier: 250 calls/day. Restrict the key to your domain.
+           3 calls are made on page load (income-statement, earnings-surprises,
+           historical-price-full) — well within the free tier limit.
         ================================================================ */
-        const FMP_KEY  = 'YOUR_FMP_API_KEY_HERE'; // ← replace with your key
+        const FMP_KEY  = '%%FMP_API_KEY%%';
         const FMP_BASE = 'https://financialmodelingprep.com/api/v3';
 
         /* ================================================================
-           FIRESTORE — fetch all delivery report documents
-           Collection: tsla_delivery_reports
-           Each doc fields:
-             quarter      : "Q3 2025"        (display name)
-             deliveryDate : "2025-10-02"     (YYYY-MM-DD, used for stock reaction)
-             production   : 512000
-             deliveries   : 508000
-             modelSX      : 21500
-             model3Y      : 455000
-             cybertruck   : 32000            (0 for quarters before 2023)
-             wsEstimate   : 500000           (you update this before each release)
-             order        : 1               (1 = most recent, increment each quarter)
+           HELPERS
         ================================================================ */
-        async function fetchDeliveryReports() {
-            const q    = query(collection(db, 'tsla_delivery_reports'), orderBy('order', 'asc'));
-            const snap = await getDocs(q);
-            return snap.docs.map(d => d.data());
+        function fmtB(n) {
+            /* Format raw dollar value (e.g. 25182340000) as "$25.2B" */
+            return '$' + (n / 1e9).toFixed(1) + 'B';
+        }
+        function fmtPct(val, decimals = 1) {
+            const n = parseFloat(val);
+            return (n >= 0 ? '+' : '') + n.toFixed(decimals) + '%';
+        }
+        function changeClass(val) { return parseFloat(val) >= 0 ? 'change-positive' : 'change-negative'; }
+        function setText(id, text) { const el = document.getElementById(id); if (el) el.textContent = text; }
+        function setClass(id, cls) { const el = document.getElementById(id); if (el) el.className = 'metric-change ' + cls; }
+
+        /* Quarter label from a date string: "2025-09-30" → "Q3 2025" */
+        function quarterFromDate(dateStr) {
+            const d  = new Date(dateStr + 'T00:00:00');
+            const m  = d.getMonth(); // 0-indexed
+            const y  = d.getFullYear();
+            const q  = m < 3 ? 'Q1' : m < 6 ? 'Q2' : m < 9 ? 'Q3' : 'Q4';
+            return `${q} ${y}`;
         }
 
         /* ================================================================
-           FMP — fetch 3 years of daily TSLA closing prices
-           Returns a map of { "YYYY-MM-DD": closePrice }
+           FMP FETCHERS
         ================================================================ */
+        async function fetchIncomeStatements() {
+            const res  = await fetch(`${FMP_BASE}/income-statement/TSLA?period=quarter&limit=8&apikey=${FMP_KEY}`);
+            if (!res.ok) throw new Error('FMP income statement failed');
+            return res.json(); // array of quarters, most recent first
+        }
+
+        async function fetchEarningsSurprises() {
+            const res  = await fetch(`${FMP_BASE}/earnings-surprises/TSLA?apikey=${FMP_KEY}`);
+            if (!res.ok) throw new Error('FMP earnings surprises failed');
+            return res.json(); // array, most recent first
+        }
+
         async function fetchPriceMap() {
+            /* 3 years of daily closes for stock reaction calculation */
             const from = new Date();
             from.setFullYear(from.getFullYear() - 3);
             const fromStr = from.toISOString().slice(0, 10);
             const res  = await fetch(`${FMP_BASE}/historical-price-full/TSLA?from=${fromStr}&apikey=${FMP_KEY}`);
-            if (!res.ok) throw new Error('FMP price fetch failed: ' + res.status);
+            if (!res.ok) throw new Error('FMP prices failed');
             const json = await res.json();
             const map  = {};
             (json.historical || []).forEach(d => { map[d.date] = d.close; });
@@ -857,21 +877,17 @@
         }
 
         /* ================================================================
-           STOCK REACTION — % change from prior close to delivery-day close
-           Handles weekends/holidays by searching up to 3 days forward.
+           STOCK REACTION — % change from prior close to earnings-day close
+           Handles weekends/holidays by searching up to 4 days forward.
         ================================================================ */
-        function calcStockReaction(deliveryDate, priceMap) {
+        function calcStockReaction(earningsDate, priceMap) {
             const sortedDesc = Object.keys(priceMap).sort().reverse();
-
-            // Find the first trading day on or after the delivery date (max +3 days)
-            const cutoff   = addDays(deliveryDate, 3);
-            const tradingDay = sortedDesc.find(d => d >= deliveryDate && d <= cutoff);
+            const cutoff     = addDays(earningsDate, 4);
+            const tradingDay = sortedDesc.find(d => d >= earningsDate && d <= cutoff);
             if (!tradingDay) return null;
-
             const idx     = sortedDesc.indexOf(tradingDay);
             const prevDay = sortedDesc[idx + 1];
             if (!prevDay) return null;
-
             return ((priceMap[tradingDay] - priceMap[prevDay]) / priceMap[prevDay]) * 100;
         }
 
@@ -882,115 +898,130 @@
         }
 
         /* ================================================================
-           HELPERS
-        ================================================================ */
-        function fmtNum(n)  { return n.toLocaleString(); }
-        function fmtK(n)    {
-            if (n >= 1000000) return (n / 1000000).toFixed(2) + 'M';
-            if (n >= 1000)    return Math.round(n / 1000) + 'K';
-            return String(n);
-        }
-        function pct(a, b)  { return ((a - b) / b * 100).toFixed(1); }
-        function signedPct(val) { return (parseFloat(val) >= 0 ? '+' : '') + val + '%'; }
-        function changeClass(val) { return parseFloat(val) >= 0 ? 'change-positive' : 'change-negative'; }
-
-        function setText(id, text)  { const el = document.getElementById(id); if (el) el.textContent = text; }
-        function setClass(id, cls)  { const el = document.getElementById(id); if (el) el.className = 'metric-change ' + cls; }
-
-        /* ================================================================
            POPULATE KEY METRICS CARDS
         ================================================================ */
-        function populateMetricCards(latest, priorYearSame) {
-            /* --- Card 1: Total Production --- */
-            setText('prod-num', fmtNum(latest.production));
-            if (priorYearSame) {
-                const p = pct(latest.production, priorYearSame.production);
-                setText('prod-change', signedPct(p));
-                setClass('prod-change', changeClass(p));
-            }
-            if (latest.modelSX !== undefined)   setText('prod-sx', fmtNum(latest.modelSX));
-            if (latest.model3Y !== undefined)   setText('prod-3y', fmtNum(latest.model3Y));
-            if (latest.cybertruck !== undefined) setText('prod-ct', fmtNum(latest.cybertruck));
+        function populateMetricCards(incomeStmts, surprises) {
+            const latest   = incomeStmts[0];
+            const priorQtr = incomeStmts[1]; // one quarter back (QoQ)
+            /* Find same quarter one year ago (4 quarters back) */
+            const priorYr  = incomeStmts[4] || null;
 
-            /* --- Card 2: Total Deliveries --- */
-            setText('del-num', fmtNum(latest.deliveries));
-            if (priorYearSame) {
-                const p = pct(latest.deliveries, priorYearSame.deliveries);
-                setText('del-change', signedPct(p));
-                setClass('del-change', changeClass(p));
+            /* --- Card 1: Quarterly Revenue --- */
+            const revYoy = priorYr ? ((latest.revenue - priorYr.revenue) / priorYr.revenue * 100) : null;
+            const revQoq = priorQtr ? ((latest.revenue - priorQtr.revenue) / priorQtr.revenue * 100) : null;
+            setText('rev-num', fmtB(latest.revenue));
+            if (revYoy !== null) {
+                setText('rev-yoy-change', fmtPct(revYoy));
+                setClass('rev-yoy-change', changeClass(revYoy));
             }
-            if (latest.modelSX !== undefined) setText('del-sx', fmtNum(latest.modelSX));
-            if (latest.model3Y !== undefined) setText('del-3y', fmtNum(latest.model3Y));
-            const beatAmt = latest.deliveries - (latest.wsEstimate || 0);
-            if (latest.wsEstimate) {
-                setText('del-beat-label', beatAmt >= 0 ? 'Beat Estimate:' : 'Missed by:');
-                setText('del-beat', (beatAmt >= 0 ? '+' : '') + fmtNum(Math.abs(beatAmt)));
+            setText('rev-quarter-label', quarterFromDate(latest.date) + ':');
+            setText('rev-quarter-val',   fmtB(latest.revenue));
+            if (priorYr) {
+                setText('rev-prior-label', quarterFromDate(priorYr.date) + ':');
+                setText('rev-prior-val',   fmtB(priorYr.revenue));
+            }
+            if (revQoq !== null) setText('rev-qoq-val', fmtPct(revQoq));
+
+            /* --- Card 2: EPS vs Estimate --- */
+            /* earnings-surprises date matches the earnings call date */
+            const latestSurprise = surprises[0];
+            if (latestSurprise) {
+                const actualEps = latestSurprise.actualEarningResult;
+                const estEps    = latestSurprise.estimatedEarning;
+                const surprise  = actualEps - estEps;
+                const beat      = surprise >= 0;
+                setText('eps-actual',      '$' + actualEps.toFixed(2));
+                setText('eps-beat-badge',  beat ? 'Beat' : 'Miss');
+                setClass('eps-beat-badge', beat ? 'change-positive' : 'change-negative');
+                setText('eps-actual-val',  '$' + actualEps.toFixed(2));
+                setText('eps-est-val',     '$' + estEps.toFixed(2));
+                const surpriseSign = surprise >= 0 ? '+' : '';
+                setText('eps-surprise-val', surpriseSign + '$' + surprise.toFixed(2));
+                document.getElementById('eps-surprise-val').className = beat ? 'change-positive' : 'change-negative';
             }
 
-            /* --- Card 3: YoY Delivery Growth --- */
-            if (priorYearSame) {
-                const yoy = pct(latest.deliveries, priorYearSame.deliveries);
-                setText('yoy-num', Math.abs(parseFloat(yoy)).toFixed(0) + '%');
-                setText('yoy-change', signedPct(yoy));
-                setClass('yoy-change', changeClass(yoy));
-                setText('yoy-cur-label',  latest.quarter + ':');
-                setText('yoy-cur-val',    fmtK(latest.deliveries));
-                setText('yoy-prev-label', priorYearSame.quarter + ':');
-                setText('yoy-prev-val',   fmtK(priorYearSame.deliveries));
+            /* --- Card 3: Revenue YoY Growth --- */
+            if (revYoy !== null) {
+                setText('yoy-num',      Math.abs(revYoy).toFixed(1) + '%');
+                const yoyPrev = priorYr
+                    ? (incomeStmts[3]
+                        ? ((priorYr.revenue - incomeStmts[8]?.revenue ?? priorYr.revenue) / priorYr.revenue * 100)
+                        : null)
+                    : null;
+                setText('yoy-change', revYoy >= 0 ? '▲ Growing' : '▼ Shrinking');
+                setClass('yoy-change', changeClass(revYoy));
+                setText('yoy-cur-label', quarterFromDate(latest.date) + ':');
+                setText('yoy-cur-val',   fmtB(latest.revenue));
+                if (priorYr) {
+                    setText('yoy-prev-label', quarterFromDate(priorYr.date) + ':');
+                    setText('yoy-prev-val',   fmtB(priorYr.revenue));
+                }
+                if (revQoq !== null) setText('yoy-qoq-val', fmtPct(revQoq));
             }
 
-            /* --- Card 4: Guidance vs Actual --- */
-            if (latest.wsEstimate) {
-                const guidPct  = ((latest.deliveries / latest.wsEstimate) * 100).toFixed(0);
-                const beat     = latest.deliveries >= latest.wsEstimate;
-                setText('guid-num', guidPct + '%');
-                setText('guid-change', beat ? 'Beat' : 'Miss');
-                setClass('guid-change', beat ? 'change-positive' : 'change-negative');
-                setText('guid-est',    fmtK(latest.wsEstimate));
-                setText('guid-actual', fmtK(latest.deliveries));
-                const diff = latest.deliveries - latest.wsEstimate;
-                setText('guid-beatby-label', diff >= 0 ? 'Beat by:' : 'Missed by:');
-                setText('guid-beatby', (diff >= 0 ? '+' : '-') + fmtK(Math.abs(diff)) + ' units');
+            /* --- Card 4: Gross Margin --- */
+            const gm     = latest.grossProfitRatio * 100;
+            const gmPrior = priorYr ? (priorYr.grossProfitRatio * 100) : null;
+            const gmDiff  = gmPrior !== null ? (gm - gmPrior) : null;
+            setText('gm-num', gm.toFixed(1) + '%');
+            if (gmDiff !== null) {
+                setText('gm-change', (gmDiff >= 0 ? '+' : '') + gmDiff.toFixed(1) + 'pts');
+                setClass('gm-change', changeClass(gmDiff));
             }
+            setText('gm-profit-val', fmtB(latest.grossProfit));
+            if (gmPrior !== null) {
+                setText('gm-prior-label', quarterFromDate(priorYr.date) + ':');
+                setText('gm-prior-val',   gmPrior.toFixed(1) + '%');
+            }
+            if (latest.costOfRevenue) setText('gm-cogs-val', fmtB(latest.costOfRevenue));
         }
 
         /* ================================================================
-           POPULATE HISTORICAL TABLE
+           POPULATE HISTORICAL TABLE — 100% FMP, no manual data
         ================================================================ */
-        function populateTable(reports, priceMap) {
+        function populateTable(incomeStmts, surprises, priceMap) {
             const tbody = document.getElementById('delivery-table-body');
             if (!tbody) return;
 
-            /* Sort most-recent first (lowest order number = most recent) */
-            const sorted = [...reports].sort((a, b) => a.order - b.order);
+            /* Build a date-keyed map for earnings surprises */
+            const surpriseMap = {};
+            surprises.forEach(s => { surpriseMap[s.date] = s; });
 
-            tbody.innerHTML = sorted.map((r, i) => {
-                /* vs Wall Street Estimate */
-                let vsEstText = '—', vsEstClass = '';
-                if (r.wsEstimate) {
-                    const v = pct(r.deliveries, r.wsEstimate);
-                    vsEstText  = signedPct(v);
-                    vsEstClass = changeClass(v);
-                }
+            tbody.innerHTML = incomeStmts.map((stmt, i) => {
+                const qLabel = quarterFromDate(stmt.date);
 
-                /* YoY — find same quarter label one year back */
-                const qLabel   = r.quarter.split(' ')[0]; // "Q3"
-                const qYear    = parseInt((r.quarter.split(' ')[1] || '0'), 10);
-                const priorYr  = sorted.find(rr => {
-                    const parts = rr.quarter.split(' ');
-                    return parts[0] === qLabel && parseInt(parts[1], 10) === qYear - 1;
+                /* Revenue */
+                const revText = fmtB(stmt.revenue);
+
+                /* EPS Beat/Miss — match by closest date */
+                const stmtDate  = stmt.date;
+                /* earnings date is usually within a few weeks of period end */
+                const surprise  = Object.values(surpriseMap).find(s => {
+                    const diff = Math.abs(new Date(s.date) - new Date(stmtDate));
+                    return diff < 60 * 24 * 60 * 60 * 1000; // within 60 days
                 });
-                let yoyText = '—', yoyClass = '';
-                if (priorYr) {
-                    const y = pct(r.deliveries, priorYr.deliveries);
-                    yoyText  = signedPct(y);
-                    yoyClass = changeClass(y);
+                let epsText = '—', epsClass = '';
+                if (surprise) {
+                    const diff = surprise.actualEarningResult - surprise.estimatedEarning;
+                    epsClass   = diff >= 0 ? 'change-positive' : 'change-negative';
+                    epsText    = (diff >= 0 ? '+' : '') + '$' + diff.toFixed(2);
+                    /* Remove matched surprise so it isn't reused for another row */
+                    delete surpriseMap[surprise.date];
                 }
 
-                /* Stock Reaction — from FMP */
+                /* Revenue YoY — compare with same index 4 quarters back */
+                let yoyText = '—', yoyClass = '';
+                const priorYr = incomeStmts[i + 4];
+                if (priorYr) {
+                    const y = (stmt.revenue - priorYr.revenue) / priorYr.revenue * 100;
+                    yoyClass = changeClass(y);
+                    yoyText  = fmtPct(y);
+                }
+
+                /* Stock Reaction — earnings call date from surprise, else use stmt date */
                 let reactText = '—', reactClass = '';
-                if (r.deliveryDate && priceMap) {
-                    const reaction = calcStockReaction(r.deliveryDate, priceMap);
+                if (surprise && priceMap) {
+                    const reaction = calcStockReaction(surprise.date, priceMap);
                     if (reaction !== null) {
                         reactClass = reaction >= 0 ? 'change-positive' : 'change-negative';
                         reactText  = (reaction >= 0 ? '+' : '') + reaction.toFixed(1) + '%';
@@ -998,9 +1029,9 @@
                 }
 
                 return `<tr>
-                    <td>${r.quarter}</td>
-                    <td>${fmtNum(r.deliveries)}</td>
-                    <td class="${vsEstClass}">${vsEstText}</td>
+                    <td>${qLabel}</td>
+                    <td>${revText}</td>
+                    <td class="${epsClass}">${epsText}</td>
                     <td class="${yoyClass}">${yoyText}</td>
                     <td class="${reactClass}">${reactText}</td>
                 </tr>`;
@@ -1008,53 +1039,28 @@
         }
 
         /* ================================================================
-           PRE-FILL CALCULATOR
-           Auto-populate "Prior Quarter Deliveries" with the second-most-recent
-           quarter's delivery count so users don't have to look it up.
+           INIT — fetch all 3 FMP sources in parallel
         ================================================================ */
-        function prefillCalculator(reports) {
-            const sorted = [...reports].sort((a, b) => a.order - b.order);
-            if (sorted.length < 2) return;
-            const priorQ = sorted[1]; // second most recent = prior quarter
-            const input  = document.getElementById('prior-quarter');
-            if (input && !input.value) {
-                input.value       = priorQ.deliveries;
-                input.placeholder = fmtNum(priorQ.deliveries);
-            }
-        }
-
-        /* ================================================================
-           INIT — fetch both sources in parallel, populate page
-        ================================================================ */
-        async function loadDeliveryData() {
+        async function loadFinancialsData() {
             try {
-                const [reports, priceMap] = await Promise.all([
-                    fetchDeliveryReports(),
+                const [incomeStmts, surprises, priceMap] = await Promise.all([
+                    fetchIncomeStatements(),
+                    fetchEarningsSurprises(),
                     fetchPriceMap()
                 ]);
 
-                if (reports.length === 0) return; // No Firestore data — keep hardcoded fallback
+                if (!incomeStmts || incomeStmts.length === 0) return; // keep fallback
 
-                const sorted      = [...reports].sort((a, b) => a.order - b.order);
-                const latest      = sorted[0];
-                const qLabel      = latest.quarter.split(' ')[0];
-                const qYear       = parseInt((latest.quarter.split(' ')[1] || '0'), 10);
-                const priorYrSame = sorted.find(r => {
-                    const parts = r.quarter.split(' ');
-                    return parts[0] === qLabel && parseInt(parts[1], 10) === qYear - 1;
-                });
-
-                populateMetricCards(latest, priorYrSame);
-                populateTable(sorted, priceMap);
-                prefillCalculator(sorted);
+                populateMetricCards(incomeStmts, surprises);
+                populateTable(incomeStmts, surprises, priceMap);
 
             } catch (e) {
-                console.warn('[BCS TSLA] Delivery data load error:', e);
-                /* Fail silently — hardcoded numbers stay visible */
+                console.warn('[BCS TSLA] Financial data load error:', e);
+                /* Fail silently — hardcoded fallback stays visible */
             }
         }
 
-        loadDeliveryData();
+        loadFinancialsData();
     </script>
 
     <script>

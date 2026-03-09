@@ -158,10 +158,10 @@
             '</button>' +
             '<ul class="nav-links">' +
                 '<li class="nav-stocks-item">' +
-                    '<a href="#" class="nav-stocks-trigger">SUPPORTED STOCKS <span class="stocks-caret">&#9660;</span></a>' +
+                    '<a href="#" class="nav-stocks-trigger">SUPPORTED EQUITIES <span class="stocks-caret">&#9660;</span></a>' +
                     '<ul class="nav-stocks-dropdown">' + desktopDropdownItems + '</ul>' +
                 '</li>' +
-                '<li class="nav-stocks-mobile-li"><button class="nav-stocks-mobile-btn">SUPPORTED STOCKS <span>&#8250;</span></button></li>' +
+                '<li class="nav-stocks-mobile-li"><button class="nav-stocks-mobile-btn">SUPPORTED EQUITIES <span>&#8250;</span></button></li>' +
                 '<li><a href="' + base + 'roadmap">ROADMAP</a></li>' +
                 '<li><a href="' + base + 'contact">CONTACT</a></li>' +
                 '<li><a href="' + base + 'faq">FAQ</a></li>' +

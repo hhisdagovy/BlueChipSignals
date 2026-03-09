@@ -8,6 +8,41 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="assets/css/signal-style.css">
     <style>
+        @keyframes card-shimmer-sweep {
+            0%   { background-position: -200% center; }
+            100% { background-position: 200% center; }
+        }
+
+        /* ---- Page background (dot-grid + glow) ---- */
+        .contact-page-wrap {
+            position: relative;
+            overflow: hidden;
+            min-height: 100vh;
+        }
+        .contact-page-wrap::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background-image: radial-gradient(circle, rgba(201,176,55,0.09) 1px, transparent 1px);
+            background-size: 32px 32px;
+            pointer-events: none;
+            z-index: 0;
+        }
+        .contact-page-wrap::after {
+            content: '';
+            position: absolute;
+            top: -100px; left: -15%; right: -15%; bottom: -80px;
+            background:
+                radial-gradient(circle at 35% 55%, rgba(201,176,55,0.10), transparent 50%),
+                radial-gradient(circle at 72% 30%, rgba(201,176,55,0.05), transparent 45%);
+            pointer-events: none;
+            z-index: 0;
+        }
+        .contact-hero,
+        .contact-info-row,
+        .section-divider,
+        .contact-form-section { position: relative; z-index: 1; }
+
         /* ---- Hero ---- */
         .contact-hero {
             padding: 9rem 2rem 4rem;
@@ -75,19 +110,44 @@
             padding: 0 2rem 4rem;
         }
         .contact-info-card {
-            background: rgba(26,31,46,0.55);
-            border: 1px solid rgba(201,176,55,0.14);
+            background: linear-gradient(150deg, rgba(201,176,55,0.1) 0%, rgba(10,14,22,0.85) 55%);
+            border: 1px solid rgba(201,176,55,0.28);
+            border-top: 3px solid var(--primary-gold);
             border-radius: 18px;
             padding: 1.75rem 1.5rem;
             display: flex;
             gap: 1rem;
             align-items: flex-start;
-            transition: border-color 0.25s, transform 0.25s;
+            backdrop-filter: blur(14px);
+            -webkit-backdrop-filter: blur(14px);
+            box-shadow: 0 10px 28px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.03);
+            transition: border-color 0.3s, transform 0.3s, box-shadow 0.3s;
+            position: relative;
+            overflow: hidden;
+        }
+        .contact-info-card::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            border-radius: inherit;
+            background: linear-gradient(105deg, transparent 30%, rgba(255,255,255,0.07) 50%, transparent 70%);
+            background-size: 200% 100%;
+            opacity: 0;
+            transition: opacity 0.35s;
+            pointer-events: none;
+            z-index: 0;
         }
         .contact-info-card:hover {
-            border-color: rgba(201,176,55,0.35);
+            border-color: rgba(201,176,55,0.55);
             transform: translateY(-3px);
+            box-shadow: 0 10px 32px rgba(0,0,0,0.35), 0 0 28px rgba(201,176,55,0.18);
         }
+        .contact-info-card:hover::after {
+            opacity: 1;
+            animation: card-shimmer-sweep 0.65s ease forwards;
+        }
+        .contact-info-card .info-card-icon,
+        .contact-info-card .info-card-text { position: relative; z-index: 1; }
         .info-card-icon {
             width: 40px; height: 40px;
             border-radius: 10px;
@@ -178,11 +238,34 @@
 
         /* ---- The form itself ---- */
         .contact-form-wrap {
-            background: rgba(26,31,46,0.55);
-            border: 1px solid rgba(201,176,55,0.16);
+            background: linear-gradient(150deg, rgba(201,176,55,0.1) 0%, rgba(10,14,22,0.85) 55%);
+            border: 1px solid rgba(201,176,55,0.28);
+            border-top: 3px solid var(--primary-gold);
             border-radius: 22px;
             padding: 2.5rem;
+            backdrop-filter: blur(14px);
+            -webkit-backdrop-filter: blur(14px);
+            box-shadow: 0 10px 28px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.03);
+            position: relative;
+            overflow: hidden;
         }
+        .contact-form-wrap::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            border-radius: inherit;
+            background: linear-gradient(105deg, transparent 30%, rgba(255,255,255,0.07) 50%, transparent 70%);
+            background-size: 200% 100%;
+            opacity: 0;
+            transition: opacity 0.35s;
+            pointer-events: none;
+            z-index: 0;
+        }
+        .contact-form-wrap:hover::after {
+            opacity: 1;
+            animation: card-shimmer-sweep 0.65s ease forwards;
+        }
+        .contact-form-wrap form { position: relative; z-index: 1; }
         .form-group { margin-bottom: 1.25rem; }
         .form-group label {
             display: block;
@@ -214,8 +297,8 @@
         .form-group input:focus,
         .form-group select:focus,
         .form-group textarea:focus {
-            border-color: rgba(201,176,55,0.55);
-            box-shadow: 0 0 0 3px rgba(201,176,55,0.08);
+            border-color: var(--primary-gold);
+            box-shadow: 0 0 0 3px rgba(201,176,55,0.15), inset 0 1px 0 rgba(255,255,255,0.03);
         }
         .form-group textarea { resize: vertical; min-height: 130px; }
         .form-group select {
@@ -272,8 +355,9 @@
 
         /* ---- Bottom CTA ---- */
         .contact-cta {
-            background: linear-gradient(135deg, rgba(26,31,46,0.8), rgba(12,16,28,0.9));
-            border: 1px solid rgba(201,176,55,0.18);
+            background: linear-gradient(150deg, rgba(201,176,55,0.1) 0%, rgba(10,14,22,0.85) 55%);
+            border: 1px solid rgba(201,176,55,0.28);
+            border-top: 3px solid var(--primary-gold);
             border-radius: 24px;
             max-width: 1060px;
             margin: 0 auto 5rem;
@@ -285,6 +369,10 @@
             flex-wrap: wrap;
             position: relative;
             overflow: hidden;
+            backdrop-filter: blur(14px);
+            -webkit-backdrop-filter: blur(14px);
+            box-shadow: 0 10px 28px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.03);
+            transition: border-color 0.3s, box-shadow 0.3s;
         }
         .contact-cta::before {
             content: '';
@@ -293,8 +381,30 @@
             width: 300px; height: 300px;
             background: radial-gradient(ellipse, rgba(201,176,55,0.06), transparent 70%);
             pointer-events: none;
+            z-index: 0;
         }
-        .contact-cta-text { position: relative; }
+        .contact-cta::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            border-radius: inherit;
+            background: linear-gradient(105deg, transparent 30%, rgba(255,255,255,0.07) 50%, transparent 70%);
+            background-size: 200% 100%;
+            opacity: 0;
+            transition: opacity 0.35s;
+            pointer-events: none;
+            z-index: 0;
+        }
+        .contact-cta:hover {
+            border-color: rgba(201,176,55,0.55);
+            box-shadow: 0 10px 32px rgba(0,0,0,0.35), 0 0 28px rgba(201,176,55,0.18);
+        }
+        .contact-cta:hover::after {
+            opacity: 1;
+            animation: card-shimmer-sweep 0.65s ease forwards;
+        }
+        .contact-cta-text,
+        .contact-cta .btn-telegram { position: relative; z-index: 1; }
         .contact-cta-text h2 {
             font-size: 1.5rem;
             font-weight: 700;
@@ -349,6 +459,14 @@
             .form-row { grid-template-columns: 1fr; }
             .contact-cta { flex-direction: column; margin: 0 1.25rem 4rem; padding: 2rem 1.5rem; }
         }
+        @media (max-width: 768px) {
+            .contact-info-card,
+            .contact-form-wrap,
+            .contact-cta {
+                backdrop-filter: blur(10px);
+                -webkit-backdrop-filter: blur(10px);
+            }
+        }
     </style>
 </head>
 <body>
@@ -356,6 +474,7 @@
     <div id="nav-placeholder" data-nav-type="public"></div>
     <script src="assets/js/nav-component.js"></script>
 
+    <div class="contact-page-wrap">
     <!-- Hero -->
     <div class="contact-hero reveal">
         <div class="contact-hero-inner">
@@ -450,6 +569,7 @@
                 </div>
             </form>
         </div>
+    </div>
     </div>
 
     <!-- Footer -->

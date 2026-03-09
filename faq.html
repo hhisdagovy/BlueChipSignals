@@ -8,6 +8,41 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="assets/css/signal-style.css">
     <style>
+        @keyframes card-shimmer-sweep {
+            0%   { background-position: -200% center; }
+            100% { background-position: 200% center; }
+        }
+
+        /* ---- Page background (dot-grid + glow) ---- */
+        .faq-page-wrap {
+            position: relative;
+            overflow: hidden;
+            min-height: 100vh;
+        }
+        .faq-page-wrap::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background-image: radial-gradient(circle, rgba(201,176,55,0.09) 1px, transparent 1px);
+            background-size: 32px 32px;
+            pointer-events: none;
+            z-index: 0;
+        }
+        .faq-page-wrap::after {
+            content: '';
+            position: absolute;
+            top: -100px; left: -15%; right: -15%; bottom: -80px;
+            background:
+                radial-gradient(circle at 35% 55%, rgba(201,176,55,0.10), transparent 50%),
+                radial-gradient(circle at 72% 30%, rgba(201,176,55,0.05), transparent 45%);
+            pointer-events: none;
+            z-index: 0;
+        }
+        .faq-hero,
+        .faq-divider,
+        .faq-body,
+        .faq-cta { position: relative; z-index: 1; }
+
         /* ---- Hero ---- */
         .faq-hero {
             padding: 8rem 2rem 3rem;
@@ -67,10 +102,13 @@
             color: var(--light-text);
             font-size: 0.95rem;
             outline: none;
-            transition: border-color 0.25s;
+            transition: border-color 0.25s, box-shadow 0.25s;
         }
         #faqSearch::placeholder { color: var(--gray-text); }
-        #faqSearch:focus { border-color: rgba(201,176,55,0.55); }
+        #faqSearch:focus {
+            border-color: var(--primary-gold);
+            box-shadow: 0 0 0 3px rgba(201,176,55,0.15), inset 0 1px 0 rgba(255,255,255,0.03);
+        }
 
         /* ---- Divider ---- */
         .faq-divider {
@@ -141,15 +179,35 @@
         }
 
         .faq-item {
-            background: rgba(26,31,46,0.55);
-            border: 1px solid rgba(201,176,55,0.14);
+            background: linear-gradient(150deg, rgba(201,176,55,0.1) 0%, rgba(10,14,22,0.85) 55%);
+            border: 1px solid rgba(201,176,55,0.28);
+            border-top: 3px solid var(--primary-gold);
             border-radius: 14px;
             margin-bottom: 0.75rem;
             overflow: hidden;
-            transition: border-color 0.25s;
+            backdrop-filter: blur(14px);
+            -webkit-backdrop-filter: blur(14px);
+            box-shadow: 0 10px 28px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.03);
+            transition: border-color 0.3s, box-shadow 0.3s;
+            position: relative;
         }
-        .faq-item:hover { border-color: rgba(201,176,55,0.32); }
-        .faq-item.active { border-color: rgba(201,176,55,0.4); }
+        .faq-item::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            border-radius: inherit;
+            background: linear-gradient(105deg, transparent 30%, rgba(255,255,255,0.07) 50%, transparent 70%);
+            background-size: 200% 100%;
+            opacity: 0;
+            transition: opacity 0.35s;
+            pointer-events: none;
+            z-index: 0;
+        }
+        .faq-item:hover { border-color: rgba(201,176,55,0.55); box-shadow: 0 10px 32px rgba(0,0,0,0.35), 0 0 28px rgba(201,176,55,0.18); }
+        .faq-item:hover::after { opacity: 1; animation: card-shimmer-sweep 0.65s ease forwards; }
+        .faq-item.active { border-color: rgba(201,176,55,0.55); }
+        .faq-question,
+        .faq-answer { position: relative; z-index: 1; }
 
         .faq-question {
             padding: 1.2rem 1.5rem;
@@ -208,8 +266,9 @@
 
         /* ---- Bottom CTA ---- */
         .faq-cta {
-            background: rgba(26,31,46,0.6);
-            border: 1px solid rgba(201,176,55,0.16);
+            background: linear-gradient(150deg, rgba(201,176,55,0.1) 0%, rgba(10,14,22,0.85) 55%);
+            border: 1px solid rgba(201,176,55,0.28);
+            border-top: 3px solid var(--primary-gold);
             border-radius: 20px;
             max-width: 1060px;
             margin: 0 auto 5rem;
@@ -219,7 +278,32 @@
             justify-content: space-between;
             gap: 2rem;
             flex-wrap: wrap;
+            backdrop-filter: blur(14px);
+            -webkit-backdrop-filter: blur(14px);
+            box-shadow: 0 10px 28px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.03);
+            position: relative;
+            overflow: hidden;
+            transition: border-color 0.3s, box-shadow 0.3s;
         }
+        .faq-cta::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            border-radius: inherit;
+            background: linear-gradient(105deg, transparent 30%, rgba(255,255,255,0.07) 50%, transparent 70%);
+            background-size: 200% 100%;
+            opacity: 0;
+            transition: opacity 0.35s;
+            pointer-events: none;
+            z-index: 0;
+        }
+        .faq-cta:hover {
+            border-color: rgba(201,176,55,0.55);
+            box-shadow: 0 10px 32px rgba(0,0,0,0.35), 0 0 28px rgba(201,176,55,0.18);
+        }
+        .faq-cta:hover::after { opacity: 1; animation: card-shimmer-sweep 0.65s ease forwards; }
+        .faq-cta-text,
+        .faq-cta .btn-primary { position: relative; z-index: 1; }
         .faq-cta-text h2 {
             font-size: 1.6rem;
             font-weight: 700;
@@ -277,6 +361,13 @@
             .faq-cta { padding: 2rem 1.25rem; flex-direction: column; align-items: flex-start; }
             .faq-cta { margin: 0 1.25rem 4rem; }
         }
+        @media (max-width: 768px) {
+            .faq-item,
+            .faq-cta {
+                backdrop-filter: blur(10px);
+                -webkit-backdrop-filter: blur(10px);
+            }
+        }
     </style>
 </head>
 <body>
@@ -284,6 +375,7 @@
     <div id="nav-placeholder" data-nav-type="public"></div>
     <script src="assets/js/nav-component.js"></script>
 
+    <div class="faq-page-wrap">
     <!-- Hero -->
     <div class="faq-hero reveal">
         <span class="faq-hero-label">Support</span>
@@ -464,6 +556,7 @@
             <p>Our support team is happy to help with anything not covered here.</p>
         </div>
         <a href="contact" class="btn-primary">Contact Support</a>
+    </div>
     </div>
 
     <!-- Footer -->

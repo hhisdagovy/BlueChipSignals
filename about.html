@@ -8,6 +8,50 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="assets/css/signal-style.css">
     <style>
+        @keyframes card-shimmer-sweep {
+            0%   { background-position: -200% center; }
+            100% { background-position: 200% center; }
+        }
+
+        /* ---- Page background (dot-grid + glow) ---- */
+        .about-page-wrap {
+            position: relative;
+            overflow: hidden;
+            min-height: 100vh;
+        }
+        .about-page-wrap::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background-image: radial-gradient(circle, rgba(201,176,55,0.09) 1px, transparent 1px);
+            background-size: 32px 32px;
+            pointer-events: none;
+            z-index: 0;
+        }
+        .about-page-wrap::after {
+            content: '';
+            position: absolute;
+            top: -100px; left: -15%; right: -15%; bottom: -80px;
+            background:
+                linear-gradient(to bottom,
+                    transparent 0%,
+                    transparent 35%,
+                    rgba(5, 8, 16, 0.4) 65%,
+                    rgba(5, 8, 16, 0.85) 88%,
+                    var(--darker-bg) 100%
+                ),
+                radial-gradient(circle at 50% 50%, rgba(201,176,55,0.06), transparent 45%),
+                radial-gradient(circle at 72% 30%, rgba(201,176,55,0.04), transparent 40%);
+            pointer-events: none;
+            z-index: 0;
+        }
+        .about-hero,
+        .section-divider,
+        .timeline-section,
+        .founders-section,
+        .values-section,
+        .about-cta { position: relative; z-index: 1; }
+
         /* ---- Hero ---- */
         .about-hero {
             padding: 9rem 2rem 5rem;
@@ -95,65 +139,48 @@
             font-size: 0.95rem;
             line-height: 1.7;
         }
-        .timeline-list {
-            position: relative;
-            padding-left: 2.5rem;
-        }
-        /* Animated line that draws downward */
-        .timeline-list::before {
-            content: '';
-            position: absolute;
-            left: 4px; top: 8px; bottom: 8px;
-            width: 2px;
-            background: linear-gradient(to bottom, rgba(201,176,55,0.8), rgba(201,176,55,0.08));
-            transform-origin: top;
-            transform: scaleY(0);
-            transition: transform 1.2s cubic-bezier(0.22,1,0.36,1);
-        }
-        .timeline-list.line-drawn::before { transform: scaleY(1); }
 
-        .timeline-item {
-            position: relative;
-            padding-left: 1.75rem;
-            padding-bottom: 2.6rem;
-            opacity: 0;
-            transform: translateX(20px);
-            transition: opacity 0.5s cubic-bezier(0.22,1,0.36,1), transform 0.5s cubic-bezier(0.22,1,0.36,1);
-        }
-        .timeline-item:last-child { padding-bottom: 0; }
-        .timeline-item.item-visible { opacity: 1; transform: translateX(0); }
-
-        .timeline-dot {
-            position: absolute;
-            left: -2.1rem;
-            top: 5px;
-            width: 12px; height: 12px;
-            border-radius: 50%;
-            background: var(--primary-gold);
-            border: 2px solid var(--dark-bg);
-            box-shadow: 0 0 0 4px rgba(201,176,55,0.15);
-            transition: box-shadow 0.3s;
-        }
-        .timeline-item.item-visible .timeline-dot {
-            animation: dot-pulse 2.5s ease-in-out infinite;
-        }
-        @keyframes dot-pulse {
-            0%, 100% { box-shadow: 0 0 0 4px rgba(201,176,55,0.15); }
-            50%       { box-shadow: 0 0 0 8px rgba(201,176,55,0.08), 0 0 14px rgba(201,176,55,0.3); }
-        }
-
-        .timeline-item-inner {
-            background: rgba(26,31,46,0.45);
-            border: 1px solid rgba(201,176,55,0.1);
+        /* ---- Timeline trigger card (collapsed view) ---- */
+        .timeline-trigger-card {
+            display: block;
+            width: 100%;
+            text-align: left;
+            font-family: inherit;
+            cursor: pointer;
+            background: linear-gradient(150deg, rgba(201,176,55,0.1) 0%, rgba(10,14,22,0.85) 55%);
+            border: 1px solid rgba(201,176,55,0.28);
+            border-top: 3px solid var(--primary-gold);
             border-radius: 14px;
             padding: 1.25rem 1.5rem;
-            transition: border-color 0.25s, background 0.25s;
+            backdrop-filter: blur(14px);
+            -webkit-backdrop-filter: blur(14px);
+            box-shadow: 0 10px 28px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.03);
+            transition: border-color 0.3s, box-shadow 0.3s;
+            position: relative;
+            overflow: hidden;
         }
-        .timeline-item:hover .timeline-item-inner {
-            border-color: rgba(201,176,55,0.32);
-            background: rgba(26,31,46,0.7);
+        .timeline-trigger-card::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            border-radius: inherit;
+            background: linear-gradient(105deg, transparent 30%, rgba(255,255,255,0.07) 50%, transparent 70%);
+            background-size: 200% 100%;
+            opacity: 0;
+            transition: opacity 0.35s;
+            pointer-events: none;
+            z-index: 0;
         }
-        .timeline-year {
+        .timeline-trigger-card:hover {
+            border-color: rgba(201,176,55,0.55);
+            box-shadow: 0 10px 32px rgba(0,0,0,0.35), 0 0 28px rgba(201,176,55,0.18);
+        }
+        .timeline-trigger-card:hover::after {
+            opacity: 1;
+            animation: card-shimmer-sweep 0.65s ease forwards;
+        }
+        .timeline-trigger-card > * { position: relative; z-index: 1; }
+        .timeline-trigger-card .timeline-year {
             font-size: 0.72rem;
             font-weight: 700;
             letter-spacing: 0.12em;
@@ -161,13 +188,168 @@
             text-transform: uppercase;
             margin-bottom: 0.35rem;
         }
-        .timeline-item h3 {
+        .timeline-trigger-card h3 {
             font-size: 1.05rem;
             font-weight: 700;
             color: var(--light-text);
             margin-bottom: 0.4rem;
         }
-        .timeline-item p {
+        .timeline-trigger-card p {
+            font-size: 0.875rem;
+            color: var(--gray-text);
+            line-height: 1.65;
+            margin: 0 0 0.75rem 0;
+        }
+        .timeline-view-all {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            font-size: 0.78rem;
+            font-weight: 600;
+            color: var(--primary-gold);
+            letter-spacing: 0.04em;
+        }
+        .timeline-view-all i {
+            font-size: 0.65rem;
+            transition: transform 0.3s;
+        }
+        .timeline-trigger-card:hover .timeline-view-all i {
+            transform: translateY(2px);
+        }
+
+        /* ---- Timeline overlay & popout (modal) ---- */
+        .timeline-overlay-backdrop {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(5, 8, 14, 0.65);
+            backdrop-filter: blur(4px);
+            -webkit-backdrop-filter: blur(4px);
+            z-index: 999;
+        }
+        .timeline-overlay-backdrop.is-open {
+            display: block;
+            animation: timelineBackdropIn 0.25s ease forwards;
+        }
+        @keyframes timelineBackdropIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        .timeline-popout-panel {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(0.88);
+            width: min(560px, 92vw);
+            max-height: 82vh;
+            overflow: hidden;
+            border-radius: 22px;
+            background: rgba(10, 14, 22, 0.92);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-top: 3px solid var(--primary-gold);
+            z-index: 1000;
+            transform-origin: center top;
+            flex-direction: column;
+        }
+        .timeline-popout-panel.is-open {
+            display: flex;
+            animation: timelinePopoutIn 0.38s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+        }
+        .timeline-popout-panel.is-closing {
+            animation: timelinePopoutOut 0.22s ease forwards;
+        }
+        @keyframes timelinePopoutIn {
+            from { opacity: 0; transform: translate(-50%, -48%) scale(0.88); }
+            to { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+        }
+        @keyframes timelinePopoutOut {
+            from { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+            to { opacity: 0; transform: translate(-50%, -48%) scale(0.92); }
+        }
+        .timeline-popout-topbar {
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+            padding: 0.9rem 1rem 0;
+            flex-shrink: 0;
+        }
+        .timeline-popout-close {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            border: 1px solid rgba(255,255,255,0.15);
+            background: rgba(255,255,255,0.07);
+            color: rgba(255,255,255,0.6);
+            font-size: 0.85rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.18s, color 0.18s, border-color 0.18s;
+            flex-shrink: 0;
+        }
+        .timeline-popout-close:hover {
+            background: rgba(255,255,255,0.15);
+            color: #fff;
+            border-color: rgba(255,255,255,0.3);
+        }
+        .timeline-popout-body {
+            overflow-y: auto;
+            padding: 0.5rem 1.5rem 2rem;
+            scrollbar-width: thin;
+            scrollbar-color: rgba(255,255,255,0.15) transparent;
+        }
+        .timeline-popout-header {
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: var(--light-text);
+            margin-bottom: 1.25rem;
+        }
+        .timeline-popout-header em {
+            font-style: italic;
+            color: var(--primary-gold);
+            -webkit-text-fill-color: var(--primary-gold);
+        }
+        .timeline-popout-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 0.9rem;
+        }
+        .timeline-popout-card {
+            background: linear-gradient(150deg, rgba(201,176,55,0.1) 0%, rgba(10,14,22,0.85) 55%);
+            border: 1px solid rgba(201,176,55,0.28);
+            border-top: 3px solid var(--primary-gold);
+            border-radius: 14px;
+            padding: 1.25rem 1.5rem;
+            backdrop-filter: blur(14px);
+            -webkit-backdrop-filter: blur(14px);
+            box-shadow: 0 10px 28px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.03);
+            opacity: 0;
+            transform: translateY(28px);
+        }
+        .timeline-popout-card.fan-visible {
+            opacity: 1;
+            transform: translateY(0);
+            transition: opacity 0.4s ease, transform 0.48s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        .timeline-popout-card .timeline-year {
+            font-size: 0.72rem;
+            font-weight: 700;
+            letter-spacing: 0.12em;
+            color: var(--primary-gold);
+            text-transform: uppercase;
+            margin-bottom: 0.35rem;
+        }
+        .timeline-popout-card h3 {
+            font-size: 1.05rem;
+            font-weight: 700;
+            color: var(--light-text);
+            margin-bottom: 0.4rem;
+        }
+        .timeline-popout-card p {
             font-size: 0.875rem;
             color: var(--gray-text);
             line-height: 1.65;
@@ -176,14 +358,35 @@
 
         /* ---- Founders ---- */
         .founders-section {
-            background: rgba(5,8,16,0.7);
-            border-top: 1px solid rgba(201,176,55,0.08);
-            border-bottom: 1px solid rgba(201,176,55,0.08);
+            position: relative;
+            background: linear-gradient(to bottom,
+                transparent 0%,
+                rgba(5, 8, 16, 0.3) 12%,
+                rgba(5, 8, 16, 0.85) 35%,
+                var(--darker-bg) 50%,
+                var(--darker-bg) 100%
+            );
+            border-top: none;
+            border-bottom: none;
             padding: 5rem 2rem;
+            margin-top: -2px;
+        }
+        .founders-section::after {
+            content: '';
+            position: absolute;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            height: 120px;
+            background: linear-gradient(to top, var(--darker-bg) 0%, var(--darker-bg) 20%, transparent 100%);
+            pointer-events: none;
+            z-index: 2;
         }
         .founders-inner {
             max-width: 1100px;
             margin: 0 auto;
+            position: relative;
+            z-index: 1;
         }
         .founders-intro {
             margin-bottom: 3rem;
@@ -216,13 +419,17 @@
             min-height: 480px;
             border-radius: 24px;
             overflow: hidden;
-            border: 1px solid rgba(201,176,55,0.2);
-            box-shadow: 0 24px 64px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.03) inset;
+            border: 1px solid rgba(201,176,55,0.28);
+            border-bottom: none;
+            border-top: 3px solid var(--primary-gold);
+            box-shadow: 0 24px 64px rgba(0,0,0,0.5), 0 10px 28px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.03);
         }
         .founder-photo-panel {
             position: relative;
             overflow: hidden;
             background: radial-gradient(ellipse at 60% 40%, rgba(201,176,55,0.08), #050810 70%);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
         }
         .founder-photo-panel img {
             width: 100%;
@@ -235,25 +442,19 @@
         .founder-split:hover .founder-photo-panel img {
             transform: scale(1.03);
         }
-        /* gold wash at the bottom of the photo */
+        /* gold wash at the bottom of the photo + subtle glass overlay */
         .founder-photo-panel::after {
             content: '';
             position: absolute;
             inset: 0;
-            background: linear-gradient(
-                to right,
-                transparent 60%,
-                rgba(26,31,46,0.55) 100%
-            ),
-            linear-gradient(
-                to top,
-                rgba(201,176,55,0.12) 0%,
-                transparent 45%
-            );
+            background: linear-gradient(to bottom, rgba(255,255,255,0.03) 0%, transparent 30%),
+                linear-gradient(to right, transparent 60%, rgba(26,31,46,0.55) 100%),
+                linear-gradient(to top, rgba(201,176,55,0.12) 0%, transparent 45%);
             pointer-events: none;
         }
         .founder-content-panel {
-            background: rgba(26,31,46,0.55);
+            background: linear-gradient(150deg, rgba(201,176,55,0.1) 0%, rgba(10,14,22,0.85) 55%);
+            border-left: 3px solid var(--primary-gold);
             padding: 4rem;
             display: flex;
             flex-direction: column;
@@ -261,7 +462,27 @@
             gap: 0;
             position: relative;
             overflow: hidden;
+            backdrop-filter: blur(14px);
+            -webkit-backdrop-filter: blur(14px);
+            box-shadow: inset 0 1px 0 rgba(255,255,255,0.03);
         }
+        .founder-content-panel::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            border-radius: inherit;
+            background: linear-gradient(105deg, transparent 30%, rgba(255,255,255,0.07) 50%, transparent 70%);
+            background-size: 200% 100%;
+            opacity: 0;
+            transition: opacity 0.35s;
+            pointer-events: none;
+            z-index: 0;
+        }
+        .founder-split:hover .founder-content-panel::after {
+            opacity: 1;
+            animation: card-shimmer-sweep 0.65s ease forwards;
+        }
+        .founder-content-panel > * { position: relative; z-index: 1; }
         .founder-stamp {
             position: absolute;
             top: -20px;
@@ -274,6 +495,7 @@
             pointer-events: none;
             user-select: none;
             filter: brightness(1.5);
+            z-index: 0;
         }
         .founder-content-panel .founders-label {
             margin-bottom: 1rem;
@@ -343,16 +565,30 @@
             background: rgba(201,176,55,0.1);
             border-color: var(--primary-gold);
             transform: translateY(-2px);
-            transform: translateY(-2px);
         }
 
         /* ---- Values ---- */
         .values-section {
+            position: relative;
             max-width: 1100px;
             margin: 0 auto;
             padding: 5rem 2rem;
+            margin-top: -2px;
+        }
+        .values-section::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            right: 0;
+            top: 0;
+            height: 100px;
+            background: linear-gradient(to bottom, var(--darker-bg) 0%, transparent 100%);
+            pointer-events: none;
+            z-index: 0;
         }
         .values-header {
+            position: relative;
+            z-index: 1;
             margin-bottom: 3rem;
         }
         .values-header .section-label {
@@ -372,20 +608,26 @@
             line-height: 1.2;
         }
         .values-grid {
+            position: relative;
+            z-index: 1;
             display: grid;
             grid-template-columns: repeat(4, 1fr);
             gap: 1.25rem;
         }
         .value-card {
-            background: rgba(26,31,46,0.55);
-            border: 1px solid rgba(201,176,55,0.14);
+            background: linear-gradient(150deg, rgba(201,176,55,0.1) 0%, rgba(10,14,22,0.85) 55%);
+            border: 1px solid rgba(201,176,55,0.28);
+            border-top: 3px solid var(--primary-gold);
             border-radius: 18px;
             padding: 1.75rem 1.5rem;
             position: relative;
             overflow: hidden;
             opacity: 0;
             transform: translateY(20px);
-            transition: border-color 0.25s, box-shadow 0.25s,
+            backdrop-filter: blur(14px);
+            -webkit-backdrop-filter: blur(14px);
+            box-shadow: 0 10px 28px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.03);
+            transition: border-color 0.3s, box-shadow 0.3s,
                         opacity 0.5s cubic-bezier(0.22,1,0.36,1),
                         transform 0.5s cubic-bezier(0.22,1,0.36,1);
         }
@@ -394,9 +636,9 @@
             transform: translateY(0);
         }
         .value-card:hover {
-            border-color: rgba(201,176,55,0.4);
+            border-color: rgba(201,176,55,0.55);
             transform: translateY(-4px);
-            box-shadow: 0 12px 32px rgba(0,0,0,0.3), 0 0 0 1px rgba(201,176,55,0.08) inset;
+            box-shadow: 0 10px 32px rgba(0,0,0,0.35), 0 0 28px rgba(201,176,55,0.18);
         }
         .value-card.card-visible:hover {
             transform: translateY(-4px);
@@ -414,7 +656,27 @@
             pointer-events: none;
             user-select: none;
             letter-spacing: -0.02em;
+            z-index: 0;
         }
+        .value-card::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            border-radius: inherit;
+            background: linear-gradient(105deg, transparent 30%, rgba(255,255,255,0.07) 50%, transparent 70%);
+            background-size: 200% 100%;
+            opacity: 0;
+            transition: opacity 0.35s;
+            pointer-events: none;
+            z-index: 0;
+        }
+        .value-card:hover::after {
+            opacity: 1;
+            animation: card-shimmer-sweep 0.65s ease forwards;
+        }
+        .value-icon,
+        .value-card h3,
+        .value-card p { position: relative; z-index: 1; }
         .value-icon {
             width: 44px; height: 44px;
             border-radius: 12px;
@@ -441,8 +703,9 @@
 
         /* ---- Bottom CTA ---- */
         .about-cta {
-            background: linear-gradient(135deg, rgba(26,31,46,0.8) 0%, rgba(12,16,28,0.9) 100%);
-            border: 1px solid rgba(201,176,55,0.18);
+            background: linear-gradient(150deg, rgba(201,176,55,0.1) 0%, rgba(10,14,22,0.85) 55%);
+            border: 1px solid rgba(201,176,55,0.28);
+            border-top: 3px solid var(--primary-gold);
             border-radius: 24px;
             max-width: 1100px;
             margin: 0 auto 5rem;
@@ -450,6 +713,30 @@
             text-align: center;
             position: relative;
             overflow: hidden;
+            backdrop-filter: blur(14px);
+            -webkit-backdrop-filter: blur(14px);
+            box-shadow: 0 10px 28px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.03);
+            transition: border-color 0.3s, box-shadow 0.3s;
+        }
+        .about-cta::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            border-radius: inherit;
+            background: linear-gradient(105deg, transparent 30%, rgba(255,255,255,0.07) 50%, transparent 70%);
+            background-size: 200% 100%;
+            opacity: 0;
+            transition: opacity 0.35s;
+            pointer-events: none;
+            z-index: 0;
+        }
+        .about-cta:hover {
+            border-color: rgba(201,176,55,0.55);
+            box-shadow: 0 10px 32px rgba(0,0,0,0.35), 0 0 28px rgba(201,176,55,0.18);
+        }
+        .about-cta:hover::after {
+            opacity: 1;
+            animation: card-shimmer-sweep 0.65s ease forwards;
         }
         .cta-stamp {
             position: absolute;
@@ -492,7 +779,12 @@
             width: 400px; height: 300px;
             background: radial-gradient(ellipse, rgba(201,176,55,0.07), transparent 70%);
             pointer-events: none;
+            z-index: 0;
         }
+        .about-cta .cta-stats,
+        .about-cta h2,
+        .about-cta p,
+        .about-cta-buttons { position: relative; z-index: 1; }
         .about-cta h2 {
             font-size: 2rem;
             font-weight: 800;
@@ -590,13 +882,14 @@
             }
             .founder-name { font-size: 1.8rem; }
             .founder-stamp {
-                top: 0;
-                left: auto;
-                right: -10px;
-                transform: none;
-                width: 140px;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                width: 65%;
                 height: auto;
-                opacity: 0.06;
+                max-height: 80%;
+                object-fit: contain;
+                opacity: 0.05;
             }
         }
         @media (max-width: 600px) {
@@ -608,6 +901,24 @@
             .values-grid { grid-template-columns: 1fr 1fr; gap: 0.9rem; }
             .about-cta h2 { font-size: 1.6rem; }
         }
+        @media (max-width: 768px) {
+            .timeline-trigger-card,
+            .timeline-popout-card,
+            .founder-photo-panel,
+            .founder-content-panel,
+            .value-card,
+            .about-cta {
+                backdrop-filter: blur(10px);
+                -webkit-backdrop-filter: blur(10px);
+            }
+            .timeline-popout-panel {
+                max-height: 88vh;
+                border-radius: 16px;
+            }
+            .timeline-popout-body {
+                padding: 0.5rem 1.1rem 1.5rem;
+            }
+        }
     </style>
 </head>
 <body>
@@ -615,6 +926,7 @@
     <div id="nav-placeholder" data-nav-type="public"></div>
     <script src="assets/js/nav-component.js"></script>
 
+    <div class="about-page-wrap">
     <!-- Hero -->
     <section class="about-hero">
         <div class="about-hero-inner reveal">
@@ -632,39 +944,17 @@
             <h2>Years of<br><em>relentless</em> work.</h2>
             <p>What began as a personal project to improve trading results grew into a full platform built from the ground up. Here's how it happened.</p>
         </div>
-        <div class="timeline-list" id="timelineList">
-            <div class="timeline-item" data-delay="0">
-                <div class="timeline-dot"></div>
-                <div class="timeline-item-inner">
-                    <div class="timeline-year">2020</div>
-                    <h3>Strategy Development Begins</h3>
-                    <p>It all began with testing a momentum breakout strategy across SPY with hundreds of hours of data analysis to try and find an edge.</p>
-                </div>
-            </div>
-            <div class="timeline-item" data-delay="150">
-                <div class="timeline-dot"></div>
-                <div class="timeline-item-inner">
-                    <div class="timeline-year">2022</div>
-                    <h3>First Private Telegram Groups</h3>
-                    <p>A small private group of traders tests the signals in live market conditions. The results validate years of testing and development work.</p>
-                </div>
-            </div>
-            <div class="timeline-item" data-delay="300">
-                <div class="timeline-dot"></div>
-                <div class="timeline-item-inner">
-                    <div class="timeline-year">2025</div>
-                    <h3>Blue Chip Signals Goes Public</h3>
-                    <p>The platform officially launches, expanding coverage to META, NVDA, AAPL, TSLA and AMZN — bringing institutional-grade signals to everyday traders.</p>
-                </div>
-            </div>
-            <div class="timeline-item" data-delay="450">
-                <div class="timeline-dot"></div>
-                <div class="timeline-item-inner">
-                    <div class="timeline-year">2026</div>
-                    <h3>Platform Expansion</h3>
-                    <p>The Trading Journal and Trade Planner ship — giving members the tools to track performance, plan entries, and grow as disciplined traders.</p>
-                </div>
-            </div>
+        <button class="timeline-trigger-card reveal" id="timelineTrigger" type="button" aria-label="View full journey 2020 to 2026">
+            <div class="timeline-year">2026</div>
+            <h3>Platform Expansion</h3>
+            <p>The Trading Journal and Trade Planner ship — giving members the tools to track performance, plan entries, and grow as disciplined traders.</p>
+            <span class="timeline-view-all"><i class="fas fa-chevron-down"></i> View full journey</span>
+        </button>
+        <div class="timeline-items-pool" id="timelineItemsPool" aria-hidden="true" style="display:none">
+            <div class="timeline-item" data-year="2020" data-title="Strategy Development Begins" data-desc="It all began with testing a momentum breakout strategy across SPY with hundreds of hours of data analysis to try and find an edge."></div>
+            <div class="timeline-item" data-year="2022" data-title="First Private Telegram Groups" data-desc="A small private group of traders tests the signals in live market conditions. The results validate years of testing and development work."></div>
+            <div class="timeline-item" data-year="2025" data-title="Blue Chip Signals Goes Public" data-desc="The platform officially launches, expanding coverage to META, NVDA, AAPL, TSLA and AMZN — bringing institutional-grade signals to everyday traders."></div>
+            <div class="timeline-item" data-year="2026" data-title="Platform Expansion" data-desc="The Trading Journal and Trade Planner ship — giving members the tools to track performance, plan entries, and grow as disciplined traders."></div>
         </div>
     </div>
 
@@ -748,6 +1038,21 @@
             <a href="contact" class="btn-outline">Contact Us</a>
         </div>
     </div>
+    </div>
+
+    <!-- Timeline modal overlay -->
+    <div id="timeline-overlay-backdrop" class="timeline-overlay-backdrop"></div>
+    <div id="timeline-popout-panel" class="timeline-popout-panel">
+        <div class="timeline-popout-topbar">
+            <button class="timeline-popout-close" id="timeline-popout-close" aria-label="Close">
+                <i class="fas fa-xmark"></i>
+            </button>
+        </div>
+        <div class="timeline-popout-body">
+            <div class="timeline-popout-header">Years of <em>relentless</em> work.</div>
+            <div class="timeline-popout-grid" id="timeline-popout-grid"></div>
+        </div>
+    </div>
 
     <!-- Footer -->
     <div id="footer-placeholder" data-footer-type="back-to-home" data-base=""></div>
@@ -765,28 +1070,67 @@
         }, { threshold: 0.08 });
         document.querySelectorAll('.reveal').forEach(function(el) { observer.observe(el); });
 
-        /* ---- Timeline: draw line + stagger items in ---- */
-        var timelineList = document.getElementById('timelineList');
-        var timelineItems = timelineList ? timelineList.querySelectorAll('.timeline-item') : [];
+        /* ---- Timeline: click trigger to open modal, fan-in cards ---- */
+        var timelineTrigger = document.getElementById('timelineTrigger');
+        var timelinePool = document.getElementById('timelineItemsPool');
+        var timelineBackdrop = document.getElementById('timeline-overlay-backdrop');
+        var timelinePanel = document.getElementById('timeline-popout-panel');
+        var timelineClose = document.getElementById('timeline-popout-close');
+        var timelineGrid = document.getElementById('timeline-popout-grid');
+        var timelineClosingTimer = null;
 
-        var timelineObserver = new IntersectionObserver(function(entries) {
-            entries.forEach(function(entry) {
-                if (entry.isIntersecting) {
-                    // Draw the vertical line
-                    timelineList.classList.add('line-drawn');
-                    // Stagger each item
-                    timelineItems.forEach(function(item) {
-                        var delay = parseInt(item.getAttribute('data-delay') || '0', 10);
-                        setTimeout(function() {
-                            item.classList.add('item-visible');
-                        }, delay);
-                    });
-                    timelineObserver.unobserve(entry.target);
-                }
+        function closeTimelineModal() {
+            if (!timelinePanel || !timelinePanel.classList.contains('is-open')) return;
+            clearTimeout(timelineClosingTimer);
+            timelinePanel.classList.add('is-closing');
+            timelineBackdrop.classList.remove('is-open');
+            timelineClosingTimer = setTimeout(function() {
+                timelinePanel.classList.remove('is-open', 'is-closing');
+                timelineGrid.innerHTML = '';
+            }, 220);
+        }
+
+        function openTimelineModal() {
+            clearTimeout(timelineClosingTimer);
+            var items = timelinePool ? timelinePool.querySelectorAll('.timeline-item') : [];
+            timelineGrid.innerHTML = '';
+            items.forEach(function(item) {
+                var year = item.getAttribute('data-year') || '';
+                var title = item.getAttribute('data-title') || '';
+                var desc = item.getAttribute('data-desc') || '';
+                var card = document.createElement('div');
+                card.className = 'timeline-popout-card';
+                card.innerHTML = '<div class="timeline-year">' + year + '</div><h3>' + title + '</h3><p>' + desc + '</p>';
+                timelineGrid.appendChild(card);
             });
-        }, { threshold: 0.15 });
+            timelineBackdrop.classList.add('is-open');
+            timelinePanel.classList.remove('is-closing');
+            timelinePanel.classList.add('is-open');
+            var cards = timelineGrid.querySelectorAll('.timeline-popout-card');
+            cards.forEach(function(card, i) {
+                setTimeout(function() {
+                    card.classList.add('fan-visible');
+                }, i * 80);
+            });
+        }
 
-        if (timelineList) timelineObserver.observe(timelineList);
+        if (timelineTrigger) {
+            timelineTrigger.addEventListener('click', openTimelineModal);
+        }
+        if (timelineClose) {
+            timelineClose.addEventListener('click', function(e) {
+                e.stopPropagation();
+                closeTimelineModal();
+            });
+        }
+        if (timelineBackdrop) {
+            timelineBackdrop.addEventListener('click', closeTimelineModal);
+        }
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape' && timelinePanel && timelinePanel.classList.contains('is-open')) {
+                closeTimelineModal();
+            }
+        });
 
         /* ---- Value cards: staggered scroll-in ---- */
         var valuesGrid = document.getElementById('valuesGrid');

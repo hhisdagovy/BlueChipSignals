@@ -552,6 +552,36 @@
 
         .modal-save-btn { width: 100%; margin-top: 1.5rem; }
 
+        /* ── Roadmap milestone modal ── */
+        #roadmapModalOverlay .modal-box {
+            max-width: 560px;
+            max-height: 90vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            padding: 0;
+        }
+        #roadmapModalOverlay .modal-header {
+            flex-shrink: 0;
+            padding: 1.25rem 2rem;
+            margin-bottom: 0;
+            border-bottom: 1px solid rgba(255,255,255,0.06);
+        }
+        #roadmapModalOverlay .modal-body {
+            flex: 1;
+            overflow-y: auto;
+            min-height: 0;
+            padding: 1.5rem 2rem;
+        }
+        #roadmapModalOverlay .modal-footer {
+            flex-shrink: 0;
+            padding: 1rem 2rem 1.5rem;
+            border-top: 1px solid rgba(255,255,255,0.06);
+            display: flex;
+            gap: 0.75rem;
+            flex-wrap: wrap;
+        }
+
         /* ── Confirm dialog ── */
         .confirm-overlay {
             position: fixed; inset: 0;
@@ -1245,56 +1275,16 @@
                 </div>
             </div>
 
-            <div class="admin-card" style="margin-bottom:1.5rem;">
-                <h3 id="rm-form-title" style="font-size:1rem;font-weight:700;color:var(--gold);margin:0 0 1.25rem;display:flex;align-items:center;gap:0.5rem;">
-                    <i class="fas fa-plus-circle"></i> Add New Milestone
-                </h3>
-                <div class="form-msg" id="roadmapMsg"></div>
-                <form id="addMilestoneForm">
-                    <input type="hidden" id="editMilestoneId">
-                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1rem;">
-                        <div class="form-group">
-                            <label class="form-label">Quarter / Label <span style="color:#ef4444">*</span></label>
-                            <input type="text" id="rm-label" class="form-input" placeholder="e.g. Q3 2026 or Launched" required>
-                        </div>
-                        <div class="form-group">
-                            <label class="form-label">Status <span style="color:#ef4444">*</span></label>
-                            <select id="rm-status" class="form-input" required>
-                                <option value="">— Select —</option>
-                                <option value="completed">Completed</option>
-                                <option value="inprogress">In Progress</option>
-                                <option value="soon">Coming Soon</option>
-                                <option value="planned">Planned</option>
-                            </select>
-                        </div>
-                    </div>
-
-                    <div style="margin-bottom:1rem;">
-                        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.75rem;">
-                            <label class="form-label" style="margin:0;">Features</label>
-                            <button type="button" id="addFeatureRowBtn" style="font-size:0.72rem;font-weight:700;padding:0.3rem 0.8rem;border-radius:6px;border:1px solid rgba(201,176,55,0.4);background:rgba(201,176,55,0.08);color:var(--gold);cursor:pointer;">
-                                <i class="fas fa-plus"></i> Add Feature
-                            </button>
-                        </div>
-                        <div id="rm-features-list"></div>
-                    </div>
-
-                    <div style="display:flex;gap:0.75rem;flex-wrap:wrap;">
-                        <button type="submit" class="form-submit-btn" id="saveMilestoneBtn" style="max-width:220px;">
-                            <i class="fas fa-floppy-disk"></i> Save Milestone
-                        </button>
-                        <button type="button" id="cancelEditBtn" style="display:none;max-width:160px;font-size:0.82rem;font-weight:700;padding:0.6rem 1.2rem;border-radius:8px;border:1px solid rgba(255,255,255,0.15);background:transparent;color:rgba(255,255,255,0.55);cursor:pointer;">
-                            <i class="fas fa-xmark"></i> Cancel Edit
-                        </button>
-                    </div>
-                </form>
-            </div>
-
-            <div class="admin-card">
-                <h3 style="font-size:1rem;font-weight:700;color:var(--gold);margin:0 0 1.25rem;display:flex;align-items:center;gap:0.5rem;">
+            <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:1rem;margin-bottom:1.5rem;">
+                <h3 style="font-size:1rem;font-weight:700;color:var(--gold);margin:0;display:flex;align-items:center;gap:0.5rem;">
                     <i class="fas fa-list"></i> All Milestones
                 </h3>
-                <p style="font-size:0.75rem;color:rgba(255,255,255,0.3);margin:-0.75rem 0 1rem;">Use ↑ ↓ to reorder. Changes are saved instantly.</p>
+                <button type="button" id="openAddMilestoneBtn" class="form-submit-btn" style="max-width:220px;">
+                    <i class="fas fa-plus-circle"></i> Add New Milestone
+                </button>
+            </div>
+            <div class="admin-card">
+                <p style="font-size:0.75rem;color:rgba(255,255,255,0.3);margin:0 0 1rem;">Use ↑ ↓ to reorder. Changes are saved instantly.</p>
                 <div id="rm-milestones-list">
                     <p style="color:rgba(255,255,255,0.35);font-size:0.85rem;">Loading…</p>
                 </div>
@@ -1366,6 +1356,55 @@
                     <i class="fas fa-check"></i> Save Changes
                 </button>
             </form>
+        </div>
+    </div>
+
+    <!-- Roadmap Milestone Modal -->
+    <div class="modal-overlay" id="roadmapModalOverlay">
+        <div class="modal-box">
+            <div class="modal-header">
+                <div class="modal-title" id="roadmapModalTitle"><i class="fas fa-plus-circle"></i> Add New Milestone</div>
+                <button class="modal-close" id="roadmapModalClose"><i class="fas fa-xmark"></i></button>
+            </div>
+            <div class="modal-body">
+                <div class="form-msg" id="roadmapMsg"></div>
+                <form id="addMilestoneForm">
+                    <input type="hidden" id="editMilestoneId">
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1rem;">
+                        <div class="form-group">
+                            <label class="form-label">Quarter / Label <span style="color:#ef4444">*</span></label>
+                            <input type="text" id="rm-label" class="form-input" placeholder="e.g. Q3 2026 or Launched" required>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Status <span style="color:#ef4444">*</span></label>
+                            <select id="rm-status" class="form-input" required>
+                                <option value="">— Select —</option>
+                                <option value="completed">Completed</option>
+                                <option value="inprogress">In Progress</option>
+                                <option value="soon">Coming Soon</option>
+                                <option value="planned">Planned</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div style="margin-bottom:1rem;">
+                        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.75rem;">
+                            <label class="form-label" style="margin:0;">Features</label>
+                            <button type="button" id="addFeatureRowBtn" style="font-size:0.72rem;font-weight:700;padding:0.3rem 0.8rem;border-radius:6px;border:1px solid rgba(201,176,55,0.4);background:rgba(201,176,55,0.08);color:var(--gold);cursor:pointer;">
+                                <i class="fas fa-plus"></i> Add Feature
+                            </button>
+                        </div>
+                        <div id="rm-features-list"></div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" id="cancelEditBtn" style="font-size:0.82rem;font-weight:700;padding:0.6rem 1.2rem;border-radius:8px;border:1px solid rgba(255,255,255,0.15);background:transparent;color:rgba(255,255,255,0.55);cursor:pointer;">
+                    <i class="fas fa-xmark"></i> Cancel
+                </button>
+                <button type="submit" form="addMilestoneForm" class="form-submit-btn" id="saveMilestoneBtn" style="max-width:220px;">
+                    <i class="fas fa-floppy-disk"></i> Save Milestone
+                </button>
+            </div>
         </div>
     </div>
 
@@ -2068,9 +2107,40 @@
         }
 
         document.getElementById('addFeatureRowBtn').addEventListener('click', () => addFeatureRow());
-        addFeatureRow(); // start with one row
 
-        /* ── Edit milestone (populate form) ── */
+        /* ── Close roadmap modal & reset form ── */
+        function closeRoadmapModal() {
+            document.getElementById('roadmapModalOverlay').classList.remove('open');
+            _editingMilestoneId = null;
+            document.getElementById('editMilestoneId').value = '';
+            document.getElementById('addMilestoneForm').reset();
+            document.getElementById('rm-features-list').innerHTML = '';
+            featureRowCount = 0;
+            addFeatureRow();
+            document.getElementById('roadmapModalTitle').innerHTML = '<i class="fas fa-plus-circle"></i> Add New Milestone';
+            document.getElementById('saveMilestoneBtn').innerHTML = '<i class="fas fa-floppy-disk"></i> Save Milestone';
+            clearMsg('roadmapMsg');
+        }
+
+        /* ── Open modal for adding new milestone ── */
+        document.getElementById('openAddMilestoneBtn').addEventListener('click', () => {
+            closeRoadmapModal();
+            document.getElementById('roadmapModalOverlay').classList.add('open');
+        });
+
+        document.getElementById('roadmapModalClose').addEventListener('click', closeRoadmapModal);
+        document.getElementById('cancelEditBtn').addEventListener('click', closeRoadmapModal);
+        document.getElementById('roadmapModalOverlay').addEventListener('click', (e) => {
+            if (e.target === document.getElementById('roadmapModalOverlay')) closeRoadmapModal();
+        });
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && document.getElementById('roadmapModalOverlay').classList.contains('open')) {
+                if (document.getElementById('rm-icon-picker')?.classList.contains('open')) return;
+                closeRoadmapModal();
+            }
+        });
+
+        /* ── Edit milestone (populate form & open modal) ── */
         window.editMilestone = function(id) {
             const m = _rmMilestones.find(x => x.id === id);
             if (!m) return;
@@ -2082,26 +2152,11 @@
             featureRowCount = 0;
             (m.features || []).forEach(f => addFeatureRow(f));
             if (!m.features?.length) addFeatureRow();
-            document.getElementById('rm-form-title').innerHTML = '<i class="fas fa-pen"></i> Edit Milestone';
+            document.getElementById('roadmapModalTitle').innerHTML = '<i class="fas fa-pen"></i> Edit Milestone: ' + (m.label || 'Untitled');
             document.getElementById('saveMilestoneBtn').innerHTML = '<i class="fas fa-floppy-disk"></i> Update Milestone';
-            document.getElementById('cancelEditBtn').style.display = '';
             clearMsg('roadmapMsg');
-            document.getElementById('addMilestoneForm').scrollIntoView({ behavior: 'smooth', block: 'start' });
+            document.getElementById('roadmapModalOverlay').classList.add('open');
         };
-
-        /* ── Cancel edit ── */
-        document.getElementById('cancelEditBtn').addEventListener('click', () => {
-            _editingMilestoneId = null;
-            document.getElementById('editMilestoneId').value = '';
-            document.getElementById('addMilestoneForm').reset();
-            document.getElementById('rm-features-list').innerHTML = '';
-            featureRowCount = 0;
-            addFeatureRow();
-            document.getElementById('rm-form-title').innerHTML = '<i class="fas fa-plus-circle"></i> Add New Milestone';
-            document.getElementById('saveMilestoneBtn').innerHTML = '<i class="fas fa-floppy-disk"></i> Save Milestone';
-            document.getElementById('cancelEditBtn').style.display = 'none';
-            clearMsg('roadmapMsg');
-        });
 
         /* ── Save / update milestone ── */
         document.getElementById('addMilestoneForm').addEventListener('submit', async (e) => {
@@ -2132,11 +2187,8 @@
                 if (editId) {
                     await updateDoc(doc(db, 'roadmap_milestones', editId), { label, status, features });
                     showMsg('roadmapMsg', `"${label}" updated.`, 'success');
-                    _editingMilestoneId = null;
-                    document.getElementById('editMilestoneId').value = '';
-                    document.getElementById('rm-form-title').innerHTML = '<i class="fas fa-plus-circle"></i> Add New Milestone';
-                    document.getElementById('cancelEditBtn').style.display = 'none';
-                    btn.innerHTML = '<i class="fas fa-floppy-disk"></i> Save Milestone';
+                    loadRoadmapMilestones();
+                    setTimeout(() => closeRoadmapModal(), 600);
                 } else {
                     const nextOrder = _rmMilestones.length > 0
                         ? Math.max(..._rmMilestones.map(m => m.order ?? 0)) + 1
@@ -2145,13 +2197,10 @@
                         label, status, features, order: nextOrder, createdAt: serverTimestamp()
                     });
                     showMsg('roadmapMsg', `"${label}" added.`, 'success');
-                    btn.innerHTML = '<i class="fas fa-floppy-disk"></i> Save Milestone';
+                    loadRoadmapMilestones();
+                    setTimeout(() => closeRoadmapModal(), 600);
                 }
-                e.target.reset();
-                document.getElementById('rm-features-list').innerHTML = '';
-                featureRowCount = 0;
-                addFeatureRow();
-                loadRoadmapMilestones();
+                btn.innerHTML = '<i class="fas fa-floppy-disk"></i> Save Milestone';
             } catch (err) {
                 showMsg('roadmapMsg', 'Error: ' + err.message, 'error');
                 btn.innerHTML = '<i class="fas fa-floppy-disk"></i> Save Milestone';

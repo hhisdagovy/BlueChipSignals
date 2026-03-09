@@ -1420,6 +1420,16 @@ stripe-buy-button {
     to   { background-position: 32px 32px; }
 }
 
+@keyframes sp-deck-card-in {
+    from { opacity: 0; transform: translateY(22px) scale(0.95); }
+    to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@keyframes sp-shimmer-sweep {
+    0%   { background-position: -200% center; }
+    100% { background-position: 200% center; }
+}
+
 /* ---- Hero Section ---- */
 .sp-hero {
     margin-top: 100px;
@@ -1733,8 +1743,9 @@ stripe-buy-button {
 }
 
 .sp-metric-card {
-    background: rgba(26,31,46,0.6);
-    border: 1px solid rgba(201,176,55,0.14);
+    background: linear-gradient(150deg, rgba(201,176,55,0.1) 0%, rgba(10,14,22,0.85) 55%);
+    border: 1px solid rgba(201,176,55,0.28);
+    border-top: 3px solid var(--primary-gold);
     border-radius: 18px;
     padding: 1.75rem 1.5rem;
     text-align: center;
@@ -1742,6 +1753,8 @@ stripe-buy-button {
     overflow: hidden;
     opacity: 0;
     transform: translateY(16px);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
     transition: opacity 0.45s cubic-bezier(0.22,1,0.36,1),
                 transform 0.45s cubic-bezier(0.22,1,0.36,1),
                 border-color 0.25s, box-shadow 0.25s;
@@ -1752,6 +1765,7 @@ stripe-buy-button {
     transform: translateY(0);
 }
 
+/* Background number (01, 02, etc.) */
 .sp-metric-card::before {
     content: attr(data-idx);
     position: absolute;
@@ -1762,18 +1776,45 @@ stripe-buy-button {
     opacity: 0.06;
     line-height: 1;
     pointer-events: none;
+    z-index: 0;
+}
+
+/* Shimmer overlay on hover */
+.sp-metric-card::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    background: linear-gradient(
+        105deg,
+        transparent 30%,
+        rgba(255,255,255,0.07) 50%,
+        transparent 70%
+    );
+    background-size: 200% 100%;
+    opacity: 0;
+    transition: opacity 0.35s ease;
+    pointer-events: none;
+    z-index: 1;
+}
+
+.sp-metric-card.sp-card-visible:hover::after {
+    opacity: 1;
+    animation: sp-shimmer-sweep 0.65s ease forwards;
 }
 
 .sp-metric-card.sp-card-visible:hover {
-    border-color: rgba(201,176,55,0.4);
+    border-color: rgba(201,176,55,0.5);
     transform: translateY(-4px);
-    box-shadow: 0 12px 32px rgba(0,0,0,0.3);
+    box-shadow: 0 10px 32px rgba(0,0,0,0.35);
 }
 
 .sp-metric-card .sp-m-icon {
     font-size: 1.6rem;
     color: var(--primary-gold);
     margin-bottom: 0.75rem;
+    position: relative;
+    z-index: 2;
 }
 
 .sp-metric-card .sp-m-value {
@@ -1782,6 +1823,8 @@ stripe-buy-button {
     color: var(--light-text);
     margin-bottom: 0.35rem;
     line-height: 1.1;
+    position: relative;
+    z-index: 2;
 }
 
 .sp-metric-card .sp-m-label {
@@ -1789,6 +1832,8 @@ stripe-buy-button {
     color: var(--gray-text);
     text-transform: uppercase;
     letter-spacing: 0.05em;
+    position: relative;
+    z-index: 2;
 }
 
 /* ---- Why Trade Section ---- */
@@ -1845,20 +1890,24 @@ stripe-buy-button {
 .sp-why-card {
     flex: 0 0 270px;
     margin-right: 1.5rem;
-    background: rgba(26,31,46,0.55);
-    border: 1px solid rgba(201,176,55,0.14);
+    background: linear-gradient(150deg, rgba(201,176,55,0.1) 0%, rgba(10,14,22,0.85) 55%);
+    border: 1px solid rgba(201,176,55,0.28);
+    border-top: 3px solid var(--primary-gold);
     border-radius: 18px;
     padding: 1.75rem 1.5rem;
     position: relative;
     overflow: hidden;
     cursor: default;
     user-select: none;
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
     transition: border-color 0.3s, transform 0.3s, box-shadow 0.3s;
 }
 
 /* Wave effect — odd/even offset */
 .sp-why-track .sp-why-card:nth-child(even) { transform: translateY(28px); }
 
+/* Background number (01, 02, etc.) */
 .sp-why-card::before {
     content: attr(data-index);
     position: absolute;
@@ -1869,12 +1918,37 @@ stripe-buy-button {
     opacity: 0.06;
     line-height: 1;
     pointer-events: none;
+    z-index: 0;
+}
+
+/* Shimmer overlay on hover */
+.sp-why-card::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    background: linear-gradient(
+        105deg,
+        transparent 30%,
+        rgba(255,255,255,0.07) 50%,
+        transparent 70%
+    );
+    background-size: 200% 100%;
+    opacity: 0;
+    transition: opacity 0.35s ease;
+    pointer-events: none;
+    z-index: 1;
+}
+
+.sp-why-card:hover::after {
+    opacity: 1;
+    animation: sp-shimmer-sweep 0.65s ease forwards;
 }
 
 .sp-why-card:hover {
     border-color: rgba(201,176,55,0.55);
     transform: translateY(-8px) !important;
-    box-shadow: 0 0 28px rgba(201,176,55,0.18), 0 16px 40px rgba(0,0,0,0.4);
+    box-shadow: 0 10px 32px rgba(0,0,0,0.35), 0 0 28px rgba(201,176,55,0.18);
 }
 
 .sp-why-card .sp-why-icon {
@@ -1888,6 +1962,8 @@ stripe-buy-button {
     font-size: 1.1rem;
     color: var(--primary-gold);
     margin-bottom: 1rem;
+    position: relative;
+    z-index: 2;
 }
 
 .sp-why-card h3 {
@@ -1895,6 +1971,8 @@ stripe-buy-button {
     font-weight: 700;
     color: var(--light-text);
     margin-bottom: 0.5rem;
+    position: relative;
+    z-index: 2;
 }
 
 .sp-why-card p {
@@ -1902,6 +1980,8 @@ stripe-buy-button {
     color: var(--gray-text);
     line-height: 1.6;
     margin: 0;
+    position: relative;
+    z-index: 2;
 }
 
 /* ---- Signal Example Section ---- */
@@ -1971,18 +2051,46 @@ stripe-buy-button {
 }
 
 .sp-strategy-card {
-    background: rgba(26,31,46,0.6);
-    border: 1px solid rgba(201,176,55,0.14);
+    background: linear-gradient(150deg, rgba(201,176,55,0.1) 0%, rgba(10,14,22,0.85) 55%);
+    border: 1px solid rgba(201,176,55,0.28);
     border-left: 3px solid var(--primary-gold);
     border-radius: 18px;
     padding: 2rem;
+    position: relative;
+    overflow: hidden;
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
     transition: border-color 0.25s, transform 0.25s, box-shadow 0.25s;
+}
+
+/* Shimmer overlay on hover */
+.sp-strategy-card::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    background: linear-gradient(
+        105deg,
+        transparent 30%,
+        rgba(255,255,255,0.07) 50%,
+        transparent 70%
+    );
+    background-size: 200% 100%;
+    opacity: 0;
+    transition: opacity 0.35s ease;
+    pointer-events: none;
+    z-index: 0;
+}
+
+.sp-strategy-card:hover::before {
+    opacity: 1;
+    animation: sp-shimmer-sweep 0.65s ease forwards;
 }
 
 .sp-strategy-card:hover {
     transform: translateY(-4px);
-    box-shadow: 0 12px 32px rgba(0,0,0,0.3);
-    border-color: rgba(201,176,55,0.4);
+    box-shadow: 0 10px 32px rgba(0,0,0,0.35);
+    border-color: rgba(201,176,55,0.5);
     border-left-color: var(--primary-gold);
 }
 
@@ -1991,6 +2099,8 @@ stripe-buy-button {
     align-items: center;
     gap: 0.85rem;
     margin-bottom: 1.5rem;
+    position: relative;
+    z-index: 1;
 }
 
 .sp-strategy-card .sp-sc-head i {
@@ -2009,6 +2119,8 @@ stripe-buy-button {
     list-style: none;
     padding: 0;
     margin: 0;
+    position: relative;
+    z-index: 1;
 }
 
 .sp-strategy-card ul li {
@@ -2040,19 +2152,48 @@ stripe-buy-button {
 }
 
 .sp-tool-card {
-    background: rgba(26,31,46,0.55);
-    border: 1px solid rgba(201,176,55,0.14);
+    background: linear-gradient(150deg, rgba(201,176,55,0.1) 0%, rgba(10,14,22,0.85) 55%);
+    border: 1px solid rgba(201,176,55,0.28);
+    border-top: 3px solid var(--primary-gold);
     border-radius: 18px;
     padding: 1.75rem;
+    position: relative;
+    overflow: hidden;
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
     transition: border-color 0.25s, transform 0.25s, box-shadow 0.25s;
     display: flex;
     flex-direction: column;
 }
 
+/* Shimmer overlay on hover */
+.sp-tool-card::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    background: linear-gradient(
+        105deg,
+        transparent 30%,
+        rgba(255,255,255,0.07) 50%,
+        transparent 70%
+    );
+    background-size: 200% 100%;
+    opacity: 0;
+    transition: opacity 0.35s ease;
+    pointer-events: none;
+    z-index: 0;
+}
+
+.sp-tool-card:hover::before {
+    opacity: 1;
+    animation: sp-shimmer-sweep 0.65s ease forwards;
+}
+
 .sp-tool-card:hover {
-    border-color: rgba(201,176,55,0.4);
+    border-color: rgba(201,176,55,0.5);
     transform: translateY(-4px);
-    box-shadow: 0 12px 32px rgba(0,0,0,0.3);
+    box-shadow: 0 10px 32px rgba(0,0,0,0.35);
 }
 
 .sp-tool-card h3 {
@@ -2063,6 +2204,8 @@ stripe-buy-button {
     display: flex;
     align-items: center;
     gap: 0.6rem;
+    position: relative;
+    z-index: 1;
 }
 
 .sp-tool-card h3 i { color: var(--primary-gold); font-size: 1rem; }
@@ -2073,6 +2216,13 @@ stripe-buy-button {
     line-height: 1.6;
     margin: 0 0 1.25rem;
     flex: 1;
+    position: relative;
+    z-index: 1;
+}
+
+.sp-tool-card .sp-tool-btn {
+    position: relative;
+    z-index: 1;
 }
 
 .sp-tool-btn {

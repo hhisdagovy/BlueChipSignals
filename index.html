@@ -142,17 +142,42 @@
         }
 
         .signal-preview {
-            background: rgba(18, 24, 42, 0.88);
-            border: 1px solid rgba(255,255,255,0.07);
+            background: linear-gradient(150deg, rgba(201,176,55,0.08) 0%, rgba(10,14,22,0.9) 55%);
+            border: 1px solid rgba(201,176,55,0.2);
+            border-top: 3px solid rgba(201,176,55,0.4);
             border-radius: 18px;
             padding: 1.5rem;
             box-shadow: 0 8px 24px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.05);
-            backdrop-filter: blur(8px);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
             position: absolute;
             width: 90%;
+            overflow: hidden;
             transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
             transform-origin: center;
             cursor: pointer;
+        }
+        /* Shimmer on hover for active card only */
+        .signal-preview::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            border-radius: inherit;
+            background: linear-gradient(
+                105deg,
+                transparent 30%,
+                rgba(255,255,255,0.07) 50%,
+                transparent 70%
+            );
+            background-size: 200% 100%;
+            opacity: 0;
+            transition: opacity 0.35s ease;
+            pointer-events: none;
+            z-index: 0;
+        }
+        .signal-preview.active:hover::before {
+            opacity: 1;
+            animation: index-shimmer-sweep 0.65s ease forwards;
         }
 
         .signal-preview.active {
@@ -184,6 +209,8 @@
             align-items: center;
             gap: 1rem;
             margin-bottom: 1rem;
+            position: relative;
+            z-index: 1;
         }
 
         .signal-icon {
@@ -220,6 +247,8 @@
             font-family: inherit;
             font-size: 0.85rem;
             color: rgba(255,255,255,0.75);
+            position: relative;
+            z-index: 1;
         }
         .signal-row {
             display: flex;
@@ -327,27 +356,56 @@
             from { transform: translateX(0); }
             to   { transform: translateX(var(--marquee-shift, -50%)); }
         }
+        @keyframes index-shimmer-sweep {
+            0%   { background-position: -200% center; }
+            100% { background-position: 200% center; }
+        }
         /* Individual card */
         .feature-bubble {
             position: relative;
             flex: 0 0 260px;
             margin-right: 1.5rem;
-            background: rgba(12, 15, 24, 0.78);
-            border: 1px solid rgba(201, 176, 55, 0.28);
+            background: linear-gradient(150deg, rgba(201,176,55,0.1) 0%, rgba(10,14,22,0.85) 55%);
+            border: 1px solid rgba(201,176,55,0.28);
+            border-top: 3px solid var(--primary-gold);
             border-radius: 20px;
             padding: 1.5rem 1.4rem 1.8rem;
-            backdrop-filter: blur(12px);
+            backdrop-filter: blur(14px);
+            -webkit-backdrop-filter: blur(14px);
             box-shadow: 0 10px 28px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.03);
             transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
             cursor: default;
             user-select: none;
+            overflow: hidden;
+        }
+        /* Shimmer overlay on hover */
+        .feature-bubble::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            border-radius: inherit;
+            background: linear-gradient(
+                105deg,
+                transparent 30%,
+                rgba(255,255,255,0.07) 50%,
+                transparent 70%
+            );
+            background-size: 200% 100%;
+            opacity: 0;
+            transition: opacity 0.35s ease;
+            pointer-events: none;
+            z-index: 0;
+        }
+        .feature-bubble:hover::before {
+            opacity: 1;
+            animation: index-shimmer-sweep 0.65s ease forwards;
         }
         /* Alternate heights for wave effect */
         .feature-bubble:nth-child(even) { transform: translateY(28px); }
         .feature-bubble:hover {
             transform: translateY(-8px) !important;
-            border-color: rgba(201, 176, 55, 0.65);
-            box-shadow: 0 0 28px rgba(201,176,55,0.2), 0 16px 40px rgba(0,0,0,0.4);
+            border-color: rgba(201,176,55,0.5);
+            box-shadow: 0 10px 32px rgba(0,0,0,0.35), 0 0 28px rgba(201,176,55,0.18);
         }
         /* Gold connector dot */
         .feature-bubble::after {
@@ -364,10 +422,12 @@
             margin-bottom: 1rem;
             background: linear-gradient(180deg, rgba(201,176,55,0.12), rgba(201,176,55,0.03));
             border: 1px solid rgba(201,176,55,0.28);
+            position: relative;
+            z-index: 1;
         }
         .feature-icon i { color: var(--primary-gold); font-size: 1.2rem; }
-        .feature-bubble h3 { font-size: 0.95rem; letter-spacing: 0.2px; margin-bottom: 0.45rem; }
-        .feature-bubble p { font-size: 0.82rem; color: rgba(255,255,255,0.58); line-height: 1.6; margin: 0; }
+        .feature-bubble h3 { font-size: 0.95rem; letter-spacing: 0.2px; margin-bottom: 0.45rem; position: relative; z-index: 1; }
+        .feature-bubble p { font-size: 0.82rem; color: rgba(255,255,255,0.58); line-height: 1.6; margin: 0; position: relative; z-index: 1; }
         .feature-bubble .feature-disclaimer {
             display: block;
             font-size: 0.7rem;
@@ -375,6 +435,8 @@
             margin-top: 0.5rem;
             font-style: italic;
             line-height: 1.4;
+            position: relative;
+            z-index: 1;
         }
         @media (max-width: 768px) {
             .section-title { font-size: 1.5rem; margin-bottom: 1.5rem; }
@@ -396,23 +458,59 @@
         }
 
         .pricing-card {
-            background: rgba(26, 31, 46, 0.8);
-            border: 2px solid rgba(201, 176, 55, 0.3);
+            background: linear-gradient(150deg, rgba(201,176,55,0.1) 0%, rgba(10,14,22,0.85) 55%);
+            border: 1px solid rgba(201,176,55,0.28);
+            border-top: 3px solid var(--primary-gold);
             border-radius: 20px;
             padding: 3rem 2rem;
             text-align: center;
             position: relative;
-            transition: transform 0.3s, border-color 0.3s;
+            overflow: hidden;
+            backdrop-filter: blur(14px);
+            -webkit-backdrop-filter: blur(14px);
+            transition: transform 0.3s, border-color 0.3s, box-shadow 0.3s;
+        }
+        /* Shimmer overlay on hover */
+        .pricing-card::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            border-radius: inherit;
+            background: linear-gradient(
+                105deg,
+                transparent 30%,
+                rgba(255,255,255,0.07) 50%,
+                transparent 70%
+            );
+            background-size: 200% 100%;
+            opacity: 0;
+            transition: opacity 0.35s ease;
+            pointer-events: none;
+            z-index: 0;
+        }
+        .pricing-card:hover::before {
+            opacity: 1;
+            animation: index-shimmer-sweep 0.65s ease forwards;
         }
 
         .pricing-card.featured {
             border-color: var(--primary-gold);
+            border-top-color: var(--primary-gold);
             transform: scale(1.05);
         }
 
         .pricing-card:hover {
-            border-color: var(--primary-gold);
+            border-color: rgba(201,176,55,0.5);
+            border-top-color: var(--primary-gold);
             transform: translateY(-5px);
+            box-shadow: 0 10px 32px rgba(0,0,0,0.35);
+        }
+        .pricing-card.featured:hover {
+            transform: scale(1.05) translateY(-5px);
+        }
+        .pricing-card > * {
+            position: relative;
+            z-index: 1;
         }
 
         .price-tag {
@@ -1106,7 +1204,7 @@
                 </div>
                 <div class="feature-bubble">
                     <div class="feature-icon"><i class="fas fa-layer-group"></i></div>
-                    <h3>6 Blue-Chip Stocks</h3>
+                    <h3>5 Blue-Chip Stocks & 1 ETF</h3>
                     <p>Focused coverage of SPY, TSLA, META, NVDA, AAPL, and AMZN — the most liquid names in the market.</p>
                 </div>
                 <div class="feature-bubble">

@@ -241,10 +241,15 @@ nav {
     /* ---- Fullscreen overlay ---- */
     .nav-links {
         position: fixed;
-        inset: 0;
-        width: 100vw;
-        height: 100vh;
-        background: rgba(5, 8, 16, 1);
+        top: calc(-30px - env(safe-area-inset-top, 0px));
+        left: calc(-30px - env(safe-area-inset-left, 0px));
+        right: calc(-30px - env(safe-area-inset-right, 0px));
+        bottom: calc(-30px - env(safe-area-inset-bottom, 0px));
+        min-width: 100vw;
+        min-height: 100vh;
+        width: calc(100vw + 60px);
+        height: calc(100vh + 60px);
+        background: #050810;
         backdrop-filter: blur(24px);
         -webkit-backdrop-filter: blur(24px);
         flex-direction: column;

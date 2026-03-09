@@ -556,11 +556,11 @@
         .testimonials-bg-quote {
             position: absolute;
             top: -3rem;
-            left: -1rem;
+            left: 0;
             font-size: clamp(12rem, 22vw, 20rem);
             line-height: 1;
             color: var(--primary-gold);
-            opacity: 0.05;
+            opacity: 0.09;
             font-family: Georgia, serif;
             pointer-events: none;
             user-select: none;
@@ -579,16 +579,34 @@
             align-items: center;
             text-align: center;
             padding: 0 1rem;
-            animation: fadeInSlide 0.5s ease;
         }
 
         .testimonial-slide.active {
             display: flex;
+            animation: testimonial-float 5s ease-in-out infinite alternate;
         }
 
-        @keyframes fadeInSlide {
-            from { opacity: 0; transform: translateY(12px); }
-            to   { opacity: 1; transform: translateY(0); }
+        @keyframes testimonial-float {
+            from { transform: translateY(0); }
+            to   { transform: translateY(-4px); }
+        }
+
+        @keyframes testimonial-quote-in {
+            from { opacity: 0; transform: translateY(12px) scale(0.98); }
+            to   { opacity: 1; transform: translateY(0) scale(1); }
+        }
+
+        @keyframes testimonial-author-in {
+            from { opacity: 0; transform: translateY(12px) scale(0.98); }
+            to   { opacity: 1; transform: translateY(0) scale(1); }
+        }
+
+        .testimonial-slide.active .testimonial-text {
+            animation: testimonial-quote-in 0.6s cubic-bezier(0.22, 1, 0.36, 1) 0s both;
+        }
+
+        .testimonial-slide.active .testimonial-author {
+            animation: testimonial-author-in 0.6s cubic-bezier(0.22, 1, 0.36, 1) 0.18s both;
         }
 
         .testimonial-text {
@@ -631,16 +649,25 @@
             width: 10px;
             height: 10px;
             border-radius: 50%;
-            border: 2px solid var(--primary-gold);
-            background: transparent;
+            border: 1px solid rgba(201,176,55,0.3);
+            background: rgba(201,176,55,0.05);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
             cursor: pointer;
             padding: 0;
-            transition: background 0.3s, transform 0.3s;
+            transition: background 0.25s, transform 0.25s, box-shadow 0.25s, border-color 0.25s;
+        }
+
+        .testimonials-dots .dot:hover {
+            background: rgba(201,176,55,0.15);
+            border-color: rgba(201,176,55,0.5);
         }
 
         .testimonials-dots .dot.active {
-            background: var(--primary-gold);
+            background: linear-gradient(135deg, var(--primary-gold), var(--secondary-gold));
+            border-color: transparent;
             transform: scale(1.25);
+            box-shadow: 0 0 12px rgba(201,176,55,0.4);
         }
 
         .testimonials-arrows {
@@ -652,8 +679,10 @@
 
         .testimonials-prev,
         .testimonials-next {
-            background: transparent;
-            border: 1px solid rgba(201, 176, 55, 0.4);
+            background: rgba(10,14,22,0.6);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(201,176,55,0.35);
             color: var(--primary-gold);
             width: 42px;
             height: 42px;
@@ -663,13 +692,15 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            transition: background 0.25s, border-color 0.25s;
+            transition: background 0.25s, border-color 0.25s, box-shadow 0.25s, transform 0.2s;
         }
 
         .testimonials-prev:hover,
         .testimonials-next:hover {
-            background: rgba(201, 176, 55, 0.12);
+            background: linear-gradient(150deg, rgba(201,176,55,0.15), rgba(201,176,55,0.05));
             border-color: var(--primary-gold);
+            box-shadow: 0 4px 16px rgba(201,176,55,0.2);
+            transform: translateY(-1px);
         }
 
         /* Footer */
@@ -1492,7 +1523,7 @@
             }
 
             function startAuto() {
-                autoTimer = setInterval(() => showSlide(idx + 1), 4000);
+                autoTimer = setInterval(() => showSlide(idx + 1), 7000);
             }
 
             function stopAuto() {

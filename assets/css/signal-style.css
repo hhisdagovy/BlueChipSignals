@@ -1403,7 +1403,7 @@ stripe-buy-button {
 }
 
 /* ================================================================
-   SIGNAL PAGE SHARED COMPONENTS — New Design System
+   SIGNAL PAGE SHARED COMPONENTS -  New Design System
    All signal pages use these generic classes.
    Per-ticker color is set via  :root { --signal-accent: ...; --signal-glow: ...; }
    in a tiny inline <style> block on each page.
@@ -1480,7 +1480,7 @@ stripe-buy-button {
 
 .sp-hero-left { display: flex; flex-direction: column; gap: 1.25rem; }
 
-/* Staggered entrance — each element fades up in sequence */
+/* Staggered entrance -  each element fades up in sequence */
 .sp-badge       { animation: sp-fade-up 0.55s cubic-bezier(0.22,1,0.36,1) 0.10s both; }
 .sp-ticker      { animation: sp-fade-up 0.55s cubic-bezier(0.22,1,0.36,1) 0.20s both; }
 .sp-subtitle    { animation: sp-fade-up 0.55s cubic-bezier(0.22,1,0.36,1) 0.30s both; }
@@ -1873,7 +1873,7 @@ stripe-buy-button {
     padding: 1rem 0 2rem;
 }
 
-/* Scrolling track — contains cards × 2 for seamless loop */
+/* Scrolling track -  contains cards × 2 for seamless loop */
 .sp-why-track {
     display: flex;
     gap: 0;
@@ -1904,7 +1904,7 @@ stripe-buy-button {
     transition: border-color 0.3s, transform 0.3s, box-shadow 0.3s;
 }
 
-/* Wave effect — odd/even offset */
+/* Wave effect -  odd/even offset */
 .sp-why-track .sp-why-card:nth-child(even) { transform: translateY(28px); }
 
 /* Background number (01, 02, etc.) */
@@ -2381,7 +2381,7 @@ stripe-buy-button {
 .sp-reveal.sp-visible { opacity: 1; transform: translateY(0); }
 
 /* ================================================================
-   RESPONSIVE — Signal Pages
+   RESPONSIVE -  Signal Pages
    ================================================================ */
 @media (max-width: 1024px) {
     .sp-hero-inner {
@@ -2398,7 +2398,7 @@ stripe-buy-button {
 }
 
 @media (max-width: 768px) {
-    /* Hide hero phone mockup on mobile — it appears in the dedicated section below */
+    /* Hide hero phone mockup on mobile -  it appears in the dedicated section below */
     .sp-hero .sp-hero-right { display: none; }
 
     /* Crest logo watermark behind the hero text on mobile */

@@ -22,7 +22,7 @@ CORS(app, resources={r"/api/*": {"origins": "*"}})
 # ── Firebase Admin SDK ──────────────────────────────────────────────────────
 # Set FIREBASE_SERVICE_ACCOUNT_JSON in Railway env vars as the full JSON string
 # of a Firebase service-account key file.  If the var is missing the app still
-# works — Firestore writes are silently skipped.
+# works -  Firestore writes are silently skipped.
 _firestore_client = None
 try:
     _sa_json = os.environ.get('FIREBASE_SERVICE_ACCOUNT_JSON', '')
@@ -31,9 +31,9 @@ try:
         _cred = credentials.Certificate(_sa_dict)
         firebase_admin.initialize_app(_cred)
         _firestore_client = fs_admin.client()
-        print('[BCS] Firebase Admin SDK initialised — Firestore writes enabled.')
+        print('[BCS] Firebase Admin SDK initialised -  Firestore writes enabled.')
     else:
-        print('[BCS] FIREBASE_SERVICE_ACCOUNT_JSON not set — Firestore writes disabled.')
+        print('[BCS] FIREBASE_SERVICE_ACCOUNT_JSON not set -  Firestore writes disabled.')
 except Exception as _e:
     print(f'[BCS] Firebase Admin SDK init failed: {_e}')
 
@@ -363,7 +363,7 @@ def admin_dashboard():
                     if ts_str.startswith(today_str):
                         signals_today += 1
                 else:
-                    ts_str = str(ts)[:16] if ts else '—'
+                    ts_str = str(ts)[:16] if ts else '-'
                 recent_signals.append({
                     'doc_id':        d.id,
                     'stock':         data.get('stock', ''),
@@ -404,7 +404,7 @@ def admin_dashboard():
                     'contract_type': row[5],
                     'strike':        row[6],
                     'premium':       row[7],
-                    'timestamp':     row[9].split('.')[0] if row[9] and '.' in row[9] else (row[9] or '—'),
+                    'timestamp':     row[9].split('.')[0] if row[9] and '.' in row[9] else (row[9] or '-'),
                 })
             conn.close()
         except Exception:
@@ -595,7 +595,7 @@ def manage_signals():
                 elif ts:
                     ts_str = str(ts)[:16]
                 else:
-                    ts_str = '—'
+                    ts_str = '-'
                 signals.append({
                     'doc_id':       d.id,
                     'stock':        data.get('stock', ''),

@@ -29,7 +29,7 @@ jobs:
         uses: actions/checkout@v4
 
       # ─────────────────────────────────────────────────────────────
-      # Inject API secrets — replaces %%PLACEHOLDER%% tokens in
+      # Inject API secrets -  replaces %%PLACEHOLDER%% tokens in
       # source files with the real values from GitHub Secrets.
       # The source on GitHub only ever shows the placeholder tokens.
       # ─────────────────────────────────────────────────────────────
@@ -40,16 +40,16 @@ jobs:
           ALPHA_VANTAGE_KEY: ${{ secrets.ALPHA_VANTAGE_KEY }}
           BLS_API_KEY:       ${{ secrets.BLS_API_KEY }}
         run: |
-          # Firebase API key — firebase-config.js and admin.html
+          # Firebase API key -  firebase-config.js and admin.html
           sed -i "s|%%FIREBASE_API%%|${FIREBASE_API}|g"           assets/js/firebase-config.js
           sed -i "s|%%FIREBASE_API%%|${FIREBASE_API}|g"           admin.html
 
-          # Polygon API key — central config + files that inline it directly
+          # Polygon API key -  central config + files that inline it directly
           sed -i "s|%%POLYGON_API_KEY%%|${POLYGON_API_KEY}|g"     assets/js/config.js
           sed -i "s|%%POLYGON_API_KEY%%|${POLYGON_API_KEY}|g"     assets/js/trend-strength.js
           sed -i "s|%%POLYGON_API_KEY%%|${POLYGON_API_KEY}|g"     assets/js/power-hour-momentum.js
 
-          # Alpha Vantage and BLS keys — central config only (TSLA financials imports from config.js)
+          # Alpha Vantage and BLS keys -  central config only (TSLA financials imports from config.js)
           sed -i "s|%%ALPHA_VANTAGE_KEY%%|${ALPHA_VANTAGE_KEY}|g" assets/js/config.js
           sed -i "s|%%BLS_API_KEY%%|${BLS_API_KEY}|g"             assets/js/config.js
 

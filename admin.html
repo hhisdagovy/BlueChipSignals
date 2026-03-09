@@ -939,28 +939,28 @@
             <div class="admin-stat-card">
                 <div class="admin-stat-icon"><i class="fas fa-users"></i></div>
                 <div>
-                    <div class="admin-stat-value" id="statTotal">—</div>
+                    <div class="admin-stat-value" id="statTotal">-</div>
                     <div class="admin-stat-label">Total Users</div>
                 </div>
             </div>
             <div class="admin-stat-card">
                 <div class="admin-stat-icon"><i class="fas fa-crown"></i></div>
                 <div>
-                    <div class="admin-stat-value" id="statBundle">—</div>
+                    <div class="admin-stat-value" id="statBundle">-</div>
                     <div class="admin-stat-label">Full Bundle</div>
                 </div>
             </div>
             <div class="admin-stat-card">
                 <div class="admin-stat-icon"><i class="fas fa-satellite-dish"></i></div>
                 <div>
-                    <div class="admin-stat-value" id="statSingle">—</div>
+                    <div class="admin-stat-value" id="statSingle">-</div>
                     <div class="admin-stat-label">Single Channel</div>
                 </div>
             </div>
             <div class="admin-stat-card">
                 <div class="admin-stat-icon"><i class="fas fa-circle-check"></i></div>
                 <div>
-                    <div class="admin-stat-value" id="statActive">—</div>
+                    <div class="admin-stat-value" id="statActive">-</div>
                     <div class="admin-stat-label">Active</div>
                 </div>
             </div>
@@ -1057,7 +1057,7 @@
                         <div class="form-field">
                             <label class="form-label">Plan <span class="req">*</span></label>
                             <select class="form-select" id="addPlan" required>
-                                <option value="">— Select plan —</option>
+                                <option value="">- Select plan -</option>
                                 <option value="bundle">Full Bundle</option>
                                 <option value="single">Single Channel</option>
                             </select>
@@ -1065,12 +1065,12 @@
                         <div class="form-field" id="addTickerField" style="display:none;">
                             <label class="form-label">Allowed Ticker <span class="req">*</span></label>
                             <select class="form-select" id="addTicker">
-                                <option value="">— Select ticker —</option>
-                                <option value="SPY">SPY — S&amp;P 500 ETF</option>
-                                <option value="TSLA">TSLA — Tesla</option>
-                                <option value="META">META — Meta Platforms</option>
-                                <option value="AAPL">AAPL — Apple</option>
-                                <option value="NVDA">NVDA — NVIDIA</option>
+                                <option value="">- Select ticker -</option>
+                                <option value="SPY">SPY - S&amp;P 500 ETF</option>
+                                <option value="TSLA">TSLA - Tesla</option>
+                                <option value="META">META - Meta Platforms</option>
+                                <option value="AAPL">AAPL - Apple</option>
+                                <option value="NVDA">NVDA - NVIDIA</option>
                             </select>
                         </div>
                         <div class="form-field">
@@ -1141,7 +1141,7 @@
 
                 <div class="form-field" style="margin-top:1rem;">
                     <label class="form-label">Maintenance Message</label>
-                    <input type="text" class="form-input" id="maintenanceMessage" placeholder="e.g. We'll be back shortly — scheduled maintenance in progress.">
+                    <input type="text" class="form-input" id="maintenanceMessage" placeholder="e.g. We'll be back shortly - scheduled maintenance in progress.">
                 </div>
 
                 <div class="admin-card-title" style="margin-top:2rem;"><i class="fas fa-file-lines"></i> Per-Page Maintenance</div>
@@ -1302,10 +1302,10 @@
             </div>
 
             <div class="modal-user-info">
-                <div class="modal-avatar" id="modalAvatar">—</div>
+                <div class="modal-avatar" id="modalAvatar">-</div>
                 <div>
-                    <div class="modal-user-name" id="modalName">—</div>
-                    <div class="modal-user-email" id="modalEmail">—</div>
+                    <div class="modal-user-name" id="modalName">-</div>
+                    <div class="modal-user-email" id="modalEmail">-</div>
                 </div>
             </div>
 
@@ -1336,7 +1336,7 @@
                     <div class="form-field" id="editTickerField" style="display:none;">
                         <label class="form-label">Allowed Ticker</label>
                         <select class="form-select" id="editTicker">
-                            <option value="">— none —</option>
+                            <option value="">- none -</option>
                             <option value="SPY">SPY</option>
                             <option value="TSLA">TSLA</option>
                             <option value="META">META</option>
@@ -1378,7 +1378,7 @@
                         <div class="form-group">
                             <label class="form-label">Status <span style="color:#ef4444">*</span></label>
                             <select id="rm-status" class="form-input" required>
-                                <option value="">— Select —</option>
+                                <option value="">- Select -</option>
                                 <option value="completed">Completed</option>
                                 <option value="inprogress">In Progress</option>
                                 <option value="soon">Coming Soon</option>
@@ -1566,16 +1566,16 @@
             document.getElementById('usersTableBody').innerHTML = filtered.map(u => {
                 const plan     = (u.plan || '').toLowerCase();
                 const ticker   = (u.allowedTicker || '').toUpperCase();
-                const status   = u.subscriptionStatus || '—';
+                const status   = u.subscriptionStatus || '-';
                 const isActive = status.toLowerCase().includes('active');
-                const name     = u.firstName || u.displayName || '—';
+                const name     = u.firstName || u.displayName || '-';
                 const initial  = name.charAt(0).toUpperCase();
                 const joined   = formatDate(u.joinedDate || u.createdAt);
 
                 const planBadge =
                     plan === 'bundle' ? `<span class="plan-badge plan-bundle"><i class="fas fa-crown"></i> Full Bundle</span>` :
                     plan === 'single' ? `<span class="plan-badge plan-single"><i class="fas fa-satellite-dish"></i> Single</span>` :
-                                        `<span class="plan-badge plan-none">—</span>`;
+                                        `<span class="plan-badge plan-none">-</span>`;
 
                 const statusBadge = `<span class="status-chip ${isActive ? 'status-active' : 'status-inactive'}">
                     <i class="fas fa-circle" style="font-size:0.42rem;"></i> ${isActive ? 'Active' : status}
@@ -1587,12 +1587,12 @@
                             <div class="user-avatar">${initial}</div>
                             <div>
                                 <div class="user-name">${esc(name)}</div>
-                                <div class="user-email-sub">${esc(u.email || '—')}</div>
+                                <div class="user-email-sub">${esc(u.email || '-')}</div>
                             </div>
                         </div>
                     </td>
                     <td>${planBadge}</td>
-                    <td style="font-size:0.8rem;color:rgba(255,255,255,0.5);font-weight:600;">${ticker || '—'}</td>
+                    <td style="font-size:0.8rem;color:rgba(255,255,255,0.5);font-weight:600;">${ticker || '-'}</td>
                     <td>${statusBadge}</td>
                     <td style="font-size:0.77rem;color:rgba(255,255,255,0.38);">${joined}</td>
                     <td>
@@ -1642,8 +1642,8 @@
             document.getElementById('editStatus').value    = u.subscriptionStatus || 'Premium Active';
 
             document.getElementById('modalAvatar').textContent = (u.firstName || u.displayName || '?').charAt(0).toUpperCase();
-            document.getElementById('modalName').textContent   = u.firstName || u.displayName || '—';
-            document.getElementById('modalEmail').textContent  = u.email || '—';
+            document.getElementById('modalName').textContent   = u.firstName || u.displayName || '-';
+            document.getElementById('modalEmail').textContent  = u.email || '-';
 
             syncTickerVisibility('editPlan', 'editTickerField');
             clearMsg('editMsg');
@@ -1769,7 +1769,7 @@
 
                 /* Write Firestore profile BEFORE signing out the secondary app.
                    The new user is currently authenticated on secAuth, so
-                   request.auth.uid === newUid — Firestore security rules pass. */
+                   request.auth.uid === newUid - Firestore security rules pass. */
                 const secDb = getFirestore(secondaryApp);
                 await secSetDoc(secDoc(secDb, 'users', newUid), {
                     email,
@@ -1827,11 +1827,11 @@
         }
 
         function formatDate(raw) {
-            if (!raw) return '—';
+            if (!raw) return '-';
             try {
                 const d = raw.toDate ? raw.toDate() : new Date(raw);
                 return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
-            } catch (_) { return '—'; }
+            } catch (_) { return '-'; }
         }
 
         function esc(str) {
@@ -2026,7 +2026,7 @@
                 if (seedCard) seedCard.style.display = snap.empty ? 'block' : 'none';
 
                 if (snap.empty) {
-                    listEl.innerHTML = '<p style="color:rgba(255,255,255,0.35);font-size:0.85rem;">No milestones yet — click "Initialize Defaults" above to seed from the hardcoded roadmap.</p>';
+                    listEl.innerHTML = '<p style="color:rgba(255,255,255,0.35);font-size:0.85rem;">No milestones yet - click "Initialize Defaults" above to seed from the hardcoded roadmap.</p>';
                     return;
                 }
 
@@ -2255,23 +2255,23 @@
                     { icon: 'fas fa-chart-line',    name: '6 Live Signal Channels',  desc: 'SPY, AAPL, TSLA, META, NVDA & AMZN with entry & exit signals.',          detail: 'Covers 6 of the most traded US equities. Each channel provides daily analysis, key price levels, and specific entry/exit zones based on our proprietary methodology.' },
                     { icon: 'fas fa-book',          name: 'Trading Journal',         desc: 'Full P/L tracking with open & closed trade logging.',                      detail: 'Log trades with entry price, exit price, quantity, and notes. Automatically calculates P/L, win rate, and running totals across all positions.' },
                     { icon: 'fas fa-crosshairs',    name: 'Trade Idea Planner',      desc: 'Plan entries, targets & stops before pulling the trigger.',                detail: 'Set up trade plans before the market opens. Define your entry, stop-loss, and target with automatic R:R ratio calculation to validate every setup.' },
-                    { icon: 'fas fa-graduation-cap',name: '13 Educational Guides',   desc: 'Deep-dive strategy guides for every supported ticker.',                    detail: 'Covers earnings cycles, trend following, support/resistance, options volume, and macroeconomic catalysts — one guide per stock plus cross-market strategy guides.' },
-                    { icon: 'fas fa-gauge-high',    name: 'Member Dashboard',        desc: 'Portfolio overview, Fear & Greed gauge & live economic indicators.',       detail: 'Real-time Fear & Greed gauge, live CPI/PPI economic data from the BLS API, and a full portfolio overview with win rate and P/L stats — all in one place.' }
+                    { icon: 'fas fa-graduation-cap',name: '13 Educational Guides',   desc: 'Deep-dive strategy guides for every supported ticker.',                    detail: 'Covers earnings cycles, trend following, support/resistance, options volume, and macroeconomic catalysts - one guide per stock plus cross-market strategy guides.' },
+                    { icon: 'fas fa-gauge-high',    name: 'Member Dashboard',        desc: 'Portfolio overview, Fear & Greed gauge & live economic indicators.',       detail: 'Real-time Fear & Greed gauge, live CPI/PPI economic data from the BLS API, and a full portfolio overview with win rate and P/L stats - all in one place.' }
                 ]},
                 { order: 1, label: 'Q1 2026', status: 'inprogress', features: [
                     { icon: 'fas fa-calendar-days', name: 'Trading Activity Heatmap',         desc: 'See your full year of trading activity at a glance on the dashboard.',     detail: 'A calendar heatmap showing every day you logged a trade this year. Includes streak tracking, most-active day, longest streak, and current streak stats.' },
-                    { icon: 'fas fa-chart-bar',     name: 'Live Economic Indicators',         desc: 'Real-time CPI, PPI & Fed Funds Rate on your dashboard.',                  detail: 'Pulls CPI and PPI data directly from the BLS public API. Fed Funds Rate updates automatically after each FOMC meeting — no manual refreshing needed.' },
-                    { icon: 'fas fa-mobile-screen', name: 'Mobile Responsive Improvements',  desc: 'Polished layouts across all pages for phones & tablets.',                  detail: 'A full audit and redesign of every page for touch screens — optimized tap targets, readable fonts, and smooth scrolling across iOS and Android browsers.' }
+                    { icon: 'fas fa-chart-bar',     name: 'Live Economic Indicators',         desc: 'Real-time CPI, PPI & Fed Funds Rate on your dashboard.',                  detail: 'Pulls CPI and PPI data directly from the BLS public API. Fed Funds Rate updates automatically after each FOMC meeting - no manual refreshing needed.' },
+                    { icon: 'fas fa-mobile-screen', name: 'Mobile Responsive Improvements',  desc: 'Polished layouts across all pages for phones & tablets.',                  detail: 'A full audit and redesign of every page for touch screens - optimized tap targets, readable fonts, and smooth scrolling across iOS and Android browsers.' }
                 ]},
                 { order: 2, label: 'Q2 2026', status: 'soon', features: [
-                    { icon: 'fas fa-bell',       name: 'Automated Sell Signal Alerts', desc: 'Get notified the moment a position hits its exit target or stop-loss level.', detail: 'When your position approaches its target or stop-loss, you\'ll get a push notification before the signal triggers — giving you time to act, not react.' },
-                    { icon: 'fas fa-envelope',   name: 'Email & SMS Notifications',   desc: 'Never miss a signal — receive alerts directly to your phone or inbox.',        detail: 'Choose your preferred channel — email, SMS, or both. Set quiet hours and choose which signal channels you want to receive alerts for.' },
+                    { icon: 'fas fa-bell',       name: 'Automated Sell Signal Alerts', desc: 'Get notified the moment a position hits its exit target or stop-loss level.', detail: 'When your position approaches its target or stop-loss, you\'ll get a push notification before the signal triggers - giving you time to act, not react.' },
+                    { icon: 'fas fa-envelope',   name: 'Email & SMS Notifications',   desc: 'Never miss a signal - receive alerts directly to your phone or inbox.',        detail: 'Choose your preferred channel - email, SMS, or both. Set quiet hours and choose which signal channels you want to receive alerts for.' },
                     { icon: 'fas fa-chart-pie',  name: 'Journal Analytics',           desc: 'Visual P/L charts, win-rate trends & performance breakdowns over time.',      detail: 'Visual charts showing P/L by ticker, by month, and by trade type. See your win rate trend over time and identify which setups perform best for you.' }
                 ]},
                 { order: 3, label: 'Q3 2026', status: 'planned', features: [
-                    { icon: 'fas fa-water',        name: 'Options Flow Integration', desc: 'Track unusual options activity across all 6 covered tickers.',                  detail: 'Identify when large institutions are making unusual bets through the options market — often a leading indicator of significant price moves before they happen.' },
-                    { icon: 'fas fa-calendar-check',name: 'Earnings Calendar',       desc: 'Pre-earnings signal recommendations with historical context.',                  detail: 'Know exactly when each covered stock reports and get pre-built signal scenarios for earnings plays — both bullish and bearish setups with historical win rates.' },
-                    { icon: 'fas fa-book-open',    name: 'Expanded Guide Library',   desc: '10+ new strategy guides covering advanced setups and market conditions.',      detail: 'New guides covering scalping, swing trading on earnings, macro-driven setups, and sector rotation — expanding well beyond the current 13-guide library.' }
+                    { icon: 'fas fa-water',        name: 'Options Flow Integration', desc: 'Track unusual options activity across all 6 covered tickers.',                  detail: 'Identify when large institutions are making unusual bets through the options market - often a leading indicator of significant price moves before they happen.' },
+                    { icon: 'fas fa-calendar-check',name: 'Earnings Calendar',       desc: 'Pre-earnings signal recommendations with historical context.',                  detail: 'Know exactly when each covered stock reports and get pre-built signal scenarios for earnings plays - both bullish and bearish setups with historical win rates.' },
+                    { icon: 'fas fa-book-open',    name: 'Expanded Guide Library',   desc: '10+ new strategy guides covering advanced setups and market conditions.',      detail: 'New guides covering scalping, swing trading on earnings, macro-driven setups, and sector rotation - expanding well beyond the current 13-guide library.' }
                 ]},
                 { order: 4, label: 'Q4 2026', status: 'planned', features: [
                     { icon: 'fas fa-brain',           name: 'AI Signal Confidence Scoring', desc: 'Each signal gets an AI-generated confidence score based on market conditions.', detail: 'Our model evaluates trend strength, volume confirmation, macro backdrop, and historical pattern similarity to produce a 1–10 confidence score for every signal.' },
@@ -2284,8 +2284,8 @@
                     { icon: 'fas fa-sliders', name: 'Custom Watchlist & Alerts',  desc: 'Build personal watchlists with custom price & indicator alert thresholds.',   detail: 'Add any ticker and set price alerts, RSI thresholds, or moving average crossover triggers. Get notified instantly when your conditions are met.' }
                 ]},
                 { order: 6, label: 'Q2 2027', status: 'planned', features: [
-                    { icon: 'fab fa-apple',   name: 'iOS Application',            desc: 'Full Blue Chip Signals experience on iPhone — signals, journal & dashboard.', detail: 'Built natively for iPhone. Receive push notifications, view your dashboard, log trades, and check signals — the full platform from your pocket.' },
-                    { icon: 'fab fa-android', name: 'Android Application',        desc: 'Complete feature parity on Android devices at launch.',                       detail: 'Full feature parity with iOS at launch — available on the Google Play Store with the same native performance and real-time signal delivery.' },
+                    { icon: 'fab fa-apple',   name: 'iOS Application',            desc: 'Full Blue Chip Signals experience on iPhone - signals, journal & dashboard.', detail: 'Built natively for iPhone. Receive push notifications, view your dashboard, log trades, and check signals - the full platform from your pocket.' },
+                    { icon: 'fab fa-android', name: 'Android Application',        desc: 'Complete feature parity on Android devices at launch.',                       detail: 'Full feature parity with iOS at launch - available on the Google Play Store with the same native performance and real-time signal delivery.' },
                     { icon: 'fas fa-crown',   name: 'Bundle Member Early Access', desc: 'Bundle members get priority beta access to both apps before public release.', detail: 'Bundle members get private beta access 60 days before the public launch. Help shape the final product and be the first to trade with both apps.' }
                 ]}
             ];

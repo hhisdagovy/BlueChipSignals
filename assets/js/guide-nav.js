@@ -6,7 +6,7 @@
             label: 'SPY Guides',
             signalPage: '../signals/spy-signal',
             guides: [
-                { icon: 'fas fa-chart-pie',     title: 'Economic Data Monitor',    desc: 'CPI, PPI, Fed decisions & GDP — get ahead of market-moving releases.',        path: '../guides/spy-economic-data' },
+                { icon: 'fas fa-chart-pie',     title: 'Economic Data Monitor',    desc: 'CPI, PPI, Fed decisions & GDP -  get ahead of market-moving releases.',        path: '../guides/spy-economic-data' },
                 { icon: 'fas fa-heartbeat',     title: 'Fear & Greed / VIX',       desc: 'Monitor the VIX and sentiment index to time your SPY entries.',               path: '../guides/spy-vix' },
                 { icon: 'fas fa-calculator',    title: 'S/R Level Calculator',     desc: 'Key support and resistance zones using pivot points and Fibonacci.',           path: '../guides/spy-support-resistance' }
             ]
@@ -15,7 +15,7 @@
             label: 'TSLA Guides',
             signalPage: '../signals/tsla-signal',
             guides: [
-                { icon: 'fas fa-chart-line',    title: 'Quarterly Financials',     desc: 'Tesla\'s quarterly earnings — revenue, EPS, and margins — the biggest recurring catalyst.', path: '../guides/tsla-delivery-production' },
+                { icon: 'fas fa-chart-line',    title: 'Quarterly Financials',     desc: 'Tesla\'s quarterly earnings -  revenue, EPS, and margins -  the biggest recurring catalyst.', path: '../guides/tsla-delivery-production' },
                 { icon: 'fas fa-chart-line',    title: 'Trend Analyzer',           desc: 'Identify TSLA\'s trend direction and manage volatility in winning trades.',    path: '../guides/tsla-trend-following' }
             ]
         },

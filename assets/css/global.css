@@ -1,5 +1,5 @@
 /* ============================================================
-   global.css — Blue Chip Signals
+   global.css -  Blue Chip Signals
    Shared styles for every page. Change once, apply everywhere.
    ============================================================ */
 
@@ -96,7 +96,7 @@ nav {
     transform: scale(1.05);
 }
 
-/* Nav Links — desktop */
+/* Nav Links -  desktop */
 .nav-links {
     display: flex;
     gap: 2rem;
@@ -200,7 +200,7 @@ nav {
 }
 
 /* ============================================================
-   Responsive — Mobile (≤768px)
+   Responsive -  Mobile (≤768px)
    Full-screen overlay menu with staggered animations
    ============================================================ */
 @media screen and (max-width: 768px) {
@@ -259,7 +259,7 @@ nav {
         gap: 0;
         list-style: none;
         z-index: 1060;
-        /* Hidden state — fade + slight slide */
+        /* Hidden state -  fade + slight slide */
         opacity: 0;
         visibility: hidden;
         pointer-events: none;
@@ -345,7 +345,7 @@ nav {
     }
 }
 
-/* ---------- Responsive — Small Mobile (≤600px) ---------- */
+/* ---------- Responsive -  Small Mobile (≤600px) ---------- */
 @media screen and (max-width: 600px) {
     .nav-container {
         padding: 0 1rem;
@@ -360,7 +360,7 @@ nav {
     }
 }
 
-/* ---------- Responsive — Ultra-small (≤375px) ---------- */
+/* ---------- Responsive -  Ultra-small (≤375px) ---------- */
 @media screen and (max-width: 375px) {
     .nav-container {
         padding: 0 0.5rem;
@@ -406,7 +406,7 @@ footer p a:hover {
    Supported Equities Nav Dropdown
    ============================================================ */
 
-/* Base-level hides — apply at all viewport widths */
+/* Base-level hides -  apply at all viewport widths */
 .nav-stocks-dropdown {
     display: none;
 }
@@ -524,7 +524,7 @@ footer p a:hover {
         transition: opacity 0.2s ease;
     }
 
-    /* Mobile sub-panel — full-screen fixed overlay, above nav-links overlay (z-index 1060) */
+    /* Mobile sub-panel -  full-screen fixed overlay, above nav-links overlay (z-index 1060) */
     .nav-sub-panel {
         display: block;
         position: fixed;

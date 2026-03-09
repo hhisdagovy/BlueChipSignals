@@ -1,5 +1,5 @@
 /* ─────────────────────────────────────────────────────────────────────────────
-   BCS Demo Data  —  window.BCS_DEMO
+   BCS Demo Data  -   window.BCS_DEMO
    Loaded as a plain (non-module) script on dashboard, journal, planner,
    and signal-history pages so the data is available before module scripts run.
    ───────────────────────────────────────────────────────────────────────────── */

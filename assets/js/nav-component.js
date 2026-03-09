@@ -99,7 +99,7 @@
         switch (navType) {
             case 'internal':  return internalNav();
             case 'minimal':   return minimalNav();
-            /* 'loggedin' is a legacy alias — falls through to the same logic */
+            /* 'loggedin' is a legacy alias -  falls through to the same logic */
             case 'loggedin':
             default:
                 /* Public pages: show internal nav to authenticated users */
@@ -121,7 +121,7 @@
         };
     }
 
-    /* Standard public nav — logo click redirects logged-in users to dashboard
+    /* Standard public nav -  logo click redirects logged-in users to dashboard
        via redirectIfLoggedIn() on each page. */
     function publicNav() {
         var stocks = [
@@ -177,13 +177,13 @@
         '</div>';
     }
 
-    /* Alias — forwards to internalNav() so any page still using data-nav-type="loggedin"
+    /* Alias -  forwards to internalNav() so any page still using data-nav-type="loggedin"
        receives the same consistent logged-in nav. */
     function loggedinNav() {
         return internalNav();
     }
 
-    /* Internal nav — used by account.html, trading-journal.html, trade-planner.html.
+    /* Internal nav -  used by account.html, trading-journal.html, trade-planner.html.
        Logo click returns to dashboard. Links: Journal, Planner, Contact, FAQ + Logout.
        Admin link shown only when bluechip_is_admin flag is set in localStorage. */
     function internalNav() {
@@ -221,7 +221,7 @@
         '</div>';
     }
 
-    /* Minimal nav — just the logo bar, no links (e.g. welcome-setup.html). */
+    /* Minimal nav -  just the logo bar, no links (e.g. welcome-setup.html). */
     function minimalNav() {
         return '<div class="nav-container" style="justify-content:center;">' +
             '<div class="logo">' +

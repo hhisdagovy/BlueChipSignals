@@ -1,5 +1,5 @@
 /* ─────────────────────────────────────────────────────────────────────────────
-   guide-style.css — Shared styles for all /pages/guides/*.html pages
+   guide-style.css -  Shared styles for all /pages/guides/*.html pages
    Refreshed to match the site's modern design language (signal pages, book-demo).
    Each page's unique tool/calculator CSS remains in an inline <style> block.
 ───────────────────────────────────────────────────────────────────────────── */
@@ -55,7 +55,7 @@ body {
     animation: sp-fade-up 0.65s cubic-bezier(0.22, 1, 0.36, 1) 0.05s both;
 }
 
-/* ---- Badge — outline pill ---- */
+/* ---- Badge -  outline pill ---- */
 .guide-badge {
     display: inline-flex;
     align-items: center;
@@ -72,7 +72,7 @@ body {
     text-transform: uppercase;
 }
 
-/* ---- Title — pure white, large, heavy — mirrors index.html h2 ---- */
+/* ---- Title -  pure white, large, heavy -  mirrors index.html h2 ---- */
 .guide-title {
     font-size: clamp(3rem, 6vw, 4.5rem);
     font-weight: 900;
@@ -80,10 +80,10 @@ body {
     line-height: 1.06;
     letter-spacing: -0.025em;
     color: var(--light-text);
-    /* plain white — the subtitle carries the gold accent */
+    /* plain white -  the subtitle carries the gold accent */
 }
 
-/* ---- Subtitle — italic gold gradient — mirrors index.html h2 em ---- */
+/* ---- Subtitle -  italic gold gradient -  mirrors index.html h2 em ---- */
 .guide-subtitle {
     font-size: 1.2rem;
     font-style: italic;
@@ -195,7 +195,7 @@ body {
 }
 
 /* ════════════════════════════════════════
-   BACK BUTTON — pill style
+   BACK BUTTON -  pill style
 ════════════════════════════════════════ */
 .back-button {
     display: inline-flex;

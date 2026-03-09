@@ -687,7 +687,7 @@
             <p class="tp-hero-desc">Plan your trades before you place them. Define your entry, target, and stop loss before every trade.</p>
             <div class="tp-rr-feature">
                 <span class="tp-rr-label">Average R:R</span>
-                <div class="hero-rr-number" id="heroAvgRR">—</div>
+                <div class="hero-rr-number" id="heroAvgRR">-</div>
             </div>
         </div>
     </section>
@@ -710,12 +710,12 @@
             </div>
             <div class="tp-stat-tile" id="tpst-target">
                 <div class="tp-stat-tile-label">Hit Target</div>
-                <div class="tp-stat-tile-value" id="hitTargetPct">—</div>
+                <div class="tp-stat-tile-value" id="hitTargetPct">-</div>
                 <div class="tp-stat-tile-sub">Closed plans</div>
             </div>
             <div class="tp-stat-tile" id="tpst-rr">
                 <div class="tp-stat-tile-label">Avg R:R</div>
-                <div class="tp-stat-tile-value" id="avgRR">—</div>
+                <div class="tp-stat-tile-value" id="avgRR">-</div>
                 <div class="tp-stat-tile-sub">Risk / reward</div>
             </div>
         </div>
@@ -861,19 +861,19 @@
                     <div class="calc-grid">
                         <div class="calc-item">
                             <div class="calc-label">R:R Ratio</div>
-                            <div class="calc-value" id="calcRR">—</div>
+                            <div class="calc-value" id="calcRR">-</div>
                         </div>
                         <div class="calc-item">
                             <div class="calc-label">Max Risk</div>
-                            <div class="calc-value" id="calcMaxRisk">—</div>
+                            <div class="calc-value" id="calcMaxRisk">-</div>
                         </div>
                         <div class="calc-item">
                             <div class="calc-label" id="calcPosLabel">Position Size</div>
-                            <div class="calc-value" id="calcPositionSize">—</div>
+                            <div class="calc-value" id="calcPositionSize">-</div>
                         </div>
                         <div class="calc-item">
                             <div class="calc-label">Potential Profit</div>
-                            <div class="calc-value" id="calcPotentialProfit">—</div>
+                            <div class="calc-value" id="calcPotentialProfit">-</div>
                         </div>
                     </div>
                 </div>
@@ -962,25 +962,25 @@
                         const riskPerContract = risk * 100;
                         const contracts       = riskPerContract > 0 ? Math.floor(maxRisk / riskPerContract) : 0;
                         const potProfit       = reward * contracts * 100;
-                        posEl.textContent    = contracts > 0 ? contracts + ' contracts' : '—';
-                        profitEl.textContent = potProfit > 0 ? '$' + potProfit.toFixed(2) : '—';
+                        posEl.textContent    = contracts > 0 ? contracts + ' contracts' : '-';
+                        profitEl.textContent = potProfit > 0 ? '$' + potProfit.toFixed(2) : '-';
                     } else {
                         const positionSize   = risk > 0 ? Math.floor(maxRisk / risk) : 0;
                         const potProfit      = reward * positionSize;
-                        posEl.textContent    = positionSize > 0 ? positionSize + ' shares' : '—';
-                        profitEl.textContent = potProfit > 0 ? '$' + potProfit.toFixed(2) : '—';
+                        posEl.textContent    = positionSize > 0 ? positionSize + ' shares' : '-';
+                        profitEl.textContent = potProfit > 0 ? '$' + potProfit.toFixed(2) : '-';
                     }
                 } else {
-                    riskEl.textContent   = '—';
-                    posEl.textContent    = '—';
-                    profitEl.textContent = '—';
+                    riskEl.textContent   = '-';
+                    posEl.textContent    = '-';
+                    profitEl.textContent = '-';
                 }
             } else {
-                rrEl.textContent     = '—';
+                rrEl.textContent     = '-';
                 rrEl.className       = 'calc-value';
-                riskEl.textContent   = '—';
-                posEl.textContent    = '—';
-                profitEl.textContent = '—';
+                riskEl.textContent   = '-';
+                posEl.textContent    = '-';
+                profitEl.textContent = '-';
             }
         };
 
@@ -1206,7 +1206,7 @@
                 const dirClass   = plan.direction.toLowerCase();
                 const statClass  = plan.status.toLowerCase();
                 const dateStr    = new Date(plan.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-                const rrStr      = plan.rr > 0 ? plan.rr + ':1' : '—';
+                const rrStr      = plan.rr > 0 ? plan.rr + ':1' : '-';
 
                 const isOpt      = plan.tradeType === 'Option';
                 const posLabel   = isOpt ? 'Contracts' : 'Position Size';
@@ -1283,7 +1283,7 @@
             const active   = plans.filter(p => p.status === 'Active').length;
             const closed   = plans.filter(p => p.status === 'Closed');
             const hitCount = closed.filter(p => p.outcome === 'Hit Target').length;
-            const hitPct   = closed.length > 0 ? ((hitCount / closed.length) * 100).toFixed(0) + '%' : '—';
+            const hitPct   = closed.length > 0 ? ((hitCount / closed.length) * 100).toFixed(0) + '%' : '-';
 
             const plansWithRR = plans.filter(p => p.rr > 0);
             const avgRRVal    = plansWithRR.length > 0
@@ -1293,14 +1293,14 @@
             document.getElementById('totalPlans').textContent      = total;
             document.getElementById('activePlansCount').textContent = active;
             document.getElementById('hitTargetPct').textContent     = hitPct;
-            document.getElementById('avgRR').textContent            = avgRRVal ? avgRRVal + ':1' : '—';
+            document.getElementById('avgRR').textContent            = avgRRVal ? avgRRVal + ':1' : '-';
 
             const heroEl = document.getElementById('heroAvgRR');
             if (avgRRVal) {
                 heroEl.textContent = avgRRVal + ':1';
                 heroEl.className   = 'hero-rr-number' + (parseFloat(avgRRVal) >= 2 ? ' good' : '');
             } else {
-                heroEl.textContent = '—';
+                heroEl.textContent = '-';
                 heroEl.className   = 'hero-rr-number';
             }
         }

@@ -35,7 +35,7 @@
     }
 
     function formatExp(exp) {
-        if (!exp) return '—';
+        if (!exp) return '-';
         try {
             const d = new Date(exp + 'T12:00:00');
             return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
@@ -61,11 +61,11 @@
         const dirClass = isCall ? 'call' : 'put';
         const dirIcon  = isCall ? 'fa-arrow-trend-up' : 'fa-arrow-trend-down';
         const dirLabel = isCall ? 'CALL' : 'PUT';
-        const strike   = s.contract.strike  != null ? '$' + parseFloat(s.contract.strike).toFixed(2)  : '—';
-        const premium  = s.contract.premium != null ? '$' + parseFloat(s.contract.premium).toFixed(2) : '—';
-        const price    = s.price  != null ? '$' + parseFloat(s.price).toFixed(2)  : '—';
-        const vwap     = s.vwap   != null ? '$' + parseFloat(s.vwap).toFixed(2)   : '—';
-        const mfi      = s.mfi    != null ? parseFloat(s.mfi).toFixed(1)           : '—';
+        const strike   = s.contract.strike  != null ? '$' + parseFloat(s.contract.strike).toFixed(2)  : '-';
+        const premium  = s.contract.premium != null ? '$' + parseFloat(s.contract.premium).toFixed(2) : '-';
+        const price    = s.price  != null ? '$' + parseFloat(s.price).toFixed(2)  : '-';
+        const vwap     = s.vwap   != null ? '$' + parseFloat(s.vwap).toFixed(2)   : '-';
+        const mfi      = s.mfi    != null ? parseFloat(s.mfi).toFixed(1)           : '-';
         const expFmt   = formatExp(s.contract.expiration);
 
         return '<div class="sig-card" style="--sig-top:' + style.top + ';">' +
@@ -296,7 +296,7 @@
 
         header.after(bar);
 
-        /* Event delegation — filter changes snap carousel back to index 0 */
+        /* Event delegation -  filter changes snap carousel back to index 0 */
         bar.addEventListener('click', function (e) {
             var pill = e.target.closest('.sig-filter-pill');
             if (!pill) return;
@@ -347,7 +347,7 @@
     function listenFirestore() {
         var db = window._bcsDb;
         if (!db) {
-            /* No db available — fall back to REST API polling */
+            /* No db available -  fall back to REST API polling */
             _runREST();
             return;
         }
@@ -388,7 +388,7 @@
         }, 5 * 60 * 1000);
     }
 
-    /* ── Public API — called by dashboard.html after Firebase auth resolves ── */
+    /* ── Public API -  called by dashboard.html after Firebase auth resolves ── */
     window.BCSSignals = {
         init: function (options) {
             _tickerFilter    = (options && options.tickerFilter) ? options.tickerFilter.toUpperCase() : null;

@@ -16,7 +16,7 @@ venv/
 env/
 .env
 
-# Database files — never commit these, Railway creates its own
+# Database files -  never commit these, Railway creates its own
 *.db
 *.sqlite
 *.sqlite3

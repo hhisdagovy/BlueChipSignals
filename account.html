@@ -473,8 +473,8 @@
             <h1>My <em>Account</em></h1>
             <p class="acc-hero-desc" id="heroDesc">Manage your profile, security, and subscription details.</p>
             <div class="acc-stat-chips">
-                <span class="acc-chip"><i class="fas fa-crown"></i> <span id="heroPlan">—</span></span>
-                <span class="acc-chip"><i class="fas fa-calendar-days"></i> Member since <span id="heroSince">—</span></span>
+                <span class="acc-chip"><i class="fas fa-crown"></i> <span id="heroPlan">-</span></span>
+                <span class="acc-chip"><i class="fas fa-calendar-days"></i> Member since <span id="heroSince">-</span></span>
                 <span class="acc-chip active-chip" id="heroStatusChip"><i class="fas fa-check-circle"></i> <span id="heroStatusText">Active</span></span>
             </div>
         </div>
@@ -535,7 +535,7 @@
                             <i class="fas fa-envelope input-icon"></i>
                             <input type="email" id="email" disabled placeholder="Loading…">
                         </div>
-                        <div class="field-hint"><i class="fas fa-lock" style="font-size:0.6rem;color:var(--primary-gold);"></i> Email cannot be changed here — contact support to update it.</div>
+                        <div class="field-hint"><i class="fas fa-lock" style="font-size:0.6rem;color:var(--primary-gold);"></i> Email cannot be changed here -  contact support to update it.</div>
                     </div>
 
                     <div class="form-group">
@@ -563,7 +563,7 @@
 
                 <div class="info-row">
                     <span class="info-label">Current Plan</span>
-                    <span class="info-value" id="subPlan">Full Bundle — Lifetime Access</span>
+                    <span class="info-value" id="subPlan">Full Bundle -  Lifetime Access</span>
                 </div>
 
                 <div class="info-row">
@@ -573,12 +573,12 @@
 
                 <div class="info-row">
                     <span class="info-label">Billing</span>
-                    <span class="info-value" id="billingText">One-time payment — no renewals</span>
+                    <span class="info-value" id="billingText">One-time payment -  no renewals</span>
                 </div>
 
                 <div class="info-row">
                     <span class="info-label">Member Since</span>
-                    <span class="info-value" id="memberSince">—</span>
+                    <span class="info-value" id="memberSince">-</span>
                 </div>
 
                 <div style="margin-top:1.5rem;">
@@ -766,12 +766,12 @@
                 heroDesc.textContent = 'Welcome back, ' + userData.firstName + '. Manage your profile, security, and subscription.';
             }
 
-            /* Plan — derive display text from structured fields */
+            /* Plan -  derive display text from structured fields */
             const plan           = (userData.plan || '').toLowerCase();
             const allowedTicker  = (userData.allowedTicker || '').toUpperCase();
             let planText;
             if (plan === 'bundle') {
-                planText = 'Full Bundle — All 5 Channels';
+                planText = 'Full Bundle -  All 5 Channels';
             } else if (plan === 'single' && allowedTicker) {
                 planText = 'Single Channel · ' + allowedTicker;
             } else {
@@ -782,7 +782,7 @@
             const heroPlanEl = document.getElementById('heroPlan');
             if (heroPlanEl) heroPlanEl.textContent = planText;
 
-            /* Status — use subscriptionStatus field; default to Active */
+            /* Status -  use subscriptionStatus field; default to Active */
             const status   = userData.subscriptionStatus || 'Active';
             const isActive = status.toLowerCase().includes('active');
             const statusPill   = document.getElementById('statusPill');
@@ -804,8 +804,8 @@
                 heroChip.classList.toggle('status-inactive', !isActive);
             }
 
-            /* Member Since — prefer joinedDate (set by welcome-setup), fall back to createdAt */
-            let sinceText = '—';
+            /* Member Since -  prefer joinedDate (set by welcome-setup), fall back to createdAt */
+            let sinceText = '-';
             const rawDate = userData.joinedDate || userData.createdAt;
             if (rawDate) {
                 try {
@@ -845,7 +845,7 @@
             }
         });
 
-        /* ---- Profile form — save to Firestore ---- */
+        /* ---- Profile form -  save to Firestore ---- */
         document.getElementById('profileForm').addEventListener('submit', async function (e) {
             e.preventDefault();
             if (!currentUser) return;
@@ -883,7 +883,7 @@
             }
         });
 
-        /* ---- Password form — reauthenticate + update ---- */
+        /* ---- Password form -  reauthenticate + update ---- */
         document.getElementById('passwordForm').addEventListener('submit', async function (e) {
             e.preventDefault();
             if (!currentUser) return;

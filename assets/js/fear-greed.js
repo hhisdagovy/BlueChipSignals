@@ -3,7 +3,7 @@
   const API_URL = 'https://api.alternative.me/fng/?limit=1&format=json';
   const REFRESH  = 300000; // 5 min
 
-  /* ── Needle animation (SVG attribute — immune to CSS scaling issues) ── */
+  /* ── Needle animation (SVG attribute -  immune to CSS scaling issues) ── */
   let _needleAngle = -90; // tracks current angle for smooth re-animation
   let _needleRaf   = null;
 
@@ -96,7 +96,7 @@
     } catch (e) {
       const numEl  = document.getElementById('fg-value-num');
       const labelEl = document.getElementById('fg-class');
-      if (numEl)  numEl.textContent  = '—';
+      if (numEl)  numEl.textContent  = '-';
       if (labelEl) labelEl.textContent = 'Unavailable';
     }
   }

@@ -941,23 +941,23 @@
             <div class="analytics-kpi-row">
                 <div class="analytics-kpi-tile">
                     <div class="analytics-kpi-label">Avg Win</div>
-                    <div class="analytics-kpi-value kpi-pos" id="kpiAvgWin">—</div>
+                    <div class="analytics-kpi-value kpi-pos" id="kpiAvgWin">-</div>
                 </div>
                 <div class="analytics-kpi-tile">
                     <div class="analytics-kpi-label">Avg Loss</div>
-                    <div class="analytics-kpi-value kpi-neg" id="kpiAvgLoss">—</div>
+                    <div class="analytics-kpi-value kpi-neg" id="kpiAvgLoss">-</div>
                 </div>
                 <div class="analytics-kpi-tile">
                     <div class="analytics-kpi-label">Profit Factor</div>
-                    <div class="analytics-kpi-value kpi-gold" id="kpiProfitFactor">—</div>
+                    <div class="analytics-kpi-value kpi-gold" id="kpiProfitFactor">-</div>
                 </div>
                 <div class="analytics-kpi-tile">
                     <div class="analytics-kpi-label">Winning Trades</div>
-                    <div class="analytics-kpi-value kpi-pos" id="kpiWins">—</div>
+                    <div class="analytics-kpi-value kpi-pos" id="kpiWins">-</div>
                 </div>
                 <div class="analytics-kpi-tile">
                     <div class="analytics-kpi-label">Losing Trades</div>
-                    <div class="analytics-kpi-value kpi-neg" id="kpiLosses">—</div>
+                    <div class="analytics-kpi-value kpi-neg" id="kpiLosses">-</div>
                 </div>
             </div>
 
@@ -1214,7 +1214,7 @@
                     const input = field.querySelector('input, select');
                     if (input) input.required = false;
                 });
-                // Hide direction for options — it's implied by Call/Put
+                // Hide direction for options -  it's implied by Call/Put
                 if (directionField) directionField.style.display = 'none';
                 if (directionSelect) directionSelect.required = false;
                 document.getElementById('entryPriceLabel').textContent = 'Entry Premium ($)';
@@ -1472,7 +1472,7 @@
                     ? `${trade.optionType || ''} $${trade.strikePrice || ''} | ${trade.contracts || ''}C`
                     : `${trade.shares || ''} shares`;
                 const entryLabel = `$${(trade.entryPrice || 0).toFixed(2)}`;
-                const exitLabel = trade.exitPrice ? `$${trade.exitPrice.toFixed(2)}` : '—';
+                const exitLabel = trade.exitPrice ? `$${trade.exitPrice.toFixed(2)}` : '-';
                 const notesHTML = (trade.entryReason || trade.exitReason || trade.notes)
                     ? `<div class="trade-detail-notes">${[trade.entryReason && `<strong>Entry:</strong> ${trade.entryReason}`, trade.exitReason && `<strong>Exit:</strong> ${trade.exitReason}`, trade.notes && `<strong>Notes:</strong> ${trade.notes}`].filter(Boolean).join('<br>')}</div>`
                     : '';
@@ -1509,7 +1509,7 @@
                             </div>
                             <div>
                                 <div class="trade-detail-label">Strategy</div>
-                                <div class="trade-detail-value">${trade.strategy || '—'}</div>
+                                <div class="trade-detail-value">${trade.strategy || '-'}</div>
                             </div>
                         </div>
                         ${notesHTML}
@@ -1584,11 +1584,11 @@
             const profitFactor = totalLossAbs > 0 ? (totalGains / totalLossAbs) : null;
             const fmtKpi = v => (v >= 0 ? '+$' : '-$') + Math.abs(v).toFixed(0);
             const setKpi = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
-            setKpi('kpiAvgWin',        avgWin !== null        ? fmtKpi(avgWin)               : '—');
-            setKpi('kpiAvgLoss',       avgLoss !== null       ? fmtKpi(avgLoss)              : '—');
-            setKpi('kpiProfitFactor',  profitFactor !== null  ? profitFactor.toFixed(2) + 'x' : '—');
-            setKpi('kpiWins',          winningTrades.length   > 0 ? winningTrades.length     : '—');
-            setKpi('kpiLosses',        losingTrades.length    > 0 ? losingTrades.length      : '—');
+            setKpi('kpiAvgWin',        avgWin !== null        ? fmtKpi(avgWin)               : '-');
+            setKpi('kpiAvgLoss',       avgLoss !== null       ? fmtKpi(avgLoss)              : '-');
+            setKpi('kpiProfitFactor',  profitFactor !== null  ? profitFactor.toFixed(2) + 'x' : '-');
+            setKpi('kpiWins',          winningTrades.length   > 0 ? winningTrades.length     : '-');
+            setKpi('kpiLosses',        losingTrades.length    > 0 ? losingTrades.length      : '-');
         }
 
         // Render charts

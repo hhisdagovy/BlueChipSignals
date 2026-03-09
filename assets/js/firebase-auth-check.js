@@ -1,4 +1,4 @@
-// Firebase Authentication Check — Blue Chip Signals
+// Firebase Authentication Check -  Blue Chip Signals
 // Centralised auth utilities used by all protected pages.
 import { auth, db, onAuthStateChanged, signOut, doc, getDoc } from './firebase-config.js';
 
@@ -42,7 +42,7 @@ export async function checkPageMaintenance(pageId, maintenancePath, isAdmin) {
             return true;
         }
     } catch (e) {
-        console.warn('checkPageMaintenance: could not read settings/site —', e?.code || e);
+        console.warn('checkPageMaintenance: could not read settings/site - ', e?.code || e);
     }
     return false;
 }
@@ -81,7 +81,7 @@ export async function performFirebaseLogout(loginPath) {
         localStorage.removeItem('bluechip_user_email');
         sessionStorage.removeItem('bluechip_logged_in');
         sessionStorage.removeItem('bluechip_user_email');
-        /* replace() removes current page from history — prevents Back from restoring logged-in view */
+        /* replace() removes current page from history -  prevents Back from restoring logged-in view */
         window.location.replace(loginPath || 'login');
     } catch (error) {
         console.error('Logout error:', error);
@@ -113,8 +113,8 @@ export function redirectIfLoggedIn(destination) {
  * Plan-gated page guard.
  * Checks Firebase auth AND the user's Firestore subscription plan before allowing access.
  *
- * planType  'bundle' — user must have plan === 'bundle'
- *           'ticker' — user must have plan === 'bundle'  OR
+ * planType  'bundle' -  user must have plan === 'bundle'
+ *           'ticker' -  user must have plan === 'bundle'  OR
  *                      (plan === 'single' AND allowedTicker === ticker)
  *
  * @param {'bundle'|'ticker'} planType
@@ -133,7 +133,7 @@ export function requirePlan(planType, ticker, loginPath, upgradePath, pageId) {
     const _check = async (user) => {
         if (!user) { _login(); return; }
 
-        /* ── 1. Load user profile (critical — failure redirects to login) ── */
+        /* ── 1. Load user profile (critical -  failure redirects to login) ── */
         let userData;
         try {
             const userSnap = await getDoc(doc(db, 'users', user.uid));
@@ -147,7 +147,7 @@ export function requirePlan(planType, ticker, loginPath, upgradePath, pageId) {
         const { plan, allowedTicker, subscriptionStatus, role } = userData;
         const isAdmin = (role || '').toLowerCase() === 'admin';
 
-        /* ── 2. Site-wide and per-page maintenance (non-critical — failure is silently skipped) ── */
+        /* ── 2. Site-wide and per-page maintenance (non-critical -  failure is silently skipped) ── */
         if (await checkPageMaintenance(_pageId, _maintenancePath, isAdmin)) return;
 
         /* ── 3. Subscription status ── */

@@ -91,7 +91,7 @@ function score(price, ma20, ma50, volTrend, rsiVal, durationDays) {
         analysis.push({ ok: true,  text: 'Strong bearish alignment (Price < SMA20 < SMA50)' });
     } else {
         pts += 10;
-        analysis.push({ ok: false, text: 'Mixed moving average signals — no clear alignment' });
+        analysis.push({ ok: false, text: 'Mixed moving average signals -  no clear alignment' });
     }
 
     // Volume (25pts)
@@ -100,10 +100,10 @@ function score(price, ma20, ma50, volTrend, rsiVal, durationDays) {
         analysis.push({ ok: true,  text: 'Volume supporting trend direction (5-day avg > 20-day avg)' });
     } else if (volTrend === 'stable') {
         pts += 15;
-        analysis.push({ ok: false, text: 'Stable volume — trend may be maturing' });
+        analysis.push({ ok: false, text: 'Stable volume -  trend may be maturing' });
     } else {
         pts += 5;
-        analysis.push({ ok: false, text: 'Decreasing volume — trend weakening' });
+        analysis.push({ ok: false, text: 'Decreasing volume -  trend weakening' });
     }
 
     // RSI (20pts)
@@ -118,23 +118,23 @@ function score(price, ma20, ma50, volTrend, rsiVal, durationDays) {
     // Duration (15pts)
     if (durationDays >= 5 && durationDays <= 20) {
         pts += 15;
-        analysis.push({ ok: true,  text: `Trend active ${durationDays} days — optimal for continuation` });
+        analysis.push({ ok: true,  text: `Trend active ${durationDays} days -  optimal for continuation` });
     } else if (durationDays > 20) {
         pts += 5;
-        analysis.push({ ok: false, text: `Extended trend (${durationDays} days) — watch for reversal signals` });
+        analysis.push({ ok: false, text: `Extended trend (${durationDays} days) -  watch for reversal signals` });
     } else {
         pts += 10;
-        analysis.push({ ok: false, text: `Young trend (${durationDays} days) — needs further confirmation` });
+        analysis.push({ ok: false, text: `Young trend (${durationDays} days) -  needs further confirmation` });
     }
 
     // MA distance (10pts)
     const ma20Dist = Math.abs((price - ma20) / ma20 * 100);
     if (ma20Dist < 5) {
         pts += 10;
-        analysis.push({ ok: true,  text: `Price near SMA20 (${ma20Dist.toFixed(1)}% away) — good entry zone` });
+        analysis.push({ ok: true,  text: `Price near SMA20 (${ma20Dist.toFixed(1)}% away) -  good entry zone` });
     } else if (ma20Dist > 10) {
         pts -= 5;
-        analysis.push({ ok: false, text: `Price extended from SMA20 (${ma20Dist.toFixed(1)}% away) — wait for pullback` });
+        analysis.push({ ok: false, text: `Price extended from SMA20 (${ma20Dist.toFixed(1)}% away) -  wait for pullback` });
     }
 
     return { pts: Math.max(0, pts), analysis };

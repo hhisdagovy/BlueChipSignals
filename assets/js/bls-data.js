@@ -1,4 +1,4 @@
-// bls-data.js — Live BLS economic data (CPI, Core CPI, PPI)
+// bls-data.js -  Live BLS economic data (CPI, Core CPI, PPI)
 import { BLS_API_KEY } from './config.js';
 
 const KEY       = BLS_API_KEY;
@@ -157,7 +157,7 @@ function renderError() {
     if (dateEl) dateEl.textContent = 'Unavailable';
   });
   const stamp = document.getElementById('econ-last-updated');
-  if (stamp) stamp.textContent = 'Data unavailable — check BLS API';
+  if (stamp) stamp.textContent = 'Data unavailable -  check BLS API';
 }
 
 /* ── Cache helpers ── */

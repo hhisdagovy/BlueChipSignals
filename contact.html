@@ -459,6 +459,17 @@
             .form-row { grid-template-columns: 1fr; }
             .contact-cta { flex-direction: column; margin: 0 1.25rem 4rem; padding: 2rem 1.5rem; }
         }
+
+        /* ---- Footer blend: extend dot pattern into footer, seamless transition ---- */
+        .contact-page-wrap footer {
+            margin-top: 0;
+            border-top: none;
+            padding-top: 3rem;
+            padding-bottom: 2.5rem;
+            position: relative;
+            z-index: 1;
+        }
+
         @media (max-width: 768px) {
             .contact-info-card,
             .contact-form-wrap,
@@ -570,10 +581,11 @@
             </form>
         </div>
     </div>
+
+    <!-- Footer (inside contact-page-wrap so dot pattern extends seamlessly) -->
+    <div id="footer-placeholder" data-footer-type="back-to-home" data-base=""></div>
     </div>
 
-    <!-- Footer -->
-    <div id="footer-placeholder" data-footer-type="back-to-home" data-base=""></div>
     <script src="assets/js/footer-component.js"></script>
 
     <!-- Form submission (Formspree) -  logic preserved from original -->

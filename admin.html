@@ -983,6 +983,9 @@
             <button class="admin-tab" data-tab="roadmap">
                 <i class="fas fa-road"></i> Roadmap
             </button>
+            <button class="admin-tab" data-tab="faq">
+                <i class="fas fa-circle-question"></i> FAQ
+            </button>
         </div>
 
         <!-- Users Panel -->
@@ -1291,6 +1294,37 @@
             </div>
         </div>
 
+        <!-- FAQ Panel -->
+        <div class="admin-panel" id="panel-faq">
+
+            <div class="admin-card" id="faq-seed-card" style="margin-bottom:1.5rem;display:none;">
+                <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:1rem;">
+                    <div>
+                        <div style="font-weight:700;color:#fff;margin-bottom:0.3rem;">No FAQ items in Firestore yet</div>
+                        <div style="font-size:0.82rem;color:rgba(255,255,255,0.45);">Seed the 12 default FAQ items from the current faq.html to get started. You can edit them after.</div>
+                    </div>
+                    <button id="faqSeedDefaultsBtn" class="form-submit-btn" style="max-width:220px;white-space:nowrap;">
+                        <i class="fas fa-seedling"></i> Initialize Defaults
+                    </button>
+                </div>
+            </div>
+
+            <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:1rem;margin-bottom:1.5rem;">
+                <h3 style="font-size:1rem;font-weight:700;color:var(--gold);margin:0;display:flex;align-items:center;gap:0.5rem;">
+                    <i class="fas fa-list"></i> FAQ Items
+                </h3>
+                <button type="button" id="faqOpenAddBtn" class="form-submit-btn" style="max-width:220px;">
+                    <i class="fas fa-plus-circle"></i> Add FAQ Item
+                </button>
+            </div>
+            <div class="admin-card">
+                <p style="font-size:0.75rem;color:rgba(255,255,255,0.3);margin:0 0 1rem;">Use ↑ ↓ to reorder within each category. Changes are saved instantly.</p>
+                <div id="faq-items-list">
+                    <p style="color:rgba(255,255,255,0.35);font-size:0.85rem;">Loading…</p>
+                </div>
+            </div>
+        </div>
+
     </div><!-- /.admin-wrapper -->
 
     <!-- Edit User Modal -->
@@ -1408,6 +1442,47 @@
         </div>
     </div>
 
+    <!-- FAQ Item Modal -->
+    <div class="modal-overlay" id="faqModalOverlay">
+        <div class="modal-box">
+            <div class="modal-header">
+                <div class="modal-title" id="faqModalTitle"><i class="fas fa-plus-circle"></i> Add FAQ Item</div>
+                <button class="modal-close" id="faqModalClose"><i class="fas fa-xmark"></i></button>
+            </div>
+            <div class="modal-body">
+                <div class="form-msg" id="faqMsg"></div>
+                <form id="faqItemForm">
+                    <input type="hidden" id="faqEditId">
+                    <div class="form-field" style="margin-bottom:1rem;">
+                        <label class="form-label">Question <span style="color:#ef4444">*</span></label>
+                        <input type="text" id="faq-question" class="form-input" placeholder="e.g. What is Blue Chip Signals?" required>
+                    </div>
+                    <div class="form-field" style="margin-bottom:1rem;">
+                        <label class="form-label">Answer <span style="color:#ef4444">*</span></label>
+                        <textarea id="faq-answer" class="form-input" rows="4" placeholder="Full answer text..." required></textarea>
+                    </div>
+                    <div class="form-field">
+                        <label class="form-label">Category <span style="color:#ef4444">*</span></label>
+                        <select id="faq-category" class="form-select" required>
+                            <option value="general">General</option>
+                            <option value="signals">Signals</option>
+                            <option value="subscription">Subscription</option>
+                            <option value="technical">Getting Started</option>
+                        </select>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" id="faqCancelBtn" style="font-size:0.82rem;font-weight:700;padding:0.6rem 1.2rem;border-radius:8px;border:1px solid rgba(255,255,255,0.15);background:transparent;color:rgba(255,255,255,0.55);cursor:pointer;">
+                    <i class="fas fa-xmark"></i> Cancel
+                </button>
+                <button type="submit" form="faqItemForm" class="form-submit-btn" id="faqSaveBtn" style="max-width:220px;">
+                    <i class="fas fa-floppy-disk"></i> Save FAQ Item
+                </button>
+            </div>
+        </div>
+    </div>
+
     <!-- Delete Confirm -->
     <div class="confirm-overlay" id="confirmOverlay">
         <div class="confirm-box">
@@ -1481,6 +1556,7 @@
             loadUsers();
             loadAllSettings();
             loadRoadmapMilestones();
+            loadFAQItems();
         });
 
         /* ── Logout ── */
@@ -2299,6 +2375,222 @@
                 alert('Seed failed: ' + e.message);
                 btn.disabled = false;
                 btn.innerHTML = '<i class="fas fa-seedling"></i> Initialize Defaults';
+            }
+        });
+
+        /* ══════════════════════════════════════════════════════
+           FAQ ITEMS
+        ══════════════════════════════════════════════════════ */
+
+        const FAQ_CATEGORY_LABELS = {
+            general: 'General',
+            signals: 'Signals',
+            subscription: 'Subscription',
+            technical: 'Getting Started'
+        };
+
+        let _faqItems = [];
+
+        async function loadFAQItems() {
+            const listEl   = document.getElementById('faq-items-list');
+            const seedCard = document.getElementById('faq-seed-card');
+            if (!listEl) return;
+            try {
+                const q    = query(collection(db, 'faq_items'), orderBy('order', 'asc'));
+                const snap = await getDocs(q);
+
+                _faqItems = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+
+                if (seedCard) seedCard.style.display = snap.empty ? 'block' : 'none';
+
+                if (snap.empty) {
+                    listEl.innerHTML = '<p style="color:rgba(255,255,255,0.35);font-size:0.85rem;">No FAQ items yet - click "Initialize Defaults" above to seed from the current faq.html content.</p>';
+                    return;
+                }
+
+                const byCat = {};
+                _faqItems.forEach(item => {
+                    const c = item.category || 'general';
+                    if (!byCat[c]) byCat[c] = [];
+                    byCat[c].push(item);
+                });
+
+                const catOrder = ['general', 'signals', 'subscription', 'technical'];
+                let html = '';
+                catOrder.forEach(cat => {
+                    const items = byCat[cat] || [];
+                    if (items.length === 0) return;
+                    const label = FAQ_CATEGORY_LABELS[cat] || cat;
+                    html += `<div style="margin-bottom:1.5rem;"><div style="font-size:0.72rem;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:rgba(255,255,255,0.4);margin-bottom:0.6rem;">${label}</div>`;
+                    items.forEach((item, idx) => {
+                        const isFirst = idx === 0;
+                        const isLast  = idx === items.length - 1;
+                        const qEsc = (item.question || '').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+                        const qShort = qEsc.length > 60 ? qEsc.slice(0,57) + '...' : qEsc;
+                        html += `
+                        <div style="display:flex;align-items:flex-start;gap:0.5rem;padding:0.85rem 1rem;border:1px solid rgba(255,255,255,0.07);border-radius:10px;margin-bottom:0.6rem;">
+                            <div style="display:flex;flex-direction:column;gap:0.25rem;flex-shrink:0;">
+                                <button onclick="reorderFAQItem('${item.id}','up','${cat}')" ${isFirst ? 'disabled' : ''} style="width:26px;height:26px;border-radius:5px;border:1px solid rgba(255,255,255,0.1);background:rgba(255,255,255,0.04);color:rgba(255,255,255,${isFirst?'0.2':'0.6'});cursor:${isFirst?'default':'pointer'};font-size:0.7rem;display:flex;align-items:center;justify-content:center;">↑</button>
+                                <button onclick="reorderFAQItem('${item.id}','down','${cat}')" ${isLast ? 'disabled' : ''} style="width:26px;height:26px;border-radius:5px;border:1px solid rgba(255,255,255,0.1);background:rgba(255,255,255,0.04);color:rgba(255,255,255,${isLast?'0.2':'0.6'});cursor:${isLast?'default':'pointer'};font-size:0.7rem;display:flex;align-items:center;justify-content:center;">↓</button>
+                            </div>
+                            <div style="flex:1;min-width:0;">
+                                <div style="font-weight:600;color:#fff;font-size:0.88rem;">${qShort}</div>
+                            </div>
+                            <div style="display:flex;gap:0.4rem;flex-shrink:0;">
+                                <button onclick="editFAQItem('${item.id}')" style="padding:0.32rem 0.65rem;border-radius:6px;border:1px solid rgba(201,176,55,0.3);background:rgba(201,176,55,0.08);color:var(--gold);font-size:0.72rem;font-weight:700;cursor:pointer;"><i class="fas fa-pen"></i></button>
+                                <button onclick="deleteFAQItem('${item.id}')" style="padding:0.32rem 0.65rem;border-radius:6px;border:1px solid rgba(239,68,68,0.3);background:rgba(239,68,68,0.08);color:#ef4444;font-size:0.72rem;font-weight:700;cursor:pointer;"><i class="fas fa-trash"></i></button>
+                            </div>
+                        </div>`;
+                    });
+                    html += '</div>';
+                });
+                listEl.innerHTML = html || '<p style="color:rgba(255,255,255,0.35);font-size:0.85rem;">No FAQ items.</p>';
+            } catch (e) {
+                listEl.innerHTML = `<p style="color:#ef4444;font-size:0.85rem;">Error: ${e.message}</p>`;
+            }
+        }
+
+        function closeFAQModal() {
+            document.getElementById('faqModalOverlay').classList.remove('open');
+            document.getElementById('faqEditId').value = '';
+            document.getElementById('faqItemForm').reset();
+            document.getElementById('faqModalTitle').innerHTML = '<i class="fas fa-plus-circle"></i> Add FAQ Item';
+            document.getElementById('faqSaveBtn').innerHTML = '<i class="fas fa-floppy-disk"></i> Save FAQ Item';
+            clearMsg('faqMsg');
+        }
+
+        document.getElementById('faqOpenAddBtn').addEventListener('click', () => {
+            closeFAQModal();
+            document.getElementById('faqModalOverlay').classList.add('open');
+        });
+
+        document.getElementById('faqModalClose').addEventListener('click', closeFAQModal);
+        document.getElementById('faqCancelBtn').addEventListener('click', closeFAQModal);
+        document.getElementById('faqModalOverlay').addEventListener('click', (e) => {
+            if (e.target === document.getElementById('faqModalOverlay')) closeFAQModal();
+        });
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && document.getElementById('faqModalOverlay').classList.contains('open')) {
+                closeFAQModal();
+            }
+        });
+
+        window.editFAQItem = function(id) {
+            const item = _faqItems.find(x => x.id === id);
+            if (!item) return;
+            document.getElementById('faqEditId').value = id;
+            document.getElementById('faq-question').value = item.question || '';
+            document.getElementById('faq-answer').value = item.answer || '';
+            document.getElementById('faq-category').value = item.category || 'general';
+            document.getElementById('faqModalTitle').innerHTML = '<i class="fas fa-pen"></i> Edit FAQ Item';
+            document.getElementById('faqSaveBtn').innerHTML = '<i class="fas fa-floppy-disk"></i> Update FAQ Item';
+            clearMsg('faqMsg');
+            document.getElementById('faqModalOverlay').classList.add('open');
+        };
+
+        document.getElementById('faqItemForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const btn   = document.getElementById('faqSaveBtn');
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving…';
+            clearMsg('faqMsg');
+
+            const editId  = document.getElementById('faqEditId').value;
+            const question = document.getElementById('faq-question').value.trim();
+            const answer   = document.getElementById('faq-answer').value.trim();
+            const category = document.getElementById('faq-category').value;
+
+            try {
+                if (editId) {
+                    await updateDoc(doc(db, 'faq_items', editId), { question, answer, category });
+                    showMsg('faqMsg', 'FAQ item updated.', 'success');
+                    loadFAQItems();
+                    setTimeout(() => closeFAQModal(), 600);
+                } else {
+                    const catItems = _faqItems.filter(i => (i.category || 'general') === category);
+                    const nextOrder = _faqItems.length > 0
+                        ? Math.max(..._faqItems.map(i => i.order ?? 0)) + 1
+                        : 0;
+                    await addDoc(collection(db, 'faq_items'), {
+                        question, answer, category, order: nextOrder, createdAt: serverTimestamp()
+                    });
+                    showMsg('faqMsg', 'FAQ item added.', 'success');
+                    loadFAQItems();
+                    setTimeout(() => closeFAQModal(), 600);
+                }
+                btn.innerHTML = '<i class="fas fa-floppy-disk"></i> Save FAQ Item';
+            } catch (err) {
+                showMsg('faqMsg', 'Error: ' + err.message, 'error');
+                btn.innerHTML = '<i class="fas fa-floppy-disk"></i> Save FAQ Item';
+            } finally {
+                btn.disabled = false;
+            }
+        });
+
+        window.reorderFAQItem = async function(id, direction, category) {
+            const catItems = _faqItems.filter(i => (i.category || 'general') === category).sort((a,b) => (a.order ?? 0) - (b.order ?? 0));
+            const idx = catItems.findIndex(m => m.id === id);
+            if (idx < 0) return;
+            const swapIdx = direction === 'up' ? idx - 1 : idx + 1;
+            if (swapIdx < 0 || swapIdx >= catItems.length) return;
+
+            const a = catItems[idx];
+            const b = catItems[swapIdx];
+            const aOrder = a.order ?? idx;
+            const bOrder = b.order ?? swapIdx;
+
+            try {
+                await Promise.all([
+                    updateDoc(doc(db, 'faq_items', a.id), { order: bOrder }),
+                    updateDoc(doc(db, 'faq_items', b.id), { order: aOrder })
+                ]);
+                loadFAQItems();
+            } catch (e) {
+                alert('Reorder failed: ' + e.message);
+            }
+        };
+
+        window.deleteFAQItem = async function(id) {
+            if (!confirm('Delete this FAQ item?')) return;
+            try {
+                await deleteDoc(doc(db, 'faq_items', id));
+                loadFAQItems();
+            } catch (e) {
+                alert('Error: ' + e.message);
+            }
+        };
+
+        document.getElementById('faqSeedDefaultsBtn').addEventListener('click', async () => {
+            if (!confirm('This will add the 12 default FAQ items to Firestore. Continue?')) return;
+            const btn = document.getElementById('faqSeedDefaultsBtn');
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Seeding…';
+
+            const defaults = [
+                { category: 'general', order: 0, question: 'What is Blue Chip Signals?', answer: 'Blue Chip Signals is a premium service that provides real-time trading signals for blue-chip stocks including SPY, META, AAPL, TSLA, NVDA, and AMZN. We use a proprietary momentum breakout strategy based on VWAP and MFI indicators to identify high-probability trading opportunities.' },
+                { category: 'general', order: 1, question: 'How does Blue Chip Signals work?', answer: 'Our algorithms monitor price action, volume, and momentum indicators throughout the trading day. When a high-probability setup is detected, a signal is immediately sent to your Telegram channel with all the details you need to act on it.' },
+                { category: 'general', order: 2, question: 'How are the signals delivered?', answer: "All signals are delivered instantly via dedicated Telegram channels. Once you subscribe, you'll receive immediate access to the channels included in your plan. Telegram is free to download on iOS, Android, and desktop." },
+                { category: 'signals', order: 3, question: 'How many signals can I expect per day?', answer: 'Each of our signal channels generates between 4 to 7 high-quality signals per trading day, ensuring you have a steady stream of opportunities during live market hours.' },
+                { category: 'signals', order: 4, question: 'What information do the signals include?', answer: 'Each signal includes the stock ticker, whether it\'s a call or put, the suggested strike price, the option premium, and the expiration date. You get everything you need to place the trade immediately.' },
+                { category: 'signals', order: 5, question: 'Which stocks and tickers are covered?', answer: 'We currently cover SPY, META, AAPL, TSLA, NVDA, and AMZN -  some of the most liquid and actively traded securities in the market. We are continuously evaluating additional tickers to add to the platform.' },
+                { category: 'subscription', order: 6, question: 'Can I cancel my subscription?', answer: 'Yes, you can cancel at any time with no questions asked. You will retain full access to the service for the remainder of your current billing period.' },
+                { category: 'subscription', order: 7, question: 'What plans are available?', answer: "We offer flexible subscription tiers depending on how many tickers you want access to. Visit our pricing page on the homepage to see the current plans and what's included in each." },
+                { category: 'subscription', order: 8, question: 'Is there a free trial?', answer: 'We offer a free demo call so you can see exactly what our signals look like and ask any questions before committing. Book a demo directly from our homepage.' },
+                { category: 'technical', order: 9, question: 'Do I need any trading experience?', answer: 'No prior experience is required. Our signals are designed to be easy to follow for everyone, from complete beginners to seasoned traders. We include all the details you need -  entry point, strike price, expiration, and more.' },
+                { category: 'technical', order: 10, question: 'What do I need to get started?', answer: "You'll need a brokerage account that supports options trading (such as TD Ameritrade, Webull, or Robinhood), a Telegram account to receive signals, and an active Blue Chip Signals subscription." },
+                { category: 'technical', order: 11, question: 'How quickly can I access signals after subscribing?', answer: "Access is granted within minutes of your subscription being confirmed. You'll receive onboarding instructions with links to your Telegram channels immediately after payment." }
+            ];
+
+            try {
+                await Promise.all(defaults.map(item =>
+                    addDoc(collection(db, 'faq_items'), { ...item, createdAt: serverTimestamp() })
+                ));
+                loadFAQItems();
+                btn.innerHTML = '<i class="fas fa-seedling"></i> Initialize Defaults';
+            } catch (e) {
+                alert('Seed failed: ' + e.message);
+            } finally {
+                btn.disabled = false;
             }
         });
     </script>

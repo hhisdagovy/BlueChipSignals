@@ -18,6 +18,12 @@ service cloud.firestore {
       allow write: if isAdmin();
     }
 
+    // faq_items: anyone can read, only admins can write
+    match /faq_items/{docId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
     // site_settings: anyone can read, only admins can write
     match /site_settings/{docId} {
       allow read: if true;

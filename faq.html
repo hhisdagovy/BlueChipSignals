@@ -405,6 +405,8 @@
         <!-- Accordion content -->
         <div class="faq-content">
 
+            <!-- Hardcoded fallback (shown when Firestore is empty) -->
+            <div id="faq-hardcoded">
             <!-- General -->
             <div class="faq-group reveal" id="cat-general" data-cat="general">
                 <h2 class="faq-group-title">General</h2>
@@ -544,6 +546,10 @@
                     </div>
                 </div>
             </div>
+            </div><!-- end #faq-hardcoded -->
+
+            <!-- Firestore-rendered content (shown when admin has seeded FAQ) -->
+            <div id="faq-firestore-content" style="display:none;"></div>
 
             <p class="faq-no-results" id="faqNoResults">No questions match your search. Try different keywords or <a href="contact" style="color:var(--primary-gold)">contact us directly</a>.</p>
         </div>
@@ -564,14 +570,14 @@
     <script src="assets/js/footer-component.js"></script>
 
     <script>
-        /* ---- Accordion ---- */
-        document.querySelectorAll('.faq-question').forEach(function(question) {
-            question.addEventListener('click', function() {
-                var item = this.closest('.faq-item');
-                var isActive = item.classList.contains('active');
-                document.querySelectorAll('.faq-item').forEach(function(i) { i.classList.remove('active'); });
-                if (!isActive) item.classList.add('active');
-            });
+        /* ---- Accordion (event delegation so it works for Firestore-rendered content too) ---- */
+        document.querySelector('.faq-content').addEventListener('click', function(e) {
+            var question = e.target.closest('.faq-question');
+            if (!question) return;
+            var item = question.closest('.faq-item');
+            var isActive = item.classList.contains('active');
+            document.querySelectorAll('.faq-item').forEach(function(i) { i.classList.remove('active'); });
+            if (!isActive) item.classList.add('active');
         });
 
         /* ---- Search filter ---- */
@@ -595,12 +601,13 @@
         });
 
         /* ---- Category sidebar highlight on scroll ---- */
-        var groups = document.querySelectorAll('.faq-group');
         var catLinks = document.querySelectorAll('.cat-link');
 
         window.addEventListener('scroll', function() {
             var scrollY = window.scrollY + 140;
+            var groups = document.querySelectorAll('.faq-content .faq-group');
             groups.forEach(function(group) {
+                if (group.offsetParent === null) return;
                 var top = group.offsetTop;
                 var bottom = top + group.offsetHeight;
                 if (scrollY >= top && scrollY < bottom) {
@@ -637,6 +644,93 @@
         }, { threshold: 0.08 });
         revealEls.forEach(function(el) { observer.observe(el); });
 
+    </script>
+
+    <!-- Firestore FAQ loader (shows Firestore content when admin has seeded; otherwise uses hardcoded) -->
+    <script type="module">
+        import { db, collection, query, getDocs } from './assets/js/firebase-config.js';
+        import { orderBy } from 'https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js';
+
+        const CATEGORY_TITLES = { general: 'General', signals: 'Signals', subscription: 'Subscription', technical: 'Getting Started' };
+
+        function esc(s) {
+            if (!s) return '';
+            return String(s)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#39;');
+        }
+
+        function buildFaqItemHtml(item) {
+            const q = esc(item.question || '');
+            const a = esc(item.answer || '').replace(/\n/g, '</p><p>');
+            return `
+                <div class="faq-item">
+                    <div class="faq-question">
+                        ${q}
+                        <span class="faq-chevron"><i class="fas fa-chevron-down"></i></span>
+                    </div>
+                    <div class="faq-answer">
+                        <p>${a}</p>
+                    </div>
+                </div>`;
+        }
+
+        async function loadFaqFromFirestore() {
+            const hardcoded = document.getElementById('faq-hardcoded');
+            const firestoreEl = document.getElementById('faq-firestore-content');
+            if (!hardcoded || !firestoreEl) return;
+
+            try {
+                const q = query(collection(db, 'faq_items'), orderBy('order', 'asc'));
+                const snap = await getDocs(q);
+                if (snap.empty) return;
+
+                const byCat = {};
+                snap.docs.forEach(d => {
+                    const data = d.data();
+                    const c = data.category || 'general';
+                    if (!byCat[c]) byCat[c] = [];
+                    byCat[c].push(data);
+                });
+
+                const catOrder = ['general', 'signals', 'subscription', 'technical'];
+                let html = '';
+                catOrder.forEach(cat => {
+                    const items = byCat[cat] || [];
+                    if (items.length === 0) return;
+                    const title = CATEGORY_TITLES[cat] || cat;
+                    html += `<div class="faq-group reveal" id="cat-${cat}" data-cat="${esc(cat)}">
+                        <h2 class="faq-group-title">${title}</h2>
+                        ${items.map(buildFaqItemHtml).join('')}
+                    </div>`;
+                });
+
+                firestoreEl.innerHTML = html;
+                hardcoded.style.display = 'none';
+                firestoreEl.style.display = '';
+
+                /* Trigger reveal animation on new elements */
+                const revealEls = firestoreEl.querySelectorAll('.reveal');
+                if (revealEls.length && window.IntersectionObserver) {
+                    const obs = new IntersectionObserver(function(entries) {
+                        entries.forEach(function(entry) {
+                            if (entry.isIntersecting) {
+                                entry.target.classList.add('visible');
+                                obs.unobserve(entry.target);
+                            }
+                        });
+                    }, { threshold: 0.08 });
+                    revealEls.forEach(function(el) { obs.observe(el); });
+                }
+            } catch (e) {
+                console.warn('[BCS FAQ] Could not load from Firestore:', e);
+            }
+        }
+
+        loadFaqFromFirestore();
     </script>
 </body>
 </html>

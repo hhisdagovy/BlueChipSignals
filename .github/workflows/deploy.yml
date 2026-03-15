@@ -35,10 +35,12 @@ jobs:
       # ─────────────────────────────────────────────────────────────
       - name: Inject API secrets
         env:
-          FIREBASE_API:      ${{ secrets.FIREBASE_API }}
-          POLYGON_API_KEY:   ${{ secrets.POLYGON_API_KEY }}
-          ALPHA_VANTAGE_KEY: ${{ secrets.ALPHA_VANTAGE_KEY }}
-          BLS_API_KEY:       ${{ secrets.BLS_API_KEY }}
+          FIREBASE_API:                 ${{ secrets.FIREBASE_API }}
+          POLYGON_API_KEY:              ${{ secrets.POLYGON_API_KEY }}
+          ALPHA_VANTAGE_KEY:            ${{ secrets.ALPHA_VANTAGE_KEY }}
+          BLS_API_KEY:                  ${{ secrets.BLS_API_KEY }}
+          VITE_SUPABASE_URL:            ${{ secrets.VITE_SUPABASE_URL }}
+          VITE_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.VITE_SUPABASE_PUBLISHABLE_KEY }}
         run: |
           # Firebase API key -  firebase-config.js and admin.html
           sed -i "s|%%FIREBASE_API%%|${FIREBASE_API}|g"           assets/js/firebase-config.js
@@ -53,14 +55,31 @@ jobs:
           sed -i "s|%%ALPHA_VANTAGE_KEY%%|${ALPHA_VANTAGE_KEY}|g" assets/js/config.js
           sed -i "s|%%BLS_API_KEY%%|${BLS_API_KEY}|g"             assets/js/config.js
 
+          # Supabase CRM config -  browser runtime reads injected values first in production
+          sed -i "s|%%VITE_SUPABASE_URL%%|${VITE_SUPABASE_URL}|g" src/lib/supabase-browser.js
+          sed -i "s|%%VITE_SUPABASE_PUBLISHABLE_KEY%%|${VITE_SUPABASE_PUBLISHABLE_KEY}|g" src/lib/supabase-browser.js
+
+      - name: Prepare Pages artifact
+        run: |
+          mkdir -p _site
+          rsync -av ./ _site/ \
+            --exclude '.git/' \
+            --exclude '.github/' \
+            --exclude '.env' \
+            --exclude '.env.local' \
+            --exclude '.env.*.local' \
+            --exclude '_site/' \
+            --exclude 'node_modules/' \
+            --exclude '*.log'
+
       - name: Setup Pages
         uses: actions/configure-pages@v5
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          # Deploy the entire repo root (with secrets now injected)
-          path: '.'
+          # Deploy the prepared static site without local-only env files
+          path: './_site'
 
       - name: Deploy to GitHub Pages
         id: deployment

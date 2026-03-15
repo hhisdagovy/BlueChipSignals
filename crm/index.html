@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Blue Chip Signals CRM Prototype</title>
+    <link rel="icon" type="image/png" href="../assets/images/Crest logo.png">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body class="crm-body">
+    <div class="crm-app-shell" id="crm-root">
+        <section id="auth-gate" class="auth-gate"></section>
+
+        <section id="crm-shell" class="crm-shell hidden">
+            <aside id="crm-sidebar" class="crm-sidebar"></aside>
+
+            <div class="crm-stage">
+                <header id="crm-topbar" class="crm-topbar"></header>
+
+                <main id="crm-content" class="crm-content">
+                    <section id="crm-overview-panel" class="crm-panel"></section>
+                    <section id="crm-clients-panel" class="crm-panel hidden"></section>
+                    <section id="crm-members-panel" class="crm-panel hidden"></section>
+                    <section id="crm-admin-panel" class="crm-panel hidden"></section>
+                    <section id="crm-lead-detail-panel" class="crm-panel hidden"></section>
+                    <section id="crm-imports-panel" class="crm-panel hidden"></section>
+                    <section id="crm-settings-panel" class="crm-panel hidden"></section>
+                </main>
+            </div>
+
+            <aside id="crm-drawer" class="crm-drawer hidden"></aside>
+            <div id="crm-modal-layer" class="crm-modal-layer hidden"></div>
+        </section>
+    </div>
+
+    <script type="module" src="scripts/app.js"></script>
+</body>
+</html>

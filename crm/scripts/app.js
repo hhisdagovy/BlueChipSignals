@@ -325,6 +325,20 @@ async function loadFullClientDataset() {
     }
 }
 
+function syncShellState() {
+    if (!refs.shell) {
+        return;
+    }
+
+    refs.shell.classList.toggle('sidebar-open', state.sidebarOpen);
+    refs.shell.classList.toggle('drawer-open', isDrawerOpen());
+}
+
+function setSidebarOpen(isOpen) {
+    state.sidebarOpen = isOpen;
+    syncShellState();
+}
+
 function render() {
     if (!state.authResolved) {
         refs.authGate.classList.remove('hidden');
@@ -348,8 +362,7 @@ function render() {
 
     refs.authGate.classList.add('hidden');
     refs.shell.classList.remove('hidden');
-    refs.shell.classList.toggle('sidebar-open', state.sidebarOpen);
-    refs.shell.classList.toggle('drawer-open', isDrawerOpen());
+    syncShellState();
 
     renderSidebar();
     renderTopbar();
@@ -3591,8 +3604,7 @@ document.addEventListener('click', async (event) => {
     }
 
     if (action === 'toggle-sidebar') {
-        state.sidebarOpen = !state.sidebarOpen;
-        refs.shell.classList.toggle('sidebar-open', state.sidebarOpen);
+        setSidebarOpen(!state.sidebarOpen);
         return;
     }
 
@@ -3610,7 +3622,7 @@ document.addEventListener('click', async (event) => {
         }
 
         state.currentView = targetView;
-        state.sidebarOpen = false;
+        setSidebarOpen(false);
         state.detailEditMode = false;
         state.detailEditSnapshot = null;
         state.leadHistoryOpen = false;

@@ -10,10 +10,29 @@
     placeholder.parentNode.replaceChild(footer, placeholder);
 
     function buildFooter(type, base) {
-        var termsLink = '<a href="' + base + 'legal">Terms &amp; Legal</a>';
-        var homeLink  = '<a href="' + base + 'index">Back to Home</a>';
+        var copy = buildCopy(type, base);
+        var actions = buildActions();
 
-        var social = '<div class="social-media">' +
+        return '<div class="footer-shell">' + copy + actions + '</div>';
+    }
+
+    function buildCopy(type, base) {
+        var parts = [
+            '<span>&copy; 2026 Blue Chip Signals. All rights reserved.</span>',
+            '<a href="' + base + 'legal">Terms &amp; Legal</a>'
+        ];
+
+        if (type === 'back-to-home') {
+            parts.push('<a href="' + base + 'index">Back to Home</a>');
+        }
+
+        return '<div class="footer-copy">' +
+            parts.join('<span class="footer-separator" aria-hidden="true">|</span>') +
+        '</div>';
+    }
+
+    function buildActions() {
+        var social = '<div class="footer-social">' +
             '<a href="https://www.tiktok.com/@bluechip.signals" target="_blank" aria-label="TikTok">' +
                 '<i class="fab fa-tiktok"></i>' +
             '</a>' +
@@ -29,23 +48,22 @@
                 '<i class="fab fa-linkedin"></i>' +
             '</a>' +
         '</div>';
-        var badge = '<div class="footer-badge">' +
-            '<a href="https://saasbrowser.com/en/saas/1222483/blue-chip-signals" target="_blank" rel="noopener">' +
-                '<img src="https://static-files.saasbrowser.com/saas-browser-badge-16.svg" alt="Blue Chip Signals - SaaS Browser" width="200">' +
+        var trust = '<div class="footer-trust">' +
+            '<a class="footer-trust-link" href="https://www.trustpilot.com/review/bluechipsignals.online" target="_blank" rel="noopener" aria-label="Trustpilot reviews">' +
+                '<span class="footer-trust-icon footer-trustpilot-icon" aria-hidden="true">' +
+                    '<svg viewBox="0 0 24 24" focusable="false">' +
+                        '<path fill="currentColor" d="M12 2.25l2.938 5.953 6.562.954-4.75 4.63 1.121 6.535L12 17.232l-5.871 3.09 1.121-6.535-4.75-4.63 6.562-.954L12 2.25z"></path>' +
+                    '</svg>' +
+                '</span>' +
+                '<span>Trustpilot</span>' +
             '</a>' +
+            '<div class="footer-badge">' +
+                '<a href="https://saasbrowser.com/en/saas/1222483/blue-chip-signals" target="_blank" rel="noopener" aria-label="Found on SaaS Browser">' +
+                    '<img src="https://static-files.saasbrowser.com/saas-browser-badge-16.svg" alt="Blue Chip Signals - SaaS Browser" width="156">' +
+                '</a>' +
+            '</div>' +
         '</div>';
 
-        var copyright = '&copy; 2026 Blue Chip Signals. All rights reserved.';
-
-        switch (type) {
-            case 'back-to-home':
-                return '<p>' + copyright + ' | ' + termsLink + ' | ' + homeLink + '</p>' + social + badge;
-
-            case 'minimal':
-                return '<p>' + copyright + ' | ' + termsLink + '</p>' + badge;
-
-            default: /* standard-social */
-                return '<p>' + copyright + ' | ' + termsLink + '</p>' + social + badge;
-        }
+        return '<div class="footer-actions">' + social + trust + '</div>';
     }
 })();

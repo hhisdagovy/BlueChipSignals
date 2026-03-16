@@ -369,7 +369,6 @@ nav {
 
 /* ---------- Footer ---------- */
 footer {
-    text-align: center;
     padding: 2rem 1rem;
     margin-top: 2rem;
     border-top: 1px solid rgba(201, 176, 55, 0.1);
@@ -377,44 +376,184 @@ footer {
     font-size: 0.9rem;
 }
 
-footer p a {
+.footer-shell {
+    width: min(1180px, 100%);
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1.25rem 2rem;
+    text-align: left;
+}
+
+.footer-shell .footer-copy {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.45rem;
+    line-height: 1.6;
+}
+
+.footer-shell .footer-copy a {
     color: var(--primary-gold);
     text-decoration: none;
 }
 
-footer p a:hover {
+.footer-shell .footer-copy a:hover {
     color: var(--secondary-gold);
     text-decoration: underline;
 }
 
-.social-media {
-    margin-top: 1rem;
+.footer-separator {
+    color: rgba(255, 255, 255, 0.22);
 }
 
-.social-media a {
+.footer-shell .footer-actions {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+.footer-shell .footer-social {
+    display: flex;
+    align-items: center;
+    gap: 0.9rem;
+    position: static;
+    right: auto;
+    top: auto;
+    transform: none;
+    margin-top: 0;
+}
+
+.footer-shell .footer-social a {
     color: var(--primary-gold);
-    font-size: 1.5rem;
-    margin: 0 0.5rem;
-    transition: color 0.3s;
+    font-size: 1.35rem;
+    line-height: 1;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.75rem;
+    height: 1.75rem;
+    position: static;
+    overflow: visible;
+    border-radius: 0;
+    background: none;
+    border: none;
+    box-shadow: none;
+    transition: color 0.3s, transform 0.3s;
 }
 
-.social-media a:hover {
+.footer-shell .footer-social a:hover {
     color: var(--secondary-gold);
+    transform: translateY(-1px);
+    box-shadow: none;
 }
 
-.footer-badge {
-    margin-top: 1.25rem;
-}
-
-.footer-badge a {
-    display: inline-block;
-}
-
-.footer-badge img {
+.footer-shell .footer-social svg,
+.footer-shell .footer-trust svg {
+    width: 1em;
+    height: 1em;
     display: block;
-    max-width: min(200px, 100%);
+}
+
+.footer-shell .footer-trust {
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+    padding-left: 1rem;
+    border-left: 1px solid rgba(201, 176, 55, 0.16);
+}
+
+.footer-shell .footer-trust-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    padding: 0.45rem 0.75rem;
+    border-radius: 999px;
+    border: 1px solid rgba(201, 176, 55, 0.16);
+    background: rgba(255, 255, 255, 0.03);
+    color: rgba(216, 196, 154, 0.88);
+    text-decoration: none;
+    font-size: 0.78rem;
+    font-weight: 600;
+    transition: border-color 0.3s, background 0.3s, color 0.3s, transform 0.3s;
+}
+
+.footer-shell .footer-trust-link:hover {
+    color: var(--light-text);
+    border-color: rgba(201, 176, 55, 0.3);
+    background: rgba(201, 176, 55, 0.07);
+    transform: translateY(-1px);
+}
+
+.footer-shell .footer-trust-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 0.95rem;
+    height: 0.95rem;
+    color: var(--primary-gold);
+}
+
+.footer-shell .footer-trustpilot-icon {
+    color: var(--primary-gold);
+}
+
+.footer-shell .footer-badge {
+    display: flex;
+    align-items: center;
+}
+
+.footer-shell .footer-badge a {
+    display: inline-flex;
+    align-items: center;
+    opacity: 0.9;
+    transition: opacity 0.3s, transform 0.3s;
+}
+
+.footer-shell .footer-badge a:hover {
+    opacity: 1;
+    transform: translateY(-1px);
+}
+
+.footer-shell .footer-badge img {
+    display: block;
+    max-width: min(156px, 100%);
     height: auto;
-    margin: 0 auto;
+}
+
+@media screen and (max-width: 900px) {
+    .footer-shell {
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 1rem;
+        text-align: center;
+    }
+
+    .footer-shell .footer-copy,
+    .footer-shell .footer-actions,
+    .footer-shell .footer-trust {
+        justify-content: center;
+    }
+
+    .footer-shell .footer-trust {
+        padding-left: 0;
+        border-left: none;
+    }
+}
+
+@media screen and (max-width: 560px) {
+    .footer-shell .footer-actions {
+        flex-direction: column;
+        gap: 0.85rem;
+    }
+
+    .footer-shell .footer-trust {
+        flex-wrap: wrap;
+    }
 }
 
 /* ============================================================

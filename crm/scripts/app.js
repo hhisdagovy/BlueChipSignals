@@ -158,6 +158,7 @@ const state = {
     session: authService.getSession(),
     authUser: authService.getAuthUser(),
     profile: authService.getProfile(),
+    authRemember: authService.getRememberPreference(),
     authResolved: false,
     authSubmitting: false,
     clients: [],
@@ -794,19 +795,35 @@ function renderAuthGate() {
                             </div>
                         </div>
 
-                        ${isCheckingSession ? `
-                            <div class="login-status-row">
-                                <div class="remember-me login-status">
+                        <div class="login-status-row">
+                            <label class="remember-me" for="crm-login-remember">
+                                <input
+                                    type="checkbox"
+                                    id="crm-login-remember"
+                                    name="remember"
+                                    ${state.authRemember ? 'checked' : ''}
+                                    ${isAuthenticating ? 'disabled' : ''}
+                                >
+                                <span>Remember me</span>
+                            </label>
+
+                            ${isCheckingSession ? `
+                                <div class="login-status">
                                     <i class="fa-solid fa-spinner fa-spin"></i>
                                     <span>Checking your session...</span>
                                 </div>
-                            </div>
-                        ` : ''}
+                            ` : ''}
+                        </div>
 
-                        <button type="submit" class="login-button" ${isAuthenticating ? 'disabled' : ''}>
-                            <i class="fas ${isAuthenticating ? 'fa-circle-notch fa-spin' : 'fa-sign-in-alt'}"></i>
-                            ${isAuthenticating ? 'Signing In...' : 'Log In'}
-                        </button>
+                        <div class="auth-login-actions">
+                            <button type="submit" class="login-button" ${isAuthenticating ? 'disabled' : ''}>
+                                <i class="fas ${isAuthenticating ? 'fa-circle-notch fa-spin' : 'fa-sign-in-alt'}"></i>
+                                ${isAuthenticating ? 'Signing In...' : 'Log In'}
+                            </button>
+                            <button type="button" class="crm-button-ghost auth-return-button" data-action="return-main-site" ${isAuthenticating ? 'disabled' : ''}>
+                                <i class="fa-solid fa-arrow-left"></i> Back to Main Site
+                            </button>
+                        </div>
                     </form>
                 </div>
             </div>
@@ -5045,6 +5062,11 @@ document.addEventListener('click', async (event) => {
         return;
     }
 
+    if (action === 'return-main-site') {
+        window.location.href = '../';
+        return;
+    }
+
     if (action === 'dismiss-notice') {
         state.notice = null;
         render();
@@ -5775,6 +5797,12 @@ document.addEventListener('click', async (event) => {
     }
 });
 
+document.addEventListener('change', (event) => {
+    if (event.target?.id === 'crm-login-remember') {
+        state.authRemember = event.target.checked;
+    }
+});
+
 document.addEventListener('submit', async (event) => {
     const formId = typeof event.target?.getAttribute === 'function'
         ? event.target.getAttribute('id')
@@ -5783,6 +5811,7 @@ document.addEventListener('submit', async (event) => {
     if (formId === 'login-form') {
         event.preventDefault();
         const formData = new FormData(event.target);
+        state.authRemember = formData.get('remember') === 'on';
         state.authSubmitting = true;
         state.authResolved = true;
         render();
@@ -5790,7 +5819,8 @@ document.addEventListener('submit', async (event) => {
         try {
             state.session = await authService.login({
                 email: formData.get('email'),
-                password: formData.get('password')
+                password: formData.get('password'),
+                remember: state.authRemember
             });
             state.authUser = authService.getAuthUser();
             state.profile = authService.getProfile();

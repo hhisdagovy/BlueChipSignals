@@ -1,6 +1,8 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 
 let supabasePromise = null
+const CRM_REMEMBER_KEY = 'bluechip_crm_remember_v1'
+let persistSessionPreference = readRememberPreference()
 const DEPLOY_SUPABASE_CONFIG = {
   url: '%%VITE_SUPABASE_URL%%',
   key: '%%VITE_SUPABASE_PUBLISHABLE_KEY%%'
@@ -14,6 +16,20 @@ export function getSupabase() {
   return supabasePromise
 }
 
+export function getSupabaseRememberPreference() {
+  return persistSessionPreference
+}
+
+export function setSupabaseRememberPreference(remember) {
+  persistSessionPreference = remember === true
+
+  try {
+    localStorage.setItem(CRM_REMEMBER_KEY, persistSessionPreference ? '1' : '0')
+  } catch (_error) {
+    // Ignore storage write failures and fall back to in-memory preference.
+  }
+}
+
 async function createSupabaseClient() {
   const config = await loadSupabaseConfig()
 
@@ -25,9 +41,72 @@ async function createSupabaseClient() {
     auth: {
       persistSession: true,
       autoRefreshToken: true,
-      detectSessionInUrl: true
+      detectSessionInUrl: true,
+      storage: createSupabaseAuthStorage()
     }
   })
+}
+
+function createSupabaseAuthStorage() {
+  return {
+    getItem(key) {
+      const primaryStorage = getPreferredStorage()
+      const secondaryStorage = getFallbackStorage()
+
+      return readStorageValue(primaryStorage, key) ?? readStorageValue(secondaryStorage, key) ?? null
+    },
+    setItem(key, value) {
+      const primaryStorage = getPreferredStorage()
+      const secondaryStorage = getFallbackStorage()
+
+      writeStorageValue(primaryStorage, key, value)
+      removeStorageValue(secondaryStorage, key)
+    },
+    removeItem(key) {
+      removeStorageValue(localStorage, key)
+      removeStorageValue(sessionStorage, key)
+    }
+  }
+}
+
+function getPreferredStorage() {
+  return persistSessionPreference ? localStorage : sessionStorage
+}
+
+function getFallbackStorage() {
+  return persistSessionPreference ? sessionStorage : localStorage
+}
+
+function readStorageValue(storage, key) {
+  try {
+    return storage.getItem(key)
+  } catch (_error) {
+    return null
+  }
+}
+
+function writeStorageValue(storage, key, value) {
+  try {
+    storage.setItem(key, value)
+  } catch (_error) {
+    // Ignore storage write failures and let Supabase continue in memory.
+  }
+}
+
+function removeStorageValue(storage, key) {
+  try {
+    storage.removeItem(key)
+  } catch (_error) {
+    // Ignore storage cleanup failures.
+  }
+}
+
+function readRememberPreference() {
+  try {
+    return localStorage.getItem(CRM_REMEMBER_KEY) === '1'
+  } catch (_error) {
+    return false
+  }
 }
 
 async function loadSupabaseConfig() {

@@ -17,18 +17,28 @@
     --crm-shadow: 0 24px 60px rgba(0, 0, 0, 0.45);
 }
 
+html {
+    min-height: 100%;
+    background: #050810;
+    color-scheme: dark;
+}
+
 * {
     box-sizing: border-box;
 }
 
 body.crm-body {
     min-height: 100vh;
+    min-height: 100dvh;
     margin: 0;
     color: var(--light-text);
+    background-color: #050810;
     background:
         radial-gradient(circle at top right, rgba(201, 176, 55, 0.11), transparent 28%),
         radial-gradient(circle at bottom left, rgba(35, 73, 136, 0.16), transparent 26%),
         linear-gradient(180deg, rgba(10, 13, 19, 0.98) 0%, rgba(5, 8, 16, 1) 100%);
+    overscroll-behavior-y: none;
+    overflow-x: hidden;
 }
 
 body.crm-body.crm-nav-open {
@@ -70,10 +80,13 @@ button {
 .crm-app-shell {
     position: relative;
     z-index: 1;
+    min-height: 100vh;
+    min-height: 100dvh;
 }
 
 .auth-gate {
     min-height: 100vh;
+    min-height: 100dvh;
     padding: 0;
 }
 
@@ -84,6 +97,7 @@ button {
     justify-content: center;
     width: 100%;
     min-height: 100vh;
+    min-height: 100dvh;
     padding: clamp(4rem, 8vh, 5.5rem) 2rem;
     background: radial-gradient(circle at 50% 50%, rgba(201, 176, 55, 0.08), transparent 50%);
     position: relative;
@@ -329,21 +343,51 @@ button {
     gap: 0.5rem;
 }
 
+.remember-me input[type="checkbox"] {
+    accent-color: var(--primary-gold);
+    width: 1rem;
+    height: 1rem;
+    cursor: pointer;
+}
+
+.remember-me span {
+    color: var(--light-text);
+    font-size: 0.95rem;
+}
+
 .login-status-row {
     display: flex;
     align-items: center;
-    justify-content: flex-start;
+    justify-content: space-between;
+    gap: 0.75rem;
+    flex-wrap: wrap;
     margin-bottom: 1.5rem;
     font-size: 0.9rem;
     animation: login-fade-up 0.55s cubic-bezier(0.22, 1, 0.36, 1) 0.34s both;
 }
 
 .login-status {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
     color: var(--gray-text);
 }
 
 .login-status i {
     color: var(--primary-gold);
+}
+
+.auth-login-actions {
+    display: grid;
+    gap: 0.85rem;
+}
+
+.auth-return-button {
+    width: 100%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
 }
 
 .login-button {
@@ -589,6 +633,7 @@ button {
 
 .crm-shell {
     min-height: 100vh;
+    min-height: 100dvh;
     display: grid;
     grid-template-columns: minmax(0, 1fr);
     position: relative;
@@ -715,6 +760,8 @@ button {
 
 .crm-stage {
     min-width: 0;
+    min-height: 100vh;
+    min-height: 100dvh;
     padding: 1.35rem;
     position: relative;
     isolation: isolate;

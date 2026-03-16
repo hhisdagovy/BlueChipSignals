@@ -1,5 +1,6 @@
 const SESSION_KEY = 'bluechip_crm_session_v1';
 const USERS_KEY = 'bluechip_crm_users_v1';
+const REMEMBER_KEY = 'bluechip_crm_remember_v1';
 
 export const CRM_TEST_USERS = [
     {
@@ -142,7 +143,7 @@ export class LocalAuthService {
         }
 
         if (!user || user.isActive === false) {
-            localStorage.removeItem(SESSION_KEY);
+            clearStoredSession();
             return null;
         }
 
@@ -154,24 +155,23 @@ export class LocalAuthService {
             title: user.title
         };
 
-        localStorage.setItem(SESSION_KEY, JSON.stringify(nextSession));
+        writeStoredSession(nextSession, readRememberPreference());
         return nextSession;
     }
 
     getSession() {
-        try {
-            const raw = localStorage.getItem(SESSION_KEY);
-            return raw ? JSON.parse(raw) : null;
-        } catch (_error) {
-            return null;
-        }
+        return readStoredSession();
     }
 
     getTestUsers() {
         return this.listUsers().map((user) => ({ ...user }));
     }
 
-    async login({ email, password }) {
+    getRememberPreference() {
+        return readRememberPreference();
+    }
+
+    async login({ email, password, remember = false }) {
         const match = this.listUsers().find((user) =>
             user.email.toLowerCase() === String(email ?? '').toLowerCase().trim()
             && user.password === String(password ?? '').trim()
@@ -194,7 +194,8 @@ export class LocalAuthService {
             loggedInAt: new Date().toISOString()
         };
 
-        localStorage.setItem(SESSION_KEY, JSON.stringify(session));
+        writeRememberPreference(remember);
+        writeStoredSession(session, remember);
         return session;
     }
 
@@ -209,7 +210,69 @@ export class LocalAuthService {
     }
 
     logout() {
+        clearStoredSession();
+    }
+}
+
+function readRememberPreference() {
+    try {
+        return localStorage.getItem(REMEMBER_KEY) === '1';
+    } catch (_error) {
+        return false;
+    }
+}
+
+function writeRememberPreference(remember) {
+    try {
+        localStorage.setItem(REMEMBER_KEY, remember ? '1' : '0');
+    } catch (_error) {
+        // Ignore storage write failures and fall back to in-memory behavior.
+    }
+}
+
+function readStoredSession() {
+    const preferredStorage = readRememberPreference() ? localStorage : sessionStorage;
+    const fallbackStorage = readRememberPreference() ? sessionStorage : localStorage;
+    return parseStoredSession(preferredStorage) || parseStoredSession(fallbackStorage);
+}
+
+function parseStoredSession(storage) {
+    try {
+        const raw = storage.getItem(SESSION_KEY);
+        return raw ? JSON.parse(raw) : null;
+    } catch (_error) {
+        return null;
+    }
+}
+
+function writeStoredSession(session, remember) {
+    const primaryStorage = remember ? localStorage : sessionStorage;
+    const secondaryStorage = remember ? sessionStorage : localStorage;
+
+    try {
+        primaryStorage.setItem(SESSION_KEY, JSON.stringify(session));
+    } catch (_error) {
+        // Ignore storage write failures and fall back to the in-memory session.
+    }
+
+    try {
+        secondaryStorage.removeItem(SESSION_KEY);
+    } catch (_error) {
+        // Ignore storage cleanup failures.
+    }
+}
+
+function clearStoredSession() {
+    try {
         localStorage.removeItem(SESSION_KEY);
+    } catch (_error) {
+        // Ignore storage cleanup failures.
+    }
+
+    try {
+        sessionStorage.removeItem(SESSION_KEY);
+    } catch (_error) {
+        // Ignore storage cleanup failures.
     }
 }
 

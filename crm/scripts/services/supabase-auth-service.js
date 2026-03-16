@@ -1,4 +1,8 @@
-import { getSupabase } from '../../../src/lib/supabase-browser.js'
+import {
+  getSupabase,
+  getSupabaseRememberPreference,
+  setSupabaseRememberPreference
+} from '../../../src/lib/supabase-browser.js'
 
 const SESSION_KEY = 'bluechip_crm_session_v1'
 const USERS_KEY = 'bluechip_crm_users_v1'
@@ -14,16 +18,15 @@ export class SupabaseAuthService {
   }
 
   getSession() {
-    try {
-      const raw = localStorage.getItem(SESSION_KEY)
-      return raw ? JSON.parse(raw) : null
-    } catch (_error) {
-      return null
-    }
+    return readStoredSession()
   }
 
   getTestUsers() {
     return []
+  }
+
+  getRememberPreference() {
+    return getSupabaseRememberPreference()
   }
 
   getAuthUser() {
@@ -79,7 +82,8 @@ export class SupabaseAuthService {
     return mappedUsers
   }
 
-  async login({ email, password }) {
+  async login({ email, password, remember = false }) {
+    setSupabaseRememberPreference(remember)
     const supabase = await getSupabase()
     const { data, error } = await supabase.auth.signInWithPassword({
       email: String(email ?? '').trim(),
@@ -262,7 +266,7 @@ export class SupabaseAuthService {
       loggedInAt: new Date().toISOString()
     }
 
-    localStorage.setItem(SESSION_KEY, JSON.stringify(nextSession))
+    writeStoredSession(nextSession, getSupabaseRememberPreference())
 
     if (refreshUsers) {
       try {
@@ -280,7 +284,7 @@ export class SupabaseAuthService {
   clearResolvedSession() {
     this.currentAuthUser = null
     this.currentProfile = null
-    localStorage.removeItem(SESSION_KEY)
+    clearStoredSession()
   }
 
   async fetchProfile(userId) {
@@ -330,6 +334,53 @@ export class SupabaseAuthService {
     if (!data || normalizeProfileRole(data.role) !== 'admin' || data.active !== true) {
       throw new Error('Only active admin users can manage CRM profiles.')
     }
+  }
+}
+
+function readStoredSession() {
+  const preferredStorage = getSupabaseRememberPreference() ? localStorage : sessionStorage
+  const fallbackStorage = getSupabaseRememberPreference() ? sessionStorage : localStorage
+
+  return parseStoredSession(preferredStorage) || parseStoredSession(fallbackStorage)
+}
+
+function parseStoredSession(storage) {
+  try {
+    const raw = storage.getItem(SESSION_KEY)
+    return raw ? JSON.parse(raw) : null
+  } catch (_error) {
+    return null
+  }
+}
+
+function writeStoredSession(session, remember) {
+  const primaryStorage = remember ? localStorage : sessionStorage
+  const secondaryStorage = remember ? sessionStorage : localStorage
+
+  try {
+    primaryStorage.setItem(SESSION_KEY, JSON.stringify(session))
+  } catch (_error) {
+    // Ignore storage write failures and fall back to the in-memory session.
+  }
+
+  try {
+    secondaryStorage.removeItem(SESSION_KEY)
+  } catch (_error) {
+    // Ignore storage cleanup failures.
+  }
+}
+
+function clearStoredSession() {
+  try {
+    localStorage.removeItem(SESSION_KEY)
+  } catch (_error) {
+    // Ignore storage cleanup failures.
+  }
+
+  try {
+    sessionStorage.removeItem(SESSION_KEY)
+  } catch (_error) {
+    // Ignore storage cleanup failures.
   }
 }
 

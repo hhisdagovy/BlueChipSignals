@@ -15,11 +15,17 @@
     --crm-danger: #f16f6f;
     --crm-info: #77b7ff;
     --crm-shadow: 0 24px 60px rgba(0, 0, 0, 0.45);
+    --crm-page-background:
+        radial-gradient(circle at top right, rgba(201, 176, 55, 0.11), transparent 28%),
+        radial-gradient(circle at bottom left, rgba(35, 73, 136, 0.16), transparent 26%),
+        linear-gradient(180deg, rgba(10, 13, 19, 0.98) 0%, rgba(5, 8, 16, 1) 100%);
 }
 
 html {
     min-height: 100%;
-    background: #050810;
+    background-color: #0a0d13;
+    background-image: var(--crm-page-background);
+    background-attachment: fixed;
     color-scheme: dark;
 }
 
@@ -32,11 +38,8 @@ body.crm-body {
     min-height: 100dvh;
     margin: 0;
     color: var(--light-text);
-    background-color: #050810;
-    background:
-        radial-gradient(circle at top right, rgba(201, 176, 55, 0.11), transparent 28%),
-        radial-gradient(circle at bottom left, rgba(35, 73, 136, 0.16), transparent 26%),
-        linear-gradient(180deg, rgba(10, 13, 19, 0.98) 0%, rgba(5, 8, 16, 1) 100%);
+    background-color: transparent;
+    background-image: var(--crm-page-background);
     overscroll-behavior-y: none;
     overflow-x: hidden;
 }
@@ -45,7 +48,7 @@ body.crm-body.crm-nav-open {
     overflow: hidden;
 }
 
-body.crm-body::before {
+html::before {
     content: '';
     position: fixed;
     inset: 0;
@@ -54,6 +57,7 @@ body.crm-body::before {
         linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
     background-size: 56px 56px;
     mask-image: radial-gradient(circle at center, rgba(0, 0, 0, 0.75), transparent 88%);
+    -webkit-mask-image: radial-gradient(circle at center, rgba(0, 0, 0, 0.75), transparent 88%);
     pointer-events: none;
     z-index: 0;
 }
@@ -4887,7 +4891,12 @@ button {
     }
 
     .login-status-row {
-        justify-content: center;
+        justify-content: flex-start;
+        align-items: flex-start;
+    }
+
+    .login-status {
+        width: 100%;
     }
 
     .auth-panel,

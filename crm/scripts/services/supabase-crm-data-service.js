@@ -53,6 +53,8 @@ const LEAD_SELECT_COLUMNS = [
   'phone',
   'email',
   'business_name',
+  'status',
+  'lifecycle',
   'disposition_id',
   'assigned_rep_id',
   'subscription_type',
@@ -65,7 +67,20 @@ const LEAD_SELECT_COLUMNS = [
   'created_at',
   'updated_at'
 ].join(', ')
-const LEAD_WORKSPACE_SELECT_COLUMNS = `${LEAD_SELECT_COLUMNS}, lead_tags(tag_id), lead_history(field_name,new_value,changed_at)`
+const LEAD_SUGGESTION_SELECT_COLUMNS = [
+  'id',
+  'first_name',
+  'last_name',
+  'full_name',
+  'phone',
+  'email',
+  'business_name',
+  'status',
+  'lifecycle',
+  'subscription_type',
+  'timezone',
+  'updated_at'
+].join(', ')
 const PROFILE_ACCESS_SELECT = 'role, active'
 const SUPABASE_BATCH_SIZE = 1000
 const SUPABASE_FILTER_BATCH_SIZE = 250
@@ -76,37 +91,22 @@ export class SupabaseCrmDataService extends CrmDataService {
   }
 
   async initializeWorkspace() {
-    const [leadRows, tagDefinitions, dispositionDefinitions, profileRows] = await Promise.all([
-      this.fetchAllLeadRows(
-        (query) => query
-          .in('lead_history.field_name', ['status', 'lifecycle'])
-          .order('updated_at', { ascending: false, nullsFirst: false }),
-        LEAD_WORKSPACE_SELECT_COLUMNS
-      ),
+    const [tagDefinitions, dispositionDefinitions, leadCount, memberCount] = await Promise.all([
       this.listTagDefinitions(),
       this.listDispositionDefinitions(),
-      this.fetchAllOptionalRows('profiles')
+      this.countLeadsForScope('leads'),
+      this.countLeadsForScope('members')
     ])
 
-    const userMap = new Map(profileRows.map(mapProfileUser).map((user) => [user.id, user]))
-    const tagsByLeadId = buildLeadTagsMap(flattenEmbeddedLeadTagRows(leadRows), tagDefinitions)
-    const historyByLeadId = buildLeadHistoryMap(flattenEmbeddedLeadHistoryRows(leadRows), userMap)
-    const clients = leadRows
-      .map((row) => mapLeadRow(stripJoinedLeadRow(row), {
-        usersById: userMap,
-        tagsByLeadId,
-        notesByLeadId: new Map(),
-        historyByLeadId,
-        dispositionDefinitions
-      }))
-      .sort((left, right) => Date.parse(right.updatedAt ?? 0) - Date.parse(left.updatedAt ?? 0))
-
     return {
-      clients,
       importHistory: [],
       allowedTags: tagDefinitions.filter((definition) => definition.isArchived !== true).map((definition) => definition.label),
       tagDefinitions,
-      dispositionDefinitions
+      dispositionDefinitions,
+      workspaceSummary: {
+        leadCount,
+        memberCount
+      }
     }
   }
 
@@ -153,6 +153,7 @@ export class SupabaseCrmDataService extends CrmDataService {
 
   async listClientsPage({
     scope = 'leads',
+    assignmentState = 'all',
     page = 1,
     pageSize = 50,
     search = '',
@@ -165,66 +166,116 @@ export class SupabaseCrmDataService extends CrmDataService {
     const rangeFrom = (normalizedPage - 1) * normalizedPageSize
     const rangeTo = rangeFrom + normalizedPageSize - 1
     const activeTagId = resolveTagId(filters?.tag, tagDefinitions)
+    const normalizedStatusFilter = normalizeStatusFilter(filters?.status)
     const selectClause = activeTagId ? `${LEAD_SELECT_COLUMNS}, lead_tags!inner(tag_id)` : LEAD_SELECT_COLUMNS
+    const booleanExpression = buildLeadListBooleanExpression({
+      scope,
+      searchExpression: buildLeadBooleanExpression({ search, filters })
+    })
+    const supabase = await getSupabase()
+    let query = supabase
+      .from('leads')
+      .select(selectClause, { count: 'exact' })
 
-    const booleanExpression = buildLeadBooleanExpression({ search, filters })
-    const leadRows = await this.fetchAllLeadRows((baseQuery) => {
-      let query = baseQuery
+    if (scope === 'members') {
+      query = query.eq('lifecycle', 'member')
+    } else if (assignmentState === 'assigned') {
+      query = query.not('assigned_rep_id', 'is', null)
+    } else if (assignmentState === 'unassigned') {
+      query = query.is('assigned_rep_id', null)
+    }
 
-      if (activeTagId) {
-        query = query.eq('lead_tags.tag_id', activeTagId)
-      }
+    if (activeTagId) {
+      query = query.eq('lead_tags.tag_id', activeTagId)
+    }
 
-      if (booleanExpression) {
-        query = query.or(booleanExpression)
-      }
+    if (normalizedStatusFilter !== 'all') {
+      query = query.eq('status', normalizedStatusFilter)
+    }
 
-      return query.order('updated_at', { ascending: false, nullsFirst: false })
-    }, selectClause, 'Unable to load the requested CRM lead page from Supabase.')
+    if (booleanExpression) {
+      query = query.or(booleanExpression)
+    }
 
-    const matchedLeadRows = (leadRows ?? []).map(stripJoinedLeadRow)
-    const leadIds = matchedLeadRows.map((row) => String(row.id ?? '')).filter(Boolean)
-    const [profileRows, effectiveTagDefinitions, dispositionDefinitions, historyRows] = await Promise.all([
-      this.fetchAllOptionalRows('profiles'),
+    query = applyLeadListSort(query, sort)
+    const { data: leadRows, error, count } = await query.range(rangeFrom, rangeTo)
+
+    if (error) {
+      throw new Error(error.message || 'Unable to load the requested CRM lead page from Supabase.')
+    }
+
+    const pageLeadRows = (leadRows ?? []).map(stripJoinedLeadRow)
+    const leadIds = pageLeadRows.map((row) => String(row.id ?? '')).filter(Boolean)
+    const [profileRows, effectiveTagDefinitions, latestNoteRows, pageLeadTagRows] = await Promise.all([
+      this.fetchOptionalRows('profiles'),
       tagDefinitions?.length ? Promise.resolve(tagDefinitions) : this.listTagDefinitions(),
-      this.listDispositionDefinitions(),
-      leadIds.length ? this.fetchCurrentWorkflowHistoryRowsByLeadIds(leadIds) : Promise.resolve([])
+      leadIds.length ? this.fetchLatestNoteRowsByLeadIds(leadIds) : Promise.resolve([]),
+      leadIds.length ? this.fetchAllOptionalRowsByIds('lead_tags', 'lead_id', leadIds) : Promise.resolve([])
     ])
     const userMap = new Map(profileRows.map(mapProfileUser).map((user) => [user.id, user]))
     const normalizedTagDefinitions = Array.isArray(effectiveTagDefinitions) ? effectiveTagDefinitions : mapCatalogRows(effectiveTagDefinitions)
-    const historyByLeadId = buildLeadHistoryMap(historyRows, userMap)
-    const clients = matchedLeadRows.map((row) => mapLeadRow(row, {
-      usersById: userMap,
-      tagsByLeadId: new Map(),
-      notesByLeadId: new Map(),
-      historyByLeadId,
-      dispositionDefinitions
-    }))
-    const filteredClients = filterClientsByDerivedState(clients, { scope, filters })
-    const sortedClients = sortClients(filteredClients, sort)
-    const pagedClients = sortedClients.slice(rangeFrom, rangeTo + 1)
-    const pagedLeadIds = pagedClients.map((client) => client.id).filter(Boolean)
-    const [pageLeadTagRows, pageNoteRows] = await Promise.all([
-      pagedLeadIds.length ? this.fetchAllOptionalRowsByIds('lead_tags', 'lead_id', pagedLeadIds) : Promise.resolve([]),
-      pagedLeadIds.length ? this.fetchAllOptionalRowsByIds('notes', 'lead_id', pagedLeadIds, (pageQuery) => pageQuery.order('created_at', { ascending: false })) : Promise.resolve([])
-    ])
     const tagsByLeadId = buildLeadTagsMap(pageLeadTagRows, normalizedTagDefinitions)
-    const notesByLeadId = buildLeadNotesMap(pageNoteRows, new Map(), userMap)
+    const latestNotesByLeadId = buildLatestLeadNotesMap(latestNoteRows, userMap)
+    const clients = pageLeadRows.map((row) => mapLeadRow(row, {
+      usersById: userMap,
+      tagsByLeadId,
+      notesByLeadId: latestNotesByLeadId,
+      historyByLeadId: new Map(),
+      dispositionDefinitions: []
+    }))
 
     return {
-      clients: pagedClients.map((client) => {
-        const noteHistory = notesByLeadId.get(client.id) || []
-        return {
-          ...client,
-          tags: tagsByLeadId.get(client.id) || [],
-          notes: noteHistory[0]?.content || '',
-          noteHistory
-        }
-      }),
-      totalCount: sortedClients.length,
+      clients,
+      totalCount: typeof count === 'number' ? count : clients.length,
       page: normalizedPage,
       pageSize: normalizedPageSize
     }
+  }
+
+  async searchClientSuggestions({ query = '', limit = 10 } = {}) {
+    const searchExpression = buildLeadBooleanExpression({ search: query, filters: {} })
+    const normalizedLimit = Math.max(1, Math.min(Number(limit) || 10, 10))
+
+    if (!searchExpression) {
+      return []
+    }
+
+    const supabase = await getSupabase()
+    const fetchLimit = Math.max(normalizedLimit * 4, 30)
+    let suggestionQuery = supabase
+      .from('leads')
+      .select(LEAD_SUGGESTION_SELECT_COLUMNS)
+      .or(searchExpression)
+
+    suggestionQuery = applyLeadListSort(suggestionQuery, { field: 'updatedAt', direction: 'desc' }).limit(fetchLimit)
+
+    const { data, error } = await suggestionQuery
+
+    if (error) {
+      throw new Error(error.message || 'Unable to load CRM search suggestions from Supabase.')
+    }
+
+    return [...(data ?? [])]
+      .map(mapLeadSuggestionRow)
+      .filter((suggestion) => Boolean(suggestion.id))
+      .map((suggestion) => ({
+        ...suggestion,
+        rank: getLeadSuggestionRank(suggestion, query)
+      }))
+      .sort((left, right) => {
+        if (left.rank !== right.rank) {
+          return left.rank - right.rank
+        }
+
+        const updatedDiff = (Date.parse(right.updatedAt ?? 0) || 0) - (Date.parse(left.updatedAt ?? 0) || 0)
+        if (updatedDiff !== 0) {
+          return updatedDiff
+        }
+
+        return left.fullName.localeCompare(right.fullName)
+      })
+      .slice(0, normalizedLimit)
+      .map(({ rank: _rank, ...suggestion }) => suggestion)
   }
 
   async saveClient(payload) {
@@ -608,6 +659,33 @@ export class SupabaseCrmDataService extends CrmDataService {
     })
   }
 
+  async findDuplicateClientCandidate(payload) {
+    const normalizedEmail = normalizeEmail(payload?.email)
+    const normalizedPhoneKey = normalizePhone(payload?.phone)
+    const phoneVariants = dedupeStrings([
+      normalizeWhitespace(payload?.phone),
+      formatPhone(normalizedPhoneKey),
+      normalizedPhoneKey
+    ]).filter(Boolean)
+    const [emailMatches, phoneMatches] = await Promise.all([
+      normalizedEmail
+        ? this.fetchLeadRows((query) => query.eq('email', normalizedEmail).limit(5))
+        : Promise.resolve([]),
+      phoneVariants.length
+        ? this.fetchLeadRows((query) => query.in('phone', phoneVariants).limit(5))
+        : Promise.resolve([])
+    ])
+    const duplicateId = dedupeStrings([...emailMatches, ...phoneMatches]
+      .map((row) => String(row.id ?? '').trim())
+      .filter((id) => id && id !== normalizeWhitespace(payload?.id)))[0]
+
+    if (!duplicateId) {
+      return null
+    }
+
+    return this.getClientById(duplicateId)
+  }
+
   async fetchRows(table, configureQuery = (query) => query) {
     const supabase = await getSupabase()
     const { data, error } = await configureQuery(supabase.from(table).select('*'))
@@ -648,6 +726,10 @@ export class SupabaseCrmDataService extends CrmDataService {
       ).range(rangeFrom, rangeTo)
 
       if (error) {
+        if (isRangeNotSatisfiableError(error)) {
+          break
+        }
+
         throw new Error(error.message || errorMessage || `Unable to load ${table} from Supabase.`)
       }
 
@@ -731,20 +813,49 @@ export class SupabaseCrmDataService extends CrmDataService {
     )
   }
 
-  async fetchCurrentWorkflowHistoryRowsByLeadIds(leadIds) {
-    return this.fetchAllOptionalRowsByIds('lead_history', 'lead_id', leadIds, (query) =>
-      query
-        .in('field_name', ['status', 'lifecycle'])
-        .order('changed_at', { ascending: false, nullsFirst: false })
+  async fetchLatestNoteRowsByLeadIds(leadIds) {
+    const noteRows = await this.fetchAllOptionalRowsByIds(
+      'notes',
+      'lead_id',
+      leadIds,
+      (query) => query.order('created_at', { ascending: false }),
+      'id, lead_id, content, created_at, created_by, updated_at'
     )
+    const latestRowsByLeadId = new Map()
+
+    noteRows.forEach((row) => {
+      const leadId = String(row.lead_id ?? row.leadId ?? '').trim()
+
+      if (!leadId || latestRowsByLeadId.has(leadId)) {
+        return
+      }
+
+      latestRowsByLeadId.set(leadId, row)
+    })
+
+    return [...latestRowsByLeadId.values()]
   }
 
-  async listLatestNotesByLeadIds(leadIds) {
-    const noteRows = await this.fetchAllOptionalRowsByIds('notes', 'lead_id', leadIds, (query) =>
-      query.order('created_at', { ascending: false })
-    )
+  async countLeadsForScope(scope = 'leads') {
+    const supabase = await getSupabase()
+    let query = supabase
+      .from('leads')
+      .select('id', { count: 'exact', head: true })
 
-    return buildLeadNotesMap(noteRows, new Map(), new Map())
+    if (scope === 'members') {
+      query = query.eq('lifecycle', 'member')
+    } else {
+      // Migration safety: keep null lifecycle rows in Leads until all records are backfilled.
+      query = query.or('lifecycle.is.null,lifecycle.eq.lead')
+    }
+
+    const { error, count } = await query
+
+    if (error) {
+      throw new Error(error.message || `Unable to load the ${scope} lead count from Supabase.`)
+    }
+
+    return typeof count === 'number' ? count : 0
   }
 
   async syncLeadTags(leadId, tagLabels) {
@@ -1112,6 +1223,35 @@ function buildLeadNotesMap(rows, noteVersionsByNoteId, usersById) {
   return map
 }
 
+function buildLatestLeadNotesMap(rows, usersById = new Map()) {
+  const map = new Map()
+
+  ;(rows ?? []).forEach((row) => {
+    const leadId = String(row.lead_id ?? row.leadId ?? '').trim()
+    const noteId = String(row.id ?? '').trim()
+    const createdByUserId = normalizeWhitespace(row.created_by ?? row.created_by_user_id ?? row.createdByUserId ?? '')
+
+    if (!leadId || !noteId || map.has(leadId)) {
+      return
+    }
+
+    map.set(leadId, [{
+      id: noteId,
+      leadId,
+      content: normalizeNotes(pickValue(row, ['content', 'note'])),
+      createdAt: row.created_at ?? row.createdAt ?? '',
+      createdByUserId,
+      createdByName: normalizeWhitespace(row.created_by_name ?? row.createdByName ?? usersById.get(createdByUserId)?.name ?? ''),
+      updatedAt: row.updated_at ?? row.updatedAt ?? '',
+      updatedByUserId: normalizeWhitespace(row.updated_by ?? row.updated_by_user_id ?? row.updatedByUserId ?? ''),
+      updatedByName: normalizeWhitespace(row.updated_by_name ?? row.updatedByName ?? ''),
+      versions: []
+    }])
+  })
+
+  return map
+}
+
 function buildLeadHistoryMap(rows, usersById) {
   const map = new Map()
 
@@ -1188,6 +1328,8 @@ function mapLeadRow(row, { usersById, tagsByLeadId, notesByLeadId, historyByLead
   const tags = tagsByLeadId.get(leadId) || []
   const activityLog = historyByLeadId.get(leadId) || []
   const disposition = resolveDispositionLabel(dispositionId, dispositionDefinitions)
+  const status = resolveLeadRowStatus(row.status, activityLog)
+  const lifecycleType = resolveLeadRowLifecycle(row.lifecycle, activityLog)
 
   return {
     id: leadId,
@@ -1208,12 +1350,12 @@ function mapLeadRow(row, { usersById, tagsByLeadId, notesByLeadId, historyByLead
     sourceLastActivityRaw: normalizeWhitespace(row.source_last_activity_raw),
     assignedTo: normalizeWhitespace(usersById.get(assignedRepId)?.name ?? ''),
     assignedRepId,
-    status: resolveCurrentLeadStatus(activityLog),
+    status,
     subscriptionType: normalizeWhitespace(row.subscription_type),
     timeZone,
     timezoneOverridden,
     autoTimeZone,
-    lifecycleType: resolveCurrentLeadLifecycle(activityLog),
+    lifecycleType,
     disposition,
     dispositionId,
     followUpAction: normalizeWhitespace(row.follow_up_action),
@@ -1221,6 +1363,77 @@ function mapLeadRow(row, { usersById, tagsByLeadId, notesByLeadId, historyByLead
     noteHistory,
     activityLog
   }
+}
+
+function mapLeadSuggestionRow(row) {
+  const firstName = normalizeWhitespace(row.first_name)
+  const lastName = normalizeWhitespace(row.last_name)
+  const phoneKey = normalizePhone(row.phone)
+  const fullName = normalizeWhitespace(row.full_name) || buildFullName(firstName, lastName)
+
+  return {
+    id: String(row.id ?? '').trim(),
+    firstName,
+    lastName,
+    fullName: fullName || normalizeEmail(row.email) || formatPhone(phoneKey) || 'Unnamed lead',
+    email: normalizeEmail(row.email),
+    phone: formatPhone(phoneKey) || normalizeWhitespace(row.phone),
+    phoneKey,
+    businessName: normalizeWhitespace(row.business_name),
+    status: resolveLeadRowStatus(row.status, []),
+    lifecycleType: resolveLeadRowLifecycle(row.lifecycle, []),
+    subscriptionType: normalizeWhitespace(row.subscription_type),
+    timeZone: normalizeTimeZone(row.timezone),
+    updatedAt: row.updated_at ?? row.updatedAt ?? ''
+  }
+}
+
+function getLeadSuggestionRank(suggestion, query) {
+  const normalizedQuery = normalizeWhitespace(query).toLowerCase()
+  const normalizedPhoneQuery = normalizePhone(query)
+  const fullName = normalizeWhitespace(suggestion.fullName).toLowerCase()
+  const firstName = normalizeWhitespace(suggestion.firstName).toLowerCase()
+  const lastName = normalizeWhitespace(suggestion.lastName).toLowerCase()
+  const email = normalizeWhitespace(suggestion.email).toLowerCase()
+  const phoneKey = normalizePhone(suggestion.phoneKey || suggestion.phone)
+  const businessName = normalizeWhitespace(suggestion.businessName).toLowerCase()
+
+  if (!normalizedQuery && !normalizedPhoneQuery) {
+    return 6
+  }
+
+  if (normalizedQuery && fullName === normalizedQuery) {
+    return 0
+  }
+
+  if (normalizedQuery && fullName.startsWith(normalizedQuery)) {
+    return 1
+  }
+
+  if (normalizedQuery && (firstName.startsWith(normalizedQuery) || lastName.startsWith(normalizedQuery))) {
+    return 2
+  }
+
+  if (normalizedQuery && email.startsWith(normalizedQuery)) {
+    return 3
+  }
+
+  if (normalizedPhoneQuery && phoneKey.startsWith(normalizedPhoneQuery)) {
+    return 4
+  }
+
+  if (
+    (normalizedQuery && (
+      fullName.includes(normalizedQuery)
+      || email.includes(normalizedQuery)
+      || businessName.includes(normalizedQuery)
+    ))
+    || (normalizedPhoneQuery && phoneKey.includes(normalizedPhoneQuery))
+  ) {
+    return 5
+  }
+
+  return 6
 }
 
 function buildLeadInsertPayload(client, { dispositionDefinitions = [], existingLead = null } = {}) {
@@ -1231,6 +1444,8 @@ function buildLeadInsertPayload(client, { dispositionDefinitions = [], existingL
     email: client.email,
     phone: client.phone,
     business_name: client.businessName || null,
+    status: normalizeStatus(client.status),
+    lifecycle: normalizeLifecycle(client.lifecycleType),
     assigned_rep_id: client.assignedRepId || null,
     subscription_type: client.subscriptionType || null,
     timezone: client.timeZone || null,
@@ -1253,6 +1468,8 @@ function buildLeadUpdatePayload(client, { dispositionDefinitions = [], existingL
     email: client.email,
     phone: client.phone,
     business_name: client.businessName || null,
+    status: normalizeStatus(client.status),
+    lifecycle: normalizeLifecycle(client.lifecycleType),
     assigned_rep_id: client.assignedRepId || null,
     subscription_type: client.subscriptionType || null,
     timezone: client.timeZone || null,
@@ -1379,6 +1596,28 @@ function resolveCurrentLeadLifecycle(historyEntries) {
   return lifecycleEntry ? normalizeLifecycle(lifecycleEntry.newValue) : 'lead'
 }
 
+function resolveLeadRowStatus(rowStatus, historyEntries) {
+  const normalizedRowStatus = normalizeWhitespace(rowStatus)
+
+  if (normalizedRowStatus) {
+    return normalizeStatus(normalizedRowStatus)
+  }
+
+  // Migration safety only: fall back to the audit log until every leads.status row is backfilled.
+  return resolveCurrentLeadStatus(historyEntries)
+}
+
+function resolveLeadRowLifecycle(rowLifecycle, historyEntries) {
+  const normalizedRowLifecycle = normalizeWhitespace(rowLifecycle)
+
+  if (normalizedRowLifecycle) {
+    return normalizeLifecycle(normalizedRowLifecycle)
+  }
+
+  // Migration safety only: fall back to the audit log until every leads.lifecycle row is backfilled.
+  return resolveCurrentLeadLifecycle(historyEntries)
+}
+
 function normalizeLeadHistoryValue(value) {
   if (Array.isArray(value)) {
     return dedupeStrings(value).join(', ') || '—'
@@ -1447,64 +1686,6 @@ function buildLeadHistoryMessage(fieldName, oldValue, newValue) {
   return `${normalizedFieldName} changed from ${oldValue} to ${newValue}.`
 }
 
-function filterClientsByDerivedState(clients, { scope = 'leads', filters = {} } = {}) {
-  const normalizedStatusFilter = normalizeStatusFilter(filters?.status)
-
-  return (clients ?? []).filter((client) => {
-    if (scope === 'members' && client.lifecycleType !== 'member') {
-      return false
-    }
-
-    if (scope !== 'members' && scope !== 'all' && client.lifecycleType === 'member') {
-      return false
-    }
-
-    if (normalizedStatusFilter !== 'all' && client.status !== normalizedStatusFilter) {
-      return false
-    }
-
-    return true
-  })
-}
-
-function sortClients(clients, sort = {}) {
-  const field = normalizeWhitespace(sort?.field) || 'updatedAt'
-  const direction = sort?.direction === 'asc' ? 1 : -1
-
-  return [...(clients ?? [])].sort((left, right) => {
-    const leftValue = getClientSortValue(left, field)
-    const rightValue = getClientSortValue(right, field)
-
-    if (leftValue < rightValue) {
-      return -1 * direction
-    }
-
-    if (leftValue > rightValue) {
-      return 1 * direction
-    }
-
-    const leftUpdatedAt = Date.parse(left?.updatedAt ?? 0) || 0
-    const rightUpdatedAt = Date.parse(right?.updatedAt ?? 0) || 0
-    return rightUpdatedAt - leftUpdatedAt
-  })
-}
-
-function getClientSortValue(client, field) {
-  switch (field) {
-    case 'name':
-      return normalizeWhitespace(client?.fullName).toLowerCase()
-    case 'email':
-      return normalizeWhitespace(client?.email).toLowerCase()
-    case 'phone':
-      return normalizeWhitespace(client?.phoneKey || client?.phone)
-    case 'status':
-      return normalizeWhitespace(client?.status).toLowerCase()
-    case 'updatedAt':
-    default:
-      return Date.parse(client?.updatedAt ?? 0) || 0
-  }
-}
-
 function normalizeStatusFilter(value) {
   if (normalizeWhitespace(value).toLowerCase() === 'all') {
     return 'all'
@@ -1515,16 +1696,10 @@ function normalizeStatusFilter(value) {
 
 function buildLeadBooleanExpression({ search = '', filters = {} } = {}) {
   const groups = []
-  const normalizedSearch = sanitizePostgrestValue(search)
+  const searchConditions = buildLeadSearchConditions(search)
 
-  if (normalizedSearch) {
-    groups.push([
-      buildIlikeCondition('first_name', normalizedSearch, true),
-      buildIlikeCondition('last_name', normalizedSearch, true),
-      buildIlikeCondition('full_name', normalizedSearch, true),
-      buildIlikeCondition('email', normalizedSearch, true),
-      buildIlikeCondition('phone', normalizedSearch, true)
-    ])
+  if (searchConditions.length) {
+    groups.push(searchConditions)
   }
 
   const firstNames = normalizeFilterValues(filters?.multi?.firstNames)
@@ -1565,9 +1740,88 @@ function buildLeadBooleanExpression({ search = '', filters = {} } = {}) {
   return `and(${nonEmptyGroups.map((group) => `or(${group.join(',')})`).join(',')})`
 }
 
+function buildLeadListBooleanExpression({ scope = 'leads', searchExpression = '' } = {}) {
+  const groupedSearchExpression = ensureGroupedBooleanExpression(searchExpression)
+
+  if (scope === 'members' || scope === 'all') {
+    return searchExpression
+  }
+
+  if (!searchExpression) {
+    return 'lifecycle.is.null,lifecycle.eq.lead'
+  }
+
+  // Migration safety: keep null lifecycle rows visible in Leads until the column is fully backfilled.
+  return `and(or(lifecycle.is.null,lifecycle.eq.lead),${groupedSearchExpression})`
+}
+
+function applyLeadListSort(query, sort = {}) {
+  const field = normalizeWhitespace(sort?.field)
+  const ascending = sort?.direction === 'asc'
+
+  switch (field) {
+    case 'name':
+      return query
+        .order('full_name', { ascending, nullsFirst: false })
+        .order('last_name', { ascending, nullsFirst: false })
+        .order('first_name', { ascending, nullsFirst: false })
+        .order('updated_at', { ascending: false, nullsFirst: false })
+    case 'email':
+      return query.order('email', { ascending, nullsFirst: false }).order('updated_at', { ascending: false, nullsFirst: false })
+    case 'phone':
+      return query.order('phone', { ascending, nullsFirst: false }).order('updated_at', { ascending: false, nullsFirst: false })
+    case 'status':
+      return query.order('status', { ascending, nullsFirst: false }).order('updated_at', { ascending: false, nullsFirst: false })
+    case 'updatedAt':
+    default:
+      return query.order('updated_at', { ascending, nullsFirst: false })
+  }
+}
+
 function buildIlikeCondition(column, value, contains = false) {
   const pattern = contains ? `*${value}*` : value
   return `${column}.ilike.${pattern}`
+}
+
+function buildPhoneIlikeCondition(column, value, contains = false) {
+  const digits = normalizePhone(value)
+
+  if (!digits) {
+    return ''
+  }
+
+  const body = digits.split('').join('*')
+  const pattern = contains ? `*${body}*` : `${body}*`
+  return `${column}.ilike.${pattern}`
+}
+
+function buildLeadSearchConditions(search = '') {
+  const normalizedSearch = sanitizePostgrestValue(search)
+  const conditions = [
+    normalizedSearch ? buildIlikeCondition('first_name', normalizedSearch, true) : '',
+    normalizedSearch ? buildIlikeCondition('last_name', normalizedSearch, true) : '',
+    normalizedSearch ? buildIlikeCondition('full_name', normalizedSearch, true) : '',
+    normalizedSearch ? buildIlikeCondition('email', normalizedSearch, true) : '',
+    normalizedSearch ? buildIlikeCondition('phone', normalizedSearch, true) : '',
+    normalizedSearch ? buildIlikeCondition('business_name', normalizedSearch, true) : '',
+    buildPhoneIlikeCondition('phone', search, true)
+  ].filter(Boolean)
+
+  return [...new Set(conditions)]
+}
+
+function ensureGroupedBooleanExpression(expression = '') {
+  const normalizedExpression = normalizeWhitespace(expression)
+
+  if (!normalizedExpression) {
+    return ''
+  }
+
+  if (normalizedExpression.startsWith('and(') || normalizedExpression.startsWith('or(')) {
+    return normalizedExpression
+  }
+
+  return `or(${normalizedExpression})`
 }
 
 function normalizeFilterValues(values) {
@@ -1603,42 +1857,8 @@ function stripJoinedLeadRow(row) {
     return row
   }
 
-  const { lead_tags: _leadTags, lead_history: _leadHistory, ...leadRow } = row
+  const { lead_tags: _leadTags, ...leadRow } = row
   return leadRow
-}
-
-function flattenEmbeddedLeadTagRows(rows) {
-  return (rows ?? []).flatMap((row) => {
-    const leadId = String(row?.id ?? '').trim()
-    const embeddedRows = Array.isArray(row?.lead_tags) ? row.lead_tags : []
-
-    if (!leadId) {
-      return []
-    }
-
-    return embeddedRows.map((embeddedRow) => ({
-      lead_id: leadId,
-      tag_id: embeddedRow?.tag_id ?? embeddedRow?.tagId ?? ''
-    }))
-  })
-}
-
-function flattenEmbeddedLeadHistoryRows(rows) {
-  return (rows ?? []).flatMap((row) => {
-    const leadId = String(row?.id ?? '').trim()
-    const embeddedRows = Array.isArray(row?.lead_history) ? row.lead_history : []
-
-    if (!leadId) {
-      return []
-    }
-
-    return embeddedRows.map((embeddedRow) => ({
-      lead_id: leadId,
-      field_name: embeddedRow?.field_name ?? embeddedRow?.fieldName ?? '',
-      new_value: embeddedRow?.new_value ?? embeddedRow?.newValue ?? '',
-      changed_at: embeddedRow?.changed_at ?? embeddedRow?.changedAt ?? ''
-    }))
-  })
 }
 
 function pickValue(row, keys) {
@@ -1685,6 +1905,16 @@ function isDuplicateRowError(error) {
   const code = normalizeWhitespace(error?.code)
   const message = normalizeWhitespace(error?.message).toLowerCase()
   return code === '23505' || message.includes('duplicate key') || message.includes('duplicate')
+}
+
+function isRangeNotSatisfiableError(error) {
+  const code = normalizeWhitespace(error?.code)
+  const message = normalizeWhitespace(error?.message).toLowerCase()
+  const details = normalizeWhitespace(error?.details).toLowerCase()
+  return Number(error?.status) === 416
+    || code === 'PGRST103'
+    || message.includes('range not satisfiable')
+    || details.includes('range not satisfiable')
 }
 
 function buildDuplicateCatalogMessage(entityLabel, label) {

@@ -121,12 +121,12 @@
             animation: login-fade-up 0.55s cubic-bezier(0.22, 1, 0.36, 1) 0.10s both;
         }
 
-        .login-header h1 {
-            font-size: 2rem;
-            background: linear-gradient(135deg, var(--primary-gold), var(--secondary-gold));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            margin-bottom: 0.5rem;
+        .login-header-logo {
+            width: min(180px, 56%);
+            height: auto;
+            display: block;
+            margin: 0 auto 0.75rem;
+            filter: drop-shadow(0 10px 18px rgba(201, 176, 55, 0.18));
         }
 
         .login-header p {
@@ -315,6 +315,20 @@
             justify-content: center;
             gap: 0.5rem;
             font-size: 0.95rem;
+            text-decoration: none;
+        }
+
+        .social-button-logo {
+            width: 20px;
+            height: 20px;
+            object-fit: contain;
+            flex-shrink: 0;
+        }
+
+        #employeeLogin {
+            white-space: nowrap;
+            gap: 0.4rem;
+            font-size: 0.9rem;
         }
 
         .social-button:hover {
@@ -521,7 +535,7 @@
         <div class="login-container">
             <div class="login-inner">
             <div class="login-header">
-                <h1>Welcome Back</h1>
+                <img src="assets/images/Crest logo.png" alt="Blue Chip Signals Crest" class="login-header-logo">
                 <p>Log in to access your Blue Chip Signals account</p>
             </div>
 
@@ -566,9 +580,9 @@
                 <button class="social-button" id="googleLogin">
                     <i class="fab fa-google"></i> Google
                 </button>
-                <button class="social-button" id="appleLogin">
-                    <i class="fab fa-apple"></i> Apple
-                </button>
+                <a class="social-button" id="employeeLogin" href="https://bluechipsignals.online/crm">
+                    <img src="assets/images/Crest logo.png" alt="Blue Chip Signals Crest" class="social-button-logo"> Employee Login
+                </a>
             </div>
 
             <div class="signup-link">
@@ -608,10 +622,6 @@
             togglePassword.classList.toggle('fa-eye-slash');
         });
 
-        // Apple login button (demo)
-        document.getElementById('appleLogin').addEventListener('click', () => {
-            alert('Apple login integration coming soon!');
-        });
     </script>
 
     <!-- Firebase Authentication Script -->
@@ -847,4 +857,3 @@
     </script>
 </body>
 </html>
-

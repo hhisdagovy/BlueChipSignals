@@ -93,12 +93,26 @@ const MULTI_FILTER_CONFIG = [
 ];
 
 const MULTI_FILTER_LOOKUP = Object.fromEntries(MULTI_FILTER_CONFIG.map((config) => [config.key, config]));
+const WORKSPACE_UI_STATE_STORAGE_KEY = 'crm:workspace-ui-state';
+const WORKSPACE_PAGE_CACHE_TTL_MS = 2 * 60 * 1000;
+const WORKSPACE_PAGE_CACHE_MAX_ENTRIES = 24;
+const SEARCH_SUGGESTION_DEBOUNCE_MS = 180;
+const WORKSPACE_VIEWS = new Set(['overview', 'clients', 'assigned-leads', 'members', 'admin', 'lead-detail', 'imports', 'settings']);
+const WORKSPACE_PAGE_SIZES = [25, 50, 100, 250];
+const ADMIN_TABS = Object.freeze([
+    { id: 'team', icon: 'fa-users', label: 'Reps' },
+    { id: 'tags', icon: 'fa-tags', label: 'Tags' },
+    { id: 'dispositions', icon: 'fa-list-check', label: 'Dispositions' },
+    { id: 'activity', icon: 'fa-chart-column', label: 'Activity' },
+    { id: 'imports', icon: 'fa-file-arrow-up', label: 'Imports' }
+]);
 const visibleClientsCache = {
     clientsRef: null,
     filtersKey: '',
     sortKey: '',
     result: []
 };
+const workspacePageCache = new Map();
 
 function createDefaultMultiFilters() {
     return {
@@ -124,8 +138,20 @@ function createEmptyWorkspaceResult() {
         totalCount: 0,
         isLoading: false,
         loaded: false,
-        requestId: 0
+        requestId: 0,
+        cacheKey: ''
     };
+}
+
+function createEmptyWorkspaceSummary() {
+    return {
+        leadCount: 0,
+        memberCount: 0
+    };
+}
+
+function getValidAdminTab(tabId) {
+    return ADMIN_TABS.some((tab) => tab.id === tabId) ? tabId : 'team';
 }
 
 const state = {
@@ -141,9 +167,19 @@ const state = {
     users: [],
     savedFilters: [],
     importHistory: [],
+    workspaceSummary: createEmptyWorkspaceSummary(),
     currentView: 'overview',
     lastWorkspaceView: 'clients',
-    search: '',
+    workspaceSearch: '',
+    lookupQuery: '',
+    searchSuggestions: [],
+    searchSuggestionsOpen: false,
+    searchSuggestionsLoading: false,
+    searchSuggestionsQuery: '',
+    activeSuggestionIndex: -1,
+    activeSearchSurface: 'desktop',
+    activeSearchCaret: null,
+    searchShellExpanded: false,
     filters: normalizeFilterState(createDefaultFilters()),
     sort: {
         field: 'updatedAt',
@@ -156,29 +192,298 @@ const state = {
         members: createEmptyWorkspaceResult()
     },
     sidebarOpen: false,
+    mobileSearchOpen: false,
     filtersPanelOpen: false,
     selectedLeadIds: [],
     bulkAssignRepId: '',
     drawerMode: null,
+    drawerClientId: null,
     detailClientId: null,
     detailEditMode: false,
     detailEditSnapshot: null,
-    leadHistoryOpen: false,
     editingNoteId: null,
     editingTagDefinitionId: null,
     editingDispositionDefinitionId: null,
+    adminTab: 'team',
+    adminUserSearch: '',
+    adminUserFilter: 'all',
     modal: null,
     importFlow: null,
     activeSavedFilterId: null,
     notice: null,
-    clientCacheMode: 'light',
+    clientCacheMode: 'partial',
+    workspaceLoaded: false,
     isLoading: false
 };
 
+restorePersistedWorkspaceUiState();
+
 let noticeTimer = null;
 let workspaceRefreshTimer = null;
+let refreshDataPromise = null;
+let searchSuggestionsTimer = null;
+let searchSuggestionsRequestId = 0;
 
 bootstrap();
+
+function getSessionStorage() {
+    try {
+        return window.sessionStorage;
+    } catch (_error) {
+        return null;
+    }
+}
+
+function restorePersistedWorkspaceUiState() {
+    const storage = getSessionStorage();
+
+    if (!storage) {
+        return;
+    }
+
+    try {
+        const rawValue = storage.getItem(WORKSPACE_UI_STATE_STORAGE_KEY);
+
+        if (!rawValue) {
+            return;
+        }
+
+        const persisted = JSON.parse(rawValue);
+        const restoredCurrentView = WORKSPACE_VIEWS.has(persisted.currentView) ? persisted.currentView : state.currentView;
+        const restoredLastWorkspaceView = ['members', 'assigned-leads'].includes(persisted.lastWorkspaceView)
+            ? persisted.lastWorkspaceView
+            : 'clients';
+
+        state.currentView = restoredCurrentView === 'imports' ? 'admin' : restoredCurrentView;
+        state.lastWorkspaceView = restoredLastWorkspaceView;
+        if (restoredCurrentView === 'imports') {
+            state.adminTab = 'imports';
+        }
+        state.page = Math.max(1, Number(persisted.page) || 1);
+        state.pageSize = WORKSPACE_PAGE_SIZES.includes(Number(persisted.pageSize)) ? Number(persisted.pageSize) : state.pageSize;
+        state.workspaceSearch = typeof persisted.workspaceSearch === 'string'
+            ? persisted.workspaceSearch
+            : (typeof persisted.search === 'string' ? persisted.search : state.workspaceSearch);
+        state.filters = normalizeFilterState(persisted.filters || state.filters);
+        state.sort = {
+            field: typeof persisted.sort?.field === 'string' ? persisted.sort.field : state.sort.field,
+            direction: persisted.sort?.direction === 'asc' ? 'asc' : 'desc'
+        };
+        state.detailClientId = typeof persisted.detailClientId === 'string' ? persisted.detailClientId : null;
+
+        if (state.currentView === 'lead-detail' && !state.detailClientId) {
+            state.currentView = state.lastWorkspaceView;
+        }
+    } catch (_error) {
+        storage.removeItem(WORKSPACE_UI_STATE_STORAGE_KEY);
+    }
+}
+
+function persistWorkspaceUiState() {
+    const storage = getSessionStorage();
+
+    if (!storage) {
+        return;
+    }
+
+    try {
+        storage.setItem(WORKSPACE_UI_STATE_STORAGE_KEY, JSON.stringify({
+            currentView: state.currentView,
+            lastWorkspaceView: state.lastWorkspaceView,
+            page: state.page,
+            pageSize: state.pageSize,
+            workspaceSearch: state.workspaceSearch,
+            filters: state.filters,
+            sort: state.sort,
+            detailClientId: state.detailClientId || ''
+        }));
+    } catch (_error) {
+        // Ignore sessionStorage write failures so CRM rendering never blocks on persistence.
+    }
+}
+
+function buildWorkspacePageCacheKey(scope) {
+    return JSON.stringify({
+        scope: scope === 'members' ? 'members' : 'leads',
+        assignmentState: getLeadAssignmentStateForScope(scope),
+        page: state.page,
+        pageSize: state.pageSize,
+        search: normalizeWhitespace(state.workspaceSearch),
+        filters: normalizeFilterState(state.filters),
+        sort: {
+            field: state.sort.field,
+            direction: state.sort.direction
+        }
+    });
+}
+
+function isAssignedLeadsView(view = state.currentView) {
+    return view === 'assigned-leads';
+}
+
+function isLeadsWorkspaceView(view = state.currentView) {
+    return view === 'clients' || view === 'assigned-leads';
+}
+
+function isWorkspaceListView(view = state.currentView) {
+    return isLeadsWorkspaceView(view) || view === 'members';
+}
+
+function getWorkspaceContextView(scope = getDefaultScopeForView()) {
+    if (scope === 'members') {
+        return 'members';
+    }
+
+    if (isLeadsWorkspaceView(state.currentView)) {
+        return state.currentView;
+    }
+
+    return state.lastWorkspaceView === 'assigned-leads' ? 'assigned-leads' : 'clients';
+}
+
+function getLeadAssignmentStateForScope(scope = getDefaultScopeForView()) {
+    if (scope === 'members' || !hasPermission(state.session, PERMISSIONS.ASSIGN_LEADS)) {
+        return 'all';
+    }
+
+    return getWorkspaceContextView(scope) === 'assigned-leads' ? 'assigned' : 'unassigned';
+}
+
+function getCachedWorkspacePage(cacheKey) {
+    const cachedEntry = workspacePageCache.get(cacheKey);
+
+    if (!cachedEntry) {
+        return null;
+    }
+
+    if ((Date.now() - cachedEntry.cachedAt) > WORKSPACE_PAGE_CACHE_TTL_MS) {
+        workspacePageCache.delete(cacheKey);
+        return null;
+    }
+
+    return cachedEntry.value;
+}
+
+function setCachedWorkspacePage(cacheKey, value) {
+    workspacePageCache.set(cacheKey, {
+        cachedAt: Date.now(),
+        value
+    });
+
+    while (workspacePageCache.size > WORKSPACE_PAGE_CACHE_MAX_ENTRIES) {
+        const oldestKey = workspacePageCache.keys().next().value;
+        workspacePageCache.delete(oldestKey);
+    }
+}
+
+function clearVisibleClientsCache() {
+    visibleClientsCache.clientsRef = null;
+    visibleClientsCache.filtersKey = '';
+    visibleClientsCache.sortKey = '';
+    visibleClientsCache.result = [];
+}
+
+function pruneClientCache() {
+    const keepIds = new Set([
+        state.detailClientId,
+        state.drawerClientId,
+        ...state.workspaceResults.leads.rows.map((client) => client.id),
+        ...state.workspaceResults.members.rows.map((client) => client.id)
+    ].filter(Boolean));
+
+    if (!keepIds.size) {
+        state.clients = [];
+        return;
+    }
+
+    state.clients = state.clients.filter((client) => keepIds.has(client.id));
+}
+
+function invalidateWorkspacePageCache() {
+    workspacePageCache.clear();
+    state.workspaceResults = {
+        leads: createEmptyWorkspaceResult(),
+        members: createEmptyWorkspaceResult()
+    };
+    state.clientCacheMode = 'partial';
+    pruneClientCache();
+    clearVisibleClientsCache();
+}
+
+function getWorkspaceSummaryCount(scope = 'leads') {
+    return scope === 'members'
+        ? (state.workspaceSummary.memberCount || 0)
+        : (state.workspaceSummary.leadCount || 0);
+}
+
+function updateWorkspaceSummaryCount(scope, totalCount) {
+    if (scope === 'members') {
+        state.workspaceSummary.memberCount = totalCount;
+        return;
+    }
+
+    state.workspaceSummary.leadCount = totalCount;
+}
+
+function canUpdateWorkspaceSummaryFromActivePage() {
+    return !normalizeWhitespace(state.workspaceSearch)
+        && state.filters.status === 'all'
+        && state.filters.tag === 'all'
+        && Object.values(state.filters.multi).every((values) => values.length === 0);
+}
+
+function getPublicAuthMessage(message, fallback) {
+    const normalized = String(message ?? '').trim();
+
+    if (!normalized) {
+        return fallback;
+    }
+
+    const lower = normalized.toLowerCase();
+
+    if (lower.includes('invalid login credentials')) {
+        return 'Invalid email or password. Please try again.';
+    }
+
+    if (lower.includes('email not confirmed')) {
+        return 'Your account needs to be confirmed before you can sign in.';
+    }
+
+    if (
+        lower.includes('supabase')
+        || lower.includes('session')
+        || lower.includes('auth user')
+        || lower.includes('profile row')
+        || lower.includes('rls policy')
+    ) {
+        return fallback;
+    }
+
+    return normalized;
+}
+
+function buildAuthRefreshKey({ session, authUser, profile }) {
+    return JSON.stringify({
+        sessionId: String(session?.id ?? ''),
+        sessionRole: String(session?.role ?? ''),
+        authUserId: String(authUser?.id ?? ''),
+        profileId: String(profile?.id ?? ''),
+        profileRole: String(profile?.role ?? ''),
+        profileActive: profile?.isActive !== false
+    });
+}
+
+function shouldRefreshWorkspaceForAuthEvent({ event, previousAuthKey, nextAuthKey }) {
+    if (!state.workspaceLoaded) {
+        return true;
+    }
+
+    if (!previousAuthKey || previousAuthKey !== nextAuthKey) {
+        return true;
+    }
+
+    return event === 'USER_UPDATED';
+}
 
 async function bootstrap() {
     render();
@@ -192,7 +497,10 @@ async function bootstrap() {
         state.session = null;
         state.authUser = null;
         state.profile = null;
-        flashNotice(error.message || 'Unable to initialize Supabase auth for the CRM.', 'error');
+        flashNotice(
+            getPublicAuthMessage(error.message, 'Unable to open the CRM sign-in page right now. Please refresh and try again.'),
+            'error'
+        );
     } finally {
         state.authResolved = true;
     }
@@ -205,96 +513,142 @@ async function bootstrap() {
 }
 
 async function refreshData() {
-    if (!state.session) {
-        state.isLoading = false;
-        render();
-        return;
+    if (refreshDataPromise) {
+        return refreshDataPromise;
     }
 
-    state.isLoading = true;
-    render();
-
-    try {
-        const refreshedSession = await authService.updateSessionFromUser(state.session?.id);
-
-        if (state.session && !refreshedSession) {
-            await authService.logout();
-            state.session = null;
-            state.authUser = null;
-            state.profile = null;
+    refreshDataPromise = (async () => {
+        if (!state.session) {
             state.isLoading = false;
-            resetAuthenticatedCrmState();
-            flashNotice('Your CRM session is no longer active.', 'error');
+            render();
             return;
         }
 
-        state.authUser = authService.getAuthUser();
-        state.profile = authService.getProfile();
+        state.isLoading = true;
+        render();
 
-        const {
-            clients,
-            importHistory,
-            allowedTags,
-            tagDefinitions,
-            dispositionDefinitions
-        } = supportsServerWorkspacePaging() && typeof dataService.initializeWorkspace === 'function' && state.currentView !== 'admin'
-            ? await dataService.initializeWorkspace()
-            : await dataService.initialize();
+        try {
+            const refreshedSession = await authService.updateSessionFromUser(state.session?.id);
 
-        applyClientDataSnapshot({
-            clients,
-            importHistory,
-            allowedTags,
-            tagDefinitions,
-            dispositionDefinitions
-        }, state.currentView === 'admin' ? 'full' : 'light');
-        state.users = await authService.listUsers();
-        state.session = refreshedSession || state.session;
-        state.savedFilters = await savedFilterService.listVisible(state.session);
-
-        if (supportsServerWorkspacePaging() && ['clients', 'members', 'lead-detail'].includes(state.currentView)) {
-            const workspaceScope = state.lastWorkspaceView === 'members' ? 'members' : 'leads';
-            await refreshWorkspacePage(workspaceScope, { renderWhileLoading: false });
-        }
-
-        if (state.detailClientId) {
-            const detailedLead = await dataService.getClientById(state.detailClientId);
-
-            if (detailedLead && canAccessClient(detailedLead)) {
-                mergeClientCache([detailedLead]);
+            if (state.session && !refreshedSession) {
+                await authService.logout();
+                state.session = null;
+                state.authUser = null;
+                state.profile = null;
+                state.isLoading = false;
+                resetAuthenticatedCrmState();
+                flashNotice('Your CRM session is no longer active.', 'error');
+                return;
             }
-        }
 
-        if (state.detailClientId && !getAccessibleClientById(state.detailClientId)) {
-            state.detailClientId = null;
-            state.detailEditMode = false;
-            state.leadHistoryOpen = false;
-            state.editingNoteId = null;
-            if (state.currentView === 'lead-detail') {
+            state.authUser = authService.getAuthUser();
+            state.profile = authService.getProfile();
+            if (state.currentView === 'admin' && !hasActiveAdminProfile()) {
                 state.currentView = state.lastWorkspaceView || 'clients';
             }
+            if (state.currentView === 'assigned-leads' && !hasPermission(state.session, PERMISSIONS.ASSIGN_LEADS)) {
+                state.currentView = 'clients';
+            }
+            if (state.lastWorkspaceView === 'assigned-leads' && !hasPermission(state.session, PERMISSIONS.ASSIGN_LEADS)) {
+                state.lastWorkspaceView = 'clients';
+            }
+            const usersPromise = authService.listUsers();
+            state.session = refreshedSession || state.session;
+            const savedFiltersPromise = savedFilterService.listVisible(state.session);
+
+            if (state.currentView === 'admin') {
+                applyFullClientDataSnapshot(await dataService.initialize());
+            } else {
+                applyWorkspaceMetadataSnapshot(await dataService.initializeWorkspace());
+            }
+            [state.users, state.savedFilters] = await Promise.all([usersPromise, savedFiltersPromise]);
+
+            if (supportsServerWorkspacePaging() && state.currentView !== 'admin') {
+                const workspaceScope = state.lastWorkspaceView === 'members' ? 'members' : 'leads';
+                await refreshWorkspacePage(workspaceScope, { renderWhileLoading: false });
+            }
+
+            if (state.detailClientId) {
+                const detailedLead = await dataService.getClientById(state.detailClientId);
+
+                if (detailedLead && canAccessClient(detailedLead)) {
+                    mergeClientCache([detailedLead]);
+                }
+            }
+
+            if (state.detailClientId && !getAccessibleClientById(state.detailClientId)) {
+                state.detailClientId = null;
+                state.detailEditMode = false;
+                state.editingNoteId = null;
+                if (state.currentView === 'lead-detail') {
+                    state.currentView = state.lastWorkspaceView || 'clients';
+                }
+            }
+
+            state.workspaceLoaded = true;
+        } catch (error) {
+            flashNotice(error.message || 'Unable to load the CRM workspace.', 'error');
+        } finally {
+            state.isLoading = false;
+            render();
         }
-    } catch (error) {
-        flashNotice(error.message || 'Unable to load the CRM prototype.', 'error');
+    })();
+
+    try {
+        return await refreshDataPromise;
     } finally {
-        state.isLoading = false;
-        render();
+        refreshDataPromise = null;
     }
 }
 
-function applyClientDataSnapshot({
+function applyWorkspaceMetadataSnapshot({
+    importHistory = [],
+    allowedTags = [],
+    tagDefinitions = [],
+    dispositionDefinitions = [],
+    workspaceSummary = createEmptyWorkspaceSummary()
+} = {}) {
+    state.allowedTags = allowedTags;
+    state.tagDefinitions = tagDefinitions;
+    state.dispositionDefinitions = dispositionDefinitions;
+    state.importHistory = importHistory;
+    state.workspaceSummary = {
+        leadCount: Number(workspaceSummary.leadCount) || 0,
+        memberCount: Number(workspaceSummary.memberCount) || 0
+    };
+    state.clientCacheMode = 'partial';
+    pruneClientCache();
+    clearVisibleClientsCache();
+    if (normalizeWhitespace(state.filters.tag).toLowerCase() !== 'all' && !getActiveTagLabels().some((tag) => tag.toLowerCase() === state.filters.tag.toLowerCase())) {
+        state.filters.tag = 'all';
+    }
+    if (state.editingTagDefinitionId && !state.tagDefinitions.some((definition) => definition.id === state.editingTagDefinitionId)) {
+        state.editingTagDefinitionId = null;
+    }
+    if (state.editingDispositionDefinitionId && !state.dispositionDefinitions.some((definition) => definition.id === state.editingDispositionDefinitionId)) {
+        state.editingDispositionDefinitionId = null;
+    }
+    state.selectedLeadIds = state.selectedLeadIds.filter((clientId) => Boolean(getAccessibleClientById(clientId)));
+}
+
+function applyFullClientDataSnapshot({
     clients = [],
     importHistory = [],
     allowedTags = [],
     tagDefinitions = [],
     dispositionDefinitions = []
-} = {}, cacheMode = 'light') {
+} = {}) {
     state.clients = clients;
     state.allowedTags = allowedTags;
     state.tagDefinitions = tagDefinitions;
     state.dispositionDefinitions = dispositionDefinitions;
     state.importHistory = importHistory;
-    state.clientCacheMode = cacheMode;
+    state.workspaceSummary = {
+        leadCount: clients.filter((client) => client.lifecycleType !== 'member').length,
+        memberCount: clients.filter((client) => client.lifecycleType === 'member').length
+    };
+    state.clientCacheMode = 'full';
+    clearVisibleClientsCache();
     if (normalizeWhitespace(state.filters.tag).toLowerCase() !== 'all' && !getActiveTagLabels().some((tag) => tag.toLowerCase() === state.filters.tag.toLowerCase())) {
         state.filters.tag = 'all';
     }
@@ -316,7 +670,7 @@ async function loadFullClientDataset() {
     render();
 
     try {
-        applyClientDataSnapshot(await dataService.initialize(), 'full');
+        applyFullClientDataSnapshot(await dataService.initialize());
     } catch (error) {
         flashNotice(error.message || 'Unable to load the full CRM dataset.', 'error');
     } finally {
@@ -326,6 +680,8 @@ async function loadFullClientDataset() {
 }
 
 function syncShellState() {
+    document.body.classList.toggle('crm-nav-open', state.sidebarOpen);
+
     if (!refs.shell) {
         return;
     }
@@ -340,12 +696,15 @@ function setSidebarOpen(isOpen) {
 }
 
 function render() {
+    persistWorkspaceUiState();
+
     if (!state.authResolved) {
         refs.authGate.classList.remove('hidden');
         refs.shell.classList.add('hidden');
         refs.authGate.innerHTML = renderAuthGate();
         refs.drawer.classList.add('hidden');
         refs.modalLayer.classList.add('hidden');
+        document.body.classList.remove('crm-nav-open');
         refs.shell.classList.remove('drawer-open', 'sidebar-open');
         return;
     }
@@ -356,6 +715,7 @@ function render() {
         refs.authGate.innerHTML = renderAuthGate();
         refs.drawer.classList.add('hidden');
         refs.modalLayer.classList.add('hidden');
+        document.body.classList.remove('crm-nav-open');
         refs.shell.classList.remove('drawer-open', 'sidebar-open');
         return;
     }
@@ -372,114 +732,105 @@ function render() {
 }
 
 function renderAuthGate() {
-    const users = authService.getTestUsers();
-    const hasTestUsers = users.length > 0;
     const isCheckingSession = !state.authResolved;
     const isAuthenticating = state.authSubmitting;
 
     return `
-        <div class="auth-grid">
-            <section class="auth-hero">
-                <span class="crm-kicker"><i class="fa-solid fa-lock"></i> Internal CRM Access</span>
-                <h1 class="auth-title">Blue Chip CRM, built as a safe local sandbox.</h1>
-                <p class="auth-copy">
-                    This prototype is isolated from the public website and now boots against Supabase auth and data
-                    while staying shaped around the future <span class="inline-code">/crm</span> route.
-                </p>
-
-                <div class="auth-feature-list">
-                    <div class="auth-feature-item">
-                        <i class="fa-solid fa-database"></i>
-                        <div>
-                            <strong>Supabase-backed workspace</strong>
-                            <div class="panel-subtitle">Auth, leads, notes, tags, dispositions, and saved filters now resolve through Supabase for this CRM slice.</div>
+        <div class="login-wrapper">
+            <div class="login-container">
+                <div class="login-inner">
+                    <div class="login-header">
+                        <div class="login-brand">
+                            <img src="../assets/images/Crest logo.png" alt="Blue Chip Signals">
                         </div>
+                        <p>
+                            <span>Blue Chip Signals Workspace</span>
+                            <span>Employee Access Only</span>
+                        </p>
                     </div>
-                    <div class="auth-feature-item">
-                        <i class="fa-solid fa-file-arrow-up"></i>
-                        <div>
-                            <strong>CSV import workflow</strong>
-                            <div class="panel-subtitle">Map columns, review duplicates, and test large lead lists safely.</div>
+
+                    ${state.notice ? `
+                        <div class="${state.notice.kind === 'error' ? 'error-message' : 'success-message'}">
+                            ${escapeHtml(state.notice.message)}
                         </div>
-                    </div>
-                    <div class="auth-feature-item">
-                        <i class="fa-solid fa-plug-circle-bolt"></i>
-                        <div>
-                            <strong>Backend-ready architecture</strong>
-                            <div class="panel-subtitle">The UI talks to a service layer, not IndexedDB directly.</div>
+                    ` : ''}
+
+                    <form id="login-form">
+                        <div class="form-group">
+                            <label for="crm-login-email">Email Address</label>
+                            <input
+                                type="email"
+                                id="crm-login-email"
+                                name="email"
+                                placeholder="Enter your email"
+                                autocomplete="email"
+                                required
+                                ${isAuthenticating ? 'disabled' : ''}
+                            >
                         </div>
-                    </div>
-                </div>
-            </section>
 
-            <section class="auth-panel">
-                <span class="crm-kicker"><i class="fa-solid fa-user-shield"></i> CRM Sign In</span>
-                <h2 class="section-title">${hasTestUsers ? 'Choose a local test user.' : 'Sign in to the CRM.'}</h2>
-                <p class="panel-subtitle">${isCheckingSession ? 'Checking for an existing Supabase session in the background. You can still sign in now.' : (hasTestUsers ? 'Local test users are available in this browser.' : 'Use your Supabase CRM credentials to continue.')}</p>
+                        <div class="form-group">
+                            <label for="crm-login-password">Password</label>
+                            <div class="password-wrapper">
+                                <input
+                                    type="password"
+                                    id="crm-login-password"
+                                    name="password"
+                                    placeholder="Enter your password"
+                                    autocomplete="current-password"
+                                    required
+                                    ${isAuthenticating ? 'disabled' : ''}
+                                >
+                                <button
+                                    type="button"
+                                    class="password-toggle"
+                                    data-action="toggle-auth-password"
+                                    aria-label="Show password"
+                                    aria-pressed="false"
+                                    ${isAuthenticating ? 'disabled' : ''}
+                                >
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                            </div>
+                        </div>
 
-                ${state.notice ? `
-                    <div class="crm-alert crm-alert-${state.notice.kind}" style="margin-top: 1rem;">
-                        <div>${escapeHtml(state.notice.message)}</div>
-                        <button class="crm-button-ghost" data-action="dismiss-notice">Dismiss</button>
-                    </div>
-                ` : ''}
-
-                ${hasTestUsers ? `
-                    <div class="auth-user-grid">
-                        ${users.map((user) => `
-                            <article class="auth-user-card">
-                                <div class="auth-user-head">
-                                    <div>
-                                        <div class="auth-user-name">${escapeHtml(user.name)}</div>
-                                        <div class="panel-subtitle">${escapeHtml(user.title)}</div>
-                                    </div>
-                                    <span class="auth-user-role"><i class="fa-solid fa-badge-check"></i> ${escapeHtml(getRoleLabel(user.role))}${user.isActive === false ? ' · inactive' : ''}</span>
+                        ${isCheckingSession ? `
+                            <div class="login-status-row">
+                                <div class="remember-me login-status">
+                                    <i class="fa-solid fa-spinner fa-spin"></i>
+                                    <span>Checking your session...</span>
                                 </div>
-                                <div class="auth-user-meta">
-                                    <div><strong>Email:</strong> ${escapeHtml(user.email)}</div>
-                                    <div><strong>Password:</strong> ${escapeHtml(user.password)}</div>
-                                </div>
-                                <div class="auth-actions" style="margin-top: 1rem;">
-                                    <button class="crm-button" data-action="quick-login" data-user-id="${escapeHtml(user.id)}" ${user.isActive === false ? 'disabled' : ''}>
-                                        <i class="fa-solid fa-arrow-right-to-bracket"></i> Login as ${escapeHtml(getRoleLabel(user.role))}
-                                    </button>
-                                </div>
-                            </article>
-                        `).join('')}
-                    </div>
-                ` : ''}
+                            </div>
+                        ` : ''}
 
-                <form id="login-form">
-                    <div class="form-grid">
-                        <label class="form-field">
-                            <span class="form-label">Email</span>
-                            <input class="crm-input" type="email" name="email" placeholder="rep@example.com" required ${isAuthenticating ? 'disabled' : ''}>
-                        </label>
-                        <label class="form-field">
-                            <span class="form-label">Password</span>
-                            <input class="crm-input" type="password" name="password" placeholder="Enter your CRM password" required ${isAuthenticating ? 'disabled' : ''}>
-                        </label>
-                    </div>
-
-                    <div class="auth-actions" style="margin-top: 1rem;">
-                        <button class="crm-button-secondary" type="submit" ${isAuthenticating ? 'disabled' : ''}>
-                            <i class="fa-solid ${isAuthenticating ? 'fa-spinner fa-spin' : 'fa-key'}"></i> ${state.authSubmitting ? 'Signing in...' : 'Login with credentials'}
+                        <button type="submit" class="login-button" ${isAuthenticating ? 'disabled' : ''}>
+                            <i class="fas ${isAuthenticating ? 'fa-circle-notch fa-spin' : 'fa-sign-in-alt'}"></i>
+                            ${isAuthenticating ? 'Signing In...' : 'Log In'}
                         </button>
-                    </div>
-                </form>
-            </section>
+                    </form>
+                </div>
+            </div>
         </div>
     `;
 }
 
 async function handleAuthStateChange({ event, session, authUser, profile, error }) {
+    const previousAuthKey = buildAuthRefreshKey({
+        session: state.session,
+        authUser: state.authUser,
+        profile: state.profile
+    });
+
     if (error) {
         state.session = null;
         state.authUser = null;
         state.profile = null;
         resetAuthenticatedCrmState();
         state.authResolved = true;
-        flashNotice(error.message || 'Unable to resolve the CRM session.', 'error');
+        flashNotice(
+            getPublicAuthMessage(error.message, 'Unable to verify your CRM access right now. Please sign in again.'),
+            'error'
+        );
         render();
         return;
     }
@@ -493,6 +844,12 @@ async function handleAuthStateChange({ event, session, authUser, profile, error 
     if (!session) {
         resetAuthenticatedCrmState();
         render();
+        return;
+    }
+
+    const nextAuthKey = buildAuthRefreshKey({ session, authUser, profile });
+
+    if (!shouldRefreshWorkspaceForAuthEvent({ event, previousAuthKey, nextAuthKey })) {
         return;
     }
 
@@ -513,11 +870,6 @@ function getWorkspacePageRows(scope) {
     }
 
     const workspace = getWorkspaceResult(scope);
-
-    if (!workspace.loaded && !workspace.isLoading) {
-        return getPaginatedClients(getVisibleClients(scope));
-    }
-
     return workspace.rows;
 }
 
@@ -532,19 +884,60 @@ function getWorkspaceDisplayCount(scope, options = {}) {
         return workspace.totalCount;
     }
 
-    return getScopedClients(scope, options).length;
+    if (options.ignoreSearch || options.ignoreFilters) {
+        if (state.clientCacheMode === 'full') {
+            return getScopedClients(scope, options).length;
+        }
+
+        return getWorkspaceSummaryCount(scope);
+    }
+
+    return workspace.totalCount || getWorkspaceSummaryCount(scope);
 }
 
-async function refreshWorkspacePage(scope = getDefaultScopeForView(), { renderWhileLoading = true } = {}) {
+async function refreshWorkspacePage(scope = getDefaultScopeForView(), { renderWhileLoading = true, force = false } = {}) {
     if (!supportsServerWorkspacePaging() || !state.session) {
         return;
     }
 
     const normalizedScope = scope === 'members' ? 'members' : 'leads';
+    const assignmentState = getLeadAssignmentStateForScope(normalizedScope);
     const workspace = getWorkspaceResult(normalizedScope);
     const activeFilterGroup = document.activeElement?.matches?.('.filter-token-input')
         ? document.activeElement.dataset.filterGroup
         : '';
+    const activeSearchSurface = document.activeElement?.matches?.('.crm-search')
+        ? getSearchSurfaceFromElement(document.activeElement)
+        : '';
+    const activeSearchCaret = document.activeElement?.matches?.('.crm-search')
+        ? (document.activeElement.selectionStart ?? document.activeElement.value.length)
+        : null;
+    const cacheKey = buildWorkspacePageCacheKey(normalizedScope);
+    const cachedPage = force ? null : getCachedWorkspacePage(cacheKey);
+
+    if (cachedPage) {
+        workspace.rows = cachedPage.clients;
+        workspace.totalCount = cachedPage.totalCount;
+        workspace.loaded = true;
+        workspace.isLoading = false;
+        workspace.cacheKey = cacheKey;
+        mergeClientCache(cachedPage.clients);
+        if (assignmentState === 'all' && canUpdateWorkspaceSummaryFromActivePage()) {
+            updateWorkspaceSummaryCount(normalizedScope, cachedPage.totalCount);
+        }
+        renderTopbar();
+        renderSidebar();
+        renderPanels();
+
+        if (activeFilterGroup) {
+            focusFilterInput(activeFilterGroup);
+        }
+        if (activeSearchSurface) {
+            focusToolbarSearchInput(activeSearchSurface, activeSearchCaret);
+        }
+        return;
+    }
+
     const requestId = workspace.requestId + 1;
 
     workspace.requestId = requestId;
@@ -555,45 +948,12 @@ async function refreshWorkspacePage(scope = getDefaultScopeForView(), { renderWh
     }
 
     try {
-        if (state.clients.length && (state.clientCacheMode === 'light' || state.clientCacheMode === 'full')) {
-            const visibleClients = getVisibleClients(normalizedScope);
-            const totalPages = Math.max(1, Math.ceil(visibleClients.length / state.pageSize));
-
-            if (visibleClients.length > 0 && state.page > totalPages) {
-                state.page = totalPages;
-            }
-
-            const paginatedClients = getPaginatedClients(visibleClients);
-            const notesByLeadId = typeof dataService.listLatestNotesByLeadIds === 'function' && paginatedClients.length
-                ? await dataService.listLatestNotesByLeadIds(paginatedClients.map((client) => client.id))
-                : new Map();
-
-            if (workspace.requestId !== requestId) {
-                return;
-            }
-
-            const hydratedRows = paginatedClients.map((client) => {
-                const noteHistory = notesByLeadId.get(client.id) || client.noteHistory || [];
-
-                return {
-                    ...client,
-                    notes: noteHistory[0]?.content || client.notes || '',
-                    noteHistory
-                };
-            });
-
-            workspace.rows = hydratedRows;
-            workspace.totalCount = visibleClients.length;
-            workspace.loaded = true;
-            mergeClientCache(hydratedRows);
-            return;
-        }
-
         const result = await dataService.listClientsPage({
             scope: normalizedScope,
+            assignmentState,
             page: state.page,
             pageSize: state.pageSize,
-            search: state.search,
+            search: state.workspaceSearch,
             sort: state.sort,
             filters: state.filters,
             tagDefinitions: state.tagDefinitions
@@ -614,6 +974,14 @@ async function refreshWorkspacePage(scope = getDefaultScopeForView(), { renderWh
         workspace.rows = result.clients;
         workspace.totalCount = result.totalCount;
         workspace.loaded = true;
+        workspace.cacheKey = cacheKey;
+        setCachedWorkspacePage(cacheKey, {
+            clients: result.clients,
+            totalCount: result.totalCount
+        });
+        if (assignmentState === 'all' && canUpdateWorkspaceSummaryFromActivePage()) {
+            updateWorkspaceSummaryCount(normalizedScope, result.totalCount);
+        }
         mergeClientCache(result.clients);
     } catch (error) {
         if (workspace.requestId !== requestId) {
@@ -626,11 +994,15 @@ async function refreshWorkspacePage(scope = getDefaultScopeForView(), { renderWh
         }
 
         workspace.isLoading = false;
+        renderTopbar();
         renderSidebar();
         renderPanels();
 
         if (activeFilterGroup) {
             focusFilterInput(activeFilterGroup);
+        }
+        if (activeSearchSurface) {
+            focusToolbarSearchInput(activeSearchSurface, activeSearchCaret);
         }
     }
 }
@@ -663,134 +1035,452 @@ function mergeClientCache(incomingClients) {
     state.clients = [...clientsById.values()];
 }
 
-function renderSidebar() {
-    const totalLeads = getWorkspaceDisplayCount('leads', { ignoreSearch: true, ignoreFilters: true });
-    const totalMembers = getWorkspaceDisplayCount('members', { ignoreSearch: true, ignoreFilters: true });
-    const totalImports = state.importHistory.length;
-    const items = [
-        { view: 'overview', icon: 'fa-chart-line', label: 'Overview', meta: `${totalLeads} leads / ${totalMembers} members` },
-        { view: 'clients', icon: 'fa-address-book', label: 'Leads', meta: `${getWorkspaceDisplayCount('leads').toLocaleString()} visible leads` },
-        { view: 'members', icon: 'fa-users-viewfinder', label: 'Members', meta: `${getWorkspaceDisplayCount('members').toLocaleString()} visible members` },
+function getPrimaryNavItems() {
+    return [
+        { view: 'overview', label: 'Dashboard', icon: 'fa-chart-line', badge: null },
+        { view: 'clients', label: 'Leads', icon: 'fa-address-book', badge: getWorkspaceDisplayCount('leads').toLocaleString() },
         hasActiveAdminProfile()
-            ? { view: 'admin', icon: 'fa-shield-halved', label: 'Admin', meta: 'Assignments, reps, and control tools' }
+            ? { view: 'admin', label: 'Admin', icon: 'fa-shield-halved', badge: null }
             : null,
-        hasPermission(state.session, PERMISSIONS.IMPORT_LEADS)
-            ? { view: 'imports', icon: 'fa-file-arrow-up', label: 'Import', meta: `${totalImports} import events` }
-            : null,
-        { view: 'settings', icon: 'fa-sliders', label: 'Settings', meta: 'Workspace preferences and local tools' }
+        { view: 'settings', label: getSettingsNavLabel(), icon: 'fa-user', badge: null }
     ].filter(Boolean);
+}
 
-    refs.sidebar.innerHTML = `
-        <div class="crm-brand">
-            <div class="crm-brand-row">
-                <img src="../assets/images/Crest logo.png" alt="Blue Chip Signals logo">
-                <div>
-                    <div class="crm-brand-title">Blue Chip CRM</div>
-                    <div class="panel-subtitle">Lead workspace prototype</div>
-                </div>
+function getSettingsNavLabel() {
+    const fullName = normalizeWhitespace(state.session?.name || '');
+
+    if (!fullName) {
+        return 'Settings';
+    }
+
+    const [firstName] = fullName.split(/\s+/);
+    return firstName || 'Settings';
+}
+
+function getActivePrimaryNavView() {
+    if (state.currentView === 'lead-detail') {
+        return 'clients';
+    }
+
+    if (state.currentView === 'members') {
+        return 'clients';
+    }
+
+    if (state.currentView === 'assigned-leads') {
+        return 'clients';
+    }
+
+    if (state.currentView === 'imports') {
+        return 'admin';
+    }
+
+    if (state.currentView === 'settings') {
+        return 'settings';
+    }
+
+    return state.currentView;
+}
+
+function getLeadDetailNavigationContext() {
+    const detailScope = state.lastWorkspaceView === 'members' ? 'members' : 'leads';
+    const visibleSet = getLeadNavigationSet(detailScope);
+    const currentIndex = visibleSet.findIndex((item) => item.id === state.detailClientId);
+    const backLabel = state.lastWorkspaceView === 'members'
+        ? 'Members'
+        : (state.lastWorkspaceView === 'assigned-leads' ? 'Assigned Leads' : 'Unassigned Leads');
+
+    return {
+        detailScope,
+        visibleSet,
+        currentIndex,
+        previousLead: currentIndex > 0 ? visibleSet[currentIndex - 1] : null,
+        nextLead: currentIndex >= 0 && currentIndex < visibleSet.length - 1 ? visibleSet[currentIndex + 1] : null,
+        backLabel
+    };
+}
+
+function isMobileNavViewport() {
+    return window.matchMedia('(max-width: 768px)').matches;
+}
+
+function isWorkspaceSearchView(view = state.currentView) {
+    return isWorkspaceListView(view);
+}
+
+function getToolbarSearchValue(view = state.currentView) {
+    return isWorkspaceSearchView(view) ? state.workspaceSearch : state.lookupQuery;
+}
+
+function hasActiveToolbarSearch() {
+    return Boolean(normalizeWhitespace(getToolbarSearchValue()));
+}
+
+function getSearchSurfaceFromElement(element) {
+    return element?.hasAttribute?.('data-mobile-search-input') ? 'mobile' : 'desktop';
+}
+
+function shouldShowMobileSearch() {
+    return !state.sidebarOpen && (state.mobileSearchOpen || hasActiveToolbarSearch());
+}
+
+function focusToolbarSearchInput(surface = 'mobile', caretPosition = null) {
+    requestAnimationFrame(() => {
+        const selector = surface === 'desktop'
+            ? '[data-desktop-search-input]'
+            : '[data-mobile-search-input]';
+        const input = refs.topbar?.querySelector(selector);
+
+        if (!input) {
+            return;
+        }
+
+        input.focus();
+
+        if (typeof input.setSelectionRange === 'function') {
+            const caret = typeof caretPosition === 'number' ? caretPosition : input.value.length;
+            input.setSelectionRange(caret, caret);
+        }
+    });
+}
+
+function shouldShowSearchSuggestions() {
+    return !state.sidebarOpen
+        && state.searchSuggestionsOpen
+        && Boolean(normalizeWhitespace(getToolbarSearchValue()));
+}
+
+function setSearchShellExpanded(isExpanded) {
+    state.searchShellExpanded = isExpanded;
+}
+
+function resetToolbarSuggestions({ clearResults = false } = {}) {
+    window.clearTimeout(searchSuggestionsTimer);
+    searchSuggestionsRequestId += 1;
+    state.searchSuggestionsOpen = false;
+    state.searchSuggestionsLoading = false;
+    state.activeSuggestionIndex = -1;
+    setSearchShellExpanded(false);
+
+    if (clearResults) {
+        state.searchSuggestions = [];
+        state.searchSuggestionsQuery = '';
+    }
+}
+
+function queueToolbarSuggestions({ immediate = false, surface = state.activeSearchSurface } = {}) {
+    const query = normalizeWhitespace(getToolbarSearchValue());
+
+    window.clearTimeout(searchSuggestionsTimer);
+
+    if (!query) {
+        resetToolbarSuggestions({ clearResults: true });
+        renderTopbar();
+        return;
+    }
+
+    const requestId = ++searchSuggestionsRequestId;
+    state.searchSuggestionsOpen = true;
+    state.searchSuggestionsLoading = true;
+    state.searchSuggestionsQuery = query;
+
+    const runLookup = async () => {
+        try {
+            const suggestions = await dataService.searchClientSuggestions({ query, limit: 10 });
+
+            if (requestId !== searchSuggestionsRequestId || normalizeWhitespace(getToolbarSearchValue()) !== query) {
+                return;
+            }
+
+            state.searchSuggestions = suggestions;
+            state.activeSuggestionIndex = suggestions.length ? 0 : -1;
+        } catch (error) {
+            if (requestId !== searchSuggestionsRequestId) {
+                return;
+            }
+
+            state.searchSuggestions = [];
+            state.activeSuggestionIndex = -1;
+            flashNotice(error.message || 'Unable to load search suggestions.', 'error');
+        } finally {
+            if (requestId !== searchSuggestionsRequestId) {
+                return;
+            }
+
+            state.searchSuggestionsLoading = false;
+            renderTopbar();
+            focusToolbarSearchInput(surface, state.activeSearchCaret);
+        }
+    };
+
+    if (immediate) {
+        runLookup();
+        return;
+    }
+
+    searchSuggestionsTimer = window.setTimeout(runLookup, SEARCH_SUGGESTION_DEBOUNCE_MS);
+}
+
+function getSearchSuggestionMeta(suggestion) {
+    return [
+        suggestion.phone || '',
+        suggestion.email || '',
+        suggestion.businessName || ''
+    ].filter(Boolean).join(' · ');
+}
+
+function renderToolbarSuggestionList(surface = 'desktop') {
+    if (!shouldShowSearchSuggestions()) {
+        return '';
+    }
+
+    const listId = surface === 'mobile' ? 'crm-mobile-search-suggestions' : 'crm-desktop-search-suggestions';
+    const activeId = state.activeSuggestionIndex >= 0 ? `${listId}-${state.activeSuggestionIndex}` : '';
+
+    return `
+        <div class="crm-search-suggestion-panel" data-search-suggestions>
+            <div class="crm-search-suggestion-head">
+                <span>Matches</span>
+                <span>${state.searchSuggestionsLoading ? 'Searching...' : `${state.searchSuggestions.length} showing`}</span>
             </div>
-            <div class="crm-brand-copy">
-                Separate from the public site, styled with Blue Chip Signals tokens, and now shaped around Leads, Members, and sales workflows.
+            <div
+                id="${listId}"
+                class="crm-search-suggestion-list"
+                role="listbox"
+                aria-label="CRM search suggestions"
+                data-active-descendant="${escapeHtml(activeId)}"
+            >
+                ${state.searchSuggestionsLoading ? `
+                    <div class="crm-search-suggestion-empty">
+                        <i class="fa-solid fa-circle-notch fa-spin"></i>
+                        Looking up leads and members...
+                    </div>
+                ` : state.searchSuggestions.length ? state.searchSuggestions.map((suggestion, index) => `
+                    <button
+                        id="${listId}-${index}"
+                        type="button"
+                        class="crm-search-suggestion-item ${index === state.activeSuggestionIndex ? 'active' : ''}"
+                        data-action="select-search-suggestion"
+                        data-client-id="${escapeHtml(suggestion.id)}"
+                    >
+                        <span class="crm-search-suggestion-copy">
+                            <span class="crm-search-suggestion-label">
+                                ${escapeHtml(suggestion.fullName || 'Unnamed lead')}
+                                <span class="crm-search-suggestion-type ${suggestion.lifecycleType === 'member' ? 'member' : 'lead'}">
+                                    ${escapeHtml(titleCase(suggestion.lifecycleType || 'lead'))}
+                                </span>
+                            </span>
+                            <span class="crm-search-suggestion-meta">${escapeHtml(getSearchSuggestionMeta(suggestion) || buildClientMetaLine(suggestion))}</span>
+                        </span>
+                    </button>
+                `).join('') : `
+                    <div class="crm-search-suggestion-empty">
+                        <i class="fa-solid fa-magnifying-glass"></i>
+                        No matching leads or members.
+                    </div>
+                `}
             </div>
-        </div>
-
-        <div class="crm-nav" role="navigation" aria-label="CRM navigation">
-            ${items.map((item) => `
-                <button
-                    class="crm-nav-button ${state.currentView === item.view ? 'active' : ''}"
-                    data-action="set-view"
-                    data-view="${item.view}"
-                >
-                    <span class="crm-nav-copy">
-                        <span class="crm-nav-label"><i class="fa-solid ${item.icon}"></i> ${item.label}</span>
-                        <span class="crm-nav-meta">${escapeHtml(item.meta)}</span>
-                    </span>
-                    <i class="fa-solid fa-chevron-right"></i>
-                </button>
-            `).join('')}
-        </div>
-
-        <div class="crm-sidebar-footer">
-            <div><strong>Session:</strong> ${escapeHtml(state.session.name)}</div>
-            <div><strong>Role:</strong> ${escapeHtml(getRoleLabel(state.session.role))}</div>
-            <div class="panel-subtitle" style="margin-top: 0.5rem;">${hasActiveAdminProfile() ? 'Admin controls and exports are enabled in this Supabase-backed session.' : 'Sales permissions are limited to practical lead workflow updates.'}</div>
         </div>
     `;
 }
 
+function renderPreviewField(label, value, { fullWidth = false } = {}) {
+    return `
+        <div class="crm-search-preview-field ${fullWidth ? 'is-full' : ''}">
+            <span class="crm-search-preview-field-label">${escapeHtml(label)}</span>
+            <div class="crm-search-preview-field-value">${escapeHtml(value || '—')}</div>
+        </div>
+    `;
+}
+
+function renderPreviewTextPanel(title, body, meta = '') {
+    return `
+        <section class="crm-search-preview-section crm-search-preview-section-full crm-search-preview-section-text">
+            <div class="crm-search-preview-section-head">
+                <span class="crm-search-preview-section-title">${escapeHtml(title)}</span>
+            </div>
+            <div class="crm-search-preview-text-panel">
+                <div class="crm-search-preview-copy">${escapeHtml(body || '—')}</div>
+                ${meta ? `<div class="crm-search-preview-panel-meta">${escapeHtml(meta)}</div>` : ''}
+            </div>
+        </section>
+    `;
+}
+
+function renderToolbarSearchField(surface = 'desktop') {
+    const searchId = surface === 'mobile' ? 'crm-mobile-global-search' : 'crm-desktop-global-search';
+    const shellClass = surface === 'mobile' ? 'crm-search-shell-mobile' : 'crm-search-shell-desktop';
+    const dataAttribute = surface === 'mobile' ? 'data-mobile-search-input' : 'data-desktop-search-input';
+    const listId = surface === 'mobile' ? 'crm-mobile-search-suggestions' : 'crm-desktop-search-suggestions';
+    const activeId = state.activeSuggestionIndex >= 0 ? `${listId}-${state.activeSuggestionIndex}` : '';
+    const isExpanded = state.searchShellExpanded || shouldShowSearchSuggestions();
+
+    return `
+        <div class="search-shell ${shellClass} ${isExpanded ? 'is-expanded' : ''}">
+            <i class="fa-solid fa-magnifying-glass"></i>
+            <input
+                id="${searchId}"
+                class="crm-search"
+                type="search"
+                placeholder="Search by first name, last name, full name, email, or phone"
+                value="${escapeHtml(getToolbarSearchValue())}"
+                role="combobox"
+                aria-autocomplete="list"
+                aria-expanded="${shouldShowSearchSuggestions() ? 'true' : 'false'}"
+                aria-controls="${listId}"
+                aria-activedescendant="${escapeHtml(activeId)}"
+                ${dataAttribute}
+            >
+            ${renderToolbarSuggestionList(surface)}
+        </div>
+    `;
+}
+
+function renderSidebar() {
+    refs.sidebar.innerHTML = '';
+}
+
 function renderTopbar() {
-    const activeFilterCount = getActiveFilterCount();
+    const items = getPrimaryNavItems();
+    const activeView = getActivePrimaryNavView();
+    const mobileSearchVisible = shouldShowMobileSearch();
 
     refs.topbar.innerHTML = `
         <div class="crm-toolbar">
-            <button class="crm-mobile-toggle" data-action="toggle-sidebar" aria-label="Toggle CRM navigation">
-                <i class="fa-solid fa-bars"></i>
-            </button>
-
-            <label class="search-shell">
-                <i class="fa-solid fa-magnifying-glass"></i>
-                <input
-                    id="global-search"
-                    class="crm-search"
-                    type="search"
-                    placeholder="Search by first name, last name, full name, email, or phone"
-                    value="${escapeHtml(state.search)}"
+            <div class="crm-toolbar-row">
+                <button
+                    class="crm-mobile-toggle ${state.sidebarOpen ? 'is-open' : ''}"
+                    data-action="toggle-sidebar"
+                    aria-label="Toggle CRM navigation"
+                    aria-expanded="${state.sidebarOpen ? 'true' : 'false'}"
                 >
-            </label>
+                    <span class="crm-mobile-toggle-bar"></span>
+                    <span class="crm-mobile-toggle-bar"></span>
+                    <span class="crm-mobile-toggle-bar"></span>
+                </button>
 
-            <div class="toolbar-actions">
-                ${hasPermission(state.session, PERMISSIONS.IMPORT_LEADS) ? `
-                    <button class="crm-button-secondary" data-action="open-import">
-                        <i class="fa-solid fa-file-arrow-up"></i> Upload Leads
+                <div class="crm-toolbar-left">
+                    <button class="crm-toolbar-brand" type="button" data-action="set-view" data-view="overview" aria-label="Go to CRM overview">
+                        <img src="../assets/images/Crest logo.png" alt="Blue Chip Signals logo">
                     </button>
-                ` : ''}
-                <button class="crm-button-ghost" data-action="open-filters">
-                    <i class="fa-solid fa-filter"></i> Filters${activeFilterCount ? ` (${activeFilterCount})` : ''}
+
+                    ${renderToolbarSearchField('desktop')}
+                </div>
+
+                <div class="crm-primary-nav" role="navigation" aria-label="CRM navigation">
+                    ${items.map((item) => `
+                        <button
+                            class="crm-primary-link ${activeView === item.view ? 'active' : ''}"
+                            data-action="set-view"
+                            data-view="${item.view}"
+                        >
+                            <span>${item.label}</span>
+                        </button>
+                    `).join('')}
+                </div>
+
+                <button
+                    class="crm-mobile-search-toggle ${mobileSearchVisible ? 'active' : ''}"
+                    data-action="toggle-mobile-search"
+                    aria-label="Toggle search"
+                    aria-expanded="${mobileSearchVisible ? 'true' : 'false'}"
+                >
+                    <i class="fa-solid fa-magnifying-glass"></i>
                 </button>
-                <button class="crm-button-ghost" data-action="new-client">
-                    <i class="fa-solid fa-user-plus"></i> New Lead
-                </button>
-                ${hasPermission(state.session, PERMISSIONS.EXPORT_LEADS) ? `
-                    <button class="crm-button-ghost" data-action="export-clients">
-                        <i class="fa-solid fa-file-export"></i> Export Leads
-                    </button>
-                ` : ''}
-                <span class="role-badge"><i class="fa-solid fa-user-gear"></i> ${escapeHtml(getRoleLabel(state.session.role))}</span>
-                <button class="crm-button-ghost" data-action="logout">
-                    <i class="fa-solid fa-right-from-bracket"></i> Logout
-                </button>
+            </div>
+
+            <div class="crm-mobile-search-row ${mobileSearchVisible ? 'active' : ''}">
+                ${renderToolbarSearchField('mobile')}
+            </div>
+
+            <div
+                class="crm-mobile-menu-panel ${state.sidebarOpen ? 'active' : ''}"
+                role="dialog"
+                aria-modal="true"
+                aria-label="CRM navigation"
+                aria-hidden="${state.sidebarOpen ? 'false' : 'true'}"
+            >
+                <div class="crm-mobile-menu-links" role="navigation" aria-label="CRM navigation">
+                    ${items.map((item, index) => `
+                        <button
+                            class="crm-mobile-menu-link ${activeView === item.view ? 'active' : ''}"
+                            data-action="set-view"
+                            data-view="${item.view}"
+                            style="--crm-menu-index:${index};"
+                        >
+                            <span>${item.label}</span>
+                        </button>
+                    `).join('')}
+                </div>
             </div>
         </div>
 
         ${state.notice ? `
             <div class="crm-alert crm-alert-${state.notice.kind}">
                 <div>${escapeHtml(state.notice.message)}</div>
-                <button class="crm-button-ghost" data-action="dismiss-notice">Dismiss</button>
+                <button class="crm-button-ghost crm-alert-dismiss" data-action="dismiss-notice">
+                    Dismiss
+                </button>
             </div>
         ` : ''}
     `;
 }
 
-function renderPanels() {
-    const panels = {
-        overview: refs.overviewPanel,
-        clients: refs.clientsPanel,
-        members: refs.membersPanel,
-        admin: refs.adminPanel,
-        'lead-detail': refs.leadDetailPanel,
-        imports: refs.importsPanel,
-        settings: refs.settingsPanel
-    };
+function renderLeadDetailUtilityRow() {
+    if (state.currentView !== 'lead-detail') {
+        return '';
+    }
 
-    Object.entries(panels).forEach(([view, panel]) => {
-        panel.classList.toggle('hidden', view !== state.currentView);
+    const { previousLead, nextLead, backLabel } = getLeadDetailNavigationContext();
+
+    return `
+        <div class="crm-detail-utility">
+            <div class="crm-detail-utility-left">
+                <button class="crm-button-ghost crm-detail-floating-button" data-action="back-to-list">
+                    <span class="crm-detail-floating-icon"><i class="fa-solid fa-arrow-left"></i></span>
+                    <span>Back to ${escapeHtml(backLabel)}</span>
+                </button>
+            </div>
+
+            <div class="crm-detail-utility-right">
+                <button class="crm-button-ghost crm-detail-floating-button" data-action="navigate-lead" data-direction="prev" ${previousLead ? '' : 'disabled'}>
+                    <span class="crm-detail-floating-icon"><i class="fa-solid fa-chevron-left"></i></span>
+                    <span>Previous</span>
+                </button>
+                <button class="crm-button-ghost crm-detail-floating-button" data-action="navigate-lead" data-direction="next" ${nextLead ? '' : 'disabled'}>
+                    <span>Next</span>
+                    <span class="crm-detail-floating-icon"><i class="fa-solid fa-chevron-right"></i></span>
+                </button>
+            </div>
+        </div>
+    `;
+}
+
+function renderPanels() {
+    persistWorkspaceUiState();
+
+    const panelStates = new Map([
+        [refs.overviewPanel, state.currentView === 'overview'],
+        [refs.clientsPanel, isLeadsWorkspaceView(state.currentView)],
+        [refs.membersPanel, state.currentView === 'members'],
+        [refs.adminPanel, state.currentView === 'admin'],
+        [refs.leadDetailPanel, state.currentView === 'lead-detail'],
+        [refs.importsPanel, state.currentView === 'imports'],
+        [refs.settingsPanel, state.currentView === 'settings']
+    ]);
+
+    panelStates.forEach((isActive, panel) => {
+        panel.classList.toggle('hidden', !isActive);
+
+        if (!isActive && panel.innerHTML) {
+            panel.innerHTML = '';
+        }
     });
 
     if (state.currentView === 'overview') {
         refs.overviewPanel.innerHTML = renderOverviewPanel();
     }
 
-    if (state.currentView === 'clients') {
+    if (isLeadsWorkspaceView(state.currentView)) {
         refs.clientsPanel.innerHTML = renderClientsPanel('leads');
     }
 
@@ -817,16 +1507,16 @@ function renderPanels() {
 
 function renderOverviewPanel() {
     if (state.isLoading) {
-        return renderLoadingState('Loading CRM dashboard...');
+        return renderLoadingState('Loading workspace overview...');
     }
 
-    if (!state.clients.length) {
+    if (!state.clients.length && !getWorkspaceSummaryCount('leads') && !getWorkspaceSummaryCount('members')) {
         return renderEmptyState({
-            title: 'No lead data yet',
-            copy: 'Import a CSV, create a lead manually, or restore the sample dataset to explore the CRM workflow.',
+            title: 'No leads yet',
+            copy: 'Upload a CSV or create a lead manually to start filling the workspace.',
             actions: `
                 ${hasPermission(state.session, PERMISSIONS.IMPORT_LEADS) ? '<button class="crm-button-secondary" data-action="open-import"><i class="fa-solid fa-file-arrow-up"></i> Upload Leads</button>' : ''}
-                ${hasPermission(state.session, PERMISSIONS.MANAGE_SETTINGS) ? '<button class="crm-button-ghost" data-action="restore-sample-data"><i class="fa-solid fa-sparkles"></i> Restore sample data</button>' : ''}
+                <button class="crm-button-ghost" data-action="new-client"><i class="fa-solid fa-user-plus"></i> New Lead</button>
             `
         });
     }
@@ -834,100 +1524,100 @@ function renderOverviewPanel() {
     const metrics = getDashboardMetrics();
 
     return `
-        <div class="overview-grid">
-            <div class="panel-grid">
-                <section class="crm-card">
-                    <div class="panel-head">
-                        <div>
-                            <span class="crm-kicker"><i class="fa-solid fa-bolt"></i> Dashboard</span>
-                            <h1 class="section-title">Sales operations, connected.</h1>
-                            <p class="panel-copy">
-                                This prototype keeps the CRM visually distinct from the marketing site while reusing Blue Chip Signals design tokens and typography.
-                            </p>
-                        </div>
-                        <div class="row-actions">
-                            <span class="summary-chip"><i class="fa-solid fa-database"></i> Supabase</span>
-                            <span class="summary-chip"><i class="fa-solid fa-route"></i> Future route: /crm</span>
-                            <span class="summary-chip"><i class="fa-solid fa-id-badge"></i> Leads + Members</span>
-                        </div>
+        <div class="ov-page">
+            <section class="ov-hero">
+                <div class="ov-hero-inner">
+                    <span class="ov-hero-label">Workspace Overview</span>
+                    <h1>CRM <em>Overview</em></h1>
+                    <p class="ov-hero-desc">Monitor lead flow, member growth, and recent activity from one workspace.</p>
+                    <div class="ov-feature">
+                        <span class="ov-feature-label">Active Leads</span>
+                        <div class="ov-feature-number">${metrics.totalLeads.toLocaleString()}</div>
                     </div>
-                </section>
+                </div>
+            </section>
 
-                <div class="summary-grid">
-                    <article class="crm-summary-card">
-                        <div class="crm-summary-label">Total leads</div>
-                        <div class="crm-summary-value">${metrics.totalLeads.toLocaleString()}</div>
-                        <div class="crm-summary-meta">Across the active lead workspace.</div>
+            <hr class="ov-divider">
+
+            <div class="ov-container">
+                <div class="ov-stat-grid">
+                    <article class="ov-stat-tile" id="ov-stat-leads">
+                        <div class="ov-stat-tile-label">Total Leads</div>
+                        <div class="ov-stat-tile-value">${metrics.totalLeads.toLocaleString()}</div>
+                        <div class="ov-stat-tile-sub">Across the active pipeline</div>
                     </article>
-                    <article class="crm-summary-card">
-                        <div class="crm-summary-label">Members</div>
-                        <div class="crm-summary-value">${metrics.totalMembers.toLocaleString()}</div>
-                        <div class="crm-summary-meta">Leads moved into the Members section.</div>
+                    <article class="ov-stat-tile" id="ov-stat-members">
+                        <div class="ov-stat-tile-label">Members</div>
+                        <div class="ov-stat-tile-value">${metrics.totalMembers.toLocaleString()}</div>
+                        <div class="ov-stat-tile-sub">Moved into the members workspace</div>
                     </article>
-                    <article class="crm-summary-card">
-                        <div class="crm-summary-label">Top status</div>
-                        <div class="crm-summary-value">${escapeHtml(metrics.topStatus.label)}</div>
-                        <div class="crm-summary-meta">${metrics.topStatus.count.toLocaleString()} leads in the leading stage.</div>
+                    <article class="ov-stat-tile" id="ov-stat-status">
+                        <div class="ov-stat-tile-label">Top Status</div>
+                        <div class="ov-stat-tile-value">${metrics.topStatus.count.toLocaleString()}</div>
+                        <div class="ov-stat-tile-sub">${escapeHtml(metrics.topStatus.label)}</div>
                     </article>
-                    <article class="crm-summary-card">
-                        <div class="crm-summary-label">Top tag</div>
-                        <div class="crm-summary-value">${escapeHtml(metrics.topTag.label)}</div>
-                        <div class="crm-summary-meta">${metrics.topTag.count.toLocaleString()} leads grouped under the strongest tag.</div>
+                    <article class="ov-stat-tile" id="ov-stat-tag">
+                        <div class="ov-stat-tile-label">Top Tag</div>
+                        <div class="ov-stat-tile-value">${metrics.topTag.count.toLocaleString()}</div>
+                        <div class="ov-stat-tile-sub">${escapeHtml(metrics.topTag.label)}</div>
                     </article>
                 </div>
 
-                <section class="crm-card">
-                    <div class="panel-head">
-                        <div>
-                            <h2 class="section-title">Leads by tag</h2>
-                            <p class="panel-copy">Quick view of the tags shaping the current lead list.</p>
-                        </div>
+                <div class="ov-insight-row">
+                    <div class="ov-insight-mini">
+                        <div class="ov-insight-label">Member Share</div>
+                        <div class="ov-insight-value">${metrics.memberShare}%</div>
+                        <div class="ov-progress-track"><span class="ov-progress-fill" style="width:${metrics.memberShare}%"></span></div>
                     </div>
-                    <div class="tag-cloud">
-                        ${metrics.tagCounts.slice(0, 10).map(([tag, count]) => `
-                            <span class="tag-chip"><strong>${escapeHtml(tag)}</strong> ${count.toLocaleString()}</span>
-                        `).join('') || '<span class="panel-subtitle">No tags available yet.</span>'}
+                    <div class="ov-insight-mini">
+                        <div class="ov-insight-label">Statuses Tracked</div>
+                        <div class="ov-insight-value">${metrics.statusCounts.length}</div>
                     </div>
-                </section>
-            </div>
+                    <div class="ov-insight-mini">
+                        <div class="ov-insight-label">Tagged Leads</div>
+                        <div class="ov-insight-value">${metrics.taggedLeadCount.toLocaleString()}</div>
+                    </div>
+                </div>
 
-            <div class="panel-grid">
-                <section class="crm-card">
-                    <div class="panel-head">
-                        <div>
-                            <h2 class="section-title">Leads by status</h2>
-                            <p class="panel-copy">Where the current pipeline sits inside the prototype.</p>
-                        </div>
-                    </div>
-                    <ul class="metric-list">
-                        ${metrics.statusCounts.map(([status, count]) => `
-                            <li>
-                                <span class="status-pill ${escapeHtml(status)}">${escapeHtml(status)}</span>
-                                <strong>${count.toLocaleString()}</strong>
-                            </li>
-                        `).join('')}
-                    </ul>
-                </section>
+                <div class="ov-card-grid">
+                    <section class="ov-card">
+                        <h3 class="ov-card-title"><i class="fa-solid fa-chart-simple"></i> Pipeline Snapshot</h3>
+                        <ul class="ov-status-list">
+                            ${metrics.statusCounts.map(([status, count]) => `
+                                <li>
+                                    <span class="status-pill ${escapeHtml(status)}">${escapeHtml(titleCase(status))}</span>
+                                    <strong>${count.toLocaleString()}</strong>
+                                </li>
+                            `).join('')}
+                        </ul>
+                    </section>
 
-                <section class="crm-card">
-                    <div class="panel-head">
-                        <div>
-                            <h2 class="section-title">Recently updated</h2>
-                            <p class="panel-copy">The latest leads touched in this browser.</p>
+                    <section class="ov-card">
+                        <h3 class="ov-card-title"><i class="fa-solid fa-clock-rotate-left"></i> Recently Updated</h3>
+                        ${metrics.recentlyUpdated.length ? `
+                            <ul class="ov-activity-list">
+                                ${metrics.recentlyUpdated.map((client) => `
+                                    <li>
+                                        <div class="ov-activity-main">
+                                            <span class="ov-activity-title">${escapeHtml(client.fullName || 'Unnamed lead')}</span>
+                                            <span class="ov-activity-meta">${escapeHtml(client.email || client.phone || 'No contact info')}</span>
+                                        </div>
+                                        <span class="ov-meta-chip">${escapeHtml(formatDateTime(client.updatedAt))}</span>
+                                    </li>
+                                `).join('')}
+                            </ul>
+                        ` : '<div class="ov-card-empty">No recent lead activity yet.</div>'}
+                    </section>
+
+                    <section class="ov-card ov-card-wide">
+                        <h3 class="ov-card-title"><i class="fa-solid fa-tags"></i> Tags In Rotation</h3>
+                        <div class="ov-tag-cloud">
+                            ${metrics.tagCounts.slice(0, 10).map(([tag, count]) => `
+                                <span class="ov-tag-chip"><strong>${escapeHtml(tag)}</strong> ${count.toLocaleString()}</span>
+                            `).join('') || '<span class="ov-card-empty">No tags available yet.</span>'}
                         </div>
-                    </div>
-                    <ul class="mini-list">
-                        ${metrics.recentlyUpdated.map((client) => `
-                            <li>
-                                <div class="mini-list-main">
-                                    <span class="mini-list-title">${escapeHtml(client.fullName || 'Unnamed lead')}</span>
-                                    <span class="mini-list-meta">${escapeHtml(client.email || client.phone || 'No contact info')}</span>
-                                </div>
-                                <span class="summary-chip">${escapeHtml(formatDateTime(client.updatedAt))}</span>
-                            </li>
-                        `).join('')}
-                    </ul>
-                </section>
+                    </section>
+                </div>
             </div>
         </div>
     `;
@@ -936,9 +1626,12 @@ function renderOverviewPanel() {
 function renderClientsPanel(scope = 'leads') {
     const workspace = getWorkspaceResult(scope);
     const usingServerPaging = supportsServerWorkspacePaging();
+    const loadingLabel = scope === 'members'
+        ? 'members'
+        : (isAssignedLeadsView() ? 'assigned leads' : (hasPermission(state.session, PERMISSIONS.ASSIGN_LEADS) ? 'unassigned leads' : 'leads'));
 
     if (state.isLoading || (usingServerPaging && workspace.isLoading && !workspace.loaded)) {
-        return renderLoadingState(`Loading ${scope === 'members' ? 'members' : 'leads'}...`);
+        return renderLoadingState(`Loading ${loadingLabel}...`);
     }
 
     const visibleClients = usingServerPaging ? workspace.rows : getVisibleClients(scope);
@@ -949,167 +1642,464 @@ function renderClientsPanel(scope = 'leads') {
     const pageEnd = totalVisibleCount && paginatedClients.length ? Math.min((state.page - 1) * state.pageSize + paginatedClients.length, totalVisibleCount) : 0;
     const activeFilterCount = getActiveFilterCount();
     const savedFilters = getVisibleSavedFilters();
-    const workspaceLabel = scope === 'members' ? 'Members' : 'Leads';
-    const singularLabel = scope === 'members' ? 'member' : 'lead';
     const activeSavedFilter = state.savedFilters.find((filter) => filter.id === state.activeSavedFilterId) || null;
-    const canBulkAssign = scope === 'leads' && hasPermission(state.session, PERMISSIONS.ASSIGN_LEADS);
+    const canBulkAssign = scope === 'leads'
+        && hasPermission(state.session, PERMISSIONS.ASSIGN_LEADS)
+        && !isAssignedLeadsView();
+    const selectableClients = canBulkAssign ? getUnassignedLeadRows(paginatedClients) : paginatedClients;
     const selectedLeadIds = new Set(state.selectedLeadIds);
     const allPageSelected = canBulkAssign
-        && Boolean(paginatedClients.length)
-        && paginatedClients.every((client) => selectedLeadIds.has(client.id));
+        && Boolean(selectableClients.length)
+        && selectableClients.every((client) => selectedLeadIds.has(client.id));
     const selectedCount = state.selectedLeadIds.length;
 
-    return `
-        <div class="workspace-layout ${state.filtersPanelOpen ? 'filters-visible' : ''}">
-            ${state.filtersPanelOpen ? renderInlineFiltersPanel(workspaceLabel, savedFilters, activeSavedFilter) : ''}
+    return renderLeadHistoryPanel({
+        scope,
+        paginatedClients,
+        totalVisibleCount,
+        totalPages,
+        pageStart,
+        pageEnd,
+        activeFilterCount,
+        savedFilters,
+        activeSavedFilter,
+        canBulkAssign,
+        selectedLeadIds,
+        allPageSelected,
+        selectedCount
+    });
+}
 
-            <div class="panel-grid">
-                <section class="crm-card">
-                    <div class="panel-head">
-                        <div>
-                            <span class="crm-kicker"><i class="fa-solid fa-address-book"></i> ${workspaceLabel} workspace</span>
-                            <h1 class="section-title">${workspaceLabel} table with compact filters.</h1>
-                            <p class="panel-copy">
-                                ${totalVisibleCount.toLocaleString()} matching ${workspaceLabel.toLowerCase()}${state.search ? ` while search is set to “${escapeHtml(state.search)}”` : ''}.
-                                ${activeFilterCount ? ` ${activeFilterCount} active filters are applied.` : ' Filters stay tucked away until you need them.'}
-                            </p>
+function renderLeadHistoryPanel({
+    scope = 'leads',
+    paginatedClients,
+    totalVisibleCount,
+    totalPages,
+    pageStart,
+    pageEnd,
+    activeFilterCount,
+    savedFilters,
+    activeSavedFilter,
+    canBulkAssign,
+    selectedLeadIds,
+    allPageSelected,
+    selectedCount
+}) {
+    const isMembers = scope === 'members';
+    const isAssignedLeadsPage = scope === 'leads' && isAssignedLeadsView();
+    const workspaceLabel = isMembers
+        ? 'Members'
+        : (isAssignedLeadsPage ? 'Already Assigned Leads' : (hasPermission(state.session, PERMISSIONS.ASSIGN_LEADS) ? 'Unassigned Leads' : 'Leads'));
+    const workspaceLabelLower = workspaceLabel.toLowerCase();
+    const singularLabel = isMembers ? 'member' : 'lead';
+    const heroIcon = isMembers ? 'fa-users-viewfinder' : 'fa-address-book';
+    const statusOptions = CRM_STATUS_OPTIONS;
+    const availableTags = getAvailableTags();
+    const createAction = renderWorkspaceCreateAction(scope, 'toolbar');
+    const assignmentViewAction = renderLeadAssignmentViewAction(scope);
+    const emptyCreateAction = renderWorkspaceCreateAction(scope, 'empty');
+    const tableDescription = isAssignedLeadsPage
+        ? 'Reference view for leads that already belong to a rep. Open any record from here when you need to review ownership.'
+        : (hasPermission(state.session, PERMISSIONS.ASSIGN_LEADS)
+            ? 'Only unassigned leads stay in this queue so assignment stays clean and intentional.'
+            : '');
+    const searchSummary = normalizeWhitespace(state.workspaceSearch)
+        ? `${totalVisibleCount.toLocaleString()} matching ${workspaceLabelLower} for "${escapeHtml(state.workspaceSearch)}".`
+        : `${totalVisibleCount.toLocaleString()} ${workspaceLabelLower} currently in the CRM workspace.`;
+    const heroBadge = activeFilterCount
+        ? `${activeFilterCount} filter${activeFilterCount === 1 ? '' : 's'} active`
+        : `${totalVisibleCount.toLocaleString()} visible`;
+
+    return `
+        <div class="lead-history-page">
+            <section class="lead-history-hero">
+                <div class="lead-history-hero-left">
+                    <div class="lead-history-scope-switch" role="tablist" aria-label="CRM workspace">
+                        <button
+                            class="lead-history-scope-btn ${isMembers ? '' : 'active'}"
+                            data-action="set-view"
+                            data-view="clients"
+                            aria-pressed="${isMembers ? 'false' : 'true'}"
+                        >
+                            Leads
+                        </button>
+                        <button
+                            class="lead-history-scope-btn ${isMembers ? 'active' : ''}"
+                            data-action="set-view"
+                            data-view="members"
+                            aria-pressed="${isMembers ? 'true' : 'false'}"
+                        >
+                            Members
+                        </button>
+                    </div>
+                    <h1><i class="fa-solid ${heroIcon}"></i> ${workspaceLabel}</h1>
+                    <p>${searchSummary}</p>
+                </div>
+                <span class="lead-history-hero-badge">${heroBadge}</span>
+            </section>
+
+            <section class="lead-history-filters">
+                <div class="lead-history-filter-group">
+                    <span class="lead-history-filter-label">Status</span>
+                    <button class="lead-history-pill ${state.filters.status === 'all' ? 'active' : ''}" data-action="set-status-filter" data-status="all">All</button>
+                    ${statusOptions.map((status) => `
+                        <button
+                            class="lead-history-pill status-${escapeHtml(status)} ${state.filters.status === status ? 'active' : ''}"
+                            data-action="set-status-filter"
+                            data-status="${status}"
+                        >
+                            ${escapeHtml(titleCase(status))}
+                        </button>
+                    `).join('')}
+                </div>
+
+                <div class="lead-history-filter-divider"></div>
+
+                <div class="lead-history-filter-group">
+                    <span class="lead-history-filter-label">Tag</span>
+                    <select id="tag-filter" class="lead-history-select">
+                        <option value="all">All tags</option>
+                        ${availableTags.map((tag) => `
+                            <option value="${escapeHtml(tag)}" ${state.filters.tag === tag ? 'selected' : ''}>${escapeHtml(tag)}</option>
+                        `).join('')}
+                    </select>
+                </div>
+
+                <div class="lead-history-filter-divider"></div>
+
+                <div class="lead-history-filter-group lead-history-filter-group-saved">
+                    <span class="lead-history-filter-label">Saved</span>
+                    ${savedFilters.length ? savedFilters.slice(0, 4).map((filter) => `
+                        <button
+                            class="lead-history-pill ${state.activeSavedFilterId === filter.id ? 'active' : ''}"
+                            data-action="load-saved-filter"
+                            data-filter-id="${filter.id}"
+                        >
+                            ${escapeHtml(truncate(filter.name, 22))}
+                        </button>
+                    `).join('') : '<span class="lead-history-filter-empty">No saved views</span>'}
+                    ${savedFilters.length > 4 ? `<span class="lead-history-filter-empty">+${savedFilters.length - 4} more</span>` : ''}
+                </div>
+
+                <button class="lead-history-clear-btn" data-action="open-filters">
+                    <i class="fa-solid fa-sliders"></i> ${state.filtersPanelOpen ? 'Hide Advanced' : 'Advanced'}${activeFilterCount ? ` (${activeFilterCount})` : ''}
+                </button>
+
+                ${createAction}
+                ${assignmentViewAction}
+
+                <button class="lead-history-clear-btn" data-action="clear-client-filters">
+                    <i class="fa-solid fa-xmark"></i> Clear
+                </button>
+            </section>
+
+            ${state.filtersPanelOpen ? renderLeadHistoryAdvancedFilters(savedFilters, activeSavedFilter, scope) : ''}
+
+            <section class="lead-history-table-card">
+                <div class="lead-history-table-meta">
+                    <div class="lead-history-table-meta-left">
+                        <div class="lead-history-table-title-stack">
+                            <div class="lead-history-table-title-row">
+                                <span class="lead-history-table-title">${isAssignedLeadsPage ? 'Already Assigned Leads' : `All ${workspaceLabel}`}</span>
+                                <span class="lead-history-count-badge">${totalVisibleCount.toLocaleString()}</span>
+                                ${activeSavedFilter ? `<span class="lead-history-meta-chip"><i class="fa-solid fa-bookmark"></i> ${escapeHtml(activeSavedFilter.name)}</span>` : ''}
+                            </div>
+                            ${tableDescription ? `<p class="lead-history-table-copy">${escapeHtml(tableDescription)}</p>` : ''}
+                        </div>
+                    </div>
+
+                    <div class="lead-history-table-meta-right">
+                        <label class="lead-history-page-size">
+                            <span class="lead-history-filter-label">Page Size</span>
+                            <select id="page-size" class="lead-history-select lead-history-page-size-select">
+                                ${[25, 50, 100, 250].map((size) => `
+                                    <option value="${size}" ${state.pageSize === size ? 'selected' : ''}>${size}</option>
+                                `).join('')}
+                            </select>
+                        </label>
+                    </div>
+                </div>
+
+                ${canBulkAssign && selectedCount ? `
+                    <div class="lead-history-bulk-bar">
+                        <span class="lead-history-meta-chip"><i class="fa-solid fa-check-double"></i> ${selectedCount} selected</span>
+                        <button class="lead-history-mini-btn" data-action="select-visible-leads" ${paginatedClients.length ? '' : 'disabled'}>
+                            <i class="fa-solid fa-layer-group"></i> Select visible
+                        </button>
+                        <button class="lead-history-mini-btn" data-action="clear-lead-selection" ${selectedCount ? '' : 'disabled'}>
+                            <i class="fa-solid fa-xmark"></i> Clear
+                        </button>
+                        <select id="bulk-assignee" class="lead-history-select lead-history-bulk-select">
+                            <option value="">Choose sales rep</option>
+                            ${getSalesUsers().map((user) => `
+                                <option value="${escapeHtml(user.id)}" ${state.bulkAssignRepId === user.id ? 'selected' : ''}>${escapeHtml(user.name)}</option>
+                            `).join('')}
+                        </select>
+                        <button class="lead-history-mini-btn primary" data-action="bulk-assign-selected" ${selectedCount && state.bulkAssignRepId ? '' : 'disabled'}>
+                            <i class="fa-solid fa-user-check"></i> Assign
+                        </button>
+                        <button class="lead-history-mini-btn" data-action="bulk-unassign-selected" ${selectedCount ? '' : 'disabled'}>
+                            <i class="fa-solid fa-user-slash"></i> Unassign
+                        </button>
+                    </div>
+                ` : ''}
+
+                ${paginatedClients.length ? `
+                    ${renderLeadHistoryTableSection({
+                        clients: paginatedClients,
+                        singularLabel,
+                        count: totalVisibleCount,
+                        canBulkAssign,
+                        selectedLeadIds,
+                        allPageSelected,
+                        emptyMessage: `No ${workspaceLabelLower} found for this filter.`,
+                        withTopSpacing: false,
+                        showHeader: false
+                    })}
+
+                    <div class="lead-history-pagination">
+                        <div class="lead-history-pagination-copy">
+                            Showing ${pageStart ? `${pageStart}-${pageEnd}` : '0'} of ${totalVisibleCount.toLocaleString()} ${workspaceLabelLower}.
                         </div>
                         <div class="row-actions">
-                            <label class="page-size-shell">
-                                <span class="panel-subtitle">Page size</span>
-                                <select id="page-size" class="crm-select">
-                                    ${[25, 50, 100, 250].map((size) => `
-                                        <option value="${size}" ${state.pageSize === size ? 'selected' : ''}>${size}</option>
-                                    `).join('')}
+                            <button class="crm-button-ghost" data-action="prev-page" ${state.page === 1 ? 'disabled' : ''}>
+                                <i class="fa-solid fa-arrow-left"></i> Previous
+                            </button>
+                            <span class="lead-history-meta-chip">Page ${state.page} of ${totalPages}</span>
+                            <button class="crm-button-ghost" data-action="next-page" ${state.page >= totalPages ? 'disabled' : ''}>
+                                Next <i class="fa-solid fa-arrow-right"></i>
+                            </button>
+                        </div>
+                    </div>
+                ` : `
+                    <div class="lead-history-state">
+                        <i class="fa-solid fa-satellite-dish"></i>
+                        <div>No ${workspaceLabelLower} found for this filter.</div>
+                        <div class="auth-actions" style="justify-content: center; margin-top: 1rem;">
+                            <button class="crm-button-ghost" data-action="clear-client-filters"><i class="fa-solid fa-rotate-left"></i> Clear all filters</button>
+                            ${emptyCreateAction}
+                        </div>
+                    </div>
+                `}
+            </section>
+        </div>
+    `;
+}
+
+function getUnassignedLeadRows(clients = []) {
+    return (clients || []).filter((client) => !normalizeWhitespace(client?.assignedRepId));
+}
+
+function renderLeadAssignmentViewAction(scope = 'leads') {
+    if (scope !== 'leads' || !hasPermission(state.session, PERMISSIONS.ASSIGN_LEADS)) {
+        return '';
+    }
+
+    if (isAssignedLeadsView()) {
+        return `
+            <button class="lead-history-clear-btn" data-action="set-view" data-view="clients">
+                <i class="fa-solid fa-arrow-left"></i> Back to Unassigned Leads
+            </button>
+        `;
+    }
+
+    return `
+        <button class="lead-history-clear-btn" data-action="set-view" data-view="assigned-leads">
+            <i class="fa-solid fa-user-check"></i> Already Assigned Leads
+        </button>
+    `;
+}
+
+function renderLeadHistoryTableSection({
+    clients = [],
+    singularLabel = 'lead',
+    count = 0,
+    canBulkAssign = false,
+    selectedLeadIds = new Set(),
+    allPageSelected = false,
+    emptyMessage = '',
+    withTopSpacing = true,
+    showHeader = true,
+    title = '',
+    description = ''
+}) {
+    return `
+        <div class="lead-history-table-section" style="${withTopSpacing ? 'margin-top: 1.35rem;' : ''}">
+            ${showHeader ? `
+                <div class="lead-history-section-head" style="margin-bottom: 0.85rem;">
+                    <div>
+                        <span class="lead-history-section-title">${escapeHtml(title)}</span>
+                        ${description ? `<p class="lead-history-section-copy">${escapeHtml(description)}</p>` : ''}
+                    </div>
+                    <span class="lead-history-count-badge">${Number(count || 0).toLocaleString()}</span>
+                </div>
+            ` : ''}
+
+            ${clients.length ? `
+                <div class="lead-history-table-scroll">
+                    <table class="crm-table lead-history-table">
+                        <thead>
+                            <tr>
+                                ${renderTableHeaders({ canBulkAssign, allPageSelected })}
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${renderLeadHistoryTableRows({
+                                clients,
+                                singularLabel,
+                                canBulkAssign,
+                                selectedLeadIds
+                            })}
+                        </tbody>
+                    </table>
+                </div>
+            ` : `
+                <div class="crm-admin-empty compact">
+                    <div>${escapeHtml(emptyMessage || `No ${singularLabel}s found.`)}</div>
+                </div>
+            `}
+        </div>
+    `;
+}
+
+function renderLeadHistoryTableRows({
+    clients = [],
+    singularLabel = 'lead',
+    canBulkAssign = false,
+    selectedLeadIds = new Set()
+}) {
+    return clients.map((client) => `
+        <tr>
+            ${canBulkAssign ? `
+                <td class="selection-cell">
+                    <input
+                        type="checkbox"
+                        class="crm-checkbox"
+                        data-action="toggle-select-lead"
+                        data-client-id="${client.id}"
+                        ${selectedLeadIds.has(client.id) ? 'checked' : ''}
+                    >
+                </td>
+            ` : ''}
+            <td class="lead-history-name-cell">
+                <button class="lead-link-button" data-action="open-lead-page" data-client-id="${client.id}">
+                    ${escapeHtml(client.fullName || `Unnamed ${singularLabel}`)}
+                </button>
+                <span class="lead-history-submeta">${escapeHtml(buildClientMetaLine(client))}</span>
+            </td>
+            <td>${escapeHtml(client.email || '—')}</td>
+            <td>${escapeHtml(client.phone || '—')}</td>
+            <td class="lead-history-tags-cell">${client.tags.length ? client.tags.slice(0, 3).map((tag) => `<span class="lead-history-tag"><strong>${escapeHtml(tag)}</strong></span>`).join(' ') : '<span class="lead-history-muted">—</span>'}</td>
+            <td class="lead-history-notes-cell"><div class="lead-history-notes-preview">${escapeHtml(truncate(client.notes || 'No notes yet.', 96))}</div></td>
+            <td><span class="status-pill ${escapeHtml(client.status)}">${escapeHtml(client.status)}</span></td>
+            <td>${escapeHtml(formatDateTime(client.updatedAt))}</td>
+        </tr>
+    `).join('');
+}
+
+function renderWorkspaceCreateAction(scope, variant = 'toolbar') {
+    const isMembers = scope === 'members';
+
+    if (isMembers && !hasPermission(state.session, PERMISSIONS.MOVE_TO_MEMBERS)) {
+        return '';
+    }
+
+    const buttonClass = variant === 'empty' ? 'crm-button-secondary' : 'lead-history-clear-btn';
+    const action = isMembers ? 'new-member' : 'new-client';
+    const label = isMembers
+        ? (variant === 'empty' ? 'Add member' : 'New Member')
+        : (variant === 'empty' ? 'Add lead' : 'New Lead');
+
+    return `
+        <button class="${buttonClass}" data-action="${action}">
+            <i class="fa-solid fa-user-plus"></i> ${label}
+        </button>
+    `;
+}
+
+function renderLeadHistoryAdvancedFilters(savedFilters, activeSavedFilter, scope = 'leads') {
+    const isMembers = scope === 'members';
+    const singularLabel = isMembers ? 'member' : 'lead';
+    const savedViewPlaceholder = isMembers ? 'Active member renewals' : 'Morning follow-up list';
+
+    return `
+        <section class="lead-history-advanced">
+            <div class="lead-history-advanced-grid">
+                <section class="lead-history-advanced-card">
+                    <div class="lead-history-section-head">
+                        <div>
+                            <span class="lead-history-section-title">Advanced Filters</span>
+                            <p class="lead-history-section-copy">Stack first name, last name, area code, subscription, and time zone filters without leaving the page.</p>
+                        </div>
+                        <button class="lead-history-clear-btn" data-action="clear-client-filters">
+                            <i class="fa-solid fa-rotate-left"></i> Reset All
+                        </button>
+                    </div>
+
+                    <div class="crm-filter-panel lead-history-filter-panel">
+                        ${MULTI_FILTER_CONFIG.map((config) => renderMultiValueFilterGroup(config)).join('')}
+                    </div>
+                </section>
+
+                <section class="lead-history-advanced-card">
+                    <div class="lead-history-section-head">
+                        <div>
+                            <span class="lead-history-section-title">Saved Views</span>
+                            <p class="lead-history-section-copy">Save the current ${singularLabel} view for yourself or share it with the floor.</p>
+                        </div>
+                    </div>
+
+                    <form id="saved-filter-form" class="lead-history-save-form">
+                        <input type="hidden" name="id" value="${escapeHtml(state.activeSavedFilterId || '')}">
+                        <div class="form-grid single-column-grid">
+                            <label class="form-field">
+                                <span class="form-label">Filter name</span>
+                                <input class="crm-input" name="name" placeholder="${savedViewPlaceholder}" value="${escapeHtml(activeSavedFilter?.name || '')}">
+                            </label>
+                            <label class="form-field">
+                                <span class="form-label">Visibility</span>
+                                <select class="crm-select" name="visibility">
+                                    <option value="private">Private</option>
+                                    <option value="shared" ${activeSavedFilter?.visibility === 'shared' ? 'selected' : ''}>Shared</option>
                                 </select>
                             </label>
-                            ${activeSavedFilter ? `<span class="metric-chip"><i class="fa-solid fa-bookmark"></i> ${escapeHtml(activeSavedFilter.name)}</span>` : ''}
-                            <button class="crm-button-ghost" data-action="open-filters">
-                                <i class="fa-solid fa-filter"></i> ${state.filtersPanelOpen ? 'Hide filters' : 'Show filters'}${activeFilterCount ? ` (${activeFilterCount})` : ''}
-                            </button>
-                            <button class="crm-button-secondary" data-action="new-client"><i class="fa-solid fa-user-plus"></i> New Lead</button>
                         </div>
+                        <div class="modal-actions" style="margin-top: 1rem;">
+                            <button class="crm-button" type="submit"><i class="fa-solid fa-bookmark"></i> ${state.activeSavedFilterId ? 'Update' : 'Save'}</button>
+                            ${state.activeSavedFilterId ? '<button class="crm-button-ghost" type="button" data-action="clear-active-saved-filter">New</button>' : ''}
+                        </div>
+                    </form>
+
+                    <div class="history-list compact-history lead-history-saved-list">
+                        ${savedFilters.length ? savedFilters.map((filter) => `
+                            <article class="history-card">
+                                <div class="history-head">
+                                    <div>
+                                        <div class="history-title">${escapeHtml(filter.name)}</div>
+                                        <div class="panel-subtitle">${escapeHtml(filter.visibility === 'shared'
+                                            ? `Shared by ${filter.createdByName || filter.createdByUserId || 'CRM user'}`
+                                            : `Private to ${filter.createdByName || filter.createdByUserId || 'CRM user'}`)}</div>
+                                    </div>
+                                </div>
+                                <div class="modal-actions" style="margin-top: 0.85rem;">
+                                    <button class="crm-button-secondary" data-action="load-saved-filter" data-filter-id="${filter.id}">
+                                        <i class="fa-solid fa-bolt"></i> Load
+                                    </button>
+                                    ${canManageSavedFilter(filter) ? `
+                                        <button class="crm-button-ghost" data-action="edit-saved-filter" data-filter-id="${filter.id}">
+                                            <i class="fa-solid fa-pen"></i> Edit
+                                        </button>
+                                        <button class="crm-button-danger" data-action="delete-saved-filter" data-filter-id="${filter.id}">
+                                            <i class="fa-solid fa-trash"></i> Delete
+                                        </button>
+                                    ` : ''}
+                                </div>
+                            </article>
+                        `).join('') : '<div class="panel-subtitle">Save the current filter set to reuse it later.</div>'}
                     </div>
-
-                    <div class="saved-filter-row">
-                        <div class="saved-filter-strip">
-                            ${savedFilters.length ? savedFilters.slice(0, 6).map((filter) => `
-                                <button
-                                    class="saved-filter-chip ${state.activeSavedFilterId === filter.id ? 'active' : ''}"
-                                    data-action="load-saved-filter"
-                                    data-filter-id="${filter.id}"
-                                >
-                                    <i class="fa-solid ${filter.visibility === 'shared' ? 'fa-users' : 'fa-lock'}"></i>
-                                    ${escapeHtml(filter.name)}
-                                </button>
-                            `).join('') : '<span class="panel-subtitle">No saved filters yet.</span>'}
-                        </div>
-                    </div>
-                </section>
-
-                <section class="crm-table-card">
-                    <div class="table-head">
-                        <div>
-                            <span class="crm-kicker"><i class="fa-solid fa-table"></i> ${workspaceLabel} table</span>
-                            <h2 class="section-title">Sort, search, filter, and work the list.</h2>
-                            <p class="table-copy">
-                                Showing ${pageStart ? `${pageStart}-${pageEnd}` : '0'} of ${totalVisibleCount.toLocaleString()} filtered ${workspaceLabel.toLowerCase()}.
-                            </p>
-                        </div>
-                        ${canBulkAssign ? `
-                            <div class="row-actions bulk-toolbar">
-                                <span class="metric-chip"><i class="fa-solid fa-check-double"></i> ${selectedCount} selected</span>
-                                <button class="crm-button-ghost" data-action="select-visible-leads" ${paginatedClients.length ? '' : 'disabled'}>
-                                    <i class="fa-solid fa-layer-group"></i> Select visible
-                                </button>
-                                <button class="crm-button-ghost" data-action="clear-lead-selection" ${selectedCount ? '' : 'disabled'}>
-                                    <i class="fa-solid fa-xmark"></i> Clear selection
-                                </button>
-                                <select id="bulk-assignee" class="crm-select">
-                                    <option value="">Choose sales rep</option>
-                                    ${getSalesUsers().map((user) => `
-                                        <option value="${escapeHtml(user.id)}" ${state.bulkAssignRepId === user.id ? 'selected' : ''}>${escapeHtml(user.name)}</option>
-                                    `).join('')}
-                                </select>
-                                <button class="crm-button-secondary" data-action="bulk-assign-selected" ${selectedCount && state.bulkAssignRepId ? '' : 'disabled'}>
-                                    <i class="fa-solid fa-user-check"></i> Assign
-                                </button>
-                                <button class="crm-button-ghost" data-action="bulk-unassign-selected" ${selectedCount ? '' : 'disabled'}>
-                                    <i class="fa-solid fa-user-slash"></i> Unassign
-                                </button>
-                            </div>
-                        ` : ''}
-                    </div>
-
-                    ${visibleClients.length ? `
-                        <div class="table-shell">
-                            <table class="crm-table">
-                                <thead>
-                                    <tr>
-                                        ${renderTableHeaders({ canBulkAssign, allPageSelected })}
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    ${paginatedClients.map((client) => `
-                                        <tr>
-                                            ${canBulkAssign ? `
-                                                <td class="selection-cell">
-                                                    <input
-                                                        type="checkbox"
-                                                        class="crm-checkbox"
-                                                        data-action="toggle-select-lead"
-                                                        data-client-id="${client.id}"
-                                                        ${selectedLeadIds.has(client.id) ? 'checked' : ''}
-                                                    >
-                                                </td>
-                                            ` : ''}
-                                            <td>
-                                                <button class="lead-link-button" data-action="open-lead-page" data-client-id="${client.id}">
-                                                    ${escapeHtml(client.fullName || `Unnamed ${singularLabel}`)}
-                                                </button><br>
-                                                <span class="panel-subtitle">${escapeHtml(buildClientMetaLine(client))}</span>
-                                            </td>
-                                            <td>${escapeHtml(client.email || '—')}</td>
-                                            <td>${escapeHtml(client.phone || '—')}</td>
-                                            <td>${client.tags.length ? client.tags.slice(0, 3).map((tag) => `<span class="tag-chip"><strong>${escapeHtml(tag)}</strong></span>`).join(' ') : '—'}</td>
-                                            <td><div class="notes-preview">${escapeHtml(truncate(client.notes || 'No notes yet.', 96))}</div></td>
-                                            <td><span class="status-pill ${escapeHtml(client.status)}">${escapeHtml(client.status)}</span></td>
-                                            <td>${escapeHtml(formatDateTime(client.updatedAt))}</td>
-                                        </tr>
-                                    `).join('')}
-                                </tbody>
-                            </table>
-                        </div>
-
-                        <div class="pagination-row">
-                            <div>
-                                Showing ${pageStart ? `${pageStart}-${pageEnd}` : '0'} of ${totalVisibleCount.toLocaleString()} visible ${workspaceLabel.toLowerCase()}.
-                            </div>
-                            <div class="row-actions">
-                                <button class="crm-button-ghost" data-action="prev-page" ${state.page === 1 ? 'disabled' : ''}>
-                                    <i class="fa-solid fa-arrow-left"></i> Previous
-                                </button>
-                                <span class="summary-chip">Page ${state.page} of ${totalPages}</span>
-                                <button
-                                    class="crm-button-ghost"
-                                    data-action="next-page"
-                                    ${state.page >= totalPages ? 'disabled' : ''}
-                                >
-                                    Next <i class="fa-solid fa-arrow-right"></i>
-                                </button>
-                            </div>
-                        </div>
-                    ` : renderEmptyState({
-                        title: `No ${workspaceLabel.toLowerCase()} match the current filters`,
-                        copy: `Clear one or more filter groups, change the search term, or add a new ${singularLabel} manually.`,
-                        actions: `
-                            <button class="crm-button-ghost" data-action="clear-client-filters"><i class="fa-solid fa-rotate-left"></i> Clear all filters</button>
-                            <button class="crm-button-secondary" data-action="new-client"><i class="fa-solid fa-user-plus"></i> Add lead</button>
-                        `
-                    })}
                 </section>
             </div>
-        </div>
+        </section>
     `;
 }
 
@@ -1279,17 +2269,12 @@ function renderLeadDetailPage() {
         return renderEmptyState({
             title: 'Lead not found',
             copy: hasPermission(state.session, PERMISSIONS.VIEW_ADMIN)
-                ? 'The selected lead is no longer available in the current local dataset.'
+                ? 'The selected lead is no longer available in the current workspace dataset.'
                 : 'That lead is not assigned to your session or is no longer available.',
             actions: '<button class="crm-button-ghost" data-action="back-to-list"><i class="fa-solid fa-arrow-left"></i> Back to list</button>'
         });
     }
 
-    const detailScope = state.lastWorkspaceView === 'members' ? 'members' : 'leads';
-    const visibleSet = getVisibleClients(detailScope);
-    const currentIndex = visibleSet.findIndex((item) => item.id === lead.id);
-    const previousLead = currentIndex > 0 ? visibleSet[currentIndex - 1] : null;
-    const nextLead = currentIndex >= 0 && currentIndex < visibleSet.length - 1 ? visibleSet[currentIndex + 1] : null;
     const canAdminEdit = hasPermission(state.session, PERMISSIONS.EDIT_ADMIN_FIELDS);
     const canOpenEditMode = canEditCurrentLead(lead) || canAdminEdit;
     const isEditing = state.detailEditMode && canOpenEditMode;
@@ -1303,55 +2288,67 @@ function renderLeadDetailPage() {
     const noteHistory = Array.isArray(lead.noteHistory)
         ? [...lead.noteHistory].sort((left, right) => Date.parse(right.createdAt ?? 0) - Date.parse(left.createdAt ?? 0))
         : [];
-    const leadHistoryEntries = getLeadHistoryEntries(lead);
     const dispositionOptions = getLeadDetailDispositionOptions(lead);
     const showToSeniorRepField = isToDispositionValue(lead.disposition);
     const selectedToSeniorRepId = showToSeniorRepField && seniorRepOptions.some((user) => user.id === lead.assignedRepId)
         ? lead.assignedRepId
         : '';
+    const entityLabel = isMember ? 'Member' : 'Lead';
+    const detailName = lead.fullName || `Unnamed ${entityLabel.toLowerCase()}`;
+    const heroSummary = buildLeadDetailSummary(lead);
+    const formIntroCopy = isEditing
+        ? `Edit ${entityLabel.toLowerCase()} contact information, assignment, and workflow details from one focused form.`
+        : `Review ${entityLabel.toLowerCase()} contact information, ownership, and workflow details. Use Edit when you need to make changes.`;
 
     return `
-        <div class="panel-grid lead-detail-shell">
-            <section class="crm-card lead-summary-card">
-                <div class="panel-head">
-                    <div>
-                        <span class="crm-kicker"><i class="fa-solid fa-user-large"></i> Lead detail</span>
-                        <h1 class="section-title">${escapeHtml(lead.fullName || 'Unnamed lead')}</h1>
-                        <p class="panel-copy">${escapeHtml(buildLeadDetailSummary(lead))}</p>
-                        <div class="row-actions" style="margin-top: 0.75rem;">
-                            <span class="summary-chip"><i class="fa-solid fa-user-check"></i> ${escapeHtml(lead.assignedTo || 'Unassigned')}</span>
-                            <span class="summary-chip"><i class="fa-solid fa-layer-group"></i> ${escapeHtml(titleCase(lead.lifecycleType || 'lead'))}</span>
-                            <span class="summary-chip"><i class="fa-solid fa-signal"></i> ${escapeHtml(lead.subscriptionType || 'No subscription')}</span>
-                            <span class="summary-chip"><i class="fa-solid fa-clock"></i> ${escapeHtml(lead.timeZone || 'Unknown')}</span>
-                            ${lead.timezoneOverridden ? '<span class="summary-chip"><i class="fa-solid fa-wand-magic-sparkles"></i> Manual override</span>' : ''}
-                        </div>
-                    </div>
-                    <div class="row-actions">
-                        <button class="crm-button-ghost" data-action="back-to-list"><i class="fa-solid fa-arrow-left"></i> Back to ${state.lastWorkspaceView === 'members' ? 'Members' : 'Leads'}</button>
-                        ${canOpenEditMode ? `
-                            <button class="crm-button-ghost" data-action="${isEditing ? 'cancel-lead-edit' : 'toggle-lead-edit'}">
-                                <i class="fa-solid ${isEditing ? 'fa-xmark' : 'fa-pen'}"></i> ${isEditing ? 'Cancel Edit' : 'Edit'}
-                            </button>
-                        ` : ''}
-                        <button class="crm-button-ghost" data-action="toggle-lead-history">
-                            <i class="fa-solid fa-timeline"></i> ${state.leadHistoryOpen ? 'Hide Lead History' : 'Lead History'}
-                        </button>
-                        <button class="crm-button-ghost" data-action="navigate-lead" data-direction="prev" ${previousLead ? '' : 'disabled'}><i class="fa-solid fa-chevron-left"></i> Previous</button>
-                        <button class="crm-button-ghost" data-action="navigate-lead" data-direction="next" ${nextLead ? '' : 'disabled'}>Next <i class="fa-solid fa-chevron-right"></i></button>
+        <div class="lead-detail-page">
+            <section class="lead-detail-hero">
+                ${renderLeadDetailUtilityRow()}
+                <div class="lead-detail-hero-inner">
+                    <span class="lead-detail-hero-label">
+                        <i class="fa-solid fa-user-large"></i> ${entityLabel} Detail
+                    </span>
+                    <h1>${escapeHtml(detailName)}</h1>
+                    <p class="lead-detail-hero-summary">${escapeHtml(heroSummary)}</p>
+
+                    <div class="lead-detail-hero-meta">
+                        <span class="summary-chip"><i class="fa-solid fa-user-check"></i> ${escapeHtml(lead.assignedTo || 'Unassigned')}</span>
+                        <span class="summary-chip"><i class="fa-solid fa-layer-group"></i> ${escapeHtml(titleCase(lead.lifecycleType || 'lead'))}</span>
+                        <span class="summary-chip"><i class="fa-solid fa-signal"></i> ${escapeHtml(lead.subscriptionType || 'No subscription')}</span>
+                        <span class="summary-chip"><i class="fa-solid fa-clock"></i> ${escapeHtml(lead.timeZone || 'Unknown')}</span>
+                        <span class="summary-chip"><i class="fa-solid fa-bolt"></i> ${escapeHtml(titleCase(lead.status || 'new'))}</span>
+                        ${lead.timezoneOverridden ? '<span class="summary-chip"><i class="fa-solid fa-wand-magic-sparkles"></i> Manual override</span>' : ''}
                     </div>
                 </div>
             </section>
 
-            <div class="lead-detail-layout ${state.leadHistoryOpen ? 'history-visible' : ''}">
-                <div class="panel-grid">
-                    <section class="crm-card">
-                    <form id="lead-detail-form">
+            <div class="lead-detail-content">
+                <section class="crm-card lead-detail-contact-card">
+                    <div class="lead-detail-card-head">
+                        <div class="lead-detail-card-head-copy">
+                            <span class="lead-detail-card-label">Contact & workflow</span>
+                            <h2>${escapeHtml(entityLabel)} record</h2>
+                            <p>${escapeHtml(formIntroCopy)}</p>
+                        </div>
+                        <div class="lead-detail-card-head-actions">
+                            ${canOpenEditMode ? `
+                                <button class="crm-button-ghost" data-action="${isEditing ? 'cancel-lead-edit' : 'toggle-lead-edit'}">
+                                    <i class="fa-solid ${isEditing ? 'fa-xmark' : 'fa-pen'}"></i> ${isEditing ? 'Cancel Edit' : 'Edit'}
+                                </button>
+                            ` : ''}
+                            <button class="crm-button-ghost" data-action="toggle-lead-history">
+                                <i class="fa-solid fa-timeline"></i> Lead History
+                            </button>
+                        </div>
+                    </div>
+
+                    <form id="lead-detail-form" class="lead-detail-form">
                         <input type="hidden" name="id" value="${escapeHtml(lead.id)}">
                         ${isEditing && canAdminEdit ? '' : `<input type="hidden" name="assignedRepId" value="${escapeHtml(lead.assignedRepId || '')}">`}
                         <input type="hidden" name="assignedTo" value="${escapeHtml(lead.assignedTo || '')}">
                         <input type="hidden" name="lifecycleType" value="${escapeHtml(lead.lifecycleType || 'lead')}">
 
-                        <div class="form-grid">
+                        <div class="form-grid lead-detail-form-grid">
                             ${renderLeadField('First name', 'firstName', lead.firstName, isEditing && canEditLeadField(state.session, 'firstName', lead), 'text')}
                             ${renderLeadField('Last name', 'lastName', lead.lastName, isEditing && canEditLeadField(state.session, 'lastName', lead), 'text')}
                             ${renderLeadField('Email', 'email', lead.email, isEditing && canEditLeadField(state.session, 'email', lead), 'email')}
@@ -1395,7 +2392,7 @@ function renderLeadDetailPage() {
                             </label>
                         </div>
 
-                        <div class="drawer-actions" style="margin-top: 1rem;">
+                        <div class="drawer-actions lead-detail-form-actions">
                             ${canSaveWorkflow ? `
                                 <button class="crm-button" type="submit">
                                     <i class="fa-solid fa-floppy-disk"></i> ${isEditing ? 'Save Lead Changes' : 'Save Workflow Updates'}
@@ -1420,23 +2417,25 @@ function renderLeadDetailPage() {
                     </form>
                 </section>
 
-                    <section class="crm-card">
+                <aside class="lead-detail-sidebar">
+                    <section class="crm-card lead-detail-side-card lead-detail-notes-card">
                         <div class="panel-head">
                             <div>
+                                <span class="lead-detail-card-label">Conversation</span>
                                 <h2 class="section-title">Notes</h2>
-                                <p class="panel-copy">Use Save Notes to add or update timestamped conversation history without leaving the page.</p>
+                                <p class="panel-copy">Capture the latest call summary, objections, and follow-up context without leaving the record.</p>
                             </div>
                         </div>
 
                         ${canSaveNotes ? `
-                            <form id="lead-note-form" style="margin-top: 1rem;">
+                            <form id="lead-note-form" class="lead-detail-note-form">
                                 <input type="hidden" name="leadId" value="${escapeHtml(lead.id)}">
                                 <input type="hidden" name="noteId" value="${escapeHtml(editableNote?.id || '')}">
                                 <label class="form-field form-field-full">
                                     <span class="form-label">${editableNote ? 'Edit note' : 'New note'}</span>
                                     <textarea class="crm-textarea" name="noteEntry" placeholder="Add the latest call summary, objection, or follow-up context...">${escapeHtml(editableNote?.content || '')}</textarea>
                                 </label>
-                                <div class="drawer-actions" style="margin-top: 1rem;">
+                                <div class="drawer-actions lead-detail-form-actions">
                                     <button class="crm-button-secondary" type="submit"><i class="fa-solid fa-note-sticky"></i> Save Notes</button>
                                     ${editableNote ? `
                                         <button class="crm-button-ghost" type="button" data-action="cancel-note-edit">
@@ -1445,7 +2444,7 @@ function renderLeadDetailPage() {
                                     ` : ''}
                                 </div>
                             </form>
-                        ` : '<div class="panel-subtitle" style="margin-top: 1rem;">This session can view note history but cannot add new entries.</div>'}
+                        ` : '<div class="panel-subtitle lead-detail-empty-copy">This session can view note history but cannot add new entries.</div>'}
 
                         ${noteHistory.length ? `
                             <div class="history-list">
@@ -1453,7 +2452,7 @@ function renderLeadDetailPage() {
                                     <article class="history-card">
                                         <div class="history-head">
                                             <div>
-                                                <div class="history-title">${escapeHtml(entry.createdByName || entry.createdByUserId || 'Local user')}</div>
+                                                <div class="history-title">${escapeHtml(entry.createdByName || entry.createdByUserId || 'CRM user')}</div>
                                                 <div class="panel-subtitle">${escapeHtml(formatDateTime(entry.createdAt))}</div>
                                             </div>
                                             ${canEditNoteEntry(state.session, lead, entry) ? `
@@ -1463,13 +2462,13 @@ function renderLeadDetailPage() {
                                             ` : ''}
                                         </div>
                                         <div class="note-history-copy">${escapeHtml(entry.content)}</div>
-                                        ${entry.updatedAt ? `<div class="panel-subtitle" style="margin-top: 0.75rem;">Last edited ${escapeHtml(formatDateTime(entry.updatedAt))} by ${escapeHtml(entry.updatedByName || entry.updatedByUserId || 'Local user')}</div>` : ''}
+                                        ${entry.updatedAt ? `<div class="panel-subtitle" style="margin-top: 0.75rem;">Last edited ${escapeHtml(formatDateTime(entry.updatedAt))} by ${escapeHtml(entry.updatedByName || entry.updatedByUserId || 'CRM user')}</div>` : ''}
                                         ${entry.versions?.length ? `
                                             <div class="history-sublist">
                                                 <div class="panel-subtitle">Prior versions</div>
                                                 ${entry.versions.map((version) => `
                                                     <div class="history-version">
-                                                        <div class="history-version-meta">${escapeHtml(formatDateTime(version.changedAt))} · ${escapeHtml(version.changedByName || version.changedByUserId || 'Local user')}</div>
+                                                        <div class="history-version-meta">${escapeHtml(formatDateTime(version.changedAt))} · ${escapeHtml(version.changedByName || version.changedByUserId || 'CRM user')}</div>
                                                         <div class="note-history-copy">${escapeHtml(version.content)}</div>
                                                     </div>
                                                 `).join('')}
@@ -1478,67 +2477,42 @@ function renderLeadDetailPage() {
                                     </article>
                                 `).join('')}
                             </div>
-                        ` : '<div class="panel-subtitle" style="margin-top: 1rem;">No saved note history yet for this lead.</div>'}
+                        ` : '<div class="panel-subtitle lead-detail-empty-copy">No saved note history yet for this record.</div>'}
                     </section>
-
-                    <section class="crm-card">
-                        <div class="panel-head">
-                            <div>
-                                <h2 class="section-title">Lead profile</h2>
-                                <p class="panel-copy">Key calling and ownership context without duplicating the main edit form.</p>
-                            </div>
-                        </div>
-                        <ul class="mini-list">
-                            <li><span class="mini-list-title">Email</span><span class="mini-list-meta">${escapeHtml(lead.email || '—')}</span></li>
-                            <li><span class="mini-list-title">Phone</span><span class="mini-list-meta">${escapeHtml(lead.phone || '—')}</span></li>
-                            <li><span class="mini-list-title">Subscription</span><span class="mini-list-meta">${escapeHtml(lead.subscriptionType || '—')}</span></li>
-                            <li><span class="mini-list-title">Time zone</span><span class="mini-list-meta">${escapeHtml(lead.timeZone || '—')}</span></li>
-                            <li><span class="mini-list-title">Assigned rep</span><span class="mini-list-meta">${escapeHtml(lead.assignedTo || 'Unassigned')}</span></li>
-                            <li><span class="mini-list-title">Disposition</span><span class="mini-list-meta">${escapeHtml(lead.disposition || '—')}</span></li>
-                            <li><span class="mini-list-title">Follow up</span><span class="mini-list-meta">${escapeHtml(lead.followUpAction || lead.followUpAt || '—')}</span></li>
-                            <li><span class="mini-list-title">Status</span><span class="mini-list-meta">${escapeHtml(titleCase(lead.status || 'new'))}</span></li>
-                            <li><span class="mini-list-title">Created</span><span class="mini-list-meta">${escapeHtml(formatDateTime(lead.createdAt))}</span></li>
-                            <li><span class="mini-list-title">Updated</span><span class="mini-list-meta">${escapeHtml(formatDateTime(lead.updatedAt))}</span></li>
-                        </ul>
-                    </section>
-                </div>
-
-                ${state.leadHistoryOpen ? `
-                    <aside class="crm-card lead-history-panel">
-                        <div class="panel-head">
-                            <div>
-                                <h2 class="section-title">Lead History</h2>
-                                <p class="panel-copy">Read-only audit trail from Supabase, newest first.</p>
-                            </div>
-                        </div>
-                        ${leadHistoryEntries.length ? `
-                            <div class="history-list">
-                                ${leadHistoryEntries.map((entry) => `
-                                    <article class="history-card">
-                                        <div class="history-head">
-                                            <div>
-                                                <div class="history-title">${escapeHtml(entry.fieldName || entry.fieldLabel || 'unknown')}</div>
-                                                <div class="panel-subtitle">Changed by ${escapeHtml(getLeadHistoryActorLabel(entry))}</div>
-                                            </div>
-                                            <span class="summary-chip">${escapeHtml(formatDateTime(entry.changedAt || entry.createdAt))}</span>
-                                        </div>
-                                        <div class="history-audit-grid">
-                                            <div>
-                                                <div class="panel-subtitle">Old value</div>
-                                                <div class="note-history-copy">${escapeHtml(entry.oldValue || entry.previousValue || '—')}</div>
-                                            </div>
-                                            <div>
-                                                <div class="panel-subtitle">New value</div>
-                                                <div class="note-history-copy">${escapeHtml(entry.newValue || entry.nextValue || '—')}</div>
-                                            </div>
-                                        </div>
-                                    </article>
-                                `).join('')}
-                            </div>
-                        ` : '<div class="panel-subtitle">No lead history exists for this lead yet.</div>'}
-                    </aside>
-                ` : ''}
+                </aside>
             </div>
+        </div>
+    `;
+}
+
+function renderLeadHistoryEntries(entries) {
+    if (!entries.length) {
+        return '<div class="crm-history-modal-empty">No history entries exist for this record yet.</div>';
+    }
+
+    return `
+        <div class="history-list crm-history-entry-list">
+            ${entries.map((entry) => `
+                <article class="history-card">
+                    <div class="history-head">
+                        <div>
+                            <div class="history-title">${escapeHtml(entry.fieldName || entry.fieldLabel || 'Unknown field')}</div>
+                            <div class="panel-subtitle">Changed by ${escapeHtml(getLeadHistoryActorLabel(entry))}</div>
+                        </div>
+                        <span class="summary-chip">${escapeHtml(formatDateTime(entry.changedAt || entry.createdAt))}</span>
+                    </div>
+                    <div class="history-audit-grid">
+                        <div>
+                            <div class="panel-subtitle">Old value</div>
+                            <div class="note-history-copy">${escapeHtml(entry.oldValue || entry.previousValue || '—')}</div>
+                        </div>
+                        <div>
+                            <div class="panel-subtitle">New value</div>
+                            <div class="note-history-copy">${escapeHtml(entry.newValue || entry.nextValue || '—')}</div>
+                        </div>
+                    </div>
+                </article>
+            `).join('')}
         </div>
     `;
 }
@@ -1622,86 +2596,409 @@ function hasActiveAdminProfile() {
     return state.profile?.role === 'admin' && state.profile?.isActive === true;
 }
 
+function getAdminWorkspaceUsers() {
+    return getAssignableUsers({ includeAdmin: false, salesFloorOnly: true, includeInactive: true });
+}
+
+function getVisibleAdminUsers(users = getAdminWorkspaceUsers()) {
+    const searchTerm = normalizeWhitespace(state.adminUserSearch).toLowerCase();
+
+    return users.filter((user) => {
+        if (state.adminUserFilter === 'active' && user.isActive === false) {
+            return false;
+        }
+
+        if (state.adminUserFilter === 'inactive' && user.isActive !== false) {
+            return false;
+        }
+
+        if (state.adminUserFilter === 'senior' && user.role !== 'senior') {
+            return false;
+        }
+
+        if (state.adminUserFilter === 'sales' && user.role !== 'sales') {
+            return false;
+        }
+
+        if (!searchTerm) {
+            return true;
+        }
+
+        const haystack = [
+            user.name,
+            user.email,
+            user.title,
+            getRoleLabel(user.role)
+        ].join(' ').toLowerCase();
+
+        return haystack.includes(searchTerm);
+    });
+}
+
+function getUserInitials(name = '') {
+    return normalizeWhitespace(name)
+        .split(/\s+/)
+        .filter(Boolean)
+        .slice(0, 2)
+        .map((part) => part.charAt(0).toUpperCase())
+        .join('') || 'U';
+}
+
 function renderAdminPanel() {
     if (!hasActiveAdminProfile()) {
         return renderEmptyState({
             title: 'Admin access required',
-            copy: 'This control area is available only to active admin profiles from Supabase.',
+            copy: 'This control area is available only to active admin profiles.',
             actions: '<button class="crm-button-ghost" data-action="set-view" data-view="clients"><i class="fa-solid fa-arrow-left"></i> Back to Leads</button>'
         });
     }
 
     const adminMetrics = getAdminMetrics();
-    const salesUsers = getSalesUsers();
+    const adminUsers = getAdminWorkspaceUsers();
+    const visibleAdminUsers = getVisibleAdminUsers(adminUsers);
     const editingTagDefinition = state.tagDefinitions.find((definition) => definition.id === state.editingTagDefinitionId) || null;
     const editingDispositionDefinition = state.dispositionDefinitions.find((definition) => definition.id === state.editingDispositionDefinitionId) || null;
 
     return `
-        <div class="panel-grid">
-            <section class="crm-card">
-                <div class="panel-head">
+        <div class="crm-admin-wrapper">
+            <section class="crm-admin-hero">
+                <div class="crm-admin-hero-glow"></div>
+                <div class="crm-admin-hero-body">
                     <div>
-                        <span class="crm-kicker"><i class="fa-solid fa-shield-halved"></i> Admin workspace</span>
-                        <h1 class="section-title">Control the CRM prototype.</h1>
-                        <p class="panel-copy">Manage reps, assignments, lead distribution, members, and workspace activity without leaving the current CRM shell.</p>
+                        <div class="crm-admin-label-pill"><i class="fa-solid fa-shield-halved"></i> Admin Panel</div>
+                        <h1 class="crm-admin-hero-title">Control Center</h1>
+                        <p class="crm-admin-hero-sub">Manage reps, pipeline rules, and workspace activity from one focused control center.</p>
                     </div>
+                    <button class="crm-admin-back-btn" data-action="set-view" data-view="clients">
+                        <i class="fa-solid fa-arrow-left"></i> Leads
+                    </button>
                 </div>
             </section>
 
-            <div class="summary-grid">
-                <article class="crm-summary-card"><div class="crm-summary-label">Total leads</div><div class="crm-summary-value">${adminMetrics.totalLeads}</div><div class="crm-summary-meta">Default lead workspace count.</div></article>
-                <article class="crm-summary-card"><div class="crm-summary-label">Total members</div><div class="crm-summary-value">${adminMetrics.totalMembers}</div><div class="crm-summary-meta">Leads moved into Members.</div></article>
-                <article class="crm-summary-card"><div class="crm-summary-label">Assigned vs unassigned</div><div class="crm-summary-value">${adminMetrics.assignedLeads}/${adminMetrics.unassignedLeads}</div><div class="crm-summary-meta">Assigned leads versus unassigned leads.</div></article>
-                <article class="crm-summary-card"><div class="crm-summary-label">Follow-ups due</div><div class="crm-summary-value">${adminMetrics.followUpsDue}</div><div class="crm-summary-meta">Calling stats placeholder based on scheduled follow-up dates.</div></article>
+            <div class="crm-admin-stats-grid">
+                <article class="crm-admin-stat-card">
+                    <div class="crm-admin-stat-icon"><i class="fa-solid fa-users"></i></div>
+                    <div>
+                        <div class="crm-admin-stat-value">${adminMetrics.totalReps.toLocaleString()}</div>
+                        <div class="crm-admin-stat-label">Total Reps</div>
+                    </div>
+                </article>
+                <article class="crm-admin-stat-card">
+                    <div class="crm-admin-stat-icon"><i class="fa-solid fa-user-check"></i></div>
+                    <div>
+                        <div class="crm-admin-stat-value">${adminMetrics.activeReps.toLocaleString()}</div>
+                        <div class="crm-admin-stat-label">Active Reps</div>
+                    </div>
+                </article>
+                <article class="crm-admin-stat-card">
+                    <div class="crm-admin-stat-icon"><i class="fa-solid fa-address-book"></i></div>
+                    <div>
+                        <div class="crm-admin-stat-value">${adminMetrics.totalLeads.toLocaleString()}</div>
+                        <div class="crm-admin-stat-label">Total Leads</div>
+                    </div>
+                </article>
+                <article class="crm-admin-stat-card">
+                    <div class="crm-admin-stat-icon"><i class="fa-solid fa-user-group"></i></div>
+                    <div>
+                        <div class="crm-admin-stat-value">${adminMetrics.totalMembers.toLocaleString()}</div>
+                        <div class="crm-admin-stat-label">Total Members</div>
+                    </div>
+                </article>
             </div>
 
-            <div class="overview-grid">
-                <div class="panel-grid">
-                    <section class="crm-card">
-                        <div class="panel-head">
-                            <div>
-                                <h2 class="section-title">Leads by rep</h2>
-                                <p class="panel-copy">Distribution across the current sales floor.</p>
-                            </div>
+            <div class="crm-admin-tabs">
+                ${ADMIN_TABS.map((tab) => `
+                    <button
+                        class="crm-admin-tab ${state.adminTab === tab.id ? 'active' : ''}"
+                        data-action="set-admin-tab"
+                        data-admin-tab="${tab.id}"
+                    >
+                        <i class="fa-solid ${tab.icon}"></i> ${tab.label}
+                    </button>
+                `).join('')}
+            </div>
+
+            <section class="crm-admin-panel ${state.adminTab === 'team' ? 'active' : ''}">
+                <div class="crm-admin-card">
+                    <div class="crm-admin-controls">
+                        <div class="crm-admin-search-wrap">
+                            <i class="fa-solid fa-magnifying-glass"></i>
+                            <input
+                                type="text"
+                                id="admin-user-search"
+                                class="crm-admin-search-input"
+                                placeholder="Search by name or email..."
+                                value="${escapeHtml(state.adminUserSearch)}"
+                            >
                         </div>
-                        <ul class="metric-list">
-                            ${adminMetrics.leadsByRep.map(([repName, count]) => `
-                                <li>
-                                    <span class="mini-list-title">${escapeHtml(repName)}</span>
-                                    <strong>${count}</strong>
-                                </li>
+                        <div class="crm-admin-filter-pills">
+                            ${[
+                                ['all', 'All'],
+                                ['active', 'Active'],
+                                ['inactive', 'Inactive'],
+                                ['senior', 'Senior'],
+                                ['sales', 'Sales']
+                            ].map(([value, label]) => `
+                                <button
+                                    class="crm-admin-filter-pill ${state.adminUserFilter === value ? 'active' : ''}"
+                                    data-action="set-admin-user-filter"
+                                    data-filter-value="${value}"
+                                >
+                                    ${label}
+                                </button>
                             `).join('')}
-                        </ul>
+                        </div>
+                    </div>
+
+                    ${visibleAdminUsers.length ? `
+                        <div class="crm-admin-table-wrap">
+                            <table class="crm-admin-table">
+                                <thead>
+                                    <tr>
+                                        <th>User</th>
+                                        <th>Role</th>
+                                        <th>Status</th>
+                                        <th>Assigned Leads</th>
+                                        <th>Members</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    ${visibleAdminUsers.map((user) => `
+                                        <tr>
+                                            <td>
+                                                <div class="crm-admin-user-cell">
+                                                    <div class="crm-admin-user-avatar">${escapeHtml(getUserInitials(user.name))}</div>
+                                                    <div>
+                                                        <div class="crm-admin-user-name">${escapeHtml(user.name)}</div>
+                                                        <div class="crm-admin-user-email">${escapeHtml(user.email)}</div>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <span class="crm-admin-role-badge ${escapeHtml(user.role)}">${escapeHtml(getRoleLabel(user.role))}</span>
+                                            </td>
+                                            <td>
+                                                <span class="crm-admin-status-chip ${user.isActive === false ? 'inactive' : 'active'}">
+                                                    ${user.isActive === false ? 'Inactive' : 'Active'}
+                                                </span>
+                                            </td>
+                                            <td>${(adminMetrics.leadsByRepMap.get(user.name) || 0).toLocaleString()}</td>
+                                            <td>${(adminMetrics.membersByRepMap.get(user.name) || 0).toLocaleString()}</td>
+                                            <td>
+                                                <div class="crm-admin-row-actions">
+                                                    <button class="crm-admin-row-btn edit" data-action="open-user-form" data-user-id="${user.id}">
+                                                        <i class="fa-solid fa-pen"></i> Edit
+                                                    </button>
+                                                    <button class="crm-admin-row-btn delete" data-action="delete-user-account" data-user-id="${user.id}">
+                                                        <i class="fa-solid fa-trash"></i> Delete
+                                                    </button>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    `).join('')}
+                                </tbody>
+                            </table>
+                        </div>
+                    ` : `
+                        <div class="crm-admin-empty">
+                            <i class="fa-solid fa-users-slash"></i>
+                            <div>No reps match the current search.</div>
+                        </div>
+                    `}
+                </div>
+            </section>
+
+            <section class="crm-admin-panel ${state.adminTab === 'tags' ? 'active' : ''}">
+                <div class="crm-admin-section-grid">
+                    <section class="crm-admin-card">
+                        <div class="crm-admin-card-title"><i class="fa-solid fa-tags"></i> Tag Catalog</div>
+                        <p class="crm-admin-card-copy">Manage the tags reps can apply across the CRM workspace.</p>
+
+                        <form id="tag-definition-form" class="crm-admin-form-stack">
+                            <input type="hidden" name="id" value="${escapeHtml(editingTagDefinition?.id || '')}">
+                            <div class="crm-admin-form-grid">
+                                <label class="form-field">
+                                    <span class="form-label">Tag label</span>
+                                    <input class="crm-input" name="label" value="${escapeHtml(editingTagDefinition?.label || '')}" placeholder="Do Not Call">
+                                </label>
+                                <label class="form-field">
+                                    <span class="form-label">State</span>
+                                    <select class="crm-select" name="isArchived">
+                                        <option value="false" ${editingTagDefinition?.isArchived !== true ? 'selected' : ''}>Active</option>
+                                        <option value="true" ${editingTagDefinition?.isArchived === true ? 'selected' : ''}>Archived</option>
+                                    </select>
+                                </label>
+                            </div>
+                            <div class="crm-admin-form-actions">
+                                <button class="crm-button" type="submit"><i class="fa-solid fa-tags"></i> ${editingTagDefinition ? 'Update tag' : 'Add tag'}</button>
+                                ${editingTagDefinition ? '<button class="crm-button-ghost" type="button" data-action="clear-tag-definition-edit">New tag</button>' : ''}
+                            </div>
+                        </form>
                     </section>
 
-                    <section class="crm-card">
-                        <div class="panel-head">
-                            <div>
-                                <h2 class="section-title">Leads by status</h2>
-                                <p class="panel-copy">Current pipeline shape for the lead workspace.</p>
-                            </div>
+                    <section class="crm-admin-card">
+                        <div class="crm-admin-card-title"><i class="fa-solid fa-table-list"></i> Current Tags</div>
+                        <div class="crm-admin-table-wrap">
+                            <table class="crm-admin-table">
+                                <thead>
+                                    <tr>
+                                        <th>Tag</th>
+                                        <th>Status</th>
+                                        <th>Records</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    ${state.tagDefinitions.length ? state.tagDefinitions.map((definition) => `
+                                        <tr>
+                                            <td>${escapeHtml(definition.label)}</td>
+                                            <td>
+                                                <span class="crm-admin-status-chip ${definition.isArchived ? 'inactive' : 'active'}">
+                                                    ${definition.isArchived ? 'Archived' : 'Active'}
+                                                </span>
+                                            </td>
+                                            <td>${state.clients.filter((client) => client.tags.some((tag) => tag.toLowerCase() === definition.label.toLowerCase())).length.toLocaleString()}</td>
+                                            <td>
+                                                <div class="crm-admin-row-actions">
+                                                    <button class="crm-admin-row-btn edit" data-action="edit-tag-definition" data-definition-id="${definition.id}">
+                                                        <i class="fa-solid fa-pen"></i> Edit
+                                                    </button>
+                                                    <button class="crm-admin-row-btn edit" data-action="toggle-tag-archive" data-definition-id="${definition.id}">
+                                                        <i class="fa-solid fa-box-archive"></i> ${definition.isArchived ? 'Restore' : 'Archive'}
+                                                    </button>
+                                                    <button class="crm-admin-row-btn delete" data-action="delete-tag-definition" data-definition-id="${definition.id}">
+                                                        <i class="fa-solid fa-trash"></i> Delete
+                                                    </button>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    `).join('') : `
+                                        <tr>
+                                            <td colspan="4">
+                                                <div class="crm-admin-empty compact">
+                                                    <div>No tags configured yet.</div>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    `}
+                                </tbody>
+                            </table>
                         </div>
-                        <ul class="metric-list">
-                            ${adminMetrics.leadsByStatus.map(([status, count]) => `
-                                <li>
-                                    <span class="status-pill ${escapeHtml(status)}">${escapeHtml(status)}</span>
-                                    <strong>${count}</strong>
-                                </li>
-                            `).join('')}
-                        </ul>
                     </section>
                 </div>
+            </section>
 
-                <div class="panel-grid">
-                    <section class="crm-card">
-                        <div class="panel-head">
-                            <div>
-                                <h2 class="section-title">Recent assignments</h2>
-                                <p class="panel-copy">Latest assignment activity pulled from the lead activity logs.</p>
+            <section class="crm-admin-panel ${state.adminTab === 'dispositions' ? 'active' : ''}">
+                <div class="crm-admin-section-grid">
+                    <section class="crm-admin-card">
+                        <div class="crm-admin-card-title"><i class="fa-solid fa-list-check"></i> Disposition Catalog</div>
+                        <p class="crm-admin-card-copy">Control the approved dispositions available in lead workflows.</p>
+
+                        <form id="disposition-definition-form" class="crm-admin-form-stack">
+                            <input type="hidden" name="id" value="${escapeHtml(editingDispositionDefinition?.id || '')}">
+                            <div class="crm-admin-form-grid">
+                                <label class="form-field">
+                                    <span class="form-label">Disposition label</span>
+                                    <input class="crm-input" name="label" value="${escapeHtml(editingDispositionDefinition?.label || '')}" placeholder="TO">
+                                </label>
+                                <label class="form-field">
+                                    <span class="form-label">State</span>
+                                    <select class="crm-select" name="isArchived">
+                                        <option value="false" ${editingDispositionDefinition?.isArchived !== true ? 'selected' : ''}>Active</option>
+                                        <option value="true" ${editingDispositionDefinition?.isArchived === true ? 'selected' : ''}>Archived</option>
+                                    </select>
+                                </label>
                             </div>
+                            <div class="crm-admin-form-actions">
+                                <button class="crm-button" type="submit"><i class="fa-solid fa-list-check"></i> ${editingDispositionDefinition ? 'Update disposition' : 'Add disposition'}</button>
+                                ${editingDispositionDefinition ? '<button class="crm-button-ghost" type="button" data-action="clear-disposition-definition-edit">New disposition</button>' : ''}
+                            </div>
+                        </form>
+                    </section>
+
+                    <section class="crm-admin-card">
+                        <div class="crm-admin-card-title"><i class="fa-solid fa-table-list"></i> Current Dispositions</div>
+                        <div class="crm-admin-table-wrap">
+                            <table class="crm-admin-table">
+                                <thead>
+                                    <tr>
+                                        <th>Disposition</th>
+                                        <th>Status</th>
+                                        <th>Records</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    ${state.dispositionDefinitions.length ? state.dispositionDefinitions.map((definition) => `
+                                        <tr>
+                                            <td>${escapeHtml(definition.label)}</td>
+                                            <td>
+                                                <span class="crm-admin-status-chip ${definition.isArchived ? 'inactive' : 'active'}">
+                                                    ${definition.isArchived ? 'Archived' : 'Active'}
+                                                </span>
+                                            </td>
+                                            <td>${state.clients.filter((client) => normalizeWhitespace(client.disposition).toLowerCase() === definition.label.toLowerCase()).length.toLocaleString()}</td>
+                                            <td>
+                                                <div class="crm-admin-row-actions">
+                                                    <button class="crm-admin-row-btn edit" data-action="edit-disposition-definition" data-definition-id="${definition.id}">
+                                                        <i class="fa-solid fa-pen"></i> Edit
+                                                    </button>
+                                                    <button class="crm-admin-row-btn edit" data-action="toggle-disposition-archive" data-definition-id="${definition.id}">
+                                                        <i class="fa-solid fa-box-archive"></i> ${definition.isArchived ? 'Restore' : 'Archive'}
+                                                    </button>
+                                                    <button class="crm-admin-row-btn delete" data-action="delete-disposition-definition" data-definition-id="${definition.id}">
+                                                        <i class="fa-solid fa-trash"></i> Delete
+                                                    </button>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    `).join('') : `
+                                        <tr>
+                                            <td colspan="4">
+                                                <div class="crm-admin-empty compact">
+                                                    <div>No dispositions configured yet.</div>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    `}
+                                </tbody>
+                            </table>
                         </div>
+                    </section>
+                </div>
+            </section>
+
+            <section class="crm-admin-panel ${state.adminTab === 'activity' ? 'active' : ''}">
+                <div class="crm-admin-activity-grid">
+                    <section class="crm-admin-card">
+                        <div class="crm-admin-card-title"><i class="fa-solid fa-chart-pie"></i> Pipeline Status</div>
+                        <ul class="crm-admin-mini-list">
+                            ${adminMetrics.leadsByStatus.map(([status, count]) => `
+                                <li>
+                                    <span class="status-pill ${escapeHtml(status)}">${escapeHtml(titleCase(status))}</span>
+                                    <strong>${count.toLocaleString()}</strong>
+                                </li>
+                            `).join('') || '<li><span>No pipeline data yet.</span><strong>0</strong></li>'}
+                        </ul>
+                    </section>
+
+                    <section class="crm-admin-card">
+                        <div class="crm-admin-card-title"><i class="fa-solid fa-chart-bar"></i> Leads by Rep</div>
+                        <ul class="crm-admin-mini-list">
+                            ${adminMetrics.leadsByRep.slice(0, 6).map(([repName, count]) => `
+                                <li>
+                                    <span>${escapeHtml(repName)}</span>
+                                    <strong>${count.toLocaleString()}</strong>
+                                </li>
+                            `).join('') || '<li><span>No rep activity yet.</span><strong>0</strong></li>'}
+                        </ul>
+                    </section>
+
+                    <section class="crm-admin-card">
+                        <div class="crm-admin-card-title"><i class="fa-solid fa-arrow-right-arrow-left"></i> Recent Assignments</div>
                         ${adminMetrics.recentAssignments.length ? `
-                            <div class="history-list">
+                            <div class="history-list compact-history">
                                 ${adminMetrics.recentAssignments.map((entry) => `
                                     <article class="history-card">
                                         <div class="history-head">
@@ -1714,18 +3011,13 @@ function renderAdminPanel() {
                                     </article>
                                 `).join('')}
                             </div>
-                        ` : '<div class="panel-subtitle">No assignment activity yet.</div>'}
+                        ` : '<div class="crm-admin-empty compact"><div>No assignment activity yet.</div></div>'}
                     </section>
 
-                    <section class="crm-card">
-                        <div class="panel-head">
-                            <div>
-                                <h2 class="section-title">Recent activity</h2>
-                                <p class="panel-copy">Latest lead updates across the workspace.</p>
-                            </div>
-                        </div>
+                    <section class="crm-admin-card">
+                        <div class="crm-admin-card-title"><i class="fa-solid fa-clock-rotate-left"></i> Recent Activity</div>
                         ${adminMetrics.recentActivity.length ? `
-                            <div class="history-list">
+                            <div class="history-list compact-history">
                                 ${adminMetrics.recentActivity.map((entry) => `
                                     <article class="history-card">
                                         <div class="history-head">
@@ -1738,200 +3030,47 @@ function renderAdminPanel() {
                                     </article>
                                 `).join('')}
                             </div>
-                        ` : '<div class="panel-subtitle">No recent activity yet.</div>'}
+                        ` : '<div class="crm-admin-empty compact"><div>No recent activity yet.</div></div>'}
                     </section>
-                </div>
-            </div>
 
-            <section class="crm-card">
-                <div class="panel-head">
-                    <div>
-                        <h2 class="section-title">Rep management</h2>
-                        <p class="panel-copy">Edit or remove sales reps and senior reps stored in Supabase profiles.</p>
-                    </div>
-                </div>
-                <div class="credentials-grid">
-                    ${salesUsers.map((user) => `
-                        <article class="auth-user-card" style="min-width: 260px;">
-                            <div class="auth-user-head">
-                                <div>
-                                    <div class="auth-user-name">${escapeHtml(user.name)}</div>
-                                    <div class="panel-subtitle">${escapeHtml(user.title || getRoleLabel(user.role))}</div>
-                                </div>
-                                <span class="status-pill ${user.isActive === false ? 'inactive' : 'qualified'}">${user.isActive === false ? 'inactive' : getRoleLabel(user.role)}</span>
-                            </div>
-                            <div class="auth-user-meta">
-                                <div><strong>Email:</strong> ${escapeHtml(user.email)}</div>
-                                <div><strong>Assigned leads:</strong> ${adminMetrics.leadsByRepMap.get(user.name) || 0}</div>
-                                <div><strong>Role:</strong> ${escapeHtml(getRoleLabel(user.role))}</div>
-                            </div>
-                            <div class="row-actions" style="margin-top: 1rem;">
-                                <button class="crm-button-ghost" data-action="open-user-form" data-user-id="${user.id}"><i class="fa-solid fa-pen"></i> Edit</button>
-                                <button class="crm-button-danger" data-action="delete-user-account" data-user-id="${user.id}">
-                                    <i class="fa-solid fa-trash"></i> Delete account
-                                </button>
-                            </div>
-                        </article>
-                    `).join('')}
+                    <section class="crm-admin-card">
+                        <div class="crm-admin-card-title"><i class="fa-solid fa-phone-volume"></i> Calling Activity</div>
+                        <div class="crm-admin-substats-grid">
+                            <article class="crm-admin-substat">
+                                <div class="crm-admin-substat-value">${adminMetrics.followUpsDue.toLocaleString()}</div>
+                                <div class="crm-admin-substat-label">Follow-Ups Due</div>
+                            </article>
+                            <article class="crm-admin-substat">
+                                <div class="crm-admin-substat-value">${adminMetrics.noteEntriesByRep[0]?.[1]?.toLocaleString() || '0'}</div>
+                                <div class="crm-admin-substat-label">Top Note Volume</div>
+                            </article>
+                            <article class="crm-admin-substat">
+                                <div class="crm-admin-substat-value">${adminMetrics.dispositionChangesByRep[0]?.[1]?.toLocaleString() || '0'}</div>
+                                <div class="crm-admin-substat-label">Top Dispositions</div>
+                            </article>
+                            <article class="crm-admin-substat">
+                                <div class="crm-admin-substat-value">${adminMetrics.followUpsByRep[0]?.[1]?.toLocaleString() || '0'}</div>
+                                <div class="crm-admin-substat-label">Top Follow-Ups</div>
+                            </article>
+                        </div>
+                    </section>
+
+                    <section class="crm-admin-card">
+                        <div class="crm-admin-card-title"><i class="fa-solid fa-wave-square"></i> Rep Touches</div>
+                        <ul class="crm-admin-mini-list">
+                            ${adminMetrics.leadsTouchedByRep.slice(0, 6).map(([name, count]) => `
+                                <li>
+                                    <span>${escapeHtml(name)}</span>
+                                    <strong>${count.toLocaleString()}</strong>
+                                </li>
+                            `).join('') || '<li><span>No touches recorded yet.</span><strong>0</strong></li>'}
+                        </ul>
+                    </section>
                 </div>
             </section>
 
-            <div class="overview-grid">
-                <section class="crm-card">
-                    <div class="panel-head">
-                        <div>
-                            <h2 class="section-title">Tag catalog</h2>
-                            <p class="panel-copy">Sales reps can only select active tags from this admin-managed list.</p>
-                        </div>
-                    </div>
-
-                    <form id="tag-definition-form" style="margin-top: 1rem;">
-                        <input type="hidden" name="id" value="${escapeHtml(editingTagDefinition?.id || '')}">
-                        <div class="form-grid">
-                            <label class="form-field">
-                                <span class="form-label">Tag label</span>
-                                <input class="crm-input" name="label" value="${escapeHtml(editingTagDefinition?.label || '')}" placeholder="Do Not Call">
-                            </label>
-                            <label class="form-field">
-                                <span class="form-label">State</span>
-                                <select class="crm-select" name="isArchived">
-                                    <option value="false" ${editingTagDefinition?.isArchived !== true ? 'selected' : ''}>Active</option>
-                                    <option value="true" ${editingTagDefinition?.isArchived === true ? 'selected' : ''}>Archived</option>
-                                </select>
-                            </label>
-                        </div>
-                        <div class="modal-actions" style="margin-top: 1rem;">
-                            <button class="crm-button" type="submit"><i class="fa-solid fa-tags"></i> ${editingTagDefinition ? 'Update tag' : 'Add tag'}</button>
-                            ${editingTagDefinition ? '<button class="crm-button-ghost" type="button" data-action="clear-tag-definition-edit">New tag</button>' : ''}
-                        </div>
-                    </form>
-
-                    <div class="history-list">
-                        ${state.tagDefinitions.length ? state.tagDefinitions.map((definition) => `
-                            <article class="history-card">
-                                <div class="history-head">
-                                    <div>
-                                        <div class="history-title">${escapeHtml(definition.label)}</div>
-                                        <div class="panel-subtitle">${definition.isArchived ? 'Archived' : 'Active'}</div>
-                                    </div>
-                                    <span class="summary-chip">${state.clients.filter((client) => client.tags.includes(definition.label)).length} records</span>
-                                </div>
-                                <div class="row-actions" style="margin-top: 0.85rem;">
-                                    <button class="crm-button-ghost" data-action="edit-tag-definition" data-definition-id="${definition.id}">
-                                        <i class="fa-solid fa-pen"></i> Edit
-                                    </button>
-                                    <button class="crm-button-secondary" data-action="toggle-tag-archive" data-definition-id="${definition.id}">
-                                        <i class="fa-solid fa-box-archive"></i> ${definition.isArchived ? 'Restore' : 'Archive'}
-                                    </button>
-                                    <button class="crm-button-danger" data-action="delete-tag-definition" data-definition-id="${definition.id}">
-                                        <i class="fa-solid fa-trash"></i> Delete
-                                    </button>
-                                </div>
-                            </article>
-                        `).join('') : '<div class="panel-subtitle">No tags configured yet.</div>'}
-                    </div>
-                </section>
-
-                <section class="crm-card">
-                    <div class="panel-head">
-                        <div>
-                            <h2 class="section-title">Disposition catalog</h2>
-                            <p class="panel-copy">Approved dispositions used in the lead workflow dropdown.</p>
-                        </div>
-                    </div>
-
-                    <form id="disposition-definition-form" style="margin-top: 1rem;">
-                        <input type="hidden" name="id" value="${escapeHtml(editingDispositionDefinition?.id || '')}">
-                        <div class="form-grid">
-                            <label class="form-field">
-                                <span class="form-label">Disposition label</span>
-                                <input class="crm-input" name="label" value="${escapeHtml(editingDispositionDefinition?.label || '')}" placeholder="TO">
-                            </label>
-                            <label class="form-field">
-                                <span class="form-label">State</span>
-                                <select class="crm-select" name="isArchived">
-                                    <option value="false" ${editingDispositionDefinition?.isArchived !== true ? 'selected' : ''}>Active</option>
-                                    <option value="true" ${editingDispositionDefinition?.isArchived === true ? 'selected' : ''}>Archived</option>
-                                </select>
-                            </label>
-                        </div>
-                        <div class="modal-actions" style="margin-top: 1rem;">
-                            <button class="crm-button" type="submit"><i class="fa-solid fa-list-check"></i> ${editingDispositionDefinition ? 'Update disposition' : 'Add disposition'}</button>
-                            ${editingDispositionDefinition ? '<button class="crm-button-ghost" type="button" data-action="clear-disposition-definition-edit">New disposition</button>' : ''}
-                        </div>
-                    </form>
-
-                    <div class="history-list">
-                        ${state.dispositionDefinitions.length ? state.dispositionDefinitions.map((definition) => `
-                            <article class="history-card">
-                                <div class="history-head">
-                                    <div>
-                                        <div class="history-title">${escapeHtml(definition.label)}</div>
-                                        <div class="panel-subtitle">${definition.isArchived ? 'Archived' : 'Active'}</div>
-                                    </div>
-                                </div>
-                                <div class="row-actions" style="margin-top: 0.85rem;">
-                                    <button class="crm-button-ghost" data-action="edit-disposition-definition" data-definition-id="${definition.id}">
-                                        <i class="fa-solid fa-pen"></i> Edit
-                                    </button>
-                                    <button class="crm-button-secondary" data-action="toggle-disposition-archive" data-definition-id="${definition.id}">
-                                        <i class="fa-solid fa-box-archive"></i> ${definition.isArchived ? 'Restore' : 'Archive'}
-                                    </button>
-                                    <button class="crm-button-danger" data-action="delete-disposition-definition" data-definition-id="${definition.id}">
-                                        <i class="fa-solid fa-trash"></i> Delete
-                                    </button>
-                                </div>
-                            </article>
-                        `).join('') : '<div class="panel-subtitle">No dispositions configured yet.</div>'}
-                    </div>
-                </section>
-            </div>
-
-            <section class="crm-card">
-                <div class="panel-head">
-                    <div>
-                        <h2 class="section-title">Calling stats placeholders</h2>
-                        <p class="panel-copy">Lightweight operational counts powered by the current local audit data.</p>
-                    </div>
-                </div>
-                <div class="overview-grid">
-                    <div class="history-list compact-history">
-                        <article class="history-card">
-                            <div class="history-title">Note entries per rep</div>
-                            <ul class="mini-list">
-                                ${adminMetrics.noteEntriesByRep.slice(0, 5).map(([name, count]) => `
-                                    <li><span class="mini-list-title">${escapeHtml(name)}</span><span class="mini-list-meta">${count}</span></li>
-                                `).join('') || '<li><span class="mini-list-title">No note data yet</span><span class="mini-list-meta">0</span></li>'}
-                            </ul>
-                        </article>
-                        <article class="history-card">
-                            <div class="history-title">Leads touched per rep</div>
-                            <ul class="mini-list">
-                                ${adminMetrics.leadsTouchedByRep.slice(0, 5).map(([name, count]) => `
-                                    <li><span class="mini-list-title">${escapeHtml(name)}</span><span class="mini-list-meta">${count}</span></li>
-                                `).join('') || '<li><span class="mini-list-title">No activity yet</span><span class="mini-list-meta">0</span></li>'}
-                            </ul>
-                        </article>
-                    </div>
-                    <div class="history-list compact-history">
-                        <article class="history-card">
-                            <div class="history-title">Disposition changes per rep</div>
-                            <ul class="mini-list">
-                                ${adminMetrics.dispositionChangesByRep.slice(0, 5).map(([name, count]) => `
-                                    <li><span class="mini-list-title">${escapeHtml(name)}</span><span class="mini-list-meta">${count}</span></li>
-                                `).join('') || '<li><span class="mini-list-title">No disposition changes yet</span><span class="mini-list-meta">0</span></li>'}
-                            </ul>
-                        </article>
-                        <article class="history-card">
-                            <div class="history-title">Follow ups set per rep</div>
-                            <ul class="mini-list">
-                                ${adminMetrics.followUpsByRep.slice(0, 5).map(([name, count]) => `
-                                    <li><span class="mini-list-title">${escapeHtml(name)}</span><span class="mini-list-meta">${count}</span></li>
-                                `).join('') || '<li><span class="mini-list-title">No follow ups yet</span><span class="mini-list-meta">0</span></li>'}
-                            </ul>
-                        </article>
-                    </div>
-                </div>
+            <section class="crm-admin-panel ${state.adminTab === 'imports' ? 'active' : ''}">
+                ${renderImportsPanel()}
             </section>
         </div>
     `;
@@ -1941,7 +3080,7 @@ function renderImportsPanel() {
     if (!hasPermission(state.session, PERMISSIONS.IMPORT_LEADS)) {
         return renderEmptyState({
             title: 'Admin access required',
-            copy: 'Lead import tools are available only to admin users in the CRM prototype.',
+            copy: 'Lead import tools are available only to admin users.',
             actions: '<button class="crm-button-ghost" data-action="set-view" data-view="clients"><i class="fa-solid fa-arrow-left"></i> Back to Leads</button>'
         });
     }
@@ -1960,7 +3099,7 @@ function renderImportsPanel() {
                         <span class="crm-kicker"><i class="fa-solid fa-file-arrow-up"></i> Import tools</span>
                         <h1 class="section-title">CSV intake with duplicate controls.</h1>
                         <p class="panel-copy">
-                            Upload CSV files in the browser, map columns, review duplicates by email and phone, then import into IndexedDB.
+                            Upload CSV files, map columns, review duplicates by email and phone, then import them into the workspace.
                         </p>
                     </div>
                     <div class="row-actions">
@@ -2006,7 +3145,7 @@ function renderImportsPanel() {
                 ` : `
                     <div class="empty-state">
                         <div>
-                            <div class="empty-copy">Import history will appear here once you upload a CSV or use the sample data seed.</div>
+                            <div class="empty-copy">Import history will appear here once you upload a CSV.</div>
                         </div>
                     </div>
                 `}
@@ -2016,7 +3155,7 @@ function renderImportsPanel() {
                 <div class="panel-head">
                     <div>
                         <h2 class="section-title">Import history</h2>
-                        <p class="panel-copy">A local log of CSV imports and seeded demo data.</p>
+                        <p class="panel-copy">A running log of CSV imports and workspace updates.</p>
                     </div>
                 </div>
 
@@ -2027,7 +3166,7 @@ function renderImportsPanel() {
                                 <div class="history-head">
                                     <div>
                                         <div class="history-title">${escapeHtml(entry.sourceFileName)}</div>
-                                        <div class="panel-subtitle">${escapeHtml(entry.type === 'seed' ? 'System seed data' : 'CSV import')}</div>
+                                        <div class="panel-subtitle">${escapeHtml(entry.type === 'seed' ? 'System import' : 'CSV import')}</div>
                                     </div>
                                     <span class="summary-chip">${escapeHtml(formatDateTime(entry.importedAt))}</span>
                                 </div>
@@ -2044,7 +3183,7 @@ function renderImportsPanel() {
                     </div>
                 ` : renderEmptyState({
                     title: 'No import history yet',
-                    copy: 'When you upload a CSV, the CRM will record a local summary here.',
+                    copy: 'When you upload a CSV, the CRM will record an import summary here.',
                     actions: '<button class="crm-button-secondary" data-action="open-import"><i class="fa-solid fa-upload"></i> Upload CSV</button>'
                 })}
             </section>
@@ -2053,117 +3192,215 @@ function renderImportsPanel() {
 }
 
 function renderSettingsPanel() {
-    const users = authService.getTestUsers();
-    const leadCount = getScopedClients('leads', { ignoreSearch: true, ignoreFilters: true }).length;
-    const memberCount = getScopedClients('members', { ignoreSearch: true, ignoreFilters: true }).length;
+    const leadCount = getWorkspaceDisplayCount('leads', { ignoreSearch: true, ignoreFilters: true });
+    const memberCount = getWorkspaceDisplayCount('members', { ignoreSearch: true, ignoreFilters: true });
     const canManageSettings = hasPermission(state.session, PERMISSIONS.MANAGE_SETTINGS);
+    const canExport = hasPermission(state.session, PERMISSIONS.EXPORT_LEADS);
+    const totalRecords = leadCount + memberCount;
 
     return `
-        <div class="settings-grid">
-            <section class="crm-card">
-                <div class="panel-head">
-                    <div>
-                        <span class="crm-kicker"><i class="fa-solid fa-gears"></i> Storage and controls</span>
-                        <h1 class="section-title">Local-only tools for the prototype.</h1>
-                        <p class="panel-copy">
-                            Browser storage keeps this isolated from production infrastructure while preserving a clean swap path to a real API later.
-                        </p>
+        <div class="settings-grid crm-settings-page">
+            <section class="crm-settings-hero">
+                <div class="crm-settings-hero-inner">
+                    <span class="crm-settings-hero-label"><i class="fa-solid fa-gears"></i> Workspace settings</span>
+                    <h1>Account and <em>workspace controls</em></h1>
+                    <p class="crm-settings-hero-desc">
+                        Manage session access, exports, and workspace maintenance from one polished control page.
+                    </p>
+                    <div class="crm-settings-hero-chips">
+                        <span class="crm-settings-chip"><i class="fa-solid fa-user"></i> ${escapeHtml(state.session.name)}</span>
+                        <span class="crm-settings-chip"><i class="fa-solid fa-shield-halved"></i> ${escapeHtml(getRoleLabel(state.session.role))} access</span>
+                        <span class="crm-settings-chip"><i class="fa-solid fa-database"></i> ${totalRecords.toLocaleString()} workspace records</span>
+                        <span class="crm-settings-chip ${canManageSettings ? 'is-active' : ''}">
+                            <i class="fa-solid ${canManageSettings ? 'fa-check-circle' : 'fa-lock'}"></i>
+                            ${canManageSettings ? 'Admin maintenance enabled' : 'Sales workspace session'}
+                        </span>
                     </div>
                 </div>
-
-                <div class="meta-grid two-up" style="margin-top: 1rem;">
-                    <div class="meta-list-item">
-                        <i class="fa-solid fa-database"></i>
-                        <div>
-                            <strong>IndexedDB persistence</strong>
-                            <div class="panel-subtitle">${leadCount.toLocaleString()} leads and ${memberCount.toLocaleString()} members are currently saved in this browser.</div>
-                        </div>
-                    </div>
-                    <div class="meta-list-item">
-                        <i class="fa-solid fa-layer-group"></i>
-                        <div>
-                            <strong>Repository abstraction</strong>
-                            <div class="panel-subtitle">The UI talks to <span class="inline-code">CrmDataService</span>, not the browser database directly.</div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="settings-actions" style="margin-top: 1.2rem;">
-                    ${hasPermission(state.session, PERMISSIONS.EXPORT_LEADS) ? '<button class="crm-button-secondary" data-action="export-clients"><i class="fa-solid fa-file-export"></i> Export CSV</button>' : ''}
-                    ${canManageSettings ? '<button class="crm-button-ghost" data-action="restore-sample-data"><i class="fa-solid fa-sparkles"></i> Restore sample data</button>' : ''}
-                </div>
-                ${canManageSettings ? '' : '<div class="panel-subtitle" style="margin-top: 1rem;">Admin-only storage controls stay hidden for sales sessions.</div>'}
             </section>
 
-            <section class="crm-card">
-                <div class="panel-head">
-                    <div>
-                        <h2 class="section-title">Local test credentials</h2>
-                        <p class="panel-copy">These are hardcoded only for local interface testing. No production auth is connected.</p>
-                    </div>
-                </div>
-
-                <div class="credentials-grid">
-                    ${users.map((user) => `
-                        <div class="auth-user-card" style="min-width: 260px;">
-                            <div class="auth-user-name">${escapeHtml(user.name)}</div>
-                            <div class="panel-subtitle">${escapeHtml(user.title)}</div>
-                            <div class="auth-user-meta">
-                                <div><strong>Role:</strong> ${escapeHtml(getRoleLabel(user.role))}</div>
-                                <div><strong>Email:</strong> ${escapeHtml(user.email)}</div>
-                                <div><strong>Password:</strong> ${escapeHtml(user.password)}</div>
+            <div class="crm-settings-main">
+                <section class="crm-settings-card crm-settings-card-wide">
+                    <div class="crm-settings-card-head">
+                        <div class="crm-settings-card-title">
+                            <span class="crm-settings-card-icon"><i class="fa-solid fa-user-shield"></i></span>
+                            <div>
+                                <h2>Session & access</h2>
+                                <p>Review the signed-in CRM account and end the session when needed.</p>
                             </div>
                         </div>
-                    `).join('')}
-                </div>
-            </section>
-
-            <section class="crm-card">
-                <div class="panel-head">
-                    <div>
-                        <h2 class="section-title">Future migration path</h2>
-                        <p class="panel-copy">What changes when the prototype graduates to a real backend.</p>
                     </div>
-                </div>
 
-                <ul class="mini-list">
-                    <li>
-                        <div class="mini-list-main">
-                            <span class="mini-list-title">Swap repositories</span>
-                            <span class="mini-list-meta">Replace the IndexedDB repositories with API-backed classes that keep the same async methods.</span>
-                        </div>
-                    </li>
-                    <li>
-                        <div class="mini-list-main">
-                            <span class="mini-list-title">Add real auth</span>
-                            <span class="mini-list-meta">Replace the local auth service with the production auth provider and role checks.</span>
-                        </div>
-                    </li>
-                    <li>
-                        <div class="mini-list-main">
-                            <span class="mini-list-title">Mount at /crm</span>
-                            <span class="mini-list-meta">This module is already route-shaped so it can be moved into the main site cleanly later.</span>
-                        </div>
-                    </li>
-                </ul>
-            </section>
+                    <div class="crm-settings-field-grid">
+                        <label class="crm-settings-field">
+                            <span class="form-label">Signed in as</span>
+                            <div class="crm-settings-field-value">${escapeHtml(state.session.name)}</div>
+                        </label>
+                        <label class="crm-settings-field">
+                            <span class="form-label">Email</span>
+                            <div class="crm-settings-field-value">${escapeHtml(state.session.email || 'Not available')}</div>
+                        </label>
+                        <label class="crm-settings-field">
+                            <span class="form-label">Access level</span>
+                            <div class="crm-settings-field-value">${escapeHtml(getRoleLabel(state.session.role))}</div>
+                        </label>
+                        <label class="crm-settings-field">
+                            <span class="form-label">Workspace inventory</span>
+                            <div class="crm-settings-field-value">${leadCount.toLocaleString()} leads and ${memberCount.toLocaleString()} members</div>
+                        </label>
+                    </div>
 
-            <section class="crm-card">
-                <div class="danger-box">
-                    <div class="panel-head">
-                        <div>
-                            <h2 class="section-title">Danger zone</h2>
-                            <p class="panel-copy">Clear all local CRM data from this browser. This also removes import history.</p>
+                    <div class="settings-actions crm-settings-action-row">
+                        <button class="crm-button" data-action="logout"><i class="fa-solid fa-right-from-bracket"></i> Logout</button>
+                    </div>
+                </section>
+
+                <section class="crm-settings-card">
+                    <div class="crm-settings-card-head">
+                        <div class="crm-settings-card-title">
+                            <span class="crm-settings-card-icon"><i class="fa-solid fa-file-export"></i></span>
+                            <div>
+                                <h2>Exports</h2>
+                                <p>Download the CRM workspace in a clean CSV format whenever export access is available.</p>
+                            </div>
                         </div>
+                    </div>
+
+                    <div class="crm-settings-quick-stats">
+                        <div class="crm-settings-quick-stat">
+                            <span>Lead inventory</span>
+                            <strong>${leadCount.toLocaleString()}</strong>
+                        </div>
+                        <div class="crm-settings-quick-stat">
+                            <span>Member inventory</span>
+                            <strong>${memberCount.toLocaleString()}</strong>
+                        </div>
+                    </div>
+
+                    <div class="settings-actions crm-settings-action-row">
+                        ${canExport ? '<button class="crm-button-secondary" data-action="export-clients"><i class="fa-solid fa-file-export"></i> Export CSV</button>' : ''}
+                    </div>
+                    <div class="crm-settings-support-note">${canExport ? 'Exports mirror the current CRM workspace so your team can work from the latest snapshot.' : 'Export access is reserved for admin sessions.'}</div>
+                </section>
+
+                <section class="crm-settings-card crm-settings-card-danger crm-settings-card-full">
+                    <div class="crm-settings-card-head">
+                        <div class="crm-settings-card-title">
+                            <span class="crm-settings-card-icon"><i class="fa-solid fa-triangle-exclamation"></i></span>
+                            <div>
+                                <h2>Danger zone</h2>
+                                <p>Clear CRM records and import history from this workspace.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="settings-actions crm-settings-action-row">
                         ${canManageSettings ? `
                             <button class="crm-button-danger" data-action="open-clear-confirm">
                                 <i class="fa-solid fa-trash"></i> Clear all data
                             </button>
                         ` : ''}
                     </div>
-                    ${canManageSettings ? '' : '<div class="panel-subtitle">Only admin users can reset the local workspace dataset.</div>'}
+                    <div class="crm-settings-support-note">${canManageSettings ? 'You will need to type CLEAR in the confirmation step before the reset can proceed.' : 'Only admin users can reset the workspace.'}</div>
+                </section>
+            </div>
+        </div>
+    `;
+}
+
+function renderLookupPreviewDrawer(client) {
+    const latestNote = Array.isArray(client.noteHistory) && client.noteHistory.length
+        ? [...client.noteHistory].sort((left, right) => Date.parse(right.createdAt ?? 0) - Date.parse(left.createdAt ?? 0))[0]
+        : null;
+    const latestActivity = getLeadHistoryEntries(client)[0] || null;
+    const headerSummary = [
+        client.phone || '',
+        client.email || ''
+    ].filter(Boolean).join(' · ');
+    const tagsMarkup = client.tags?.length
+        ? client.tags.map((tag) => `<span class="tag-chip">${escapeHtml(tag)}</span>`).join('')
+        : '<div class="panel-subtitle">No tags on this record yet.</div>';
+
+    return `
+        <div class="drawer-surface crm-search-preview-drawer">
+            <div class="crm-search-preview-shell">
+                <div class="crm-search-preview-shell-head">
+                    <div class="crm-search-preview-header">
+                        <span class="crm-kicker"><i class="fa-solid fa-magnifying-glass"></i> Quick view</span>
+                        <h2 class="drawer-title">${escapeHtml(client.fullName || 'Unnamed lead')}</h2>
+                        <p class="crm-search-preview-subtitle">${escapeHtml(headerSummary || buildClientMetaLine(client))}</p>
+                    </div>
+                    <button class="crm-search-preview-close" data-action="close-drawer" aria-label="Close quick view">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
                 </div>
-            </section>
+
+                <div class="crm-search-preview-meta">
+                    <div class="row-actions crm-search-preview-pills">
+                        <span class="summary-chip"><i class="fa-solid fa-layer-group"></i> ${escapeHtml(titleCase(client.lifecycleType || 'lead'))}</span>
+                        <span class="summary-chip"><i class="fa-solid fa-signal"></i> ${escapeHtml(titleCase(client.status || 'new'))}</span>
+                        <span class="summary-chip"><i class="fa-solid fa-user-check"></i> ${escapeHtml(client.assignedTo || 'Unassigned')}</span>
+                        <span class="summary-chip"><i class="fa-solid fa-clock"></i> ${escapeHtml(client.timeZone || 'Unknown')}</span>
+                        <span class="summary-chip"><i class="fa-solid fa-star"></i> ${escapeHtml(client.subscriptionType || 'No subscription')}</span>
+                    </div>
+                </div>
+
+                <div class="crm-search-preview-grid">
+                    <section class="crm-search-preview-section">
+                        <div class="crm-search-preview-section-head">
+                            <span class="crm-search-preview-section-title">Contact</span>
+                            <p class="crm-search-preview-section-copy">Primary ways to reach this record.</p>
+                        </div>
+                        <div class="crm-search-preview-field-grid">
+                            ${renderPreviewField('Phone', client.phone || '—')}
+                            ${renderPreviewField('Email', client.email || '—', { fullWidth: true })}
+                            ${renderPreviewField('Business', client.businessName || '—', { fullWidth: true })}
+                        </div>
+                    </section>
+
+                    <section class="crm-search-preview-section">
+                        <div class="crm-search-preview-section-head">
+                            <span class="crm-search-preview-section-title">Workspace</span>
+                            <p class="crm-search-preview-section-copy">Team assignment and lifecycle context.</p>
+                        </div>
+                        <div class="crm-search-preview-field-grid">
+                            ${renderPreviewField('Assigned rep', client.assignedTo || 'Unassigned', { fullWidth: true })}
+                            ${renderPreviewField('Status', titleCase(client.status || 'new'))}
+                            ${renderPreviewField('Subscription', client.subscriptionType || '—')}
+                            ${renderPreviewField('Time zone', client.timeZone || 'Unknown')}
+                            ${renderPreviewField('Updated', formatDateTime(client.updatedAt || client.createdAt), { fullWidth: true })}
+                        </div>
+                    </section>
+                </div>
+
+                <section class="crm-search-preview-section crm-search-preview-section-full">
+                    <div class="crm-search-preview-section-head">
+                        <span class="crm-search-preview-section-title">Tags</span>
+                    </div>
+                    <div class="tag-cloud crm-search-preview-chip-wrap">
+                        ${tagsMarkup}
+                    </div>
+                </section>
+
+                ${renderPreviewTextPanel(
+                    'Latest note',
+                    latestNote ? truncate(latestNote.content || '', 220) || 'No note content.' : 'No notes have been saved yet.',
+                    latestNote ? formatDateTime(latestNote.updatedAt || latestNote.createdAt) : ''
+                )}
+
+                ${renderPreviewTextPanel(
+                    'Recent activity',
+                    latestActivity ? truncate(latestActivity.message || 'Recent activity is available on the full record.', 220) : 'No recent activity is available for this record.',
+                    latestActivity ? formatDateTime(latestActivity.changedAt || latestActivity.createdAt) : ''
+                )}
+
+                <div class="drawer-actions crm-search-preview-actions">
+                    <button class="crm-button-secondary" type="button" data-action="open-search-result-detail" data-client-id="${escapeHtml(client.id)}">
+                        <i class="fa-solid fa-arrow-up-right-from-square"></i> Open full details
+                    </button>
+                    <button class="crm-button-ghost" type="button" data-action="close-drawer">Close</button>
+                </div>
+            </div>
         </div>
     `;
 }
@@ -2171,13 +3408,38 @@ function renderSettingsPanel() {
 function renderDrawer() {
     if (!isDrawerOpen()) {
         refs.drawer.classList.add('hidden');
+        refs.drawer.classList.remove('crm-drawer-preview');
         refs.drawer.innerHTML = '';
         return;
     }
 
-    const client = createBlankClient();
-
     refs.drawer.classList.remove('hidden');
+    refs.drawer.classList.toggle('crm-drawer-preview', state.drawerMode === 'lookup-preview');
+
+    if (state.drawerMode === 'lookup-preview') {
+        const previewClient = getAccessibleClientById(state.drawerClientId);
+        refs.drawer.innerHTML = previewClient
+            ? renderLookupPreviewDrawer(previewClient)
+            : `
+                <div class="drawer-surface crm-search-preview-drawer">
+                    <div class="drawer-head">
+                        <div>
+                            <span class="crm-kicker"><i class="fa-solid fa-magnifying-glass"></i> Quick view</span>
+                            <h2 class="drawer-title">Lead unavailable</h2>
+                            <p class="panel-subtitle">This record is no longer accessible in the current session.</p>
+                        </div>
+                        <button class="crm-button-ghost" data-action="close-drawer"><i class="fa-solid fa-xmark"></i></button>
+                    </div>
+                    <div class="drawer-actions">
+                        <button class="crm-button-ghost" type="button" data-action="close-drawer">Close</button>
+                    </div>
+                </div>
+            `;
+        return;
+    }
+
+    const isCreatingMember = state.drawerMode === 'create-member';
+    const client = createBlankClient(isCreatingMember ? 'member' : 'lead');
 
     if (!client) {
         refs.drawer.innerHTML = '';
@@ -2186,14 +3448,17 @@ function renderDrawer() {
 
     const canAdminEdit = hasPermission(state.session, PERMISSIONS.EDIT_ADMIN_FIELDS);
     const assigneeOptions = getAssignableUsers({ includeAdmin: true });
-    const title = 'Create lead';
-    const subtitle = 'Add a new lead manually. Duplicate checks run before saving, and successful creates open directly in the lead detail workflow.';
+    const entityLabel = isCreatingMember ? 'member' : 'lead';
+    const title = isCreatingMember ? 'Create member' : 'Create lead';
+    const subtitle = isCreatingMember
+        ? 'Add a new member manually. Successful saves open directly in the member detail workflow.'
+        : 'Add a new lead manually. Duplicate checks run before saving, and successful creates open directly in the lead detail workflow.';
 
     refs.drawer.innerHTML = `
         <div class="drawer-surface">
             <div class="drawer-head">
                 <div>
-                    <span class="crm-kicker"><i class="fa-solid fa-user-pen"></i> New lead</span>
+                    <span class="crm-kicker"><i class="fa-solid fa-user-pen"></i> New ${entityLabel}</span>
                     <h2 class="drawer-title">${escapeHtml(title)}</h2>
                     <p class="panel-subtitle">${escapeHtml(subtitle)}</p>
                 </div>
@@ -2266,7 +3531,7 @@ function renderDrawer() {
                 </div>
 
                 <div class="drawer-actions">
-                    <button class="crm-button" type="submit"><i class="fa-solid fa-floppy-disk"></i> Save lead</button>
+                    <button class="crm-button" type="submit"><i class="fa-solid fa-floppy-disk"></i> Save ${entityLabel}</button>
                     <button class="crm-button-ghost" type="button" data-action="close-drawer">Cancel</button>
                 </div>
             </form>
@@ -2277,11 +3542,13 @@ function renderDrawer() {
 function renderModal() {
     if (!state.modal) {
         refs.modalLayer.classList.add('hidden');
+        refs.modalLayer.classList.remove('crm-modal-layer-history');
         refs.modalLayer.innerHTML = '';
         return;
     }
 
     refs.modalLayer.classList.remove('hidden');
+    refs.modalLayer.classList.toggle('crm-modal-layer-history', state.modal.type === 'lead-history');
 
     if (state.modal.type === 'import') {
         refs.modalLayer.innerHTML = renderImportModal();
@@ -2310,7 +3577,7 @@ function renderModal() {
                     <div>
                         <span class="crm-kicker"><i class="fa-solid fa-triangle-exclamation"></i> Confirm delete</span>
                         <h2 class="modal-title">Delete this lead record?</h2>
-                        <p class="panel-subtitle">This removes the lead from the local IndexedDB dataset in this browser.</p>
+                        <p class="panel-subtitle">This removes the lead from this workspace.</p>
                     </div>
                     <button class="crm-button-ghost" data-action="close-modal"><i class="fa-solid fa-xmark"></i></button>
                 </div>
@@ -2331,8 +3598,8 @@ function renderModal() {
                 <div class="modal-head">
                     <div>
                         <span class="crm-kicker"><i class="fa-solid fa-skull-crossbones"></i> Danger</span>
-                        <h2 class="modal-title">Clear all local CRM data?</h2>
-                        <p class="panel-subtitle">Type <span class="inline-code">CLEAR</span> to remove all local leads, members, and import history from this browser.</p>
+                        <h2 class="modal-title">Clear all CRM data?</h2>
+                        <p class="panel-subtitle">Type <span class="inline-code">CLEAR</span> to remove all leads, members, and import history from this workspace.</p>
                     </div>
                     <button class="crm-button-ghost" data-action="close-modal"><i class="fa-solid fa-xmark"></i></button>
                 </div>
@@ -2349,7 +3616,65 @@ function renderModal() {
                 </form>
             </div>
         `;
+        return;
     }
+
+    if (state.modal.type === 'lead-history') {
+        refs.modalLayer.innerHTML = renderLeadHistoryModal();
+    }
+}
+
+function renderLeadHistoryModal() {
+    const lead = getAccessibleClientById(state.modal?.clientId || state.detailClientId);
+
+    if (!lead) {
+        return `
+            <div class="crm-modal crm-history-modal" role="dialog" aria-modal="true" aria-labelledby="crm-history-modal-title">
+                <div class="crm-history-modal-head">
+                    <div class="crm-history-modal-copy">
+                        <span class="crm-kicker"><i class="fa-solid fa-timeline"></i> Lead history</span>
+                        <h2 id="crm-history-modal-title" class="modal-title">History unavailable</h2>
+                        <p class="panel-subtitle">This record is no longer available in the current workspace view.</p>
+                    </div>
+                    <button class="crm-button-ghost" data-action="close-modal" aria-label="Close lead history">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
+                </div>
+            </div>
+        `;
+    }
+
+    const entityLabel = lead.lifecycleType === 'member' ? 'Member' : 'Lead';
+    const detailName = lead.fullName || `Unnamed ${entityLabel.toLowerCase()}`;
+    const leadHistoryEntries = getLeadHistoryEntries(lead);
+    const latestEntry = leadHistoryEntries[0];
+
+    return `
+        <div class="crm-modal crm-history-modal" role="dialog" aria-modal="true" aria-labelledby="crm-history-modal-title">
+            <div class="crm-history-modal-head">
+                <div class="crm-history-modal-copy">
+                    <span class="crm-kicker"><i class="fa-solid fa-timeline"></i> ${escapeHtml(entityLabel)} history</span>
+                    <h2 id="crm-history-modal-title" class="modal-title">${escapeHtml(detailName)}</h2>
+                    <p class="panel-subtitle">Review the full change log for this record without leaving the page.</p>
+                    <div class="crm-history-modal-meta">
+                        <span class="summary-chip"><i class="fa-solid fa-clock-rotate-left"></i> ${leadHistoryEntries.length.toLocaleString()} updates</span>
+                        <span class="summary-chip"><i class="fa-solid fa-user-check"></i> ${escapeHtml(lead.assignedTo || 'Unassigned')}</span>
+                        <span class="summary-chip"><i class="fa-solid fa-bolt"></i> ${escapeHtml(titleCase(lead.status || 'new'))}</span>
+                        <span class="summary-chip"><i class="fa-solid fa-calendar-days"></i> ${escapeHtml(latestEntry ? `Latest ${formatDateTime(latestEntry.changedAt || latestEntry.createdAt)}` : 'No history yet')}</span>
+                    </div>
+                </div>
+                <button class="crm-button-ghost" data-action="close-modal" aria-label="Close lead history">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <div class="crm-history-modal-body">
+                <div class="crm-history-modal-scroll">
+                    ${renderLeadHistoryEntries(leadHistoryEntries)}
+                </div>
+            </div>
+        </div>
+    `;
 }
 
 function renderCreateDuplicateModal() {
@@ -2463,8 +3788,8 @@ function renderUserFormModal() {
                 <div class="modal-head">
                     <div>
                         <span class="crm-kicker"><i class="fa-solid fa-user-shield"></i> CRM rep account</span>
-                        <h2 class="modal-title">Supabase user required</h2>
-                        <p class="panel-subtitle">Create the auth user in Supabase Auth first, then return here to edit their CRM profile.</p>
+                        <h2 class="modal-title">Account required</h2>
+                        <p class="panel-subtitle">Create the user account first, then return here to edit their CRM profile.</p>
                     </div>
                     <button class="crm-button-ghost" data-action="close-modal"><i class="fa-solid fa-xmark"></i></button>
                 </div>
@@ -2481,7 +3806,7 @@ function renderUserFormModal() {
                 <div>
                     <span class="crm-kicker"><i class="fa-solid fa-user-shield"></i> CRM rep account</span>
                     <h2 class="modal-title">Edit rep account</h2>
-                    <p class="panel-subtitle">This updates the user row in <span class="inline-code">public.profiles</span>. Email and password changes should be managed in Supabase Auth.</p>
+                    <p class="panel-subtitle">Update the CRM profile for this rep. Email and password changes should be managed from account administration.</p>
                 </div>
                 <button class="crm-button-ghost" data-action="close-modal"><i class="fa-solid fa-xmark"></i></button>
             </div>
@@ -2496,7 +3821,7 @@ function renderUserFormModal() {
                     <label class="form-field">
                         <span class="form-label">Email</span>
                         <input class="crm-input" name="email" type="email" value="${escapeHtml(user?.email || '')}" readonly>
-                        <span class="panel-subtitle">Managed in Supabase Auth.</span>
+                        <span class="panel-subtitle">Managed in account administration.</span>
                     </label>
                     <label class="form-field">
                         <span class="form-label">Role</span>
@@ -2533,7 +3858,7 @@ function renderImportModal() {
                     <div>
                         <span class="crm-kicker"><i class="fa-solid fa-file-csv"></i> CSV Import</span>
                         <h2 class="modal-title">Upload lead data</h2>
-                        <p class="panel-subtitle">CSV parsing happens in the browser. Nothing is sent to a backend in this prototype.</p>
+                        <p class="panel-subtitle">Review the CSV, map the fields, and import the records into the workspace.</p>
                     </div>
                     <button class="crm-button-ghost" data-action="close-modal"><i class="fa-solid fa-xmark"></i></button>
                 </div>
@@ -2568,7 +3893,7 @@ function renderImportModal() {
                     <div>
                         <span class="crm-kicker"><i class="fa-solid fa-circle-check"></i> Import complete</span>
                         <h2 class="modal-title">${escapeHtml(flow.fileName)}</h2>
-                        <p class="panel-subtitle">The CRM data has been updated in IndexedDB and the summary was logged to local import history.</p>
+                        <p class="panel-subtitle">The CRM data has been updated and the summary was added to import history.</p>
                     </div>
                     <button class="crm-button-ghost" data-action="close-modal"><i class="fa-solid fa-xmark"></i></button>
                 </div>
@@ -2588,7 +3913,7 @@ function renderImportModal() {
 
                 <div class="modal-actions" style="margin-top: 1.2rem;">
                     <button class="crm-button-secondary" data-action="close-modal"><i class="fa-solid fa-check"></i> Close</button>
-                    <button class="crm-button-ghost" data-action="jump-to-view" data-view="imports"><i class="fa-solid fa-clock-rotate-left"></i> View history</button>
+                    <button class="crm-button-ghost" data-action="jump-to-view" data-view="admin" data-admin-tab="imports"><i class="fa-solid fa-clock-rotate-left"></i> View history</button>
                 </div>
             </div>
         `;
@@ -2663,7 +3988,7 @@ function renderImportModal() {
                             ${renderStatTile('File duplicates', preview.duplicateInFileCount)}
                             ${renderStatTile('Headers', flow.headers.length)}
                             ${renderStatTile('Mode', flow.duplicateMode)}
-                            ${renderStatTile('Storage', 'IndexedDB')}
+                            ${renderStatTile('Target', 'Workspace')}
                         </div>
 
                         ${mappingIssues.length ? `
@@ -2722,6 +4047,7 @@ function renderImportModal() {
 }
 
 function renderTableHeaders({ canBulkAssign = false, allPageSelected = false } = {}) {
+    const usingServerPaging = supportsServerWorkspacePaging();
     const headers = [
         { key: 'name', label: 'Name' },
         { key: 'email', label: 'Email' },
@@ -2746,10 +4072,14 @@ function renderTableHeaders({ canBulkAssign = false, allPageSelected = false } =
         ` : ''}
         ${headers.map((header) => `
         <th>
-            <button class="sort-button" data-action="sort-table" data-field="${header.key}">
-                ${header.label}
-                <i class="fa-solid ${getSortIcon(header.key)}"></i>
-            </button>
+            ${usingServerPaging && ['tags', 'notes'].includes(header.key) ? `
+                <span class="sort-button disabled" aria-disabled="true">${header.label}</span>
+            ` : `
+                <button class="sort-button ${state.sort.field === header.key ? 'active' : ''}" data-action="sort-table" data-field="${header.key}">
+                    ${header.label}
+                    <i class="fa-solid ${getSortIcon(header.key)}"></i>
+                </button>
+            `}
         </th>
     `).join('')}
     `;
@@ -2788,20 +4118,46 @@ function renderStatTile(label, value) {
 }
 
 function getDashboardMetrics() {
+    if (state.clientCacheMode !== 'full') {
+        const leads = getWorkspaceResult('leads').rows;
+        const members = getWorkspaceResult('members').rows;
+        const totalLeads = getWorkspaceSummaryCount('leads');
+        const totalMembers = getWorkspaceSummaryCount('members');
+        const totalRecords = totalLeads + totalMembers;
+
+        return {
+            totalLeads,
+            totalMembers,
+            tagCounts: [],
+            statusCounts: [],
+            taggedLeadCount: 0,
+            recentlyUpdated: [...leads, ...members]
+                .sort((left, right) => Date.parse(right.updatedAt || 0) - Date.parse(left.updatedAt || 0))
+                .slice(0, 5),
+            memberShare: totalRecords ? Math.round((totalMembers / totalRecords) * 100) : 0,
+            topTag: { label: 'No tags', count: 0 },
+            topStatus: { label: 'No status', count: 0 }
+        };
+    }
+
     const leads = getScopedClients('leads', { ignoreSearch: true, ignoreFilters: true });
     const members = getScopedClients('members', { ignoreSearch: true, ignoreFilters: true });
     const tagCounts = aggregateCounts(leads.flatMap((client) => client.tags));
     const statusCounts = aggregateCounts(leads.map((client) => client.status || 'new'));
+    const taggedLeadCount = leads.filter((client) => Array.isArray(client.tags) && client.tags.length).length;
     const recentlyUpdated = [...leads]
         .sort((left, right) => Date.parse(right.updatedAt || 0) - Date.parse(left.updatedAt || 0))
         .slice(0, 5);
+    const totalRecords = leads.length + members.length;
 
     return {
         totalLeads: leads.length,
         totalMembers: members.length,
         tagCounts,
         statusCounts,
+        taggedLeadCount,
         recentlyUpdated,
+        memberShare: totalRecords ? Math.round((members.length / totalRecords) * 100) : 0,
         topTag: tagCounts[0] ? { label: tagCounts[0][0], count: tagCounts[0][1] } : { label: 'No tags', count: 0 },
         topStatus: statusCounts[0] ? { label: titleCase(statusCounts[0][0]), count: statusCounts[0][1] } : { label: 'No status', count: 0 }
     };
@@ -2818,7 +4174,35 @@ function aggregateCounts(values) {
 }
 
 function getVisibleClients(scope = getDefaultScopeForView()) {
-    return getScopedClients(scope);
+    const clients = getScopedClients(scope);
+
+    if (scope !== 'leads' || !hasPermission(state.session, PERMISSIONS.ASSIGN_LEADS)) {
+        return clients;
+    }
+
+    const assignmentState = getLeadAssignmentStateForScope(scope);
+
+    if (assignmentState === 'assigned') {
+        return clients.filter((client) => normalizeWhitespace(client.assignedRepId));
+    }
+
+    if (assignmentState === 'unassigned') {
+        return clients.filter((client) => !normalizeWhitespace(client.assignedRepId));
+    }
+
+    return clients;
+}
+
+function getLeadNavigationSet(scope = getDefaultScopeForView()) {
+    if (supportsServerWorkspacePaging()) {
+        const workspaceRows = getWorkspacePageRows(scope);
+
+        if (workspaceRows.length) {
+            return workspaceRows;
+        }
+    }
+
+    return getVisibleClients(scope);
 }
 
 function getScopedClients(scope = 'leads', options = {}) {
@@ -2828,7 +4212,7 @@ function getScopedClients(scope = 'leads', options = {}) {
         scope,
         ignoreSearch,
         ignoreFilters,
-        search: normalizeWhitespace(state.search).toLowerCase(),
+        search: normalizeWhitespace(state.workspaceSearch).toLowerCase(),
         status: state.filters.status,
         tag: state.filters.tag,
         multi: state.filters.multi
@@ -2843,7 +4227,7 @@ function getScopedClients(scope = 'leads', options = {}) {
         return visibleClientsCache.result;
     }
 
-    const searchTerm = normalizeWhitespace(state.search).toLowerCase();
+    const searchTerm = normalizeWhitespace(state.workspaceSearch).toLowerCase();
     const matchers = buildFilterMatchers();
     const result = [...state.clients]
         .filter((client) => {
@@ -2879,6 +4263,8 @@ function getScopedClients(scope = 'leads', options = {}) {
                 client.lastName,
                 client.email,
                 client.phone,
+                client.phoneKey,
+                client.businessName,
                 client.tags.join(' '),
                 client.notes,
                 client.status,
@@ -3068,10 +4454,10 @@ function getSortIcon(field) {
 }
 
 function isDrawerOpen() {
-    return state.drawerMode === 'create';
+    return ['create', 'create-member', 'lookup-preview'].includes(state.drawerMode);
 }
 
-function createBlankClient() {
+function createBlankClient(lifecycleType = 'lead') {
     return {
         id: '',
         firstName: '',
@@ -3080,13 +4466,13 @@ function createBlankClient() {
         phone: '',
         tags: [],
         notes: '',
-        status: 'new',
+        status: lifecycleType === 'member' ? 'won' : 'new',
         subscriptionType: '',
         timeZone: 'Unknown',
         timezoneOverridden: false,
         assignedRepId: state.session?.id || '',
         assignedTo: state.session?.name || '',
-        lifecycleType: 'lead',
+        lifecycleType,
         disposition: '',
         followUpAction: '',
         followUpAt: '',
@@ -3435,10 +4821,16 @@ function getLeadDetailDispositionOptions(lead) {
 function getAdminMetrics() {
     const leads = getScopedClients('leads', { ignoreSearch: true, ignoreFilters: true });
     const members = getScopedClients('members', { ignoreSearch: true, ignoreFilters: true });
+    const reps = getAdminWorkspaceUsers();
     const assignedLeads = leads.filter((lead) => lead.assignedRepId).length;
     const unassignedLeads = leads.length - assignedLeads;
     const leadsByRepMap = leads.reduce((map, lead) => {
         const name = lead.assignedTo || 'Unassigned';
+        map.set(name, (map.get(name) ?? 0) + 1);
+        return map;
+    }, new Map());
+    const membersByRepMap = members.reduce((map, member) => {
+        const name = member.assignedTo || 'Unassigned';
         map.set(name, (map.get(name) ?? 0) + 1);
         return map;
     }, new Map());
@@ -3471,12 +4863,15 @@ function getAdminMetrics() {
     }).length;
 
     return {
+        totalReps: reps.length,
+        activeReps: reps.filter((user) => user.isActive !== false).length,
         totalLeads: leads.length,
         totalMembers: members.length,
         assignedLeads,
         unassignedLeads,
         leadsByRep,
         leadsByRepMap,
+        membersByRepMap,
         leadsByStatus,
         recentAssignments,
         recentActivity,
@@ -3501,17 +4896,45 @@ function closeModal() {
 
 function openDrawer(mode) {
     state.drawerMode = mode;
+    state.drawerClientId = null;
     renderDrawer();
-    refs.shell.classList.add('drawer-open');
+    syncShellState();
 }
 
 function closeDrawer() {
     state.drawerMode = null;
-    refs.shell.classList.remove('drawer-open');
+    state.drawerClientId = null;
+    syncShellState();
     renderDrawer();
 }
 
+async function openSearchPreviewDrawer(clientId) {
+    if (!clientId) {
+        return;
+    }
+
+    try {
+        const detailedLead = await dataService.getClientById(clientId);
+
+        if (!detailedLead || !canAccessClient(detailedLead)) {
+            flashNotice('That lead is not assigned to your session.', 'error');
+            return;
+        }
+
+        mergeClientCache([detailedLead]);
+        setSearchShellExpanded(false);
+        state.drawerMode = 'lookup-preview';
+        state.drawerClientId = clientId;
+        renderDrawer();
+        syncShellState();
+    } catch (error) {
+        flashNotice(error.message || 'Unable to load the lead preview.', 'error');
+    }
+}
+
 function resetAuthenticatedCrmState() {
+    workspacePageCache.clear();
+    clearVisibleClientsCache();
     state.clients = [];
     state.allowedTags = [];
     state.tagDefinitions = [];
@@ -3519,17 +4942,28 @@ function resetAuthenticatedCrmState() {
     state.users = [];
     state.savedFilters = [];
     state.importHistory = [];
-    state.clientCacheMode = 'light';
+    state.workspaceSummary = createEmptyWorkspaceSummary();
+    state.clientCacheMode = 'partial';
+    state.workspaceLoaded = false;
+    state.adminTab = 'team';
+    state.adminUserSearch = '';
+    state.adminUserFilter = 'all';
+    state.workspaceSearch = '';
+    state.lookupQuery = '';
+    resetToolbarSuggestions({ clearResults: true });
+    state.activeSearchSurface = 'desktop';
+    state.activeSearchCaret = null;
+    state.searchShellExpanded = false;
     state.workspaceResults = {
         leads: createEmptyWorkspaceResult(),
         members: createEmptyWorkspaceResult()
     };
+    state.mobileSearchOpen = false;
     state.selectedLeadIds = [];
     state.bulkAssignRepId = '';
     state.detailClientId = null;
     state.detailEditMode = false;
     state.detailEditSnapshot = null;
-    state.leadHistoryOpen = false;
     state.editingNoteId = null;
     closeDrawer();
     closeModal();
@@ -3551,9 +4985,14 @@ function refreshWorkspaceChrome() {
     renderPanels();
     syncToolbarFilterButton();
 
-    if (['clients', 'members'].includes(state.currentView)) {
+    if (isWorkspaceListView(state.currentView)) {
         queueWorkspaceRefresh(getDefaultScopeForView());
     }
+}
+
+async function refreshWorkspaceAfterMutation() {
+    invalidateWorkspacePageCache();
+    await refreshData();
 }
 
 function syncToolbarFilterButton() {
@@ -3571,10 +5010,19 @@ document.addEventListener('click', async (event) => {
     const actionEl = event.target.closest('[data-action]');
 
     if (!actionEl) {
+        if (shouldShowSearchSuggestions() && !event.target.closest('.search-shell')) {
+            resetToolbarSuggestions();
+            renderTopbar();
+        }
         return;
     }
 
     const { action } = actionEl.dataset;
+
+    if (state.searchSuggestionsOpen && action !== 'select-search-suggestion' && !actionEl.closest('.search-shell')) {
+        resetToolbarSuggestions();
+        renderTopbar();
+    }
 
     if (action === 'quick-login') {
         try {
@@ -3603,8 +5051,65 @@ document.addEventListener('click', async (event) => {
         return;
     }
 
+    if (action === 'toggle-auth-password') {
+        const input = document.getElementById('crm-login-password');
+        const icon = actionEl.querySelector('i');
+
+        if (!input || !icon) {
+            return;
+        }
+
+        const showPassword = input.type === 'password';
+        input.type = showPassword ? 'text' : 'password';
+        icon.classList.toggle('fa-eye', !showPassword);
+        icon.classList.toggle('fa-eye-slash', showPassword);
+        actionEl.setAttribute('aria-label', showPassword ? 'Hide password' : 'Show password');
+        actionEl.setAttribute('aria-pressed', showPassword ? 'true' : 'false');
+        return;
+    }
+
     if (action === 'toggle-sidebar') {
-        setSidebarOpen(!state.sidebarOpen);
+        const nextIsOpen = !state.sidebarOpen;
+        state.mobileSearchOpen = false;
+        resetToolbarSuggestions();
+        setSidebarOpen(nextIsOpen);
+        renderTopbar();
+        return;
+    }
+
+    if (action === 'toggle-mobile-search') {
+        if (state.sidebarOpen) {
+            setSidebarOpen(false);
+        }
+
+        if (shouldShowMobileSearch() && !hasActiveToolbarSearch()) {
+            state.mobileSearchOpen = false;
+            setSearchShellExpanded(false);
+            renderTopbar();
+            return;
+        }
+
+        state.mobileSearchOpen = true;
+        renderTopbar();
+        focusToolbarSearchInput('mobile');
+        return;
+    }
+
+    if (action === 'select-search-suggestion') {
+        resetToolbarSuggestions();
+        renderTopbar();
+        await openSearchPreviewDrawer(actionEl.dataset.clientId);
+        return;
+    }
+
+    if (action === 'open-search-result-detail') {
+        const previewLead = getAccessibleClientById(actionEl.dataset.clientId);
+        await openLeadDetailPage(
+            actionEl.dataset.clientId,
+            previewLead?.lifecycleType === 'member'
+                ? 'members'
+                : (isAssignedLeadsView() ? 'assigned-leads' : 'clients')
+        );
         return;
     }
 
@@ -3616,26 +5121,44 @@ document.addEventListener('click', async (event) => {
             return;
         }
 
+        if (targetView === 'assigned-leads' && !hasPermission(state.session, PERMISSIONS.ASSIGN_LEADS)) {
+            flashNotice('Only admin users can open assigned leads.', 'error');
+            return;
+        }
+
         if (targetView === 'imports' && !hasPermission(state.session, PERMISSIONS.IMPORT_LEADS)) {
             flashNotice('Only admin users can import leads.', 'error');
             return;
         }
 
-        state.currentView = targetView;
+        if (targetView === 'admin' && actionEl.dataset.adminTab) {
+            state.adminTab = getValidAdminTab(actionEl.dataset.adminTab);
+        }
+
+        state.currentView = targetView === 'imports' ? 'admin' : targetView;
+        if (targetView === 'imports') {
+            state.adminTab = 'imports';
+        }
+        state.mobileSearchOpen = false;
+        resetToolbarSuggestions();
         setSidebarOpen(false);
         state.detailEditMode = false;
         state.detailEditSnapshot = null;
-        state.leadHistoryOpen = false;
         state.editingNoteId = null;
-        if (action === 'jump-to-view') {
+        if (state.modal) {
             closeModal();
         }
-        if (targetView === 'clients' || targetView === 'members') {
+        if (isWorkspaceListView(targetView)) {
             state.lastWorkspaceView = targetView;
             await refreshWorkspacePage(targetView === 'members' ? 'members' : 'leads');
             return;
         }
         if (targetView === 'admin') {
+            await loadFullClientDataset();
+            render();
+            return;
+        }
+        if (targetView === 'imports') {
             await loadFullClientDataset();
             render();
             return;
@@ -3649,8 +5172,25 @@ document.addEventListener('click', async (event) => {
         return;
     }
 
+    if (action === 'new-member') {
+        openDrawer('create-member');
+        return;
+    }
+
+    if (action === 'set-admin-tab') {
+        state.adminTab = getValidAdminTab(actionEl.dataset.adminTab);
+        renderPanels();
+        return;
+    }
+
+    if (action === 'set-admin-user-filter') {
+        state.adminUserFilter = actionEl.dataset.filterValue || 'all';
+        renderPanels();
+        return;
+    }
+
     if (action === 'open-filters') {
-        if (!['clients', 'members'].includes(state.currentView)) {
+        if (!isWorkspaceListView(state.currentView)) {
             state.currentView = state.lastWorkspaceView || 'clients';
         }
 
@@ -3665,6 +5205,14 @@ document.addEventListener('click', async (event) => {
         return;
     }
 
+    if (action === 'set-status-filter') {
+        state.filters.status = actionEl.dataset.status || 'all';
+        state.activeSavedFilterId = null;
+        state.page = 1;
+        refreshWorkspaceChrome();
+        return;
+    }
+
     if (action === 'load-saved-filter') {
         const filter = state.savedFilters.find((item) => item.id === actionEl.dataset.filterId);
 
@@ -3674,12 +5222,12 @@ document.addEventListener('click', async (event) => {
         }
 
         applySavedFilter(filter);
-        if (!['clients', 'members', 'lead-detail'].includes(state.currentView)) {
+        if (!isWorkspaceListView(state.currentView) && state.currentView !== 'lead-detail') {
             state.currentView = state.lastWorkspaceView || 'clients';
         }
         flashNotice(`Loaded saved filter "${filter.name}".`, 'success');
         renderTopbar();
-        await refreshWorkspacePage(state.currentView === 'members' || state.lastWorkspaceView === 'members' ? 'members' : 'leads');
+        await refreshWorkspacePage((state.currentView === 'members' || state.lastWorkspaceView === 'members') ? 'members' : 'leads');
         return;
     }
 
@@ -3749,7 +5297,12 @@ document.addEventListener('click', async (event) => {
     }
 
     if (action === 'open-lead-page') {
-        await openLeadDetailPage(actionEl.dataset.clientId, state.currentView === 'members' ? 'members' : 'clients');
+        await openLeadDetailPage(
+            actionEl.dataset.clientId,
+            state.currentView === 'members'
+                ? 'members'
+                : (isAssignedLeadsView() ? 'assigned-leads' : 'clients')
+        );
         return;
     }
 
@@ -3783,8 +5336,14 @@ document.addEventListener('click', async (event) => {
     }
 
     if (action === 'toggle-lead-history') {
-        state.leadHistoryOpen = !state.leadHistoryOpen;
-        renderPanels();
+        const isLeadHistoryOpen = state.modal?.type === 'lead-history' && state.modal?.clientId === state.detailClientId;
+
+        if (isLeadHistoryOpen) {
+            closeModal();
+            return;
+        }
+
+        openModal({ type: 'lead-history', clientId: state.detailClientId });
         return;
     }
 
@@ -3823,8 +5382,10 @@ document.addEventListener('click', async (event) => {
         state.detailClientId = null;
         state.detailEditMode = false;
         state.detailEditSnapshot = null;
-        state.leadHistoryOpen = false;
         state.editingNoteId = null;
+        if (state.modal) {
+            closeModal();
+        }
         render();
         return;
     }
@@ -3858,14 +5419,14 @@ document.addEventListener('click', async (event) => {
         closeDrawer();
         state.currentView = state.lastWorkspaceView || 'clients';
         state.detailClientId = null;
-        flashNotice('Lead deleted from the local CRM.', 'success');
-        await refreshData();
+        flashNotice('Lead deleted from the CRM.', 'success');
+        await refreshWorkspaceAfterMutation();
         return;
     }
 
     if (action === 'open-clear-confirm') {
         if (!hasPermission(state.session, PERMISSIONS.MANAGE_SETTINGS)) {
-            flashNotice('Only admin users can clear local CRM data.', 'error');
+            flashNotice('Only admin users can clear CRM data.', 'error');
             return;
         }
         openModal({ type: 'confirm-clear' });
@@ -3995,12 +5556,12 @@ document.addEventListener('click', async (event) => {
 
     if (action === 'restore-sample-data') {
         if (!hasPermission(state.session, PERMISSIONS.MANAGE_SETTINGS)) {
-            flashNotice('Only admin users can restore the sample dataset.', 'error');
+            flashNotice('Only admin users can restore workspace starter records.', 'error');
             return;
         }
         await dataService.restoreSampleData();
-        flashNotice('Sample CRM dataset restored when no local records were present.', 'success');
-        await refreshData();
+        flashNotice('Workspace starter records were restored when no records were present.', 'success');
+        await refreshWorkspaceAfterMutation();
         return;
     }
 
@@ -4034,7 +5595,7 @@ document.addEventListener('click', async (event) => {
         }
 
         if (!actionEl.dataset.userId) {
-            flashNotice('Create the auth user in Supabase first, then edit their CRM profile here.', 'error');
+            flashNotice('Create the user account first, then edit their CRM profile here.', 'error');
             return;
         }
 
@@ -4054,7 +5615,7 @@ document.addEventListener('click', async (event) => {
             return;
         }
 
-        if (!window.confirm(`Delete ${user.name}'s CRM profile? This removes their profile row from Supabase and reassigns their leads to you.`)) {
+        if (!window.confirm(`Delete ${user.name}'s CRM profile? This removes the profile and reassigns their leads to you.`)) {
             return;
         }
 
@@ -4064,7 +5625,7 @@ document.addEventListener('click', async (event) => {
 
         await authService.deleteUser(user.id);
         flashNotice(`${user.name}'s CRM profile was deleted.`, 'success');
-        await refreshData();
+        await refreshWorkspaceAfterMutation();
         if (state.modal?.type === 'user-form') {
             closeModal();
         }
@@ -4077,12 +5638,14 @@ document.addEventListener('click', async (event) => {
             return;
         }
 
+        state.adminTab = 'tags';
         state.editingTagDefinitionId = actionEl.dataset.definitionId;
         renderPanels();
         return;
     }
 
     if (action === 'clear-tag-definition-edit') {
+        state.adminTab = 'tags';
         state.editingTagDefinitionId = null;
         renderPanels();
         return;
@@ -4106,7 +5669,7 @@ document.addEventListener('click', async (event) => {
         });
         state.editingTagDefinitionId = null;
         flashNotice(`Tag ${definition.isArchived ? 'restored' : 'archived'}.`, 'success');
-        await refreshData();
+        await refreshWorkspaceAfterMutation();
         return;
     }
 
@@ -4148,7 +5711,7 @@ document.addEventListener('click', async (event) => {
         });
         state.editingTagDefinitionId = null;
         flashNotice(`Tag "${definition.label}" deleted.`, 'success');
-        await refreshData();
+        await refreshWorkspaceAfterMutation();
         return;
     }
 
@@ -4158,12 +5721,14 @@ document.addEventListener('click', async (event) => {
             return;
         }
 
+        state.adminTab = 'dispositions';
         state.editingDispositionDefinitionId = actionEl.dataset.definitionId;
         renderPanels();
         return;
     }
 
     if (action === 'clear-disposition-definition-edit') {
+        state.adminTab = 'dispositions';
         state.editingDispositionDefinitionId = null;
         renderPanels();
         return;
@@ -4187,7 +5752,7 @@ document.addEventListener('click', async (event) => {
         });
         state.editingDispositionDefinitionId = null;
         flashNotice(`Disposition ${definition.isArchived ? 'restored' : 'archived'}.`, 'success');
-        await refreshData();
+        await refreshWorkspaceAfterMutation();
         return;
     }
 
@@ -4206,7 +5771,7 @@ document.addEventListener('click', async (event) => {
         await dataService.deleteDispositionDefinition(definition.id);
         state.editingDispositionDefinitionId = null;
         flashNotice(`Disposition "${definition.label}" deleted.`, 'success');
-        await refreshData();
+        await refreshWorkspaceAfterMutation();
     }
 });
 
@@ -4232,7 +5797,10 @@ document.addEventListener('submit', async (event) => {
             flashNotice(`Logged in as ${state.session.name}.`, 'success');
             await refreshData();
         } catch (error) {
-            flashNotice(error.message, 'error');
+            flashNotice(
+                getPublicAuthMessage(error.message, 'Unable to sign in right now. Please try again.'),
+                'error'
+            );
         } finally {
             state.authSubmitting = false;
             render();
@@ -4312,7 +5880,7 @@ document.addEventListener('submit', async (event) => {
                     actor: state.session
                 });
             }
-            await refreshData();
+            await refreshWorkspaceAfterMutation();
             state.currentView = 'lead-detail';
             state.editingNoteId = null;
             flashNotice(noteId ? 'Note updated with version history.' : 'Note saved to lead history.', 'success');
@@ -4371,7 +5939,7 @@ document.addEventListener('submit', async (event) => {
                     content: resolvedNotes,
                     actor: state.session
                 });
-                await refreshData();
+                await refreshWorkspaceAfterMutation();
             }
 
             closeModal();
@@ -4401,7 +5969,7 @@ document.addEventListener('submit', async (event) => {
             });
             flashNotice('CRM rep account saved.', 'success');
             closeModal();
-            await refreshData();
+            await refreshWorkspaceAfterMutation();
         } catch (error) {
             flashNotice(error.message, 'error');
         }
@@ -4424,7 +5992,7 @@ document.addEventListener('submit', async (event) => {
         });
         state.editingTagDefinitionId = null;
         flashNotice('Tag catalog updated.', 'success');
-        await refreshData();
+        await refreshWorkspaceAfterMutation();
         return;
     }
 
@@ -4444,7 +6012,7 @@ document.addEventListener('submit', async (event) => {
         });
         state.editingDispositionDefinitionId = null;
         flashNotice('Disposition catalog updated.', 'success');
-        await refreshData();
+        await refreshWorkspaceAfterMutation();
         return;
     }
 
@@ -4453,7 +6021,7 @@ document.addEventListener('submit', async (event) => {
         const formData = new FormData(event.target);
 
         if (!hasPermission(state.session, PERMISSIONS.MANAGE_SETTINGS)) {
-            flashNotice('Only admin users can clear local CRM data.', 'error');
+            flashNotice('Only admin users can clear CRM data.', 'error');
             return;
         }
 
@@ -4465,8 +6033,8 @@ document.addEventListener('submit', async (event) => {
         await dataService.clearAllData();
         closeModal();
         closeDrawer();
-        flashNotice('Local CRM data cleared from this browser.', 'success');
-        await refreshData();
+        flashNotice('CRM data cleared from the workspace.', 'success');
+        await refreshWorkspaceAfterMutation();
     }
 });
 
@@ -4479,6 +6047,20 @@ document.addEventListener('change', (event) => {
 document.addEventListener('input', (event) => {
     if (event.target.matches('.tag-picker-input')) {
         refreshTagSuggestions(event.target);
+        return;
+    }
+
+    if (event.target.id === 'admin-user-search') {
+        const caretPosition = event.target.selectionStart ?? event.target.value.length;
+        state.adminUserSearch = event.target.value;
+        renderPanels();
+        requestAnimationFrame(() => {
+            const input = document.getElementById('admin-user-search');
+            input?.focus();
+            if (input && typeof input.setSelectionRange === 'function') {
+                input.setSelectionRange(caretPosition, caretPosition);
+            }
+        });
         return;
     }
 
@@ -4495,19 +6077,78 @@ document.addEventListener('input', (event) => {
         return;
     }
 
-    if (event.target.id === 'global-search') {
-        state.search = event.target.value;
-        state.activeSavedFilterId = null;
-        state.page = 1;
+    if (event.target.matches('.crm-search')) {
+        const searchSurface = getSearchSurfaceFromElement(event.target);
+        const caretPosition = event.target.selectionStart ?? event.target.value.length;
+        const nextValue = event.target.value;
+        const inWorkspaceSearchView = isWorkspaceSearchView();
 
-        if (normalizeWhitespace(state.search) && !['clients', 'members'].includes(state.currentView)) {
-            state.currentView = 'clients';
-            state.lastWorkspaceView = 'clients';
+        state.activeSearchSurface = searchSurface;
+        state.activeSearchCaret = caretPosition;
+
+        if (event.target.hasAttribute('data-mobile-search-input')) {
+            state.mobileSearchOpen = true;
+        }
+        setSearchShellExpanded(true);
+
+        if (inWorkspaceSearchView) {
+            state.workspaceSearch = nextValue;
+            state.lookupQuery = nextValue;
+            state.activeSavedFilterId = null;
+            state.page = 1;
+        } else {
+            state.lookupQuery = nextValue;
         }
 
+        if (normalizeWhitespace(nextValue)) {
+            state.searchSuggestionsOpen = true;
+            state.searchSuggestionsLoading = true;
+            state.searchSuggestionsQuery = normalizeWhitespace(nextValue);
+        } else {
+            resetToolbarSuggestions({ clearResults: true });
+        }
+
+        renderTopbar();
+
+        if (inWorkspaceSearchView) {
+            renderSidebar();
+            renderPanels();
+            queueWorkspaceRefresh(getDefaultScopeForView());
+        }
+
+        focusToolbarSearchInput(searchSurface, caretPosition);
+
+        if (normalizeWhitespace(nextValue)) {
+            queueToolbarSuggestions({ surface: searchSurface });
+        }
+    }
+});
+
+window.addEventListener('resize', () => {
+    if (!state.session || isMobileNavViewport()) {
+        return;
+    }
+
+    let shouldRefreshChrome = false;
+
+    if (state.sidebarOpen) {
+        setSidebarOpen(false);
+        shouldRefreshChrome = true;
+    }
+
+    if (state.mobileSearchOpen) {
+        state.mobileSearchOpen = false;
+        shouldRefreshChrome = true;
+    }
+
+    if (state.searchSuggestionsOpen) {
+        resetToolbarSuggestions();
+        shouldRefreshChrome = true;
+    }
+
+    if (shouldRefreshChrome) {
+        renderTopbar();
         renderSidebar();
-        renderPanels();
-        queueWorkspaceRefresh(getDefaultScopeForView());
     }
 });
 
@@ -4572,6 +6213,72 @@ document.addEventListener('change', async (event) => {
 });
 
 document.addEventListener('keydown', (event) => {
+    if (event.target.matches('.crm-search')) {
+        const searchSurface = getSearchSurfaceFromElement(event.target);
+        state.activeSearchSurface = searchSurface;
+        state.activeSearchCaret = event.target.selectionStart ?? event.target.value.length;
+
+        if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
+            const visibleQuery = normalizeWhitespace(getToolbarSearchValue());
+
+            if (!visibleQuery) {
+                return;
+            }
+
+            event.preventDefault();
+
+            if (!shouldShowSearchSuggestions()) {
+                state.searchSuggestionsOpen = true;
+                renderTopbar();
+                focusToolbarSearchInput(searchSurface, state.activeSearchCaret);
+
+                if (!state.searchSuggestions.length && !state.searchSuggestionsLoading) {
+                    state.searchSuggestionsLoading = true;
+                    renderTopbar();
+                    focusToolbarSearchInput(searchSurface, state.activeSearchCaret);
+                    queueToolbarSuggestions({ immediate: true, surface: searchSurface });
+                }
+                return;
+            }
+
+            if (!state.searchSuggestions.length) {
+                return;
+            }
+
+            const direction = event.key === 'ArrowDown' ? 1 : -1;
+            const nextIndex = state.activeSuggestionIndex < 0
+                ? 0
+                : (state.activeSuggestionIndex + direction + state.searchSuggestions.length) % state.searchSuggestions.length;
+
+            state.activeSuggestionIndex = nextIndex;
+            renderTopbar();
+            focusToolbarSearchInput(searchSurface, state.activeSearchCaret);
+            return;
+        }
+
+        if (event.key === 'Enter' && shouldShowSearchSuggestions() && state.activeSuggestionIndex >= 0) {
+            const suggestion = state.searchSuggestions[state.activeSuggestionIndex];
+
+            if (!suggestion) {
+                return;
+            }
+
+            event.preventDefault();
+            resetToolbarSuggestions();
+            renderTopbar();
+            openSearchPreviewDrawer(suggestion.id);
+            return;
+        }
+
+        if (event.key === 'Escape' && shouldShowSearchSuggestions()) {
+            event.preventDefault();
+            resetToolbarSuggestions();
+            renderTopbar();
+            focusToolbarSearchInput(searchSurface, state.activeSearchCaret);
+            return;
+        }
+    }
+
     if (event.target.matches('.tag-picker-input')) {
         if (event.key === 'Enter' || event.key === ',' || event.key === 'Tab') {
             event.preventDefault();
@@ -4610,6 +6317,17 @@ document.addEventListener('keydown', (event) => {
 });
 
 document.addEventListener('focusout', (event) => {
+    if (event.target.matches('.crm-search')) {
+        window.setTimeout(() => {
+            if (!document.activeElement?.closest('.search-shell')) {
+                resetToolbarSuggestions();
+                setSearchShellExpanded(false);
+                renderTopbar();
+            }
+        }, 120);
+        return;
+    }
+
     if (event.target.matches('.tag-picker-input')) {
         window.setTimeout(() => {
             const picker = event.target.closest('[data-tag-picker]');
@@ -4632,6 +6350,43 @@ refs.modalLayer.addEventListener('click', (event) => {
 });
 
 document.addEventListener('focusin', (event) => {
+    if (event.target.matches('.crm-search')) {
+        const searchSurface = getSearchSurfaceFromElement(event.target);
+        const visibleQuery = normalizeWhitespace(getToolbarSearchValue());
+
+        state.activeSearchSurface = searchSurface;
+        state.activeSearchCaret = event.target.selectionStart ?? event.target.value.length;
+        if (!state.searchShellExpanded) {
+            setSearchShellExpanded(true);
+            renderTopbar();
+            focusToolbarSearchInput(searchSurface, state.activeSearchCaret);
+            return;
+        }
+
+        if (!visibleQuery) {
+            return;
+        }
+
+        if (state.searchSuggestionsOpen && state.searchSuggestionsQuery === visibleQuery) {
+            return;
+        }
+
+        state.searchSuggestionsOpen = true;
+
+        if (state.searchSuggestionsQuery === visibleQuery && (state.searchSuggestions.length || !state.searchSuggestionsLoading)) {
+            renderTopbar();
+            focusToolbarSearchInput(searchSurface, state.activeSearchCaret);
+            return;
+        }
+
+        state.searchSuggestionsLoading = true;
+        state.searchSuggestionsQuery = visibleQuery;
+        renderTopbar();
+        focusToolbarSearchInput(searchSurface, state.activeSearchCaret);
+        queueToolbarSuggestions({ immediate: true, surface: searchSurface });
+        return;
+    }
+
     if (event.target.matches('.tag-picker-input')) {
         refreshTagSuggestions(event.target);
     }
@@ -4667,6 +6422,12 @@ function toggleLeadSelection(clientId) {
         return;
     }
 
+    const client = getAccessibleClientById(clientId);
+
+    if (client && normalizeWhitespace(client.assignedRepId)) {
+        return;
+    }
+
     const selectedIds = new Set(state.selectedLeadIds);
 
     if (selectedIds.has(clientId)) {
@@ -4678,8 +6439,12 @@ function toggleLeadSelection(clientId) {
     state.selectedLeadIds = [...selectedIds];
 }
 
+function getAssignableLeadPageRows() {
+    return getUnassignedLeadRows(getWorkspacePageRows('leads'));
+}
+
 function togglePageLeadSelection() {
-    const currentPageIds = getWorkspacePageRows('leads').map((client) => client.id);
+    const currentPageIds = getAssignableLeadPageRows().map((client) => client.id);
     const selectedIds = new Set(state.selectedLeadIds);
     const shouldSelectAll = currentPageIds.some((clientId) => !selectedIds.has(clientId));
 
@@ -4695,7 +6460,7 @@ function togglePageLeadSelection() {
 }
 
 function selectVisibleLeads() {
-    state.selectedLeadIds = getWorkspacePageRows('leads').map((client) => client.id);
+    state.selectedLeadIds = getAssignableLeadPageRows().map((client) => client.id);
 }
 
 async function handleBulkAssign(assignedRepId) {
@@ -4721,7 +6486,7 @@ async function handleBulkAssign(assignedRepId) {
 
         state.selectedLeadIds = [];
         state.bulkAssignRepId = assignedRepId;
-        await refreshData();
+        await refreshWorkspaceAfterMutation();
         flashNotice(
             assignedRepId
                 ? `${updatedLeads.length} leads assigned to ${assignedTo}.`
@@ -4733,11 +6498,11 @@ async function handleBulkAssign(assignedRepId) {
     }
 }
 
-function findDuplicateLeadCandidate(payload) {
+async function findDuplicateLeadCandidate(payload) {
     const email = normalizeWhitespace(payload.email).toLowerCase();
     const phoneDigits = String(payload.phone ?? '').replace(/\D/g, '').replace(/^1(?=\d{10}$)/, '');
 
-    const match = state.clients.find((client) => {
+    const localMatch = state.clients.find((client) => {
         if (payload.id && client.id === payload.id) {
             return false;
         }
@@ -4746,18 +6511,37 @@ function findDuplicateLeadCandidate(payload) {
             || (phoneDigits && client.phoneKey === phoneDigits);
     }) || null;
 
-    if (!match) {
-        return null;
+    if (localMatch) {
+        if (!canAccessClient(localMatch) && !isAdminSession(state.session)) {
+            return {
+                id: localMatch.id,
+                restricted: true
+            };
+        }
+
+        return localMatch;
     }
 
-    if (!canAccessClient(match) && !isAdminSession(state.session)) {
-        return {
-            id: match.id,
-            restricted: true
-        };
+    if (typeof dataService.findDuplicateClientCandidate === 'function') {
+        const remoteMatch = await dataService.findDuplicateClientCandidate(payload);
+
+        if (!remoteMatch) {
+            return null;
+        }
+
+        mergeClientCache([remoteMatch]);
+
+        if (!canAccessClient(remoteMatch) && !isAdminSession(state.session)) {
+            return {
+                id: remoteMatch.id,
+                restricted: true
+            };
+        }
+
+        return remoteMatch;
     }
 
-    return match;
+    return null;
 }
 
 function getMergeComparisonFields(existingLead, incomingPayload) {
@@ -4781,7 +6565,7 @@ function getMergeComparisonFields(existingLead, incomingPayload) {
 }
 
 async function handleCreateLeadSubmit(clientPayload) {
-    const duplicateLead = findDuplicateLeadCandidate(clientPayload);
+    const duplicateLead = await findDuplicateLeadCandidate(clientPayload);
 
     if (duplicateLead) {
         if (duplicateLead.restricted) {
@@ -5020,12 +6804,16 @@ async function saveLeadPayload(payload) {
         actor: state.session
     });
     const staysAccessible = hasPermission(state.session, PERMISSIONS.VIEW_ADMIN) || savedLead.assignedRepId === state.session?.id;
-    state.lastWorkspaceView = savedLead.lifecycleType === 'member' ? 'members' : 'clients';
+    state.lastWorkspaceView = savedLead.lifecycleType === 'member'
+        ? 'members'
+        : (normalizeWhitespace(savedLead.assignedRepId) && hasPermission(state.session, PERMISSIONS.ASSIGN_LEADS)
+            ? 'assigned-leads'
+            : 'clients');
     state.detailClientId = staysAccessible ? savedLead.id : null;
     state.currentView = staysAccessible ? 'lead-detail' : state.lastWorkspaceView;
     state.detailEditMode = false;
     state.detailEditSnapshot = null;
-    await refreshData();
+    await refreshWorkspaceAfterMutation();
     return savedLead;
 }
 
@@ -5060,7 +6848,7 @@ function cloneFilterPayload(filters) {
 function createSavedFilterPayload() {
     return {
         filters: cloneFilterPayload(state.filters),
-        search: state.search,
+        search: state.workspaceSearch,
         sort: { ...state.sort },
         pageSize: state.pageSize
     };
@@ -5069,7 +6857,8 @@ function createSavedFilterPayload() {
 function applySavedFilter(savedFilter) {
     const payload = savedFilter.filterPayload || {};
     state.filters = normalizeFilterState(payload.filters || payload || createDefaultFilters());
-    state.search = String(payload.search ?? '');
+    state.workspaceSearch = String(payload.search ?? '');
+    state.lookupQuery = isWorkspaceSearchView() ? state.workspaceSearch : state.lookupQuery;
     state.sort = {
         field: typeof payload.sort?.field === 'string' ? payload.sort.field : 'updatedAt',
         direction: payload.sort?.direction === 'asc' ? 'asc' : 'desc'
@@ -5077,22 +6866,19 @@ function applySavedFilter(savedFilter) {
     state.pageSize = [25, 50, 100, 250].includes(Number(payload.pageSize)) ? Number(payload.pageSize) : 50;
     state.activeSavedFilterId = savedFilter.id;
     state.page = 1;
+    resetToolbarSuggestions({ clearResults: true });
 }
 
 async function openLeadDetailPage(clientId, sourceView = 'clients') {
-    const cachedLead = getAccessibleClientById(clientId);
-
-    if (!cachedLead) {
-        flashNotice('That lead is not assigned to your session.', 'error');
-        return;
-    }
-
     try {
         const detailedLead = await dataService.getClientById(clientId);
 
-        if (detailedLead && canAccessClient(detailedLead)) {
-            mergeClientCache([detailedLead]);
+        if (!detailedLead || !canAccessClient(detailedLead)) {
+            flashNotice('That lead is not assigned to your session.', 'error');
+            return;
         }
+
+        mergeClientCache([detailedLead]);
     } catch (error) {
         flashNotice(error.message || 'Unable to load the lead details.', 'error');
         return;
@@ -5100,10 +6886,11 @@ async function openLeadDetailPage(clientId, sourceView = 'clients') {
 
     state.detailClientId = clientId;
     state.currentView = 'lead-detail';
-    state.lastWorkspaceView = sourceView === 'members' ? 'members' : 'clients';
+    state.lastWorkspaceView = sourceView === 'members'
+        ? 'members'
+        : (sourceView === 'assigned-leads' ? 'assigned-leads' : 'clients');
     state.detailEditMode = false;
     state.detailEditSnapshot = null;
-    state.leadHistoryOpen = false;
     state.editingNoteId = null;
     closeDrawer();
     if (state.modal) {
@@ -5114,7 +6901,7 @@ async function openLeadDetailPage(clientId, sourceView = 'clients') {
 
 async function navigateLeadDetail(direction) {
     const scope = state.lastWorkspaceView === 'members' ? 'members' : 'leads';
-    const visibleSet = getVisibleClients(scope);
+    const visibleSet = getLeadNavigationSet(scope);
     const currentIndex = visibleSet.findIndex((item) => item.id === state.detailClientId);
 
     if (currentIndex < 0) {
@@ -5136,6 +6923,7 @@ async function handleImportFile(file) {
     renderModal();
 
     try {
+        await loadFullClientDataset();
         const text = await file.text();
         const parsed = parseCsvText(text);
 
@@ -5222,7 +7010,7 @@ async function handleImportConfirm() {
             existingClients: state.clients
         });
 
-        await refreshData();
+        await refreshWorkspaceAfterMutation();
 
         state.importFlow = {
             ...state.importFlow,

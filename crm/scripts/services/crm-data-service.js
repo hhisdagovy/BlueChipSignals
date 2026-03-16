@@ -161,6 +161,10 @@ export class CrmDataService {
 
         return normalizedClient;
     }
+
+    async searchClientSuggestions() {
+        return [];
+    }
 }
 
 export function getImportFieldDefinitions() {

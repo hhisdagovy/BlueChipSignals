@@ -681,7 +681,8 @@ async function loadFullClientDataset() {
 }
 
 function syncShellState() {
-    document.body.classList.toggle('crm-nav-open', state.sidebarOpen);
+    const shouldLockBodyScroll = state.sidebarOpen && isMobileNavViewport();
+    document.body.classList.toggle('crm-nav-open', shouldLockBodyScroll);
 
     if (!refs.shell) {
         return;

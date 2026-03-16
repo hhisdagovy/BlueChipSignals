@@ -402,6 +402,21 @@ footer p a:hover {
     color: var(--secondary-gold);
 }
 
+.footer-badge {
+    margin-top: 1.25rem;
+}
+
+.footer-badge a {
+    display: inline-block;
+}
+
+.footer-badge img {
+    display: block;
+    max-width: min(200px, 100%);
+    height: auto;
+    margin: 0 auto;
+}
+
 /* ============================================================
    Supported Equities Nav Dropdown
    ============================================================ */

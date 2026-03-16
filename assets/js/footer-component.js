@@ -29,18 +29,23 @@
                 '<i class="fab fa-linkedin"></i>' +
             '</a>' +
         '</div>';
+        var badge = '<div class="footer-badge">' +
+            '<a href="https://saasbrowser.com/en/saas/1222483/blue-chip-signals" target="_blank" rel="noopener">' +
+                '<img src="https://static-files.saasbrowser.com/saas-browser-badge-16.svg" alt="Blue Chip Signals - SaaS Browser" width="200">' +
+            '</a>' +
+        '</div>';
 
         var copyright = '&copy; 2026 Blue Chip Signals. All rights reserved.';
 
         switch (type) {
             case 'back-to-home':
-                return '<p>' + copyright + ' | ' + termsLink + ' | ' + homeLink + '</p>' + social;
+                return '<p>' + copyright + ' | ' + termsLink + ' | ' + homeLink + '</p>' + social + badge;
 
             case 'minimal':
-                return '<p>' + copyright + ' | ' + termsLink + '</p>';
+                return '<p>' + copyright + ' | ' + termsLink + '</p>' + badge;
 
             default: /* standard-social */
-                return '<p>' + copyright + ' | ' + termsLink + '</p>' + social;
+                return '<p>' + copyright + ' | ' + termsLink + '</p>' + social + badge;
         }
     }
 })();

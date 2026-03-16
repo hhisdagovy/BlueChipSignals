@@ -40,7 +40,7 @@ body.crm-body {
     color: var(--light-text);
     background-color: transparent;
     background-image: var(--crm-page-background);
-    overscroll-behavior-y: none;
+    overscroll-behavior-y: auto;
     overflow-x: hidden;
 }
 
@@ -642,7 +642,8 @@ button {
     grid-template-columns: minmax(0, 1fr);
     position: relative;
     isolation: isolate;
-    overflow: hidden;
+    overflow-x: hidden;
+    overflow-y: visible;
 }
 
 .crm-sidebar {
@@ -769,7 +770,8 @@ button {
     padding: 1.35rem;
     position: relative;
     isolation: isolate;
-    overflow: hidden;
+    overflow-x: hidden;
+    overflow-y: visible;
     z-index: 2;
 }
 
@@ -2519,6 +2521,7 @@ button {
 
 .lead-history-table-scroll {
     overflow-x: auto;
+    overflow-y: visible;
 }
 
 .crm-table.lead-history-table {
@@ -3217,7 +3220,8 @@ button {
 
 .table-shell {
     width: 100%;
-    overflow: auto;
+    overflow-x: auto;
+    overflow-y: visible;
     border-radius: 18px;
     border: 1px solid rgba(255, 255, 255, 0.06);
 }
@@ -4574,8 +4578,23 @@ button {
 }
 
 @media (max-width: 768px) {
+    body.crm-body.crm-nav-open {
+        height: 100vh;
+        height: 100dvh;
+        overflow: hidden;
+    }
+
     .crm-sidebar {
         display: none;
+    }
+
+    .crm-shell.sidebar-open,
+    .crm-shell.sidebar-open .crm-stage {
+        height: 100vh;
+        height: 100dvh;
+        max-height: 100vh;
+        max-height: 100dvh;
+        overflow: hidden;
     }
 
     .crm-shell.sidebar-open .crm-stage::before {
@@ -4698,7 +4717,7 @@ button {
     }
 
     .crm-mobile-menu-panel {
-        display: flex;
+        display: none;
         flex-direction: column;
         justify-content: flex-start;
         position: fixed;
@@ -4720,12 +4739,14 @@ button {
     }
 
     .crm-mobile-menu-panel.active {
+        display: flex;
         opacity: 1;
         visibility: visible;
         pointer-events: all;
         transform: translateY(0);
         transition: visibility 0s linear 0s;
         animation: crmMobileMenuPanelIn 0.42s cubic-bezier(0.22, 1, 0.36, 1) both;
+        -webkit-overflow-scrolling: touch;
     }
 
     .crm-mobile-menu-links {

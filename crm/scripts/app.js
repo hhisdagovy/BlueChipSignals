@@ -2317,6 +2317,7 @@ function renderLeadDetailPage() {
     const formIntroCopy = isEditing
         ? `Edit ${entityLabel.toLowerCase()} contact information, assignment, and workflow details from one focused form.`
         : `Review ${entityLabel.toLowerCase()} contact information, ownership, and workflow details. Use Edit when you need to make changes.`;
+    const autoTimeZoneLabel = lead.autoTimeZone || 'Unknown';
 
     return `
         <div class="lead-detail-page">
@@ -2375,14 +2376,13 @@ function renderLeadDetailPage() {
                             ${renderLeadSelectField('Disposition', 'disposition', dispositionOptions, lead.disposition || '', canEditLeadWorkflowField(lead, 'disposition') || (isEditing && canEditLeadField(state.session, 'disposition', lead)), null, { emptyLabel: 'No disposition' })}
                             ${renderLeadField('Subscription type', 'subscriptionType', lead.subscriptionType, isEditing && canAdminEdit)}
                             <label class="form-field">
-                                <span class="form-label">Time zone override</span>
+                                <span class="form-label">Time zone</span>
                                 <select class="crm-select" name="timeZone" ${(isEditing && (canAdminEdit || canEditLeadField(state.session, 'timeZone', lead))) ? '' : 'disabled'}>
-                                    <option value="">Auto detect (${escapeHtml(lead.autoTimeZone || 'Unknown')})</option>
+                                    <option value="">Auto detect (${escapeHtml(autoTimeZoneLabel)})</option>
                                     ${CRM_TIME_ZONE_OPTIONS.map((timeZone) => `
                                         <option value="${escapeHtml(timeZone)}" ${lead.timezoneOverridden && lead.timeZone === timeZone ? 'selected' : ''}>${escapeHtml(timeZone)}</option>
                                     `).join('')}
                                 </select>
-                                <span class="panel-subtitle">Current value: ${escapeHtml(lead.timeZone || 'Unknown')} ${lead.timezoneOverridden ? '· manual override' : '· auto detected'}</span>
                             </label>
                             ${renderLeadField('Follow up at', 'followUpAt', lead.followUpAt, canEditLeadWorkflowField(lead, 'followUpAt') || (isEditing && canEditLeadField(state.session, 'followUpAt', lead)), 'datetime-local')}
                             ${renderLeadField('Follow up action', 'followUpAction', lead.followUpAction, canEditLeadWorkflowField(lead, 'followUpAction') || (isEditing && canEditLeadField(state.session, 'followUpAction', lead)))}
@@ -3299,6 +3299,34 @@ function renderSettingsPanel() {
                         ${canExport ? '<button class="crm-button-secondary" data-action="export-clients"><i class="fa-solid fa-file-export"></i> Export CSV</button>' : ''}
                     </div>
                     <div class="crm-settings-support-note">${canExport ? 'Exports mirror the current CRM workspace so your team can work from the latest snapshot.' : 'Export access is reserved for admin sessions.'}</div>
+                </section>
+
+                <section class="crm-settings-card">
+                    <div class="crm-settings-card-head">
+                        <div class="crm-settings-card-title">
+                            <span class="crm-settings-card-icon"><i class="fa-solid fa-globe"></i></span>
+                            <div>
+                                <h2>Time zone automation</h2>
+                                <p>Normalize and backfill lead time zones from the shared U.S. area-code lookup.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="crm-settings-quick-stats">
+                        <div class="crm-settings-quick-stat">
+                            <span>Lead inventory</span>
+                            <strong>${leadCount.toLocaleString()}</strong>
+                        </div>
+                        <div class="crm-settings-quick-stat">
+                            <span>Mode</span>
+                            <strong>Auto + manual</strong>
+                        </div>
+                    </div>
+
+                    <div class="settings-actions crm-settings-action-row">
+                        ${canManageSettings ? '<button class="crm-button-secondary" data-action="backfill-time-zones"><i class="fa-solid fa-rotate"></i> Backfill time zones</button>' : ''}
+                    </div>
+                    <div class="crm-settings-support-note">${canManageSettings ? 'Manual overrides stay untouched. Non-overridden leads are normalized to the shared CRM time zone labels.' : 'Only admin users can run the time zone backfill.'}</div>
                 </section>
 
                 <section class="crm-settings-card crm-settings-card-danger crm-settings-card-full">
@@ -5013,6 +5041,15 @@ async function refreshWorkspaceAfterMutation() {
     await refreshData();
 }
 
+function buildTimeZoneBackfillSummary(result) {
+    const updatedCount = Number(result?.updatedCount) || 0;
+    const unchangedCount = Number(result?.unchangedCount) || 0;
+    const skippedOverriddenCount = Number(result?.skippedOverriddenCount) || 0;
+    const unknownCount = Number(result?.unknownCount) || 0;
+
+    return `Time zone backfill complete: ${updatedCount.toLocaleString()} updated, ${unchangedCount.toLocaleString()} unchanged, ${skippedOverriddenCount.toLocaleString()} manual overrides skipped, ${unknownCount.toLocaleString()} set to Unknown.`;
+}
+
 function syncToolbarFilterButton() {
     const button = refs.topbar.querySelector('[data-action="open-filters"]');
 
@@ -5584,6 +5621,18 @@ document.addEventListener('click', async (event) => {
         }
         await dataService.restoreSampleData();
         flashNotice('Workspace starter records were restored when no records were present.', 'success');
+        await refreshWorkspaceAfterMutation();
+        return;
+    }
+
+    if (action === 'backfill-time-zones') {
+        if (!hasPermission(state.session, PERMISSIONS.MANAGE_SETTINGS)) {
+            flashNotice('Only admin users can backfill lead time zones.', 'error');
+            return;
+        }
+
+        const result = await dataService.backfillLeadTimeZones();
+        flashNotice(buildTimeZoneBackfillSummary(result), 'success');
         await refreshWorkspaceAfterMutation();
         return;
     }

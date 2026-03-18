@@ -1,7 +1,7 @@
 import { IMPORT_FIELDS } from '../import/csv-utils.js';
+import { resolveTimeZoneFieldsForSave } from './crm-time-zone-resolver.js';
 import {
     buildFullName,
-    extractAreaCode,
     formatPhone,
     isLikelyEmail,
     normalizeEmail,
@@ -14,35 +14,9 @@ import {
 } from '../utils/formatters.js';
 
 export const CRM_STATUS_OPTIONS = ['new', 'contacted', 'qualified', 'won', 'inactive'];
-export const CRM_TIME_ZONE_OPTIONS = ['Eastern', 'Central', 'Mountain', 'Pacific', 'Alaska', 'Hawaii', 'Unknown'];
+export { CRM_TIME_ZONE_OPTIONS } from './crm-time-zone-resolver.js';
 
 const STATUSES = CRM_STATUS_OPTIONS;
-const AREA_CODE_TIME_ZONES = {
-    '206': 'Pacific',
-    '212': 'Eastern',
-    '213': 'Pacific',
-    '214': 'Central',
-    '303': 'Mountain',
-    '305': 'Eastern',
-    '310': 'Pacific',
-    '312': 'Central',
-    '323': 'Pacific',
-    '404': 'Eastern',
-    '415': 'Pacific',
-    '503': 'Pacific',
-    '516': 'Eastern',
-    '551': 'Eastern',
-    '602': 'Mountain',
-    '617': 'Eastern',
-    '646': 'Eastern',
-    '713': 'Central',
-    '718': 'Eastern',
-    '732': 'Eastern',
-    '808': 'Hawaii',
-    '907': 'Alaska',
-    '914': 'Eastern',
-    '917': 'Eastern'
-};
 
 export class CrmDataService {
     exportClientsToCsv(clients) {
@@ -165,6 +139,10 @@ export class CrmDataService {
     async searchClientSuggestions() {
         return [];
     }
+
+    async backfillLeadTimeZones() {
+        throw new Error('Lead time zone backfill is not available for this CRM data service.');
+    }
 }
 
 export function getImportFieldDefinitions() {
@@ -209,43 +187,6 @@ function normalizeSubscriptionType(value) {
     return normalizeWhitespace(value);
 }
 
-function normalizeTimeZone(value) {
-    const normalized = normalizeWhitespace(value);
-    const key = normalized.toLowerCase();
-
-    if (!normalized) {
-        return '';
-    }
-
-    const aliases = {
-        est: 'Eastern',
-        edt: 'Eastern',
-        eastern: 'Eastern',
-        'america/new_york': 'Eastern',
-        cst: 'Central',
-        cdt: 'Central',
-        central: 'Central',
-        'america/chicago': 'Central',
-        mst: 'Mountain',
-        mdt: 'Mountain',
-        mountain: 'Mountain',
-        'america/denver': 'Mountain',
-        pst: 'Pacific',
-        pdt: 'Pacific',
-        pacific: 'Pacific',
-        'america/los_angeles': 'Pacific',
-        alaska: 'Alaska',
-        akst: 'Alaska',
-        'america/anchorage': 'Alaska',
-        hawaii: 'Hawaii',
-        hst: 'Hawaii',
-        'pacific/honolulu': 'Hawaii',
-        unknown: 'Unknown'
-    };
-
-    return aliases[key] || normalized;
-}
-
 function normalizeLifecycleType(value) {
     const normalized = normalizeWhitespace(value).toLowerCase();
     return normalized === 'member' ? 'member' : 'lead';
@@ -275,37 +216,12 @@ function normalizeLeadDateTime(value) {
     return date.toISOString();
 }
 
-function inferTimeZone(phoneValue) {
-    const areaCode = extractAreaCode(phoneValue);
-    return AREA_CODE_TIME_ZONES[areaCode] ?? 'Unknown';
-}
-
 function resolveTimeZoneFields(payload, existingClient, phoneKey) {
-    const autoTimeZone = inferTimeZone(phoneKey);
-    const existingPhoneKey = normalizePhone(existingClient?.phoneKey || existingClient?.phone);
-    const phoneChanged = Boolean(existingClient) && existingPhoneKey !== phoneKey;
-    const explicitTimeZone = Object.prototype.hasOwnProperty.call(payload, 'timeZone')
-        ? normalizeTimeZone(payload.timeZone)
-        : null;
-    const existingTimeZone = normalizeTimeZone(existingClient?.timeZone);
-    const existingOverridden = existingClient?.timezoneOverridden === true;
-
-    if (explicitTimeZone !== null) {
-        return {
-            timeZone: explicitTimeZone || autoTimeZone,
-            timezoneOverridden: Boolean(explicitTimeZone)
-        };
-    }
-
-    if (existingOverridden) {
-        return {
-            timeZone: existingTimeZone || autoTimeZone,
-            timezoneOverridden: true
-        };
-    }
-
-    return {
-        timeZone: (!phoneChanged && existingTimeZone) ? existingTimeZone : autoTimeZone,
-        timezoneOverridden: false
-    };
+    return resolveTimeZoneFieldsForSave({
+        requestedTimeZone: payload?.timeZone,
+        hasExplicitTimeZone: Object.prototype.hasOwnProperty.call(payload, 'timeZone'),
+        existingTimeZone: existingClient?.timeZone,
+        existingOverridden: existingClient?.timezoneOverridden === true,
+        phone: phoneKey
+    });
 }

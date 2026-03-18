@@ -36,3 +36,13 @@ The CRM UI talks to `crm/scripts/services/crm-data-service.js`, which depends on
 
 - Public website pages are unchanged by the CRM prototype work.
 - The CRM route is structured so it can later live at `/crm` in the main site.
+
+### Refresh NANPA Area Codes
+
+The CRM's U.S. phone area-code time-zone lookup is generated from NANPA's public NPA report CSV. To refresh it:
+
+```bash
+python3 crm/scripts/data/refresh-us-area-code-time-zones.py
+```
+
+That command rewrites `crm/scripts/data/us-area-code-time-zones.js` with the current NANPA U.S. geographic in-service area codes.

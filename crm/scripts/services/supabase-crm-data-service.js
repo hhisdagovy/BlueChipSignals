@@ -1,12 +1,14 @@
 import {
   CrmDataService,
-  CRM_STATUS_OPTIONS,
-  CRM_TIME_ZONE_OPTIONS
+  CRM_STATUS_OPTIONS
 } from './crm-data-service.js'
+import {
+  inferTimeZoneFromPhone,
+  resolveLeadTimeZone
+} from './crm-time-zone-resolver.js'
 import {
   buildFullName,
   dedupeStrings,
-  extractAreaCode,
   formatPhone,
   normalizeEmail,
   normalizeNotes,
@@ -16,33 +18,6 @@ import {
   uid
 } from '../utils/formatters.js'
 import { getSupabase } from '../../../src/lib/supabase-browser.js'
-
-const AREA_CODE_TIME_ZONES = {
-  '206': 'Pacific',
-  '212': 'Eastern',
-  '213': 'Pacific',
-  '214': 'Central',
-  '303': 'Mountain',
-  '305': 'Eastern',
-  '310': 'Pacific',
-  '312': 'Central',
-  '323': 'Pacific',
-  '404': 'Eastern',
-  '415': 'Pacific',
-  '503': 'Pacific',
-  '516': 'Eastern',
-  '551': 'Eastern',
-  '602': 'Mountain',
-  '617': 'Eastern',
-  '646': 'Eastern',
-  '713': 'Central',
-  '718': 'Eastern',
-  '732': 'Eastern',
-  '808': 'Hawaii',
-  '907': 'Alaska',
-  '914': 'Eastern',
-  '917': 'Eastern'
-}
 
 const LEAD_SELECT_COLUMNS = [
   'id',
@@ -618,6 +593,80 @@ export class SupabaseCrmDataService extends CrmDataService {
     throw new Error('Restoring sample data is not available once Supabase is enabled.')
   }
 
+  async backfillLeadTimeZones() {
+    await this.assertActiveAdminSettingsAccess()
+
+    const leadRows = await this.fetchAllLeadRows(
+      (query) => query.order('updated_at', { ascending: false }),
+      'id, phone, timezone, timezone_overridden, updated_at',
+      'Unable to load leads for time zone backfill.'
+    )
+    const stats = {
+      scannedCount: leadRows.length,
+      updatedCount: 0,
+      unchangedCount: 0,
+      skippedOverriddenCount: 0,
+      unknownCount: 0
+    }
+    const now = new Date().toISOString()
+    const supabase = await getSupabase()
+    const updateRows = []
+
+    for (const row of leadRows) {
+      const rowId = String(row.id ?? '').trim()
+
+      if (!rowId) {
+        continue
+      }
+
+      if (row.timezone_overridden === true) {
+        stats.skippedOverriddenCount += 1
+        continue
+      }
+
+      const nextTimeZone = inferTimeZoneFromPhone(row.phone)
+
+      if (nextTimeZone === 'Unknown') {
+        stats.unknownCount += 1
+      }
+
+      if (normalizeWhitespace(row.timezone) === nextTimeZone && row.timezone_overridden === false) {
+        stats.unchangedCount += 1
+        continue
+      }
+
+      updateRows.push({
+        id: rowId,
+        timezone: nextTimeZone,
+        timezone_overridden: false,
+        updated_at: now
+      })
+    }
+
+    for (let index = 0; index < updateRows.length; index += 25) {
+      const batch = updateRows.slice(index, index + 25)
+      const results = await Promise.all(batch.map((row) =>
+        supabase
+          .from('leads')
+          .update({
+            timezone: row.timezone,
+            timezone_overridden: row.timezone_overridden,
+            updated_at: row.updated_at
+          })
+          .eq('id', row.id)
+      ))
+
+      results.forEach(({ error }) => {
+        if (error) {
+          throw new Error(error.message || 'Unable to update lead time zones in Supabase.')
+        }
+      })
+    }
+
+    stats.updatedCount = updateRows.length
+    return stats
+  }
+
   async buildImportPreview() {
     throw new Error('CSV import preview is still on the local prototype path in this pass.')
   }
@@ -1009,7 +1058,7 @@ export class SupabaseCrmDataService extends CrmDataService {
     }
   }
 
-  async assertActiveAdminCatalogAccess() {
+  async assertActiveAdminProfileAccess(actionLabel = 'manage tags or dispositions') {
     const supabase = await getSupabase()
     const { data: authData, error: authError } = await supabase.auth.getUser()
 
@@ -1037,8 +1086,16 @@ export class SupabaseCrmDataService extends CrmDataService {
     const isActive = data?.active === true
 
     if (role !== 'admin' || !isActive) {
-      throw new Error('Only active admin users can manage tags or dispositions.')
+      throw new Error(`Only active admin users can ${actionLabel}.`)
     }
+  }
+
+  async assertActiveAdminCatalogAccess() {
+    await this.assertActiveAdminProfileAccess('manage tags or dispositions')
+  }
+
+  async assertActiveAdminSettingsAccess() {
+    await this.assertActiveAdminProfileAccess('manage workspace settings')
   }
 
   async ensureUniqueCatalogLabel(table, label, currentId, entityLabel) {
@@ -1321,9 +1378,11 @@ function mapLeadRow(row, { usersById, tagsByLeadId, notesByLeadId, historyByLead
   const assignedRepId = normalizeWhitespace(row.assigned_rep_id)
   const dispositionId = normalizeWhitespace(row.disposition_id)
   const timezoneOverridden = row.timezone_overridden === true
-  const storedTimeZone = normalizeTimeZone(row.timezone)
-  const autoTimeZone = inferTimeZone(phoneKey)
-  const timeZone = storedTimeZone || autoTimeZone
+  const { autoTimeZone, timeZone } = resolveLeadTimeZone({
+    phone: phoneKey,
+    storedTimeZone: row.timezone,
+    timezoneOverridden
+  })
   const noteHistory = notesByLeadId.get(leadId) || []
   const tags = tagsByLeadId.get(leadId) || []
   const activityLog = historyByLeadId.get(leadId) || []
@@ -1370,6 +1429,11 @@ function mapLeadSuggestionRow(row) {
   const lastName = normalizeWhitespace(row.last_name)
   const phoneKey = normalizePhone(row.phone)
   const fullName = normalizeWhitespace(row.full_name) || buildFullName(firstName, lastName)
+  const { timeZone } = resolveLeadTimeZone({
+    phone: phoneKey,
+    storedTimeZone: row.timezone,
+    timezoneOverridden: false
+  })
 
   return {
     id: String(row.id ?? '').trim(),
@@ -1383,7 +1447,7 @@ function mapLeadSuggestionRow(row) {
     status: resolveLeadRowStatus(row.status, []),
     lifecycleType: resolveLeadRowLifecycle(row.lifecycle, []),
     subscriptionType: normalizeWhitespace(row.subscription_type),
-    timeZone: normalizeTimeZone(row.timezone),
+    timeZone,
     updatedAt: row.updated_at ?? row.updatedAt ?? ''
   }
 }
@@ -2013,19 +2077,4 @@ function normalizeProfileRole(role) {
   }
 
   return 'sales'
-}
-
-function normalizeTimeZone(value) {
-  const normalized = normalizeWhitespace(value)
-
-  if (!normalized) {
-    return ''
-  }
-
-  return CRM_TIME_ZONE_OPTIONS.find((option) => option.toLowerCase() === normalized.toLowerCase()) || normalized
-}
-
-function inferTimeZone(phoneValue) {
-  const areaCode = extractAreaCode(phoneValue)
-  return AREA_CODE_TIME_ZONES[areaCode] ?? 'Unknown'
 }

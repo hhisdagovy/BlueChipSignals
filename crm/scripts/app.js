@@ -110,7 +110,7 @@ const CALENDAR_EVENT_STATUS_OPTIONS = ['scheduled', 'completed', 'canceled', 'mi
 const CALENDAR_EVENT_VISIBILITY_OPTIONS = ['private', 'shared'];
 const CALENDAR_DAY_LABELS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 const ADMIN_TABS = Object.freeze([
-    { id: 'team', icon: 'fa-users', label: 'Reps' },
+    { id: 'team', icon: 'fa-users', label: 'Team' },
     { id: 'tags', icon: 'fa-tags', label: 'Tags' },
     { id: 'dispositions', icon: 'fa-list-check', label: 'Dispositions' },
     { id: 'activity', icon: 'fa-chart-column', label: 'Activity' },
@@ -214,6 +214,7 @@ const state = {
     tagDefinitions: [],
     dispositionDefinitions: [],
     users: [],
+    mailboxSenders: [],
     savedFilters: [],
     importHistory: [],
     workspaceSummary: createEmptyWorkspaceSummary(),
@@ -672,11 +673,13 @@ function applyWorkspaceMetadataSnapshot({
     allowedTags = [],
     tagDefinitions = [],
     dispositionDefinitions = [],
+    mailboxSenders = [],
     workspaceSummary = createEmptyWorkspaceSummary()
 } = {}) {
     state.allowedTags = allowedTags;
     state.tagDefinitions = tagDefinitions;
     state.dispositionDefinitions = dispositionDefinitions;
+    state.mailboxSenders = mailboxSenders;
     state.importHistory = importHistory;
     state.workspaceSummary = {
         leadCount: Number(workspaceSummary.leadCount) || 0,
@@ -702,12 +705,14 @@ function applyFullClientDataSnapshot({
     importHistory = [],
     allowedTags = [],
     tagDefinitions = [],
-    dispositionDefinitions = []
+    dispositionDefinitions = [],
+    mailboxSenders = []
 } = {}) {
     state.clients = clients;
     state.allowedTags = allowedTags;
     state.tagDefinitions = tagDefinitions;
     state.dispositionDefinitions = dispositionDefinitions;
+    state.mailboxSenders = mailboxSenders;
     state.importHistory = importHistory;
     state.workspaceSummary = {
         leadCount: clients.filter((client) => client.lifecycleType !== 'member').length,
@@ -1512,6 +1517,35 @@ function buildPhoneHref(phoneValue) {
     return `tel:${digits}`;
 }
 
+function buildEmailHref(emailValue) {
+    const displayValue = normalizeWhitespace(emailValue).toLowerCase();
+
+    if (!displayValue || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(displayValue)) {
+        return '';
+    }
+
+    return `mailto:${displayValue}`;
+}
+
+function renderEmailLink(emailValue, { placeholder = '—', className = 'crm-email-link', includeIcon = false } = {}) {
+    const displayValue = normalizeWhitespace(emailValue).toLowerCase();
+
+    if (!displayValue) {
+        return escapeHtml(placeholder);
+    }
+
+    const href = buildEmailHref(displayValue);
+
+    if (!href) {
+        return escapeHtml(displayValue);
+    }
+
+    const classes = [className, includeIcon ? 'has-icon' : ''].filter(Boolean).join(' ');
+    const emailLabel = `Email ${displayValue}`;
+
+    return `<a class="${classes}" href="${href}" aria-label="${escapeHtml(emailLabel)}" title="${escapeHtml(emailLabel)}">${includeIcon ? '<i class="fa-solid fa-envelope" aria-hidden="true"></i>' : ''}<span>${escapeHtml(displayValue)}</span></a>`;
+}
+
 function renderPhoneLink(phoneValue, { placeholder = '—', className = 'crm-phone-link', includeIcon = false } = {}) {
     const displayValue = normalizeWhitespace(phoneValue);
 
@@ -1537,6 +1571,23 @@ function renderReadOnlyPhoneField(label, name, value) {
     const callLabel = `Call ${displayValue}`;
     const controlMarkup = href
         ? `<a class="crm-input crm-contact-field is-callable" href="${href}" aria-label="${escapeHtml(callLabel)}" title="${escapeHtml(callLabel)}"><span>${escapeHtml(displayValue)}</span><i class="fa-solid fa-phone" aria-hidden="true"></i></a>`
+        : `<div class="crm-input crm-contact-field is-static"><span>${escapeHtml(displayValue || '—')}</span></div>`;
+
+    return `
+        <div class="form-field">
+            <span class="form-label">${escapeHtml(label)}</span>
+            <input type="hidden" name="${escapeHtml(name)}" value="${escapeHtml(value || '')}">
+            ${controlMarkup}
+        </div>
+    `;
+}
+
+function renderReadOnlyEmailField(label, name, value) {
+    const displayValue = normalizeWhitespace(value).toLowerCase();
+    const href = buildEmailHref(displayValue);
+    const emailLabel = `Email ${displayValue}`;
+    const controlMarkup = href
+        ? `<a class="crm-input crm-contact-field is-callable" href="${href}" aria-label="${escapeHtml(emailLabel)}" title="${escapeHtml(emailLabel)}"><span>${escapeHtml(displayValue)}</span><i class="fa-solid fa-envelope" aria-hidden="true"></i></a>`
         : `<div class="crm-input crm-contact-field is-static"><span>${escapeHtml(displayValue || '—')}</span></div>`;
 
     return `
@@ -1871,7 +1922,7 @@ function renderOverviewPanel() {
                                     <li>
                                         <div class="ov-activity-main">
                                             <span class="ov-activity-title">${escapeHtml(client.fullName || 'Unnamed lead')}</span>
-                                            <span class="ov-activity-meta">${client.email ? escapeHtml(client.email) : renderPhoneLink(client.phone, { placeholder: 'No contact info' })}</span>
+                                            <span class="ov-activity-meta">${client.email ? renderEmailLink(client.email, { placeholder: 'No contact info' }) : renderPhoneLink(client.phone, { placeholder: 'No contact info' })}</span>
                                         </div>
                                         <span class="ov-meta-chip">${escapeHtml(formatDateTime(client.updatedAt))}</span>
                                     </li>
@@ -2925,7 +2976,7 @@ function renderLeadHistoryTableRows({
                 </button>
                 <span class="lead-history-submeta">${escapeHtml(buildClientMetaLine(client))}</span>
             </td>
-            <td>${escapeHtml(client.email || '—')}</td>
+            <td>${renderEmailLink(client.email)}</td>
             <td>${renderPhoneLink(client.phone)}</td>
             <td class="lead-history-tags-cell">${client.tags.length ? client.tags.slice(0, 3).map((tag) => `<span class="lead-history-tag"><strong>${escapeHtml(tag)}</strong></span>`).join(' ') : '<span class="lead-history-muted">—</span>'}</td>
             <td class="lead-history-notes-cell"><div class="lead-history-notes-preview">${escapeHtml(truncate(client.notes || 'No notes yet.', 96))}</div></td>
@@ -3275,7 +3326,7 @@ function renderLeadDetailPage() {
     if (!lead) {
         return renderEmptyState({
             title: 'Lead not found',
-            copy: hasPermission(state.session, PERMISSIONS.VIEW_ADMIN)
+            copy: hasPermission(state.session, PERMISSIONS.VIEW_ALL_RECORDS)
                 ? 'The selected lead is no longer available in the current workspace dataset.'
                 : 'That lead is not assigned to your session or is no longer available.',
             actions: '<button class="crm-button-ghost" data-action="back-to-list"><i class="fa-solid fa-arrow-left"></i> Back to list</button>'
@@ -3292,6 +3343,7 @@ function renderLeadDetailPage() {
     const canSaveNotes = canAddNotesToLead(lead);
     const editableNote = getLeadNoteById(lead, state.editingNoteId);
     const statusOptions = CRM_STATUS_OPTIONS;
+    const canSendEmail = canSendEmailForLead(lead);
     const noteHistory = Array.isArray(lead.noteHistory)
         ? [...lead.noteHistory].sort((left, right) => Date.parse(right.createdAt ?? 0) - Date.parse(left.createdAt ?? 0))
         : [];
@@ -3336,6 +3388,11 @@ function renderLeadDetailPage() {
                             <span class="lead-detail-card-label">Contact & workflow</span>
                         </div>
                         <div class="lead-detail-card-head-actions">
+                            ${canSendEmail ? `
+                                <button class="crm-button-secondary lead-detail-action-button" data-action="open-email-composer" data-client-id="${lead.id}">
+                                    <i class="fa-solid fa-paper-plane"></i> Send Email
+                                </button>
+                            ` : ''}
                             ${canOpenEditMode ? `
                                 <button class="crm-button-ghost lead-detail-action-button" data-action="${isEditing ? 'cancel-lead-edit' : 'toggle-lead-edit'}">
                                     <i class="fa-solid ${isEditing ? 'fa-xmark' : 'fa-pen'}"></i> ${isEditing ? 'Cancel Edit' : 'Edit'}
@@ -3441,6 +3498,8 @@ function renderLeadDetailPage() {
                                 : '<div class="calendar-empty-state">No scheduled follow-ups yet for this client.</div>')}
                     </section>
 
+                    ${renderLeadEmailHistoryCard(lead)}
+
                     <section class="crm-card lead-detail-side-card lead-detail-notes-card">
                         <div class="panel-head">
                             <div>
@@ -3539,6 +3598,10 @@ function renderLeadHistoryEntries(entries) {
 }
 
 function renderLeadField(label, name, value, editable, type = 'text') {
+    if (!editable && name === 'email') {
+        return renderReadOnlyEmailField(label, name, value);
+    }
+
     if (!editable && name === 'phone') {
         return renderReadOnlyPhoneField(label, name, value);
     }
@@ -3622,7 +3685,7 @@ function hasActiveAdminProfile() {
 }
 
 function getAdminWorkspaceUsers() {
-    return getAssignableUsers({ includeAdmin: false, salesFloorOnly: true, includeInactive: true });
+    return getAssignableUsers({ includeAdmin: false, includeSupport: true, includeInactive: true });
 }
 
 function getVisibleAdminUsers(users = getAdminWorkspaceUsers()) {
@@ -3642,6 +3705,10 @@ function getVisibleAdminUsers(users = getAdminWorkspaceUsers()) {
         }
 
         if (state.adminUserFilter === 'sales' && user.role !== 'sales') {
+            return false;
+        }
+
+        if (state.adminUserFilter === 'support' && user.role !== 'support') {
             return false;
         }
 
@@ -3692,7 +3759,7 @@ function renderAdminPanel() {
                     <div>
                         <div class="crm-admin-label-pill"><i class="fa-solid fa-shield-halved"></i> Admin Panel</div>
                         <h1 class="crm-admin-hero-title">Control Center</h1>
-                        <p class="crm-admin-hero-sub">Manage reps, pipeline rules, and workspace activity from one focused control center.</p>
+                        <p class="crm-admin-hero-sub">Manage CRM users, pipeline rules, and workspace activity from one focused control center.</p>
                     </div>
                     <button class="crm-admin-back-btn" data-action="set-view" data-view="clients">
                         <i class="fa-solid fa-arrow-left"></i> Leads
@@ -3705,14 +3772,14 @@ function renderAdminPanel() {
                     <div class="crm-admin-stat-icon"><i class="fa-solid fa-users"></i></div>
                     <div>
                         <div class="crm-admin-stat-value">${adminMetrics.totalReps.toLocaleString()}</div>
-                        <div class="crm-admin-stat-label">Total Reps</div>
+                        <div class="crm-admin-stat-label">Total Users</div>
                     </div>
                 </article>
                 <article class="crm-admin-stat-card">
                     <div class="crm-admin-stat-icon"><i class="fa-solid fa-user-check"></i></div>
                     <div>
                         <div class="crm-admin-stat-value">${adminMetrics.activeReps.toLocaleString()}</div>
-                        <div class="crm-admin-stat-label">Active Reps</div>
+                        <div class="crm-admin-stat-label">Active Users</div>
                     </div>
                 </article>
                 <article class="crm-admin-stat-card">
@@ -3762,7 +3829,8 @@ function renderAdminPanel() {
                                 ['active', 'Active'],
                                 ['inactive', 'Inactive'],
                                 ['senior', 'Senior'],
-                                ['sales', 'Sales']
+                                ['sales', 'Sales'],
+                                ['support', 'Support']
                             ].map(([value, label]) => `
                                 <button
                                     class="crm-admin-filter-pill ${state.adminUserFilter === value ? 'active' : ''}"
@@ -3828,7 +3896,7 @@ function renderAdminPanel() {
                     ` : `
                         <div class="crm-admin-empty">
                             <i class="fa-solid fa-users-slash"></i>
-                            <div>No reps match the current search.</div>
+                            <div>No users match the current search.</div>
                         </div>
                     `}
                 </div>
@@ -4216,6 +4284,330 @@ function renderImportsPanel() {
     `;
 }
 
+function getPersonalMailboxSender(userId = state.session?.id) {
+    const normalizedUserId = normalizeWhitespace(userId);
+    return state.mailboxSenders.find((sender) =>
+        sender.kind === 'personal'
+        && sender.ownerUserId === normalizedUserId
+        && sender.isActive !== false
+    ) || null;
+}
+
+function getSupportMailboxSender() {
+    return state.mailboxSenders.find((sender) => sender.kind === 'support' && sender.isActive !== false) || null;
+}
+
+function canUseSupportMailbox() {
+    return state.session?.role === 'admin' || state.session?.role === 'support';
+}
+
+function formatMailboxSenderLabel(sender, fallbackName = '') {
+    if (!sender) {
+        return 'Not connected';
+    }
+
+    const displayName = sender.senderName || fallbackName || sender.senderEmail || 'Mailbox';
+    return `${displayName} <${sender.senderEmail}>`;
+}
+
+function getLeadEmailSenderOptions() {
+    const options = [];
+    const personalSender = getPersonalMailboxSender();
+    const supportSender = getSupportMailboxSender();
+
+    if (personalSender) {
+        options.push({
+            value: 'personal',
+            label: formatMailboxSenderLabel(personalSender, state.session?.name || '')
+        });
+    }
+
+    if (supportSender && canUseSupportMailbox()) {
+        options.push({
+            value: 'support',
+            label: formatMailboxSenderLabel(supportSender, 'Support')
+        });
+    }
+
+    return options;
+}
+
+function canSendEmailForLead(lead) {
+    if (!lead) {
+        return false;
+    }
+
+    return hasPermission(state.session, PERMISSIONS.SEND_EMAIL)
+        && canAccessClient(lead)
+        && Boolean(buildEmailHref(lead.email));
+}
+
+function getLeadEmailHistory(lead) {
+    return Array.isArray(lead?.emailHistory)
+        ? [...lead.emailHistory].sort((left, right) => Date.parse(right.createdAt ?? right.sentAt ?? 0) - Date.parse(left.createdAt ?? left.sentAt ?? 0))
+        : [];
+}
+
+function renderPersonalMailboxSettingsCard() {
+    const personalSender = getPersonalMailboxSender();
+    const statusLabel = personalSender ? 'Connected' : 'Not connected';
+
+    return `
+        <section class="crm-settings-card crm-settings-card-wide">
+            <div class="crm-settings-card-head">
+                <div class="crm-settings-card-title">
+                    <span class="crm-settings-card-icon"><i class="fa-solid fa-envelope-circle-check"></i></span>
+                    <div>
+                        <h2>My mailbox</h2>
+                        <p>Connect your own company mailbox so CRM emails send from your address.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="crm-settings-quick-stats">
+                <div class="crm-settings-quick-stat">
+                    <span>Status</span>
+                    <strong>${escapeHtml(statusLabel)}</strong>
+                </div>
+                <div class="crm-settings-quick-stat">
+                    <span>Sender</span>
+                    <strong>${escapeHtml(personalSender?.senderEmail || state.session.email || 'Not available')}</strong>
+                </div>
+                <div class="crm-settings-quick-stat">
+                    <span>Last verified</span>
+                    <strong>${escapeHtml(personalSender?.lastVerifiedAt ? formatDateTime(personalSender.lastVerifiedAt) : 'Not yet')}</strong>
+                </div>
+            </div>
+
+            <form id="personal-mailbox-form" class="crm-mailbox-form">
+                <div class="crm-settings-field-grid">
+                    <label class="crm-settings-field">
+                        <span class="form-label">Sender name</span>
+                        <input class="crm-input" name="senderName" value="${escapeHtml(personalSender?.senderName || state.session.name || '')}" placeholder="Your full name" required>
+                    </label>
+                    <label class="crm-settings-field">
+                        <span class="form-label">Sender email</span>
+                        <input class="crm-input" name="senderEmailDisplay" value="${escapeHtml(state.session.email || '')}" readonly>
+                        <span class="panel-subtitle">Personal mailbox sends are locked to your CRM profile email.</span>
+                    </label>
+                    <label class="crm-settings-field">
+                        <span class="form-label">SMTP username</span>
+                        <input class="crm-input" name="smtpUsername" value="${escapeHtml(personalSender?.senderEmail || state.session.email || '')}" placeholder="your.name@company.com" required>
+                    </label>
+                    <label class="crm-settings-field">
+                        <span class="form-label">Mailbox password</span>
+                        <input class="crm-input" name="smtpPassword" type="password" placeholder="${personalSender ? 'Leave blank to keep current password' : 'Enter mailbox password'}" ${personalSender ? '' : 'required'}>
+                        <span class="panel-subtitle">We verify the mailbox before saving it.</span>
+                    </label>
+                </div>
+
+                <div class="settings-actions crm-settings-action-row">
+                    <button class="crm-button-secondary" type="submit"><i class="fa-solid fa-plug-circle-check"></i> ${personalSender ? 'Update mailbox' : 'Connect mailbox'}</button>
+                </div>
+            </form>
+        </section>
+    `;
+}
+
+function renderSupportMailboxSettingsCard() {
+    if (!isAdminSession(state.session)) {
+        return '';
+    }
+
+    const supportSender = getSupportMailboxSender();
+    const statusLabel = supportSender ? 'Configured' : 'Not configured';
+
+    return `
+        <section class="crm-settings-card">
+            <div class="crm-settings-card-head">
+                <div class="crm-settings-card-title">
+                    <span class="crm-settings-card-icon"><i class="fa-solid fa-headset"></i></span>
+                    <div>
+                        <h2>Support mailbox</h2>
+                        <p>Configure the shared support inbox available to support users and admins.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="crm-settings-quick-stats">
+                <div class="crm-settings-quick-stat">
+                    <span>Status</span>
+                    <strong>${escapeHtml(statusLabel)}</strong>
+                </div>
+                <div class="crm-settings-quick-stat">
+                    <span>Sender</span>
+                    <strong>${escapeHtml(supportSender?.senderEmail || 'Not configured')}</strong>
+                </div>
+                <div class="crm-settings-quick-stat">
+                    <span>Last verified</span>
+                    <strong>${escapeHtml(supportSender?.lastVerifiedAt ? formatDateTime(supportSender.lastVerifiedAt) : 'Not yet')}</strong>
+                </div>
+            </div>
+
+            <form id="support-mailbox-form" class="crm-mailbox-form">
+                <div class="crm-settings-field-grid">
+                    <label class="crm-settings-field">
+                        <span class="form-label">Support sender name</span>
+                        <input class="crm-input" name="senderName" value="${escapeHtml(supportSender?.senderName || 'Support Team')}" placeholder="Support Team" required>
+                    </label>
+                    <label class="crm-settings-field">
+                        <span class="form-label">Support sender email</span>
+                        <input class="crm-input" name="senderEmail" type="email" value="${escapeHtml(supportSender?.senderEmail || '')}" placeholder="support@company.com" required>
+                    </label>
+                    <label class="crm-settings-field">
+                        <span class="form-label">SMTP username</span>
+                        <input class="crm-input" name="smtpUsername" value="${escapeHtml(supportSender?.senderEmail || '')}" placeholder="support@company.com" required>
+                    </label>
+                    <label class="crm-settings-field">
+                        <span class="form-label">Mailbox password</span>
+                        <input class="crm-input" name="smtpPassword" type="password" placeholder="${supportSender ? 'Leave blank to keep current password' : 'Enter mailbox password'}" ${supportSender ? '' : 'required'}>
+                    </label>
+                </div>
+
+                <div class="settings-actions crm-settings-action-row">
+                    <button class="crm-button-secondary" type="submit"><i class="fa-solid fa-shield-heart"></i> ${supportSender ? 'Update support inbox' : 'Connect support inbox'}</button>
+                </div>
+            </form>
+            <div class="crm-settings-support-note">Only admin users can update the support mailbox. Support users can send from it once it is configured.</div>
+        </section>
+    `;
+}
+
+function renderLeadEmailHistoryCard(lead) {
+    const emailHistory = getLeadEmailHistory(lead);
+    const canSendEmail = canSendEmailForLead(lead);
+
+    return `
+        <section class="crm-card lead-detail-side-card lead-detail-email-card">
+            <div class="panel-head">
+                <div>
+                    <span class="lead-detail-card-label">Email</span>
+                    <h2 class="section-title">Outbound history</h2>
+                </div>
+                ${canSendEmail ? `
+                    <button class="crm-button-secondary lead-detail-action-button" type="button" data-action="open-email-composer" data-client-id="${escapeHtml(lead.id)}">
+                        <i class="fa-solid fa-paper-plane"></i> Send Email
+                    </button>
+                ` : ''}
+            </div>
+
+            ${emailHistory.length ? `
+                <div class="history-list crm-email-history-list">
+                    ${emailHistory.map((entry) => `
+                        <article class="history-card crm-email-history-card ${escapeHtml(entry.status || 'sent')}">
+                            <div class="history-head">
+                                <div>
+                                    <div class="history-title">${escapeHtml(entry.subject || 'No subject')}</div>
+                                    <div class="panel-subtitle">${escapeHtml(entry.senderDisplayName || entry.senderName || 'CRM user')} · ${escapeHtml(entry.toEmail || lead.email || 'No recipient')}</div>
+                                </div>
+                                <span class="summary-chip ${escapeHtml(entry.status || 'sent')}">${escapeHtml(titleCase(entry.status || 'sent'))}</span>
+                            </div>
+                            <div class="note-history-copy">${escapeHtml(truncate(entry.bodyText || '', 220) || 'No message body.')}</div>
+                            <div class="crm-email-history-meta">
+                                <span>${escapeHtml(formatDateTime(entry.sentAt || entry.createdAt))}</span>
+                                <span>${escapeHtml(entry.senderKind === 'support' ? 'Support inbox' : 'Personal mailbox')}</span>
+                                ${entry.errorMessage ? `<span class="crm-email-history-error">${escapeHtml(entry.errorMessage)}</span>` : ''}
+                            </div>
+                        </article>
+                    `).join('')}
+                </div>
+            ` : '<div class="panel-subtitle lead-detail-empty-copy">No outbound email has been logged for this record yet.</div>'}
+        </section>
+    `;
+}
+
+function renderLeadEmailDrawer() {
+    const lead = getAccessibleClientById(state.drawerClientId);
+
+    if (!lead) {
+        return `
+            <div class="drawer-surface">
+                <div class="drawer-head">
+                    <div>
+                        <span class="crm-kicker"><i class="fa-solid fa-envelope"></i> Email</span>
+                        <h2 class="drawer-title">Lead unavailable</h2>
+                        <p class="panel-subtitle">This record is no longer available in your current CRM scope.</p>
+                    </div>
+                    <button class="crm-button-ghost" data-action="close-drawer"><i class="fa-solid fa-xmark"></i></button>
+                </div>
+                <div class="drawer-actions">
+                    <button class="crm-button-ghost" type="button" data-action="close-drawer">Close</button>
+                </div>
+            </div>
+        `;
+    }
+
+    const senderOptions = getLeadEmailSenderOptions();
+    const defaultSenderMode = senderOptions.some((option) => option.value === 'personal') ? 'personal' : (senderOptions[0]?.value || 'personal');
+
+    return `
+        <div class="drawer-surface">
+            <div class="drawer-head">
+                <div>
+                    <span class="crm-kicker"><i class="fa-solid fa-envelope"></i> Email</span>
+                    <h2 class="drawer-title">Email ${escapeHtml(lead.fullName || 'lead')}</h2>
+                    <p class="panel-subtitle">Send from your connected mailbox${getSupportMailboxSender() && canUseSupportMailbox() ? ' or the support inbox' : ''} without leaving CRM.</p>
+                </div>
+                <button class="crm-button-ghost" data-action="close-drawer"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+
+            ${!buildEmailHref(lead.email) ? `
+                <div class="crm-admin-empty compact">
+                    <div>This lead does not have a valid email address yet.</div>
+                </div>
+                <div class="drawer-actions">
+                    <button class="crm-button-ghost" type="button" data-action="close-drawer">Close</button>
+                </div>
+            ` : !senderOptions.length ? `
+                <div class="crm-admin-empty compact">
+                    <div>Connect your mailbox in Settings before sending CRM email.</div>
+                </div>
+                <div class="drawer-actions">
+                    <button class="crm-button-secondary" type="button" data-action="jump-to-view" data-view="settings">
+                        <i class="fa-solid fa-gear"></i> Open Settings
+                    </button>
+                    <button class="crm-button-ghost" type="button" data-action="close-drawer">Close</button>
+                </div>
+            ` : `
+                <form id="lead-email-form" class="crm-email-drawer-form">
+                    <input type="hidden" name="leadId" value="${escapeHtml(lead.id)}">
+                    <div class="form-grid">
+                        <label class="form-field">
+                            <span class="form-label">To</span>
+                            <input class="crm-input" value="${escapeHtml(lead.email || '')}" readonly>
+                        </label>
+                        <label class="form-field">
+                            <span class="form-label">From</span>
+                            ${senderOptions.length > 1 ? `
+                                <select class="crm-select" name="senderMode">
+                                    ${senderOptions.map((option) => `
+                                        <option value="${escapeHtml(option.value)}" ${option.value === defaultSenderMode ? 'selected' : ''}>${escapeHtml(option.label)}</option>
+                                    `).join('')}
+                                </select>
+                            ` : `
+                                <input type="hidden" name="senderMode" value="${escapeHtml(defaultSenderMode)}">
+                                <input class="crm-input" value="${escapeHtml(senderOptions[0]?.label || 'Personal mailbox')}" readonly>
+                            `}
+                        </label>
+                        <label class="form-field form-field-full">
+                            <span class="form-label">Subject</span>
+                            <input class="crm-input" name="subject" placeholder="Follow-up from Blue Chip Signals" maxlength="160" required>
+                        </label>
+                        <label class="form-field form-field-full">
+                            <span class="form-label">Message</span>
+                            <textarea class="crm-textarea" name="bodyText" placeholder="Write your email here..." required></textarea>
+                        </label>
+                    </div>
+                    <div class="drawer-actions">
+                        <button class="crm-button" type="submit"><i class="fa-solid fa-paper-plane"></i> Send Email</button>
+                        <button class="crm-button-ghost" type="button" data-action="close-drawer">Cancel</button>
+                    </div>
+                </form>
+            `}
+        </div>
+    `;
+}
+
 function renderSettingsPanel() {
     const leadCount = getWorkspaceDisplayCount('leads', { ignoreSearch: true, ignoreFilters: true });
     const memberCount = getWorkspaceDisplayCount('members', { ignoreSearch: true, ignoreFilters: true });
@@ -4279,6 +4671,9 @@ function renderSettingsPanel() {
                         <button class="crm-button" data-action="logout"><i class="fa-solid fa-right-from-bracket"></i> Logout</button>
                     </div>
                 </section>
+
+                ${renderPersonalMailboxSettingsCard()}
+                ${renderSupportMailboxSettingsCard()}
 
                 <section class="crm-settings-card">
                     <div class="crm-settings-card-head">
@@ -4411,7 +4806,12 @@ function renderLookupPreviewDrawer(client) {
                                     includeIcon: true
                                 })
                             })}
-                            ${renderPreviewField('Email', client.email || '—', { fullWidth: true })}
+                            ${renderPreviewField('Email', {
+                                html: renderEmailLink(client.email, {
+                                    className: 'crm-email-link crm-search-preview-email-link',
+                                    includeIcon: true
+                                })
+                            }, { fullWidth: true })}
                             ${renderPreviewField('Business', client.businessName || '—', { fullWidth: true })}
                         </div>
                     </section>
@@ -4493,6 +4893,11 @@ function renderDrawer() {
                     </div>
                 </div>
             `;
+        return;
+    }
+
+    if (state.drawerMode === 'email-compose') {
+        refs.drawer.innerHTML = renderLeadEmailDrawer();
         return;
     }
 
@@ -5174,7 +5579,7 @@ function renderCreateDuplicateModal() {
                     <h3 class="section-title">Existing lead</h3>
                     <ul class="mini-list">
                         <li><span class="mini-list-title">Name</span><span class="mini-list-meta">${escapeHtml(duplicateLead.fullName || 'Unnamed lead')}</span></li>
-                        <li><span class="mini-list-title">Email</span><span class="mini-list-meta">${escapeHtml(duplicateLead.email || '—')}</span></li>
+                        <li><span class="mini-list-title">Email</span><span class="mini-list-meta">${renderEmailLink(duplicateLead.email)}</span></li>
                         <li><span class="mini-list-title">Phone</span><span class="mini-list-meta">${renderPhoneLink(duplicateLead.phone)}</span></li>
                         <li><span class="mini-list-title">Assigned rep</span><span class="mini-list-meta">${escapeHtml(duplicateLead.assignedTo || 'Unassigned')}</span></li>
                     </ul>
@@ -5183,7 +5588,7 @@ function renderCreateDuplicateModal() {
                     <h3 class="section-title">Incoming lead</h3>
                     <ul class="mini-list">
                         <li><span class="mini-list-title">Name</span><span class="mini-list-meta">${escapeHtml(`${incomingPayload.firstName || ''} ${incomingPayload.lastName || ''}`.trim() || 'Unnamed lead')}</span></li>
-                        <li><span class="mini-list-title">Email</span><span class="mini-list-meta">${escapeHtml(incomingPayload.email || '—')}</span></li>
+                        <li><span class="mini-list-title">Email</span><span class="mini-list-meta">${renderEmailLink(incomingPayload.email)}</span></li>
                         <li><span class="mini-list-title">Phone</span><span class="mini-list-meta">${renderPhoneLink(incomingPayload.phone)}</span></li>
                         <li><span class="mini-list-title">Status</span><span class="mini-list-meta">${escapeHtml(titleCase(incomingPayload.status || 'new'))}</span></li>
                     </ul>
@@ -5260,7 +5665,7 @@ function renderUserFormModal() {
             <div class="crm-modal">
                 <div class="modal-head">
                     <div>
-                        <span class="crm-kicker"><i class="fa-solid fa-user-shield"></i> CRM rep account</span>
+                        <span class="crm-kicker"><i class="fa-solid fa-user-shield"></i> CRM account</span>
                         <h2 class="modal-title">Account required</h2>
                         <p class="panel-subtitle">Create the user account first, then return here to edit their CRM profile.</p>
                     </div>
@@ -5277,9 +5682,9 @@ function renderUserFormModal() {
         <div class="crm-modal">
             <div class="modal-head">
                 <div>
-                    <span class="crm-kicker"><i class="fa-solid fa-user-shield"></i> CRM rep account</span>
-                    <h2 class="modal-title">Edit rep account</h2>
-                    <p class="panel-subtitle">Update the CRM profile for this rep. Email and password changes should be managed from account administration.</p>
+                    <span class="crm-kicker"><i class="fa-solid fa-user-shield"></i> CRM account</span>
+                    <h2 class="modal-title">Edit CRM account</h2>
+                    <p class="panel-subtitle">Update the CRM profile for this teammate. Email and password changes should be managed from account administration.</p>
                 </div>
                 <button class="crm-button-ghost" data-action="close-modal"><i class="fa-solid fa-xmark"></i></button>
             </div>
@@ -5299,8 +5704,9 @@ function renderUserFormModal() {
                     <label class="form-field">
                         <span class="form-label">Role</span>
                         <select class="crm-select" name="role">
-                            <option value="sales" ${user?.role !== 'senior' ? 'selected' : ''}>Sales rep</option>
+                            <option value="sales" ${user?.role === 'sales' ? 'selected' : ''}>Sales rep</option>
                             <option value="senior" ${user?.role === 'senior' ? 'selected' : ''}>Senior rep</option>
+                            <option value="support" ${user?.role === 'support' ? 'selected' : ''}>Support</option>
                         </select>
                     </label>
                     <label class="form-field">
@@ -5313,7 +5719,7 @@ function renderUserFormModal() {
                 </div>
 
                 <div class="modal-actions" style="margin-top: 1rem;">
-                    <button class="crm-button" type="submit"><i class="fa-solid fa-floppy-disk"></i> Save rep</button>
+                    <button class="crm-button" type="submit"><i class="fa-solid fa-floppy-disk"></i> Save account</button>
                     <button class="crm-button-ghost" type="button" data-action="close-modal">Cancel</button>
                 </div>
             </form>
@@ -5499,7 +5905,7 @@ function renderImportModal() {
                         ${preview.previewRecords.map((client) => `
                             <tr>
                                 <td>${escapeHtml(client.fullName || 'Unnamed lead')}</td>
-                                <td>${escapeHtml(client.email || '—')}</td>
+                                <td>${renderEmailLink(client.email)}</td>
                                 <td>${renderPhoneLink(client.phone)}</td>
                                 <td>${escapeHtml((client.tags || []).join(', ') || '—')}</td>
                                 <td>${escapeHtml(client.status || 'new')}</td>
@@ -5775,7 +6181,7 @@ function canAccessClient(client) {
         return false;
     }
 
-    if (hasPermission(state.session, PERMISSIONS.VIEW_ADMIN)) {
+    if (hasPermission(state.session, PERMISSIONS.VIEW_ALL_RECORDS)) {
         return true;
     }
 
@@ -5971,7 +6377,7 @@ function getSortIcon(field) {
 }
 
 function isDrawerOpen() {
-    return ['create', 'create-member', 'lookup-preview', 'calendar-event'].includes(state.drawerMode);
+    return ['create', 'create-member', 'lookup-preview', 'calendar-event', 'email-compose'].includes(state.drawerMode);
 }
 
 function createBlankClient(lifecycleType = 'lead') {
@@ -6208,6 +6614,10 @@ function getRoleLabel(role) {
         return 'Admin';
     }
 
+    if (role === 'support') {
+        return 'Support';
+    }
+
     if (role === 'senior') {
         return 'Senior Rep';
     }
@@ -6219,7 +6629,7 @@ function isToDispositionValue(value) {
     return normalizeWhitespace(value).toLowerCase() === 'to';
 }
 
-function getAssignableUsers({ includeAdmin = true, salesFloorOnly = false, seniorOnly = false, includeInactive = false } = {}) {
+function getAssignableUsers({ includeAdmin = true, includeSupport = false, salesFloorOnly = false, seniorOnly = false, includeInactive = false } = {}) {
     return state.users.filter((user) => {
         if (!includeInactive && user.isActive === false) {
             return false;
@@ -6234,6 +6644,10 @@ function getAssignableUsers({ includeAdmin = true, salesFloorOnly = false, senio
         }
 
         if (!includeAdmin && user.role === 'admin') {
+            return false;
+        }
+
+        if (!includeSupport && user.role === 'support') {
             return false;
         }
 
@@ -6535,6 +6949,7 @@ function resetAuthenticatedCrmState() {
     state.tagDefinitions = [];
     state.dispositionDefinitions = [];
     state.users = [];
+    state.mailboxSenders = [];
     state.savedFilters = [];
     state.importHistory = [];
     state.workspaceSummary = createEmptyWorkspaceSummary();
@@ -6763,6 +7178,10 @@ document.addEventListener('click', async (event) => {
         if (targetView === 'imports' && !hasPermission(state.session, PERMISSIONS.IMPORT_LEADS)) {
             flashNotice('Only admin users can import leads.', 'error');
             return;
+        }
+
+        if (action === 'jump-to-view' && state.drawerMode) {
+            closeDrawer();
         }
 
         if (targetView === 'admin' && actionEl.dataset.adminTab) {
@@ -7137,6 +7556,18 @@ document.addEventListener('click', async (event) => {
         }
 
         openModal({ type: 'lead-history', clientId: state.detailClientId });
+        return;
+    }
+
+    if (action === 'open-email-composer') {
+        const lead = getAccessibleClientById(actionEl.dataset.clientId || state.detailClientId);
+
+        if (!lead || !canSendEmailForLead(lead)) {
+            flashNotice('This record is not available for CRM email.', 'error');
+            return;
+        }
+
+        openDrawer('email-compose', { clientId: lead.id });
         return;
     }
 
@@ -7639,6 +8070,63 @@ document.addEventListener('submit', async (event) => {
         return;
     }
 
+    if (formId === 'personal-mailbox-form') {
+        event.preventDefault();
+
+        try {
+            const formData = new FormData(event.target);
+            await dataService.savePersonalMailboxConnection({
+                senderName: formData.get('senderName'),
+                smtpUsername: formData.get('smtpUsername'),
+                smtpPassword: formData.get('smtpPassword')
+            });
+            flashNotice('Your mailbox connection is ready for CRM email.', 'success');
+            await refreshData();
+        } catch (error) {
+            flashNotice(error.message || 'Unable to save your mailbox connection.', 'error');
+        }
+        return;
+    }
+
+    if (formId === 'support-mailbox-form') {
+        event.preventDefault();
+
+        try {
+            const formData = new FormData(event.target);
+            await dataService.saveSupportMailboxConnection({
+                senderEmail: formData.get('senderEmail'),
+                senderName: formData.get('senderName'),
+                smtpUsername: formData.get('smtpUsername'),
+                smtpPassword: formData.get('smtpPassword')
+            });
+            flashNotice('The support mailbox is ready for CRM email.', 'success');
+            await refreshData();
+        } catch (error) {
+            flashNotice(error.message || 'Unable to save the support mailbox.', 'error');
+        }
+        return;
+    }
+
+    if (formId === 'lead-email-form') {
+        event.preventDefault();
+
+        try {
+            const formData = new FormData(event.target);
+            await dataService.sendLeadEmail({
+                leadId: formData.get('leadId'),
+                senderMode: formData.get('senderMode'),
+                subject: formData.get('subject'),
+                bodyText: formData.get('bodyText')
+            });
+            closeDrawer();
+            await refreshWorkspaceAfterMutation();
+            flashNotice('Email sent and logged to this lead.', 'success');
+        } catch (error) {
+            flashNotice(error.message || 'Unable to send the email.', 'error');
+        }
+        return;
+    }
+
     if (formId === 'lead-detail-form') {
         event.preventDefault();
         try {
@@ -7819,7 +8307,7 @@ document.addEventListener('submit', async (event) => {
                 role: formData.get('role'),
                 isActive: formData.get('isActive') === 'true'
             });
-            flashNotice('CRM rep account saved.', 'success');
+            flashNotice('CRM account saved.', 'success');
             closeModal();
             await refreshWorkspaceAfterMutation();
         } catch (error) {
@@ -8790,8 +9278,16 @@ function removeLastTagFromPicker(input) {
 async function saveLeadPayload(payload) {
     const existingLead = payload.id ? getAccessibleClientById(payload.id) : null;
 
-    if (payload.id && !existingLead && !hasPermission(state.session, PERMISSIONS.VIEW_ADMIN)) {
+    if (payload.id && !existingLead && !hasPermission(state.session, PERMISSIONS.VIEW_ALL_RECORDS)) {
         throw new Error('You can only update leads assigned to your session.');
+    }
+
+    if (!payload.id && !hasPermission(state.session, PERMISSIONS.CREATE_LEADS)) {
+        throw new Error('This session cannot create leads.');
+    }
+
+    if (payload.id && existingLead && !canEnterLeadEditMode(state.session, existingLead)) {
+        throw new Error('This session cannot edit that record.');
     }
 
     if (existingLead?.lifecycleType === 'member' && !isAdminSession(state.session)) {
@@ -8803,7 +9299,7 @@ async function saveLeadPayload(payload) {
         ...sanitizedPayload,
         actor: state.session
     });
-    const staysAccessible = hasPermission(state.session, PERMISSIONS.VIEW_ADMIN) || savedLead.assignedRepId === state.session?.id;
+    const staysAccessible = hasPermission(state.session, PERMISSIONS.VIEW_ALL_RECORDS) || savedLead.assignedRepId === state.session?.id;
     state.lastWorkspaceView = savedLead.lifecycleType === 'member'
         ? 'members'
         : (normalizeWhitespace(savedLead.assignedRepId) && hasPermission(state.session, PERMISSIONS.ASSIGN_LEADS)
@@ -8876,7 +9372,7 @@ async function openLeadDetailPage(clientId, sourceView = 'clients') {
         const detailedLead = await dataService.getClientById(clientId);
 
         if (!detailedLead || !canAccessClient(detailedLead)) {
-            flashNotice('That lead is not assigned to your session.', 'error');
+            flashNotice('That record is no longer available in your current CRM scope.', 'error');
             return;
         }
 

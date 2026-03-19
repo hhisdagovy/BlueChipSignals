@@ -118,7 +118,8 @@ export class CrmDataService {
             followUpAction: normalizeWhitespace(resolvePayloadField(payload, 'followUpAction', existingClient?.followUpAction)),
             followUpAt: normalizeLeadDateTime(resolvePayloadField(payload, 'followUpAt', existingClient?.followUpAt)),
             noteHistory: Array.isArray(existingClient?.noteHistory) ? [...existingClient.noteHistory] : [],
-            activityLog: Array.isArray(existingClient?.activityLog) ? [...existingClient.activityLog] : []
+            activityLog: Array.isArray(existingClient?.activityLog) ? [...existingClient.activityLog] : [],
+            emailHistory: Array.isArray(existingClient?.emailHistory) ? [...existingClient.emailHistory] : []
         };
 
         if (!existingClient && normalizedClient.notes) {

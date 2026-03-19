@@ -1473,14 +1473,28 @@
             return 'fas ' + raw.replace(/^fa[bsrlt]?\s*/, '');
         }
 
+        function isFeatureDone(feature, milestoneStatus = 'planned') {
+            if (typeof feature?.done === 'boolean') return feature.done;
+            return milestoneStatus === 'completed';
+        }
+
+        function getMilestoneFeatureProgress(milestone) {
+            const features = Array.isArray(milestone?.features) ? milestone.features : [];
+            const completed = features.reduce((count, feature) => (
+                count + (isFeatureDone(feature, milestone?.status) ? 1 : 0)
+            ), 0);
+            return { completed, total: features.length };
+        }
+
         function buildMilestoneHTML(m) {
             const statusClass = m.status || 'planned';
             const badge       = STATUS_BADGE[statusClass] || 'Planned';
-            const isDone      = statusClass === 'completed';
-            const count       = (m.features || []).length;
+            const progress    = getMilestoneFeatureProgress(m);
+            const count       = progress.total;
 
             const featureCards = (m.features || []).map(f => {
                 const iconClass = resolveIcon(f.icon);
+                const isDone    = isFeatureDone(f, statusClass);
                 const detail    = f.detail
                     ? `<div class="rm-card-detail"><div class="rm-card-detail-inner">${f.detail}</div></div>`
                     : '';
@@ -1502,7 +1516,7 @@
                 <span class="rm-deck-label">${m.label || 'Milestone'}</span>
                 <span class="rm-status-badge">${badge}</span>
                 <div class="rm-deck-footer">
-                    <span class="rm-deck-count">${count} feature${count !== 1 ? 's' : ''}</span>
+                    <span class="rm-deck-count">${count > 0 ? `${progress.completed} / ${count} complete` : 'No features yet'}</span>
                     <i class="fas fa-chevron-down rm-deck-chevron"></i>
                 </div>
                 <div class="rm-deck-features-pool">${featureCards}</div>
@@ -1549,23 +1563,33 @@
                 const q    = query(collection(db, 'roadmap_milestones'), orderBy('order', 'asc'));
                 const snap = await getDocs(q);
                 if (snap.empty) return;
+                const milestones = snap.docs.map(d => d.data());
 
                 const hardcoded = document.getElementById('rm-hardcoded-milestones');
                 const container = document.getElementById('rm-firestore-milestones');
                 if (!container) return;
 
                 if (hardcoded) hardcoded.style.display = 'none';
-                container.innerHTML = snap.docs.map(d => buildMilestoneHTML(d.data())).join('');
+                container.innerHTML = milestones.map(buildMilestoneHTML).join('');
                 bindFirestoreCards(container);
 
                 /* Update Roadmap Phases hero stat from real data */
-                updateHeroStat('stat-roadmap-phases', snap.docs.length);
+                updateHeroStat('stat-roadmap-phases', milestones.length);
 
-                /* Update progress bar from real Firestore data */
-                const totalPhases     = snap.docs.length;
-                const completedPhases = snap.docs.filter(d => d.data().status === 'completed').length;
-                const remainingPhases = totalPhases - completedPhases;
-                const pct = totalPhases > 0 ? Math.round((completedPhases / totalPhases) * 100) : 0;
+                /* Update progress bar from individual feature completion when available */
+                const featureTotals = milestones.reduce((totals, milestone) => {
+                    const progress = getMilestoneFeatureProgress(milestone);
+                    totals.completed += progress.completed;
+                    totals.total += progress.total;
+                    return totals;
+                }, { completed: 0, total: 0 });
+                const totalPhases     = milestones.length;
+                const completedPhases = milestones.filter(m => m.status === 'completed').length;
+                const remainingPhases = Math.max(totalPhases - completedPhases, 0);
+                const totalUnits      = featureTotals.total || totalPhases;
+                const completedUnits  = featureTotals.total ? featureTotals.completed : completedPhases;
+                const remainingUnits  = Math.max(totalUnits - completedUnits, 0);
+                const pct             = totalUnits > 0 ? Math.round((completedUnits / totalUnits) * 100) : 0;
 
                 const fillEl     = document.getElementById('rm-progress-fill');
                 const pctEl      = document.getElementById('rm-progress-pct');
@@ -1575,9 +1599,27 @@
 
                 if (fillEl)     fillEl.style.width    = pct + '%';
                 if (pctEl)      pctEl.textContent      = pct + '%';
-                if (complLabel) complLabel.textContent = completedPhases + (completedPhases === 1 ? ' phase complete' : ' phases complete');
-                if (remLabel)   remLabel.textContent   = remainingPhases + ' remaining';
-                if (subText)    subText.textContent    = 'Phase ' + (completedPhases + 1) + ' of ' + totalPhases + ' active';
+                if (complLabel) {
+                    complLabel.textContent = featureTotals.total
+                        ? completedUnits + (completedUnits === 1 ? ' feature complete' : ' features complete')
+                        : completedPhases + (completedPhases === 1 ? ' phase complete' : ' phases complete');
+                }
+                if (remLabel) {
+                    remLabel.textContent = featureTotals.total
+                        ? remainingUnits + (remainingUnits === 1 ? ' feature remaining' : ' features remaining')
+                        : remainingPhases + (remainingPhases === 1 ? ' phase remaining' : ' phases remaining');
+                }
+                if (subText) {
+                    subText.textContent = featureTotals.total
+                        ? (remainingUnits > 0
+                            ? `${completedUnits} of ${totalUnits} roadmap features shipped`
+                            : 'All roadmap features shipped')
+                        : (totalPhases === 0
+                            ? 'Roadmap milestones coming soon'
+                            : (remainingPhases > 0
+                                ? `Phase ${Math.min(completedPhases + 1, totalPhases)} of ${totalPhases} active`
+                                : 'All roadmap phases complete'));
+                }
 
             } catch (e) {
                 console.warn('[BCS Roadmap] Could not load milestones:', e);

@@ -1,6 +1,7 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 
 let supabasePromise = null
+let supabaseConfigPromise = null
 const CRM_REMEMBER_KEY = 'bluechip_crm_remember_v1'
 let persistSessionPreference = readRememberPreference()
 const DEPLOY_SUPABASE_CONFIG = {
@@ -14,6 +15,14 @@ export function getSupabase() {
   }
 
   return supabasePromise
+}
+
+export function getSupabaseConfig() {
+  if (!supabaseConfigPromise) {
+    supabaseConfigPromise = loadSupabaseConfig()
+  }
+
+  return supabaseConfigPromise
 }
 
 export function getSupabaseRememberPreference() {
@@ -31,7 +40,7 @@ export function setSupabaseRememberPreference(remember) {
 }
 
 async function createSupabaseClient() {
-  const config = await loadSupabaseConfig()
+  const config = await getSupabaseConfig()
 
   if (!config.url || !config.key) {
     throw new Error('Missing Supabase browser configuration.')

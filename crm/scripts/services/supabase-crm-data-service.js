@@ -19,7 +19,7 @@ import {
   parseTags,
   uid
 } from '../utils/formatters.js'
-import { getSupabase } from '../../../src/lib/supabase-browser.js'
+import { getSupabase, getSupabaseConfig } from '../../../src/lib/supabase-browser.js'
 
 const LEAD_SELECT_COLUMNS = [
   'id',
@@ -88,6 +88,37 @@ const CALENDAR_LEAD_SELECT_COLUMNS = [
 ].join(', ')
 const CALENDAR_EVENT_STATUS_OPTIONS = ['scheduled', 'completed', 'canceled', 'missed']
 const PROFILE_ACCESS_SELECT = 'role, active'
+const MAILBOX_SENDER_SELECT_COLUMNS = [
+  'id',
+  'kind',
+  'owner_user_id',
+  'sender_email',
+  'sender_name',
+  'is_active',
+  'last_verified_at',
+  'created_at',
+  'updated_at'
+].join(', ')
+const EMAIL_MESSAGE_SELECT_COLUMNS = [
+  'id',
+  'lead_id',
+  'sender_mailbox_id',
+  'sender_kind',
+  'created_by_user_id',
+  'from_email',
+  'from_name',
+  'to_email',
+  'subject',
+  'body_text',
+  'body_html',
+  'provider',
+  'provider_message_id',
+  'status',
+  'error_message',
+  'sent_at',
+  'created_at',
+  'updated_at'
+].join(', ')
 const SUPABASE_BATCH_SIZE = 1000
 const SUPABASE_FILTER_BATCH_SIZE = 250
 const TIME_ZONE_FILTER_AREA_CODES = Object.freeze(Object.fromEntries(
@@ -103,11 +134,12 @@ export class SupabaseCrmDataService extends CrmDataService {
   }
 
   async initializeWorkspace() {
-    const [tagDefinitions, dispositionDefinitions, leadCount, memberCount] = await Promise.all([
+    const [tagDefinitions, dispositionDefinitions, leadCount, memberCount, mailboxSenders] = await Promise.all([
       this.listTagDefinitions(),
       this.listDispositionDefinitions(),
       this.countLeadsForScope('leads'),
-      this.countLeadsForScope('members')
+      this.countLeadsForScope('members'),
+      this.listAvailableMailboxSenders()
     ])
 
     return {
@@ -115,6 +147,7 @@ export class SupabaseCrmDataService extends CrmDataService {
       allowedTags: tagDefinitions.filter((definition) => definition.isArchived !== true).map((definition) => definition.label),
       tagDefinitions,
       dispositionDefinitions,
+      mailboxSenders,
       workspaceSummary: {
         leadCount,
         memberCount
@@ -123,11 +156,12 @@ export class SupabaseCrmDataService extends CrmDataService {
   }
 
   async initialize() {
-    const [leadRows, tagDefinitions, dispositionDefinitions, profileRows] = await Promise.all([
+    const [leadRows, tagDefinitions, dispositionDefinitions, profileRows, mailboxSenders] = await Promise.all([
       this.fetchAllLeadRows(),
       this.listTagDefinitions(),
       this.listDispositionDefinitions(),
-      this.fetchAllOptionalRows('profiles')
+      this.fetchAllOptionalRows('profiles'),
+      this.listAvailableMailboxSenders()
     ])
 
     const userMap = new Map(profileRows.map(mapProfileUser).map((user) => [user.id, user]))
@@ -159,7 +193,8 @@ export class SupabaseCrmDataService extends CrmDataService {
       importHistory: [],
       allowedTags: tagDefinitions.filter((definition) => definition.isArchived !== true).map((definition) => definition.label),
       tagDefinitions,
-      dispositionDefinitions
+      dispositionDefinitions,
+      mailboxSenders
     }
   }
 
@@ -756,22 +791,196 @@ export class SupabaseCrmDataService extends CrmDataService {
     }
 
     const userMap = new Map(profileRows.map(mapProfileUser).map((user) => [user.id, user]))
-    const [leadTagRows, noteRows, historyRows] = await Promise.all([
+    const [leadTagRows, noteRows, historyRows, emailMessageRows, mailboxSenders] = await Promise.all([
       this.fetchOptionalRows('lead_tags', (query) => query.eq('lead_id', clientId)),
       this.fetchOptionalRows('notes', (query) => query.eq('lead_id', clientId).order('created_at', { ascending: false })),
-      this.fetchLeadHistoryRows((query) => query.eq('lead_id', clientId))
+      this.fetchLeadHistoryRows((query) => query.eq('lead_id', clientId)),
+      this.listLeadEmailMessages(clientId),
+      this.listAvailableMailboxSenders()
     ])
     const noteIds = noteRows.map((row) => String(row.id ?? '')).filter(Boolean)
     const noteVersionRows = noteIds.length
       ? await this.fetchOptionalRows('note_versions', (query) => query.in('note_id', noteIds).order('edited_at', { ascending: false }))
       : []
+    const mailboxSendersById = new Map(mailboxSenders.map((sender) => [sender.id, sender]))
 
     return mapLeadRow(leadRow, {
       usersById: userMap,
       tagsByLeadId: buildLeadTagsMap(leadTagRows, tagDefinitions),
       notesByLeadId: buildLeadNotesMap(noteRows, buildNoteVersionsMap(noteVersionRows, userMap), userMap),
       historyByLeadId: buildLeadHistoryMap(historyRows, userMap),
+      emailHistoryByLeadId: buildLeadEmailHistoryMap(emailMessageRows, userMap, mailboxSendersById),
       dispositionDefinitions
+    })
+  }
+
+  async listAvailableMailboxSenders() {
+    const supabase = await getSupabase()
+    const { data, error } = await supabase
+      .from('mailbox_senders')
+      .select(MAILBOX_SENDER_SELECT_COLUMNS)
+      .order('kind', { ascending: true })
+      .order('sender_name', { ascending: true })
+
+    if (error) {
+      return []
+    }
+
+    return (data ?? []).map(mapMailboxSenderRow).filter((sender) => sender.id)
+  }
+
+  async listLeadEmailMessages(leadId) {
+    const normalizedLeadId = normalizeWhitespace(leadId)
+
+    if (!normalizedLeadId) {
+      return []
+    }
+
+    const supabase = await getSupabase()
+    const [messageResponse, profileRows, mailboxSenders] = await Promise.all([
+      supabase
+        .from('email_messages')
+        .select(EMAIL_MESSAGE_SELECT_COLUMNS)
+        .eq('lead_id', normalizedLeadId)
+        .order('created_at', { ascending: false })
+        .limit(25),
+      this.fetchOptionalRows('profiles'),
+      this.listAvailableMailboxSenders()
+    ])
+    const messageRows = messageResponse.error ? [] : (messageResponse.data ?? [])
+    const userMap = new Map(profileRows.map(mapProfileUser).map((user) => [user.id, user]))
+    const mailboxSendersById = new Map(mailboxSenders.map((sender) => [sender.id, sender]))
+
+    return messageRows
+      .map((row) => mapEmailMessageRow(row, {
+        usersById: userMap,
+        mailboxSendersById
+      }))
+      .filter((entry) => entry.id)
+      .sort((left, right) => Date.parse(right.createdAt ?? right.sentAt ?? 0) - Date.parse(left.createdAt ?? left.sentAt ?? 0))
+  }
+
+  async invokeAuthenticatedFunction(functionName, body = {}) {
+    const supabase = await getSupabase()
+    const config = await getSupabaseConfig()
+    const { data: refreshedSessionData, error: refreshError } = await supabase.auth.refreshSession()
+
+    if (refreshError) {
+      throw new Error(refreshError.message || 'Unable to refresh your current CRM session.')
+    }
+
+    const accessToken = normalizeWhitespace(refreshedSessionData?.session?.access_token)
+
+    if (!accessToken) {
+      throw new Error('Your Supabase session expired. Please log out and sign in again, then retry.')
+    }
+
+    const { error: userError } = await supabase.auth.getUser(accessToken)
+
+    if (userError) {
+      throw new Error(userError.message || 'Your Supabase session is no longer valid. Please sign in again.')
+    }
+
+    const response = await fetch(`${config.url}/functions/v1/${encodeURIComponent(functionName)}`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        apikey: config.key,
+        Authorization: `Bearer ${accessToken}`
+      },
+      body: JSON.stringify(body)
+    })
+
+    const contentType = String(response.headers.get('content-type') || '').toLowerCase()
+    let data = null
+
+    try {
+      data = contentType.includes('application/json')
+        ? await response.json()
+        : await response.text()
+    } catch (_parseError) {
+      data = null
+    }
+
+    if (!response.ok) {
+      return {
+        data: null,
+        error: {
+          message: typeof data === 'string' && normalizeWhitespace(data)
+            ? normalizeWhitespace(data)
+            : normalizeWhitespace(data?.error ?? data?.message) || `Edge Function returned status ${response.status}.`,
+          context: {
+            status: response.status,
+            data
+          }
+        }
+      }
+    }
+
+    return {
+      data,
+      error: null
+    }
+  }
+
+  async savePersonalMailboxConnection(payload = {}) {
+    const { data, error } = await this.invokeAuthenticatedFunction('crm-save-mailbox', {
+      kind: 'personal',
+      senderName: normalizeWhitespace(payload.senderName),
+      smtpUsername: normalizeWhitespace(payload.smtpUsername),
+      smtpPassword: String(payload.smtpPassword ?? '')
+    })
+
+    if (error) {
+      throw new Error(await describeFunctionInvokeError(error, 'Unable to save your mailbox connection.'))
+    }
+
+    if (data?.error) {
+      throw new Error(data.error)
+    }
+
+    return mapMailboxSenderRow(data?.sender || {})
+  }
+
+  async saveSupportMailboxConnection(payload = {}) {
+    const { data, error } = await this.invokeAuthenticatedFunction('crm-save-mailbox', {
+      kind: 'support',
+      senderEmail: normalizeWhitespace(payload.senderEmail).toLowerCase(),
+      senderName: normalizeWhitespace(payload.senderName),
+      smtpUsername: normalizeWhitespace(payload.smtpUsername),
+      smtpPassword: String(payload.smtpPassword ?? '')
+    })
+
+    if (error) {
+      throw new Error(await describeFunctionInvokeError(error, 'Unable to save the support mailbox.'))
+    }
+
+    if (data?.error) {
+      throw new Error(data.error)
+    }
+
+    return mapMailboxSenderRow(data?.sender || {})
+  }
+
+  async sendLeadEmail({ leadId, senderMode = 'personal', subject = '', bodyText = '' } = {}) {
+    const { data, error } = await this.invokeAuthenticatedFunction('crm-send-email', {
+      leadId: normalizeWhitespace(leadId),
+      senderMode: normalizeWhitespace(senderMode) === 'support' ? 'support' : 'personal',
+      subject: normalizeWhitespace(subject),
+      bodyText: String(bodyText ?? '')
+    })
+
+    if (error) {
+      throw new Error(await describeFunctionInvokeError(error, 'Unable to send the lead email.'))
+    }
+
+    if (data?.error) {
+      throw new Error(data.error)
+    }
+
+    return mapEmailMessageRow(data?.message || {}, {
+      usersById: new Map(),
+      mailboxSendersById: new Map()
     })
   }
 
@@ -2080,7 +2289,112 @@ function buildDefaultCalendarEventTitle(leadName = '') {
   return `Follow-up with ${normalizeWhitespace(leadName) || 'Client'}`
 }
 
-function mapLeadRow(row, { usersById, tagsByLeadId, notesByLeadId, historyByLeadId, dispositionDefinitions = [] }) {
+async function describeFunctionInvokeError(error, fallbackMessage) {
+  const context = error?.context
+
+  if (context) {
+    if (typeof context === 'object' && !('clone' in context)) {
+      const message = normalizeWhitespace(context?.data?.error ?? context?.data?.message ?? '')
+
+      if (message) {
+        return message
+      }
+    }
+
+    try {
+      const payload = await (typeof context.clone === 'function' ? context.clone() : context).json()
+      const message = normalizeWhitespace(payload?.error ?? payload?.message ?? '')
+
+      if (message) {
+        return message
+      }
+    } catch (_jsonError) {
+      // Ignore JSON parse issues and fall back to text or the error message.
+    }
+
+    try {
+      const text = normalizeWhitespace(await (typeof context.clone === 'function' ? context.clone() : context).text())
+
+      if (text) {
+        return text
+      }
+    } catch (_textError) {
+      // Ignore text parse issues and fall back to the original error message.
+    }
+  }
+
+  return normalizeWhitespace(error?.message) || fallbackMessage
+}
+
+function mapMailboxSenderRow(row) {
+  return {
+    id: String(row.id ?? '').trim(),
+    kind: normalizeWhitespace(row.kind).toLowerCase() === 'support' ? 'support' : 'personal',
+    ownerUserId: normalizeWhitespace(row.owner_user_id ?? row.ownerUserId) || '',
+    senderEmail: normalizeWhitespace(row.sender_email ?? row.senderEmail).toLowerCase(),
+    senderName: normalizeWhitespace(row.sender_name ?? row.senderName),
+    isActive: row.is_active !== false && row.isActive !== false,
+    lastVerifiedAt: row.last_verified_at ?? row.lastVerifiedAt ?? '',
+    createdAt: row.created_at ?? row.createdAt ?? '',
+    updatedAt: row.updated_at ?? row.updatedAt ?? ''
+  }
+}
+
+function mapEmailMessageRow(row, { usersById = new Map(), mailboxSendersById = new Map() } = {}) {
+  const senderMailboxId = normalizeWhitespace(row.sender_mailbox_id ?? row.senderMailboxId)
+  const createdByUserId = normalizeWhitespace(row.created_by_user_id ?? row.createdByUserId)
+  const sender = mailboxSendersById.get(senderMailboxId) || null
+
+  return {
+    id: String(row.id ?? '').trim(),
+    leadId: normalizeWhitespace(row.lead_id ?? row.leadId),
+    senderMailboxId,
+    senderKind: normalizeWhitespace(row.sender_kind ?? row.senderKind) === 'support' ? 'support' : 'personal',
+    senderName: normalizeWhitespace(row.from_name ?? row.fromName ?? sender?.senderName ?? ''),
+    senderEmail: normalizeWhitespace(row.from_email ?? row.fromEmail ?? sender?.senderEmail ?? '').toLowerCase(),
+    senderDisplayName: normalizeWhitespace(usersById.get(createdByUserId)?.name ?? row.from_name ?? row.fromName ?? sender?.senderName ?? ''),
+    createdByUserId,
+    createdByName: normalizeWhitespace(usersById.get(createdByUserId)?.name ?? ''),
+    toEmail: normalizeWhitespace(row.to_email ?? row.toEmail).toLowerCase(),
+    subject: normalizeWhitespace(row.subject),
+    bodyText: String(row.body_text ?? row.bodyText ?? ''),
+    bodyHtml: String(row.body_html ?? row.bodyHtml ?? ''),
+    provider: normalizeWhitespace(row.provider) || 'smtp',
+    providerMessageId: normalizeWhitespace(row.provider_message_id ?? row.providerMessageId),
+    status: normalizeWhitespace(row.status) || 'failed',
+    errorMessage: normalizeWhitespace(row.error_message ?? row.errorMessage),
+    sentAt: row.sent_at ?? row.sentAt ?? '',
+    createdAt: row.created_at ?? row.createdAt ?? '',
+    updatedAt: row.updated_at ?? row.updatedAt ?? ''
+  }
+}
+
+function buildLeadEmailHistoryMap(rows, usersById = new Map(), mailboxSendersById = new Map()) {
+  const map = new Map()
+
+  ;(rows ?? []).forEach((row) => {
+    const leadId = normalizeWhitespace(row.lead_id ?? row.leadId)
+
+    if (!leadId) {
+      return
+    }
+
+    const current = map.get(leadId) || []
+    current.push(mapEmailMessageRow(row, {
+      usersById,
+      mailboxSendersById
+    }))
+    map.set(leadId, current)
+  })
+
+  map.forEach((entries, leadId) => {
+    map.set(leadId, entries.sort((left, right) => Date.parse(right.createdAt ?? right.sentAt ?? 0) - Date.parse(left.createdAt ?? left.sentAt ?? 0)))
+  })
+
+  return map
+}
+
+function mapLeadRow(row, { usersById, tagsByLeadId, notesByLeadId, historyByLeadId, emailHistoryByLeadId = new Map(), dispositionDefinitions = [] }) {
   const leadId = String(row.id ?? '').trim()
   const firstName = normalizeWhitespace(row.first_name)
   const lastName = normalizeWhitespace(row.last_name)
@@ -2098,6 +2412,7 @@ function mapLeadRow(row, { usersById, tagsByLeadId, notesByLeadId, historyByLead
   const noteHistory = notesByLeadId.get(leadId) || []
   const tags = tagsByLeadId.get(leadId) || []
   const activityLog = historyByLeadId.get(leadId) || []
+  const emailHistory = emailHistoryByLeadId.get(leadId) || []
   const disposition = resolveDispositionLabel(dispositionId, dispositionDefinitions)
   const status = resolveLeadRowStatus(row.status, activityLog)
   const lifecycleType = resolveLeadRowLifecycle(row.lifecycle, activityLog)
@@ -2132,7 +2447,8 @@ function mapLeadRow(row, { usersById, tagsByLeadId, notesByLeadId, historyByLead
     followUpAction: normalizeWhitespace(row.follow_up_action),
     followUpAt: normalizeWhitespace(row.follow_up_at),
     noteHistory,
-    activityLog
+    activityLog,
+    emailHistory
   }
 }
 
@@ -3083,6 +3399,10 @@ function hasOwnCatalogColumn(row, key) {
 function normalizeProfileRole(role) {
   if (role === 'admin') {
     return 'admin'
+  }
+
+  if (role === 'support') {
+    return 'support'
   }
 
   if (role === 'senior_rep') {

@@ -2088,6 +2088,19 @@
         let _rmMilestones    = [];   // sorted by order, {id, ...data}
         let _editingMilestoneId = null;
 
+        function isRoadmapFeatureDone(feature, milestoneStatus = 'planned') {
+            if (typeof feature?.done === 'boolean') return feature.done;
+            return milestoneStatus === 'completed';
+        }
+
+        function getRoadmapFeatureProgress(milestone) {
+            const features = Array.isArray(milestone?.features) ? milestone.features : [];
+            const completed = features.reduce((count, feature) => (
+                count + (isRoadmapFeatureDone(feature, milestone?.status) ? 1 : 0)
+            ), 0);
+            return { completed, total: features.length };
+        }
+
         /* ── Load & render milestone list ── */
         async function loadRoadmapMilestones() {
             const listEl   = document.getElementById('rm-milestones-list');
@@ -2107,9 +2120,26 @@
                 }
 
                 listEl.innerHTML = _rmMilestones.map((m, idx) => {
-                    const featurePills = (m.features || []).map(f =>
-                        `<span style="font-size:0.7rem;color:rgba(255,255,255,0.5);background:rgba(255,255,255,0.05);border-radius:4px;padding:0.12rem 0.4rem;">${f.name}</span>`
-                    ).join(' ');
+                    const progress = getRoadmapFeatureProgress(m);
+                    const featurePills = (m.features || []).map(f => {
+                        const isDone = isRoadmapFeatureDone(f, m.status);
+                        return `
+                            <span style="
+                                display:inline-flex;
+                                align-items:center;
+                                gap:0.35rem;
+                                font-size:0.7rem;
+                                color:${isDone ? '#dcfce7' : 'rgba(255,255,255,0.58)'};
+                                background:${isDone ? 'rgba(34,197,94,0.14)' : 'rgba(255,255,255,0.05)'};
+                                border:1px solid ${isDone ? 'rgba(74,222,128,0.28)' : 'rgba(255,255,255,0.06)'};
+                                border-radius:999px;
+                                padding:0.18rem 0.5rem;
+                            ">
+                                ${isDone ? '<i class="fas fa-check" style="font-size:0.6rem;"></i>' : ''}
+                                <span>${esc(f.name || 'Untitled feature')}</span>
+                            </span>
+                        `;
+                    }).join(' ');
                     const isFirst = idx === 0;
                     const isLast  = idx === _rmMilestones.length - 1;
                     return `
@@ -2121,6 +2151,11 @@
                         <div style="flex:1;min-width:0;">
                             <div style="font-weight:700;color:#fff;margin-bottom:0.3rem;">${m.label}
                                 <span style="font-size:0.63rem;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;padding:0.12rem 0.45rem;border-radius:20px;margin-left:0.4rem;background:rgba(201,176,55,0.12);color:var(--gold);">${RM_STATUS_BADGE[m.status] || m.status}</span>
+                            </div>
+                            <div style="font-size:0.72rem;font-weight:700;color:rgba(255,255,255,0.42);margin-bottom:0.45rem;text-transform:uppercase;letter-spacing:0.08em;">
+                                ${progress.total > 0
+                                    ? `${progress.completed} / ${progress.total} features complete`
+                                    : 'No features added yet'}
                             </div>
                             <div style="display:flex;flex-wrap:wrap;gap:0.25rem;">${featurePills || '<span style="font-size:0.7rem;color:rgba(255,255,255,0.25);">No features</span>'}</div>
                         </div>
@@ -2146,9 +2181,10 @@
             row.style.cssText = 'border:1px solid rgba(255,255,255,0.07);border-radius:8px;padding:0.75rem;margin-bottom:0.6rem;position:relative;';
             const iconCls   = prefill?.icon || 'fas fa-star';
             const iconLabel = iconCls.replace(/^fa[bsrlt]?\s+fa-/, '').replace(/-/g,' ').replace(/\b\w/g,c=>c.toUpperCase());
+            const isDone    = isRoadmapFeatureDone(prefill, prefill?._milestoneStatus);
             row.innerHTML = `
                 <button type="button" onclick="this.closest('.rm-feature-row').remove()" style="position:absolute;top:0.5rem;right:0.5rem;width:22px;height:22px;border-radius:50%;border:none;background:rgba(239,68,68,0.15);color:#ef4444;font-size:0.65rem;cursor:pointer;display:flex;align-items:center;justify-content:center;"><i class="fas fa-xmark"></i></button>
-                <div style="display:grid;grid-template-columns:150px 1fr;gap:0.75rem;margin-bottom:0.6rem;">
+                <div style="display:grid;grid-template-columns:150px 1fr auto;gap:0.75rem;margin-bottom:0.6rem;align-items:end;">
                     <div class="form-group" style="margin:0;">
                         <label class="form-label" style="font-size:0.65rem;">Icon</label>
                         <input type="hidden" name="feature-icon-${n}" value="${iconCls}">
@@ -2161,6 +2197,10 @@
                         <label class="form-label" style="font-size:0.65rem;">Feature Name <span style="color:#ef4444">*</span></label>
                         <input type="text" name="feature-name-${n}" class="form-input" placeholder="e.g. AI Signal Assistant" value="${prefill?.name||''}" required style="font-size:0.8rem;">
                     </div>
+                    <label style="display:inline-flex;align-items:center;gap:0.45rem;font-size:0.74rem;font-weight:700;color:rgba(255,255,255,0.72);padding:0.75rem 0 0;">
+                        <input type="checkbox" name="feature-done-${n}" ${isDone ? 'checked' : ''} style="accent-color:#22c55e;">
+                        Complete
+                    </label>
                 </div>
                 <div class="form-group" style="margin:0 0 0.6rem;">
                     <label class="form-label" style="font-size:0.65rem;">Short Description</label>
@@ -2226,7 +2266,7 @@
             document.getElementById('rm-status').value = m.status || '';
             document.getElementById('rm-features-list').innerHTML = '';
             featureRowCount = 0;
-            (m.features || []).forEach(f => addFeatureRow(f));
+            (m.features || []).forEach(f => addFeatureRow({ ...f, _milestoneStatus: m.status }));
             if (!m.features?.length) addFeatureRow();
             document.getElementById('roadmapModalTitle').innerHTML = '<i class="fas fa-pen"></i> Edit Milestone: ' + (m.label || 'Untitled');
             document.getElementById('saveMilestoneBtn').innerHTML = '<i class="fas fa-floppy-disk"></i> Update Milestone';
@@ -2255,7 +2295,8 @@
                     icon:   (row.querySelector(`[name="feature-icon-${n}"]`)?.value || '').trim() || 'fas fa-star',
                     name,
                     desc:   (row.querySelector(`[name="feature-desc-${n}"]`)?.value || '').trim(),
-                    detail: (row.querySelector(`[name="feature-detail-${n}"]`)?.value || '').trim()
+                    detail: (row.querySelector(`[name="feature-detail-${n}"]`)?.value || '').trim(),
+                    done:   !!row.querySelector(`[name="feature-done-${n}"]`)?.checked
                 });
             });
 

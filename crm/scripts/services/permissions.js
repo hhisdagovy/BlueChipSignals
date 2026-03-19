@@ -14,7 +14,8 @@ export const PERMISSIONS = {
     MANAGE_SAVED_FILTERS_ANY: 'manage_saved_filters_any',
     EDIT_ADMIN_FIELDS: 'edit_admin_fields',
     EDIT_MEMBERS: 'edit_members',
-    EDIT_ANY_NOTE: 'edit_any_note'
+    EDIT_ANY_NOTE: 'edit_any_note',
+    SEND_EMAIL: 'send_email'
 };
 
 const ROLE_PERMISSIONS = {
@@ -34,13 +35,20 @@ const ROLE_PERMISSIONS = {
         PERMISSIONS.MANAGE_SAVED_FILTERS_ANY,
         PERMISSIONS.EDIT_ADMIN_FIELDS,
         PERMISSIONS.EDIT_MEMBERS,
-        PERMISSIONS.EDIT_ANY_NOTE
+        PERMISSIONS.EDIT_ANY_NOTE,
+        PERMISSIONS.SEND_EMAIL
     ]),
     sales: new Set([
-        PERMISSIONS.CREATE_LEADS
+        PERMISSIONS.CREATE_LEADS,
+        PERMISSIONS.SEND_EMAIL
     ]),
     senior: new Set([
-        PERMISSIONS.CREATE_LEADS
+        PERMISSIONS.CREATE_LEADS,
+        PERMISSIONS.SEND_EMAIL
+    ]),
+    support: new Set([
+        PERMISSIONS.VIEW_ALL_RECORDS,
+        PERMISSIONS.SEND_EMAIL
     ])
 };
 
@@ -71,6 +79,10 @@ export function isAdminSession(session) {
 
 export function isSeniorRepSession(session) {
     return session?.role === 'senior';
+}
+
+export function isSupportSession(session) {
+    return session?.role === 'support';
 }
 
 export function isSalesWorkspaceSession(session) {

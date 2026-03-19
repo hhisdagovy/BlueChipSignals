@@ -454,6 +454,10 @@ function deriveRoleTitle(role) {
     return 'Administrator'
   }
 
+  if (role === 'support') {
+    return 'Support Team'
+  }
+
   if (role === 'senior') {
     return 'Senior Rep'
   }
@@ -476,6 +480,10 @@ function normalizeProfileRole(role) {
     return 'admin'
   }
 
+  if (role === 'support') {
+    return 'support'
+  }
+
   if (role === 'senior_rep') {
     return 'senior'
   }
@@ -486,6 +494,10 @@ function normalizeProfileRole(role) {
 function serializeProfileRole(role) {
   if (role === 'admin') {
     return 'admin'
+  }
+
+  if (role === 'support') {
+    return 'support'
   }
 
   if (role === 'senior' || role === 'senior_rep') {

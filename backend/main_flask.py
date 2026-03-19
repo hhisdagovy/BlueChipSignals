@@ -1451,4 +1451,3 @@ if __name__ == '__main__':
     print("🔑 Password: Pumrvb12!")
     print(f"📡 API: http://0.0.0.0:{port}/api/signals/new\n")
     app.run(debug=False, host='0.0.0.0', port=port)
-

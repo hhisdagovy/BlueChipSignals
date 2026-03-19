@@ -94,20 +94,41 @@ const MAILBOX_SENDER_SELECT_COLUMNS = [
   'owner_user_id',
   'sender_email',
   'sender_name',
+  'imap_inbox_folder',
+  'imap_sent_folder',
   'is_active',
   'last_verified_at',
+  'created_at',
+  'updated_at'
+].join(', ')
+const EMAIL_THREAD_SELECT_COLUMNS = [
+  'id',
+  'mailbox_sender_id',
+  'lead_id',
+  'subject',
+  'snippet',
+  'participants',
+  'folder_presence',
+  'latest_message_id',
+  'latest_message_at',
+  'unread_count',
+  'is_starred',
+  'last_message_direction',
+  'last_message_status',
   'created_at',
   'updated_at'
 ].join(', ')
 const EMAIL_MESSAGE_SELECT_COLUMNS = [
   'id',
   'lead_id',
+  'thread_id',
   'sender_mailbox_id',
   'sender_kind',
   'created_by_user_id',
   'from_email',
   'from_name',
   'to_email',
+  'to_emails',
   'subject',
   'body_text',
   'body_html',
@@ -115,7 +136,29 @@ const EMAIL_MESSAGE_SELECT_COLUMNS = [
   'provider_message_id',
   'status',
   'error_message',
+  'direction',
+  'folder',
+  'is_read',
+  'is_starred',
+  'received_at',
+  'message_id_header',
+  'in_reply_to',
+  'references_header',
+  'snippet',
+  'participants',
+  'source',
   'sent_at',
+  'created_at',
+  'updated_at'
+].join(', ')
+const MAILBOX_SYNC_STATE_SELECT_COLUMNS = [
+  'mailbox_sender_id',
+  'folder',
+  'last_synced_at',
+  'last_uid',
+  'last_error',
+  'sync_status',
+  'synced_message_count',
   'created_at',
   'updated_at'
 ].join(', ')
@@ -355,7 +398,7 @@ export class SupabaseCrmDataService extends CrmDataService {
         .eq('id', existing.id)
 
       if (error) {
-        if (isLeadStatusConstraintError(error)) {
+        if (isLeadWorkflowConstraintError(error)) {
           const recovered = await this.tryRecoverLeadStatusUpdate({
             supabase,
             leadId: existing.id,
@@ -374,14 +417,29 @@ export class SupabaseCrmDataService extends CrmDataService {
       }
     } else {
       const insertPayload = buildLeadInsertPayload(client, { dispositionDefinitions, existingLead: existing })
-      const { data, error } = await supabase
+      let { data, error } = await supabase
         .from('leads')
         .insert(insertPayload)
         .select('id')
         .single()
 
       if (error) {
-        throw new Error(describeLeadWriteError(error))
+        if (isLeadWorkflowConstraintError(error)) {
+          const recoveredLeadId = await this.tryRecoverLeadInsert({
+            supabase,
+            insertPayload,
+            client
+          })
+
+          if (!recoveredLeadId) {
+            throw new Error(describeLeadWriteError(error))
+          }
+
+          data = { id: recoveredLeadId }
+          error = null
+        } else {
+          throw new Error(describeLeadWriteError(error))
+        }
       }
 
       leadId = String(data?.id ?? '').trim()
@@ -829,6 +887,129 @@ export class SupabaseCrmDataService extends CrmDataService {
     return (data ?? []).map(mapMailboxSenderRow).filter((sender) => sender.id)
   }
 
+  async listEmailMailboxes() {
+    const supabase = await getSupabase()
+    const [mailboxes, syncResponse] = await Promise.all([
+      this.listAvailableMailboxSenders(),
+      supabase
+        .from('mailbox_sync_state')
+        .select(MAILBOX_SYNC_STATE_SELECT_COLUMNS)
+        .order('updated_at', { ascending: false })
+    ])
+    const syncStateByMailboxId = new Map()
+    const syncRows = syncResponse.error ? [] : (syncResponse.data ?? [])
+
+    ;(syncRows ?? []).forEach((row) => {
+      const mappedRow = mapMailboxSyncStateRow(row)
+      const current = syncStateByMailboxId.get(mappedRow.mailboxSenderId) || []
+      current.push(mappedRow)
+      syncStateByMailboxId.set(mappedRow.mailboxSenderId, current)
+    })
+
+    return mailboxes.map((mailbox) => ({
+      ...mailbox,
+      syncState: syncStateByMailboxId.get(mailbox.id) || []
+    }))
+  }
+
+  async listEmailThreads({
+    mailboxId = '',
+    folder = 'INBOX',
+    searchQuery = '',
+    limit = 100
+  } = {}) {
+    const normalizedMailboxId = normalizeWhitespace(mailboxId)
+
+    if (!normalizedMailboxId) {
+      return []
+    }
+
+    const normalizedFolder = normalizeWhitespace(folder).toUpperCase() || 'INBOX'
+    const supabase = await getSupabase()
+    let query = supabase
+      .from('email_threads')
+      .select(EMAIL_THREAD_SELECT_COLUMNS)
+      .eq('mailbox_sender_id', normalizedMailboxId)
+      .order('latest_message_at', { ascending: false })
+      .limit(Math.max(1, Number(limit) || 100))
+
+    if (normalizedFolder !== 'ALL') {
+      query = query.contains('folder_presence', [normalizedFolder])
+    }
+
+    const { data, error } = await query
+
+    if (error) {
+      throw new Error(error.message || 'Unable to load email conversations from Supabase.')
+    }
+
+    const normalizedSearchQuery = normalizeWhitespace(searchQuery).toLowerCase()
+
+    return (data ?? [])
+      .map(mapEmailThreadRow)
+      .filter((thread) => thread.id)
+      .filter((thread) => {
+        if (!normalizedSearchQuery) {
+          return true
+        }
+
+        const haystack = [
+          thread.subject,
+          thread.snippet,
+          thread.participantSummary,
+          thread.leadSummary
+        ].join(' ').toLowerCase()
+
+        return haystack.includes(normalizedSearchQuery)
+      })
+  }
+
+  async getEmailThread(threadId) {
+    const normalizedThreadId = normalizeWhitespace(threadId)
+
+    if (!normalizedThreadId) {
+      return null
+    }
+
+    const supabase = await getSupabase()
+    const [threadResponse, messageResponse, profileRows, mailboxSenders] = await Promise.all([
+      supabase
+        .from('email_threads')
+        .select(EMAIL_THREAD_SELECT_COLUMNS)
+        .eq('id', normalizedThreadId)
+        .maybeSingle(),
+      supabase
+        .from('email_messages')
+        .select(EMAIL_MESSAGE_SELECT_COLUMNS)
+        .eq('thread_id', normalizedThreadId)
+        .order('received_at', { ascending: true, nullsFirst: false })
+        .order('created_at', { ascending: true }),
+      this.fetchOptionalRows('profiles'),
+      this.listAvailableMailboxSenders()
+    ])
+
+    if (threadResponse.error) {
+      throw new Error(threadResponse.error.message || 'Unable to load the email thread.')
+    }
+
+    if (!threadResponse.data) {
+      return null
+    }
+
+    const userMap = new Map(profileRows.map(mapProfileUser).map((user) => [user.id, user]))
+    const mailboxSendersById = new Map(mailboxSenders.map((sender) => [sender.id, sender]))
+
+    return {
+      ...mapEmailThreadRow(threadResponse.data),
+      messages: (messageResponse.data ?? [])
+        .map((row) => mapEmailMessageRow(row, {
+          usersById: userMap,
+          mailboxSendersById
+        }))
+        .filter((entry) => entry.id)
+    }
+  }
+
   async listLeadEmailMessages(leadId) {
     const normalizedLeadId = normalizeWhitespace(leadId)
 
@@ -842,6 +1023,7 @@ export class SupabaseCrmDataService extends CrmDataService {
         .from('email_messages')
         .select(EMAIL_MESSAGE_SELECT_COLUMNS)
         .eq('lead_id', normalizedLeadId)
+        .order('received_at', { ascending: false, nullsFirst: false })
         .order('created_at', { ascending: false })
         .limit(25),
       this.fetchOptionalRows('profiles'),
@@ -857,7 +1039,7 @@ export class SupabaseCrmDataService extends CrmDataService {
         mailboxSendersById
       }))
       .filter((entry) => entry.id)
-      .sort((left, right) => Date.parse(right.createdAt ?? right.sentAt ?? 0) - Date.parse(left.createdAt ?? left.sentAt ?? 0))
+      .sort((left, right) => Date.parse(right.receivedAt ?? right.sentAt ?? right.createdAt ?? 0) - Date.parse(left.receivedAt ?? left.sentAt ?? left.createdAt ?? 0))
   }
 
   async invokeAuthenticatedFunction(functionName, body = {}) {
@@ -962,26 +1144,146 @@ export class SupabaseCrmDataService extends CrmDataService {
     return mapMailboxSenderRow(data?.sender || {})
   }
 
-  async sendLeadEmail({ leadId, senderMode = 'personal', subject = '', bodyText = '' } = {}) {
+  async sendEmail({
+    leadId,
+    recipientEmail = '',
+    recipientEmails = [],
+    senderMode = 'personal',
+    threadId = '',
+    inReplyTo = '',
+    references = '',
+    subject = '',
+    bodyText = ''
+  } = {}) {
+    const normalizedRecipientEmails = dedupeStrings(
+      Array.isArray(recipientEmails)
+        ? recipientEmails
+        : String(recipientEmails || recipientEmail)
+          .split(/[,\n;]/)
+    )
+      .map((value) => normalizeEmail(value))
+      .filter(Boolean)
+
     const { data, error } = await this.invokeAuthenticatedFunction('crm-send-email', {
       leadId: normalizeWhitespace(leadId),
+      recipientEmail: normalizeWhitespace(recipientEmail).toLowerCase(),
+      recipientEmails: normalizedRecipientEmails,
       senderMode: normalizeWhitespace(senderMode) === 'support' ? 'support' : 'personal',
+      threadId: normalizeWhitespace(threadId),
+      inReplyTo: normalizeWhitespace(inReplyTo),
+      references: normalizeWhitespace(references),
       subject: normalizeWhitespace(subject),
       bodyText: String(bodyText ?? '')
     })
 
     if (error) {
-      throw new Error(await describeFunctionInvokeError(error, 'Unable to send the lead email.'))
+      throw new Error(await describeFunctionInvokeError(error, 'Unable to send the email.'))
     }
 
     if (data?.error) {
       throw new Error(data.error)
     }
 
-    return mapEmailMessageRow(data?.message || {}, {
-      usersById: new Map(),
-      mailboxSendersById: new Map()
+    return {
+      ...mapEmailMessageRow(data?.message || {}, {
+        usersById: new Map(),
+        mailboxSendersById: new Map()
+      }),
+      loggedToLead: data?.loggedToLead === true,
+      warning: normalizeWhitespace(data?.warning)
+    }
+  }
+
+  async sendLeadEmail(payload = {}) {
+    return this.sendEmail(payload)
+  }
+
+  async syncEmailMailbox({ mailboxId = '', folders = [] } = {}) {
+    const normalizedMailboxId = normalizeWhitespace(mailboxId)
+
+    if (!normalizedMailboxId) {
+      throw new Error('Choose a mailbox before syncing email.')
+    }
+
+    const normalizedFolders = (Array.isArray(folders) ? folders : [folders])
+      .map((folder) => normalizeWhitespace(folder).toUpperCase())
+      .filter(Boolean)
+
+    const { data, error } = await this.invokeAuthenticatedFunction('crm-sync-email', {
+      mailboxId: normalizedMailboxId,
+      folders: normalizedFolders.length ? normalizedFolders : ['INBOX', 'SENT']
     })
+
+    if (error) {
+      throw new Error(await describeFunctionInvokeError(error, 'Unable to sync the mailbox.'))
+    }
+
+    if (data?.error) {
+      throw new Error(data.error)
+    }
+
+    return {
+      mailboxId: normalizedMailboxId,
+      syncedCount: Number(data?.syncedCount) || 0,
+      createdCount: Number(data?.createdCount) || 0,
+      updatedCount: Number(data?.updatedCount) || 0,
+      folders: Array.isArray(data?.folders) ? data.folders : normalizedFolders,
+      syncState: Array.isArray(data?.syncState)
+        ? data.syncState.map(mapMailboxSyncStateRow)
+        : []
+    }
+  }
+
+  async markEmailThreadRead({ threadId = '', mailboxId = '' } = {}) {
+    const normalizedThreadId = normalizeWhitespace(threadId)
+    const normalizedMailboxId = normalizeWhitespace(mailboxId)
+
+    if (!normalizedThreadId || !normalizedMailboxId) {
+      return
+    }
+
+    const supabase = await getSupabase()
+    const [{ error: messageError }, { error: threadError }] = await Promise.all([
+      supabase
+        .from('email_messages')
+        .update({ is_read: true })
+        .eq('thread_id', normalizedThreadId)
+        .eq('sender_mailbox_id', normalizedMailboxId)
+        .eq('direction', 'incoming'),
+      supabase
+        .from('email_threads')
+        .update({ unread_count: 0 })
+        .eq('id', normalizedThreadId)
+        .eq('mailbox_sender_id', normalizedMailboxId)
+    ])
+
+    if (messageError) {
+      throw new Error(messageError.message || 'Unable to mark the email thread as read.')
+    }
+
+    if (threadError) {
+      throw new Error(threadError.message || 'Unable to update the email thread.')
+    }
+  }
+
+  async toggleEmailThreadStar({ threadId = '', mailboxId = '', isStarred = false } = {}) {
+    const normalizedThreadId = normalizeWhitespace(threadId)
+    const normalizedMailboxId = normalizeWhitespace(mailboxId)
+
+    if (!normalizedThreadId || !normalizedMailboxId) {
+      return
+    }
+
+    const supabase = await getSupabase()
+    const { error } = await supabase
+      .from('email_threads')
+      .update({ is_starred: isStarred === true })
+      .eq('id', normalizedThreadId)
+      .eq('mailbox_sender_id', normalizedMailboxId)
+
+    if (error) {
+      throw new Error(error.message || 'Unable to update the email thread star.')
+    }
   }
 
   async listCalendarEvents({ rangeStart = '', rangeEnd = '', visibilityScope = 'visible' } = {}) {
@@ -1389,7 +1691,7 @@ export class SupabaseCrmDataService extends CrmDataService {
             .eq('id', normalizedLeadId)
 
           if (followUpError) {
-            if (!isLeadStatusConstraintError(followUpError)) {
+            if (!isLeadWorkflowConstraintError(followUpError)) {
               throw new Error(describeLeadWriteError(followUpError))
             }
 
@@ -1400,12 +1702,44 @@ export class SupabaseCrmDataService extends CrmDataService {
         return true
       }
 
-      if (!isLeadStatusConstraintError(error)) {
+      if (!isLeadWorkflowConstraintError(error)) {
         throw new Error(describeLeadWriteError(error))
       }
     }
 
     return false
+  }
+
+  async tryRecoverLeadInsert({
+    supabase,
+    insertPayload,
+    client
+  } = {}) {
+    const candidatePayloads = buildLeadInsertRecoveryPayloads({
+      insertPayload,
+      client
+    })
+
+    for (const candidate of candidatePayloads) {
+      const { data, error } = await supabase
+        .from('leads')
+        .insert(candidate)
+        .select('id')
+        .single()
+
+      if (!error) {
+        const recoveredLeadId = String(data?.id ?? '').trim()
+        if (recoveredLeadId) {
+          return recoveredLeadId
+        }
+      }
+
+      if (!isLeadWorkflowConstraintError(error)) {
+        throw new Error(describeLeadWriteError(error))
+      }
+    }
+
+    return ''
   }
 
   async fetchAllRows(table, configureQuery = (query) => query, selectClause = '*', errorMessage = '') {
@@ -2333,6 +2667,8 @@ function mapMailboxSenderRow(row) {
     ownerUserId: normalizeWhitespace(row.owner_user_id ?? row.ownerUserId) || '',
     senderEmail: normalizeWhitespace(row.sender_email ?? row.senderEmail).toLowerCase(),
     senderName: normalizeWhitespace(row.sender_name ?? row.senderName),
+    imapInboxFolder: normalizeWhitespace(row.imap_inbox_folder ?? row.imapInboxFolder) || 'INBOX',
+    imapSentFolder: normalizeWhitespace(row.imap_sent_folder ?? row.imapSentFolder) || 'Sent',
     isActive: row.is_active !== false && row.isActive !== false,
     lastVerifiedAt: row.last_verified_at ?? row.lastVerifiedAt ?? '',
     createdAt: row.created_at ?? row.createdAt ?? '',
@@ -2344,10 +2680,14 @@ function mapEmailMessageRow(row, { usersById = new Map(), mailboxSendersById = n
   const senderMailboxId = normalizeWhitespace(row.sender_mailbox_id ?? row.senderMailboxId)
   const createdByUserId = normalizeWhitespace(row.created_by_user_id ?? row.createdByUserId)
   const sender = mailboxSendersById.get(senderMailboxId) || null
+  const toEmails = normalizeEmailAddressList(row.to_emails ?? row.toEmails)
+  const participants = normalizeEmailParticipants(row.participants)
+  const toEmail = normalizeWhitespace(row.to_email ?? row.toEmail).toLowerCase() || toEmails[0] || ''
 
   return {
     id: String(row.id ?? '').trim(),
     leadId: normalizeWhitespace(row.lead_id ?? row.leadId),
+    threadId: normalizeWhitespace(row.thread_id ?? row.threadId),
     senderMailboxId,
     senderKind: normalizeWhitespace(row.sender_kind ?? row.senderKind) === 'support' ? 'support' : 'personal',
     senderName: normalizeWhitespace(row.from_name ?? row.fromName ?? sender?.senderName ?? ''),
@@ -2355,7 +2695,8 @@ function mapEmailMessageRow(row, { usersById = new Map(), mailboxSendersById = n
     senderDisplayName: normalizeWhitespace(usersById.get(createdByUserId)?.name ?? row.from_name ?? row.fromName ?? sender?.senderName ?? ''),
     createdByUserId,
     createdByName: normalizeWhitespace(usersById.get(createdByUserId)?.name ?? ''),
-    toEmail: normalizeWhitespace(row.to_email ?? row.toEmail).toLowerCase(),
+    toEmail,
+    toEmails,
     subject: normalizeWhitespace(row.subject),
     bodyText: String(row.body_text ?? row.bodyText ?? ''),
     bodyHtml: String(row.body_html ?? row.bodyHtml ?? ''),
@@ -2363,7 +2704,56 @@ function mapEmailMessageRow(row, { usersById = new Map(), mailboxSendersById = n
     providerMessageId: normalizeWhitespace(row.provider_message_id ?? row.providerMessageId),
     status: normalizeWhitespace(row.status) || 'failed',
     errorMessage: normalizeWhitespace(row.error_message ?? row.errorMessage),
+    direction: normalizeWhitespace(row.direction) || 'outgoing',
+    folder: normalizeWhitespace(row.folder) || 'Sent',
+    isRead: row.is_read !== false && row.isRead !== false,
+    isStarred: row.is_starred === true || row.isStarred === true,
+    receivedAt: row.received_at ?? row.receivedAt ?? '',
+    messageIdHeader: normalizeWhitespace(row.message_id_header ?? row.messageIdHeader),
+    inReplyTo: normalizeWhitespace(row.in_reply_to ?? row.inReplyTo),
+    referencesHeader: normalizeWhitespace(row.references_header ?? row.referencesHeader),
+    snippet: normalizeWhitespace(row.snippet) || String(row.body_text ?? row.bodyText ?? '').replace(/\s+/g, ' ').trim().slice(0, 220),
+    participants,
+    source: normalizeWhitespace(row.source) || 'crm',
     sentAt: row.sent_at ?? row.sentAt ?? '',
+    createdAt: row.created_at ?? row.createdAt ?? '',
+    updatedAt: row.updated_at ?? row.updatedAt ?? ''
+  }
+}
+
+function mapEmailThreadRow(row) {
+  const participants = normalizeEmailParticipants(row.participants)
+
+  return {
+    id: String(row.id ?? '').trim(),
+    mailboxSenderId: normalizeWhitespace(row.mailbox_sender_id ?? row.mailboxSenderId),
+    leadId: normalizeWhitespace(row.lead_id ?? row.leadId),
+    subject: normalizeWhitespace(row.subject) || 'No subject',
+    snippet: normalizeWhitespace(row.snippet),
+    participants,
+    participantSummary: formatEmailParticipantSummary(participants),
+    leadSummary: normalizeWhitespace(row.lead_summary ?? row.leadSummary),
+    folderPresence: normalizeEmailFolderPresence(row.folder_presence ?? row.folderPresence),
+    latestMessageId: normalizeWhitespace(row.latest_message_id ?? row.latestMessageId),
+    latestMessageAt: row.latest_message_at ?? row.latestMessageAt ?? '',
+    unreadCount: Math.max(0, Number(row.unread_count ?? row.unreadCount) || 0),
+    isStarred: row.is_starred === true || row.isStarred === true,
+    lastMessageDirection: normalizeWhitespace(row.last_message_direction ?? row.lastMessageDirection) || 'outgoing',
+    lastMessageStatus: normalizeWhitespace(row.last_message_status ?? row.lastMessageStatus) || 'sent',
+    createdAt: row.created_at ?? row.createdAt ?? '',
+    updatedAt: row.updated_at ?? row.updatedAt ?? ''
+  }
+}
+
+function mapMailboxSyncStateRow(row) {
+  return {
+    mailboxSenderId: normalizeWhitespace(row.mailbox_sender_id ?? row.mailboxSenderId),
+    folder: normalizeWhitespace(row.folder).toUpperCase() || 'INBOX',
+    lastSyncedAt: row.last_synced_at ?? row.lastSyncedAt ?? '',
+    lastUid: Number(row.last_uid ?? row.lastUid) || 0,
+    lastError: normalizeWhitespace(row.last_error ?? row.lastError),
+    syncStatus: normalizeWhitespace(row.sync_status ?? row.syncStatus) || 'idle',
+    syncedMessageCount: Math.max(0, Number(row.synced_message_count ?? row.syncedMessageCount) || 0),
     createdAt: row.created_at ?? row.createdAt ?? '',
     updatedAt: row.updated_at ?? row.updatedAt ?? ''
   }
@@ -2388,10 +2778,80 @@ function buildLeadEmailHistoryMap(rows, usersById = new Map(), mailboxSendersByI
   })
 
   map.forEach((entries, leadId) => {
-    map.set(leadId, entries.sort((left, right) => Date.parse(right.createdAt ?? right.sentAt ?? 0) - Date.parse(left.createdAt ?? left.sentAt ?? 0)))
+    map.set(leadId, entries.sort((left, right) => Date.parse(right.receivedAt ?? right.sentAt ?? right.createdAt ?? 0) - Date.parse(left.receivedAt ?? left.sentAt ?? left.createdAt ?? 0)))
   })
 
   return map
+}
+
+function normalizeEmailAddressList(value) {
+  if (Array.isArray(value)) {
+    return dedupeStrings(value.map((entry) => normalizeEmail(entry)).filter(Boolean))
+  }
+
+  if (typeof value === 'string') {
+    try {
+      const parsed = JSON.parse(value)
+      if (Array.isArray(parsed)) {
+        return dedupeStrings(parsed.map((entry) => normalizeEmail(entry)).filter(Boolean))
+      }
+    } catch (_error) {
+      return dedupeStrings(value.split(/[,\n;]/).map((entry) => normalizeEmail(entry)).filter(Boolean))
+    }
+  }
+
+  return []
+}
+
+function normalizeEmailParticipants(value) {
+  const rawEntries = Array.isArray(value)
+    ? value
+    : (() => {
+      if (typeof value !== 'string') {
+        return []
+      }
+
+      try {
+        const parsed = JSON.parse(value)
+        return Array.isArray(parsed) ? parsed : []
+      } catch (_error) {
+        return []
+      }
+    })()
+
+  return rawEntries
+    .map((entry) => ({
+      email: normalizeEmail(entry?.email),
+      name: normalizeWhitespace(entry?.name),
+      role: normalizeWhitespace(entry?.role).toLowerCase() === 'from' ? 'from' : 'to'
+    }))
+    .filter((entry) => entry.email)
+}
+
+function formatEmailParticipantSummary(participants = []) {
+  const labels = dedupeStrings(
+    (Array.isArray(participants) ? participants : [])
+      .map((participant) => normalizeWhitespace(participant?.name) || normalizeWhitespace(participant?.email))
+      .filter(Boolean)
+  )
+
+  if (!labels.length) {
+    return 'Unknown sender'
+  }
+
+  if (labels.length === 1) {
+    return labels[0]
+  }
+
+  return `${labels[0]} +${labels.length - 1}`
+}
+
+function normalizeEmailFolderPresence(value) {
+  const folders = Array.isArray(value)
+    ? value
+    : (typeof value === 'string' ? value.split(',') : [])
+
+  return dedupeStrings(folders.map((folder) => normalizeWhitespace(folder).toUpperCase()).filter(Boolean))
 }
 
 function mapLeadRow(row, { usersById, tagsByLeadId, notesByLeadId, historyByLeadId, emailHistoryByLeadId = new Map(), dispositionDefinitions = [] }) {
@@ -2536,7 +2996,7 @@ function buildLeadInsertPayload(client, { dispositionDefinitions = [], existingL
     email: client.email,
     phone: client.phone,
     business_name: client.businessName || null,
-    status: serializeStatusForStorage(client.status),
+    status: serializeLeadStatus(client.status),
     lifecycle: normalizeLifecycle(client.lifecycleType),
     assigned_rep_id: client.assignedRepId || null,
     subscription_type: client.subscriptionType || null,
@@ -2560,7 +3020,7 @@ function buildLeadUpdatePayload(client, { dispositionDefinitions = [], existingL
     email: client.email,
     phone: client.phone,
     business_name: client.businessName || null,
-    status: serializeStatusForStorage(client.status),
+    status: serializeLeadStatus(client.status),
     lifecycle: normalizeLifecycle(client.lifecycleType),
     assigned_rep_id: client.assignedRepId || null,
     subscription_type: client.subscriptionType || null,
@@ -2627,6 +3087,7 @@ function buildLeadStatusRecoveryPayloads({ updatePayload, client, existingLead, 
   const existingRawLifecycle = normalizeWhitespace(existingLeadRow?.lifecycle)
   const desiredStatus = normalizeWhitespace(updatePayload?.status)
   const desiredLifecycle = normalizeWhitespace(updatePayload?.lifecycle) || normalizedLifecycle
+  const preferredStatus = serializeLeadStatus(normalizedStatus)
   const basePayload = {
     updated_at: updatePayload?.updated_at ?? new Date().toISOString()
   }
@@ -2636,6 +3097,7 @@ function buildLeadStatusRecoveryPayloads({ updatePayload, client, existingLead, 
   const statusVariants = dedupeStrings([
     desiredStatus,
     existingRawStatus,
+    preferredStatus,
     serializeStatusForStorage(normalizedStatus),
     normalizedStatus,
     ...getLeadStatusRecoveryVariants(normalizedStatus)
@@ -2665,7 +3127,7 @@ function buildLeadStatusRecoveryPayloads({ updatePayload, client, existingLead, 
     })
   }
 
-  addCandidate(desiredStatus || serializeStatusForStorage(normalizedStatus), desiredLifecycle)
+  addCandidate(desiredStatus || preferredStatus, desiredLifecycle)
 
   if (existingRawStatus) {
     addCandidate(existingRawStatus, desiredLifecycle)
@@ -2694,6 +3156,46 @@ function buildLeadStatusRecoveryPayloads({ updatePayload, client, existingLead, 
   })
 }
 
+function buildLeadInsertRecoveryPayloads({ insertPayload, client } = {}) {
+  const basePayload = {
+    ...(insertPayload && typeof insertPayload === 'object' ? insertPayload : {})
+  }
+  const candidateWorkflowPayloads = buildLeadStatusRecoveryPayloads({
+    updatePayload: {
+      status: insertPayload?.status,
+      lifecycle: insertPayload?.lifecycle,
+      updated_at: insertPayload?.updated_at,
+      created_at: insertPayload?.created_at
+    },
+    client,
+    existingLead: null,
+    existingLeadRow: null
+  })
+
+  const workflowCandidates = candidateWorkflowPayloads.map((candidate) => ({
+    ...basePayload,
+    status: candidate.status,
+    lifecycle: candidate.lifecycle,
+    updated_at: candidate.updated_at ?? basePayload.updated_at
+  }))
+
+  // Let the live table default the workflow columns if a legacy check
+  // constraint still rejects every explicit status candidate.
+  const defaultBackedCandidates = [
+    omitLeadWorkflowFields(basePayload),
+    (() => {
+      const nextPayload = { ...basePayload }
+      delete nextPayload.status
+      return nextPayload
+    })()
+  ]
+
+  return dedupeLeadWritePayloads([
+    ...workflowCandidates,
+    ...defaultBackedCandidates
+  ])
+}
+
 function omitLeadWorkflowFields(updatePayload = {}) {
   const nextPayload = { ...updatePayload }
   delete nextPayload.status
@@ -2701,18 +3203,41 @@ function omitLeadWorkflowFields(updatePayload = {}) {
   return nextPayload
 }
 
-function isLeadStatusConstraintError(error) {
-  return normalizeWhitespace(error?.message || '').toLowerCase().includes('leads_status_check')
+function isLeadWorkflowConstraintError(error) {
+  const message = normalizeWhitespace(error?.message || '').toLowerCase()
+  const details = normalizeWhitespace(error?.details || '').toLowerCase()
+  const hint = normalizeWhitespace(error?.hint || '').toLowerCase()
+  const haystack = `${message} ${details} ${hint}`
+
+  if (haystack.includes('leads_status_check') || haystack.includes('leads_lifecycle')) {
+    return true
+  }
+
+  if (haystack.includes('violates check constraint') && (haystack.includes('status') || haystack.includes('lifecycle'))) {
+    return true
+  }
+
+  if (haystack.includes('invalid input value for enum') && (haystack.includes('status') || haystack.includes('lifecycle'))) {
+    return true
+  }
+
+  return false
 }
 
 function describeLeadWriteError(error) {
   const message = normalizeWhitespace(error?.message || '')
 
   if (message.toLowerCase().includes('leads_status_check')) {
-    return 'This lead has a status value the database will not accept right now. Open Status, choose a standard CRM status, and save again.'
+    return 'This lead has a status value the database will not accept right now. The CRM retried the legacy write variants automatically, but the live leads.status constraint still rejected them.'
   }
 
-  return message || 'Unable to save the lead to Supabase.'
+  if (message.toLowerCase().includes('row-level security policy') && message.toLowerCase().includes('table "leads"')) {
+    return 'Supabase blocked this lead save because the CRM lead write policy is missing. Run the latest CRM lead RLS migration, then try saving again.'
+  }
+
+  const hint = normalizeWhitespace(error?.hint || '')
+
+  return [message, hint].filter(Boolean).join(' ') || 'Unable to save the lead to Supabase.'
 }
 
 function describeCalendarWriteError(error) {
@@ -3255,16 +3780,16 @@ function serializeStatusForStorage(value) {
 function getLeadStatusRecoveryVariants(normalizedStatus) {
   switch (normalizeStatus(normalizedStatus)) {
     case 'contacted':
-      return ['contacted', 'Contacted']
+      return ['contacted', 'Contacted', 'CONTACTED']
     case 'qualified':
-      return ['qualified', 'Qualified']
+      return ['qualified', 'Qualified', 'QUALIFIED']
     case 'won':
-      return ['won', 'WON', 'Won', 'member', 'Member']
+      return ['won', 'WON', 'Won', 'member', 'Member', 'MEMBER']
     case 'inactive':
-      return ['lost', 'inactive', 'Inactive', 'Lost']
+      return ['lost', 'inactive', 'Inactive', 'Lost', 'INACTIVE']
     case 'new':
     default:
-      return ['new', 'New']
+      return ['new', 'New', 'NEW']
   }
 }
 
@@ -3308,6 +3833,25 @@ function isRangeNotSatisfiableError(error) {
     || code === 'PGRST103'
     || message.includes('range not satisfiable')
     || details.includes('range not satisfiable')
+}
+
+function dedupeLeadWritePayloads(payloads = []) {
+  const seen = new Set()
+
+  return payloads.filter((payload) => {
+    const key = JSON.stringify({
+      status: Object.prototype.hasOwnProperty.call(payload, 'status') ? payload.status : '__omitted__',
+      lifecycle: Object.prototype.hasOwnProperty.call(payload, 'lifecycle') ? payload.lifecycle : '__omitted__',
+      assignedRepId: Object.prototype.hasOwnProperty.call(payload, 'assigned_rep_id') ? payload.assigned_rep_id : '__omitted__'
+    })
+
+    if (seen.has(key)) {
+      return false
+    }
+
+    seen.add(key)
+    return true
+  })
 }
 
 function buildDuplicateCatalogMessage(entityLabel, label) {

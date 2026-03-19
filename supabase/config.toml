@@ -153,6 +153,9 @@ verify_jwt = false
 [functions.crm-send-email]
 verify_jwt = false
 
+[functions.crm-sync-email]
+verify_jwt = false
+
 [auth]
 enabled = true
 # The base URL of your website. Used as an allow-list for redirects and for constructing URLs used

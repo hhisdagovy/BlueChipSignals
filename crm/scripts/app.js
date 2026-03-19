@@ -48,6 +48,7 @@ const refs = {
     topbar: document.getElementById('crm-topbar'),
     overviewPanel: document.getElementById('crm-overview-panel'),
     calendarPanel: document.getElementById('crm-calendar-panel'),
+    emailPanel: document.getElementById('crm-email-panel'),
     clientsPanel: document.getElementById('crm-clients-panel'),
     membersPanel: document.getElementById('crm-members-panel'),
     adminPanel: document.getElementById('crm-admin-panel'),
@@ -104,7 +105,7 @@ const WORKSPACE_UI_STATE_STORAGE_KEY = 'crm:workspace-ui-state';
 const WORKSPACE_PAGE_CACHE_TTL_MS = 2 * 60 * 1000;
 const WORKSPACE_PAGE_CACHE_MAX_ENTRIES = 24;
 const SEARCH_SUGGESTION_DEBOUNCE_MS = 180;
-const WORKSPACE_VIEWS = new Set(['overview', 'calendar', 'clients', 'assigned-leads', 'members', 'admin', 'lead-detail', 'imports', 'settings']);
+const WORKSPACE_VIEWS = new Set(['overview', 'calendar', 'email', 'clients', 'assigned-leads', 'members', 'admin', 'lead-detail', 'imports', 'settings']);
 const WORKSPACE_PAGE_SIZES = [25, 50, 100, 250];
 const CALENDAR_EVENT_STATUS_OPTIONS = ['scheduled', 'completed', 'canceled', 'missed'];
 const CALENDAR_EVENT_VISIBILITY_OPTIONS = ['private', 'shared'];
@@ -197,6 +198,38 @@ function createDefaultCalendarState() {
     };
 }
 
+function createDefaultEmailComposerState() {
+    return {
+        leadId: '',
+        threadId: '',
+        inReplyTo: '',
+        references: '',
+        composeMode: 'new',
+        recipientEmail: '',
+        recipientName: '',
+        senderMode: 'personal',
+        subject: '',
+        bodyText: ''
+    };
+}
+
+function createDefaultEmailWorkspaceState() {
+    return {
+        initialized: false,
+        isLoading: false,
+        isSyncing: false,
+        selectedMailboxId: '',
+        selectedFolder: 'INBOX',
+        selectedThreadId: '',
+        selectedThread: null,
+        threads: [],
+        mailboxes: [],
+        searchQuery: '',
+        previewMode: 'thread',
+        syncStatus: []
+    };
+}
+
 function getValidAdminTab(tabId) {
     return ADMIN_TABS.some((tab) => tab.id === tabId) ? tabId : 'team';
 }
@@ -242,6 +275,7 @@ const state = {
         members: createEmptyWorkspaceResult()
     },
     sidebarOpen: false,
+    desktopNavOpen: false,
     mobileSearchOpen: false,
     filtersPanelOpen: false,
     filterAccordionOpen: createDefaultFilterAccordionState(),
@@ -252,6 +286,8 @@ const state = {
     drawerClientId: null,
     drawerEventId: null,
     drawerDate: '',
+    emailComposer: createDefaultEmailComposerState(),
+    emailWorkspace: createDefaultEmailWorkspaceState(),
     detailClientId: null,
     detailEditMode: false,
     detailEditSnapshot: null,
@@ -280,6 +316,7 @@ let searchSuggestionsRequestId = 0;
 let calendarClientSuggestionsTimer = null;
 let calendarClientSuggestionsRequestId = 0;
 let calendarClientFocusRestorePending = false;
+let emailWorkspaceAutoRefreshTimer = null;
 
 bootstrap();
 
@@ -628,6 +665,11 @@ async function refreshData() {
                 state.calendar.filter = 'mine';
             }
             await refreshCalendarEvents({ force: true, renderWhileLoading: false });
+            if (state.currentView === 'email' && hasPermission(state.session, PERMISSIONS.SEND_EMAIL)) {
+                await ensureEmailWorkspaceLoaded({ force: true, renderWhileLoading: false, preserveThread: true });
+            } else {
+                clearEmailWorkspaceAutoRefresh();
+            }
 
             if (supportsServerWorkspacePaging() && state.currentView !== 'admin') {
                 const workspaceScope = state.lastWorkspaceView === 'members' ? 'members' : 'leads';
@@ -681,6 +723,9 @@ function applyWorkspaceMetadataSnapshot({
     state.dispositionDefinitions = dispositionDefinitions;
     state.mailboxSenders = mailboxSenders;
     state.importHistory = importHistory;
+    state.emailWorkspace.mailboxes = [];
+    state.emailWorkspace.syncStatus = [];
+    state.emailWorkspace.initialized = false;
     state.workspaceSummary = {
         leadCount: Number(workspaceSummary.leadCount) || 0,
         memberCount: Number(workspaceSummary.memberCount) || 0
@@ -714,6 +759,9 @@ function applyFullClientDataSnapshot({
     state.dispositionDefinitions = dispositionDefinitions;
     state.mailboxSenders = mailboxSenders;
     state.importHistory = importHistory;
+    state.emailWorkspace.mailboxes = [];
+    state.emailWorkspace.syncStatus = [];
+    state.emailWorkspace.initialized = false;
     state.workspaceSummary = {
         leadCount: clients.filter((client) => client.lifecycleType !== 'member').length,
         memberCount: clients.filter((client) => client.lifecycleType === 'member').length
@@ -1099,14 +1147,19 @@ async function refreshWorkspacePage(scope = getDefaultScopeForView(), { renderWh
         if (assignmentState === 'all' && canUpdateWorkspaceSummaryFromActivePage()) {
             updateWorkspaceSummaryCount(normalizedScope, cachedPage.totalCount);
         }
-        renderTopbar();
+        const syncedSearchUi = activeSearchSurface
+            ? syncToolbarSearchUi({ activeSurface: activeSearchSurface, caretPosition: activeSearchCaret })
+            : false;
+        if (!syncedSearchUi) {
+            renderTopbar();
+        }
         renderSidebar();
         renderPanels();
 
         if (activeFilterGroup) {
             focusFilterInput(activeFilterGroup);
         }
-        if (activeSearchSurface) {
+        if (activeSearchSurface && !syncedSearchUi) {
             focusToolbarSearchInput(activeSearchSurface, activeSearchCaret);
         }
         return;
@@ -1168,14 +1221,19 @@ async function refreshWorkspacePage(scope = getDefaultScopeForView(), { renderWh
         }
 
         workspace.isLoading = false;
-        renderTopbar();
+        const syncedSearchUi = activeSearchSurface
+            ? syncToolbarSearchUi({ activeSurface: activeSearchSurface, caretPosition: activeSearchCaret })
+            : false;
+        if (!syncedSearchUi) {
+            renderTopbar();
+        }
         renderSidebar();
         renderPanels();
 
         if (activeFilterGroup) {
             focusFilterInput(activeFilterGroup);
         }
-        if (activeSearchSurface) {
+        if (activeSearchSurface && !syncedSearchUi) {
             focusToolbarSearchInput(activeSearchSurface, activeSearchCaret);
         }
     }
@@ -1213,6 +1271,9 @@ function getPrimaryNavItems() {
     return [
         { view: 'overview', label: 'Dashboard', icon: 'fa-chart-line', badge: null },
         { view: 'calendar', label: 'Calendar', icon: 'fa-calendar-days', badge: null },
+        hasPermission(state.session, PERMISSIONS.SEND_EMAIL)
+            ? { view: 'email', label: 'Email', icon: 'fa-envelope-open-text', badge: null }
+            : null,
         { view: 'clients', label: 'Leads', icon: 'fa-address-book', badge: getWorkspaceDisplayCount('leads').toLocaleString() },
         hasActiveAdminProfile()
             ? { view: 'admin', label: 'Admin', icon: 'fa-shield-halved', badge: null }
@@ -1249,6 +1310,10 @@ function getActivePrimaryNavView() {
         return 'calendar';
     }
 
+    if (state.currentView === 'email') {
+        return 'email';
+    }
+
     if (state.currentView === 'imports') {
         return 'admin';
     }
@@ -1258,6 +1323,64 @@ function getActivePrimaryNavView() {
     }
 
     return state.currentView;
+}
+
+function getActivePrimaryNavItem(items = getPrimaryNavItems(), activeView = getActivePrimaryNavView()) {
+    return items.find((item) => item.view === activeView) || items[0] || {
+        view: 'overview',
+        label: 'Navigation',
+        icon: 'fa-bars-staggered',
+        badge: null
+    };
+}
+
+function renderDesktopPrimaryNav(items = getPrimaryNavItems(), activeView = getActivePrimaryNavView()) {
+    const activeItem = getActivePrimaryNavItem(items, activeView);
+
+    return `
+        <div class="crm-primary-nav" role="navigation" aria-label="CRM navigation">
+            <div class="crm-desktop-nav ${state.desktopNavOpen ? 'is-open' : ''}">
+                <button
+                    class="crm-desktop-nav-trigger"
+                    type="button"
+                    data-action="toggle-desktop-nav"
+                    aria-haspopup="menu"
+                    aria-expanded="${state.desktopNavOpen ? 'true' : 'false'}"
+                    aria-label="Toggle CRM navigation menu"
+                >
+                    <span class="crm-desktop-nav-trigger-icon">
+                        <i class="fa-solid fa-bars-staggered"></i>
+                    </span>
+                    <span class="crm-desktop-nav-trigger-copy">
+                        <span class="crm-desktop-nav-trigger-label">Navigation</span>
+                        <span class="crm-desktop-nav-trigger-value">${escapeHtml(activeItem.label)}</span>
+                    </span>
+                    <span class="crm-desktop-nav-trigger-chevron">
+                        <i class="fa-solid fa-chevron-down"></i>
+                    </span>
+                </button>
+
+                <div class="crm-desktop-nav-panel" role="menu" aria-label="CRM navigation menu">
+                    ${items.map((item, index) => `
+                        <button
+                            class="crm-desktop-nav-link ${activeView === item.view ? 'active' : ''}"
+                            type="button"
+                            data-action="set-view"
+                            data-view="${item.view}"
+                            style="--crm-nav-index:${index};"
+                            role="menuitem"
+                        >
+                            <span class="crm-desktop-nav-link-icon">
+                                <i class="fa-solid ${escapeHtml(item.icon || 'fa-circle')}"></i>
+                            </span>
+                            <span class="crm-desktop-nav-link-label">${escapeHtml(item.label)}</span>
+                            ${item.badge ? `<span class="crm-desktop-nav-link-badge">${escapeHtml(item.badge)}</span>` : ''}
+                        </button>
+                    `).join('')}
+                </div>
+            </div>
+        </div>
+    `;
 }
 
 function getLeadDetailNavigationContext() {
@@ -1344,6 +1467,89 @@ function focusToolbarSearchInput(surface = 'mobile', caretPosition = null) {
     });
 }
 
+function syncToolbarSearchShell(surface = 'desktop', caretPosition = null) {
+    if (!refs.topbar) {
+        return false;
+    }
+
+    const shellSelector = surface === 'mobile'
+        ? '.crm-search-shell-mobile'
+        : '.crm-search-shell-desktop';
+    const shell = refs.topbar.querySelector(shellSelector);
+
+    if (!shell) {
+        return false;
+    }
+
+    const listId = surface === 'mobile' ? 'crm-mobile-search-suggestions' : 'crm-desktop-search-suggestions';
+    const activeId = state.activeSuggestionIndex >= 0 ? `${listId}-${state.activeSuggestionIndex}` : '';
+    const isExpanded = state.searchShellExpanded || shouldShowSearchSuggestions();
+    const input = shell.querySelector('.crm-search');
+
+    shell.classList.toggle('is-expanded', isExpanded);
+
+    if (input) {
+        const nextValue = getToolbarSearchValue();
+        const isActiveInput = document.activeElement === input;
+        const nextCaret = isActiveInput
+            ? getClampedInputCaret(
+                input,
+                typeof caretPosition === 'number'
+                    ? caretPosition
+                    : (input.selectionStart ?? input.value.length)
+            )
+            : null;
+
+        if (input.value !== nextValue) {
+            input.value = nextValue;
+        }
+
+        input.setAttribute('aria-expanded', shouldShowSearchSuggestions() ? 'true' : 'false');
+        input.setAttribute('aria-controls', listId);
+        input.setAttribute('aria-activedescendant', activeId);
+
+        if (isActiveInput) {
+            const restoredCaret = restoreInputCaret(input, nextCaret);
+            state.activeSearchSurface = surface;
+            state.activeSearchCaret = restoredCaret;
+        }
+    }
+
+    const currentPanel = shell.querySelector('[data-search-suggestions]');
+    const nextPanelMarkup = renderToolbarSuggestionList(surface).trim();
+
+    if (!nextPanelMarkup) {
+        currentPanel?.remove();
+        return true;
+    }
+
+    const template = document.createElement('template');
+    template.innerHTML = nextPanelMarkup;
+    const nextPanel = template.content.firstElementChild;
+
+    if (!nextPanel) {
+        currentPanel?.remove();
+        return true;
+    }
+
+    if (currentPanel) {
+        currentPanel.replaceWith(nextPanel);
+    } else {
+        shell.appendChild(nextPanel);
+    }
+
+    return true;
+}
+
+function syncToolbarSearchUi({
+    activeSurface = state.activeSearchSurface,
+    caretPosition = state.activeSearchCaret
+} = {}) {
+    const syncedDesktop = syncToolbarSearchShell('desktop', activeSurface === 'desktop' ? caretPosition : null);
+    const syncedMobile = syncToolbarSearchShell('mobile', activeSurface === 'mobile' ? caretPosition : null);
+    return syncedDesktop || syncedMobile;
+}
+
 function shouldShowSearchSuggestions() {
     return !state.sidebarOpen
         && state.searchSuggestionsOpen
@@ -1375,7 +1581,9 @@ function queueToolbarSuggestions({ immediate = false, surface = state.activeSear
 
     if (!query) {
         resetToolbarSuggestions({ clearResults: true });
-        renderTopbar();
+        if (!syncToolbarSearchUi({ activeSurface: surface, caretPosition: state.activeSearchCaret })) {
+            renderTopbar();
+        }
         return;
     }
 
@@ -1408,8 +1616,15 @@ function queueToolbarSuggestions({ immediate = false, surface = state.activeSear
             }
 
             state.searchSuggestionsLoading = false;
-            renderTopbar();
-            focusToolbarSearchInput(surface, state.activeSearchCaret);
+            const syncedSearchUi = syncToolbarSearchUi({
+                activeSurface: surface,
+                caretPosition: state.activeSearchCaret
+            });
+
+            if (!syncedSearchUi) {
+                renderTopbar();
+                focusToolbarSearchInput(surface, state.activeSearchCaret);
+            }
         }
     };
 
@@ -1517,33 +1732,53 @@ function buildPhoneHref(phoneValue) {
     return `tel:${digits}`;
 }
 
-function buildEmailHref(emailValue) {
+function normalizeEmailAddress(emailValue) {
     const displayValue = normalizeWhitespace(emailValue).toLowerCase();
 
     if (!displayValue || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(displayValue)) {
         return '';
     }
 
-    return `mailto:${displayValue}`;
+    return displayValue;
 }
 
-function renderEmailLink(emailValue, { placeholder = '—', className = 'crm-email-link', includeIcon = false } = {}) {
+function renderEmailLink(
+    emailValue,
+    {
+        placeholder = '—',
+        className = 'crm-email-link',
+        includeIcon = false,
+        clientId = '',
+        recipientName = ''
+    } = {}
+) {
     const displayValue = normalizeWhitespace(emailValue).toLowerCase();
 
     if (!displayValue) {
         return escapeHtml(placeholder);
     }
 
-    const href = buildEmailHref(displayValue);
+    const normalizedEmail = normalizeEmailAddress(displayValue);
 
-    if (!href) {
+    if (!normalizedEmail) {
         return escapeHtml(displayValue);
     }
 
-    const classes = [className, includeIcon ? 'has-icon' : ''].filter(Boolean).join(' ');
-    const emailLabel = `Email ${displayValue}`;
+    const classes = [className, 'crm-email-trigger', includeIcon ? 'has-icon' : ''].filter(Boolean).join(' ');
+    const emailLabel = `Compose email to ${normalizedEmail}`;
 
-    return `<a class="${classes}" href="${href}" aria-label="${escapeHtml(emailLabel)}" title="${escapeHtml(emailLabel)}">${includeIcon ? '<i class="fa-solid fa-envelope" aria-hidden="true"></i>' : ''}<span>${escapeHtml(displayValue)}</span></a>`;
+    return `
+        <button
+            class="${classes}"
+            type="button"
+            data-action="open-email-composer"
+            data-recipient-email="${escapeHtml(normalizedEmail)}"
+            ${clientId ? `data-client-id="${escapeHtml(clientId)}"` : ''}
+            ${recipientName ? `data-recipient-name="${escapeHtml(recipientName)}"` : ''}
+            aria-label="${escapeHtml(emailLabel)}"
+            title="${escapeHtml(emailLabel)}"
+        >${includeIcon ? '<i class="fa-solid fa-envelope" aria-hidden="true"></i>' : ''}<span>${escapeHtml(normalizedEmail)}</span></button>
+    `.replace(/\s+/g, ' ').trim();
 }
 
 function renderPhoneLink(phoneValue, { placeholder = '—', className = 'crm-phone-link', includeIcon = false } = {}) {
@@ -1582,12 +1817,23 @@ function renderReadOnlyPhoneField(label, name, value) {
     `;
 }
 
-function renderReadOnlyEmailField(label, name, value) {
+function renderReadOnlyEmailField(label, name, value, { clientId = '', recipientName = '' } = {}) {
     const displayValue = normalizeWhitespace(value).toLowerCase();
-    const href = buildEmailHref(displayValue);
-    const emailLabel = `Email ${displayValue}`;
-    const controlMarkup = href
-        ? `<a class="crm-input crm-contact-field is-callable" href="${href}" aria-label="${escapeHtml(emailLabel)}" title="${escapeHtml(emailLabel)}"><span>${escapeHtml(displayValue)}</span><i class="fa-solid fa-envelope" aria-hidden="true"></i></a>`
+    const normalizedEmail = normalizeEmailAddress(displayValue);
+    const emailLabel = `Compose email to ${normalizedEmail}`;
+    const controlMarkup = normalizedEmail
+        ? `
+            <button
+                class="crm-input crm-contact-field crm-contact-field-button is-callable"
+                type="button"
+                data-action="open-email-composer"
+                data-recipient-email="${escapeHtml(normalizedEmail)}"
+                ${clientId ? `data-client-id="${escapeHtml(clientId)}"` : ''}
+                ${recipientName ? `data-recipient-name="${escapeHtml(recipientName)}"` : ''}
+                aria-label="${escapeHtml(emailLabel)}"
+                title="${escapeHtml(emailLabel)}"
+            ><span>${escapeHtml(normalizedEmail)}</span><i class="fa-solid fa-envelope" aria-hidden="true"></i></button>
+        `.replace(/\s+/g, ' ').trim()
         : `<div class="crm-input crm-contact-field is-static"><span>${escapeHtml(displayValue || '—')}</span></div>`;
 
     return `
@@ -1673,16 +1919,8 @@ function renderTopbar() {
                     ${renderToolbarSearchField('desktop')}
                 </div>
 
-                <div class="crm-primary-nav" role="navigation" aria-label="CRM navigation">
-                    ${items.map((item) => `
-                        <button
-                            class="crm-primary-link ${activeView === item.view ? 'active' : ''}"
-                            data-action="set-view"
-                            data-view="${item.view}"
-                        >
-                            <span>${item.label}</span>
-                        </button>
-                    `).join('')}
+                <div class="crm-toolbar-right">
+                    ${renderDesktopPrimaryNav(items, activeView)}
                 </div>
 
                 <button
@@ -1764,6 +2002,9 @@ function renderLeadDetailUtilityRow() {
 
 function renderPanels() {
     persistWorkspaceUiState();
+    if (state.currentView !== 'email') {
+        clearEmailWorkspaceAutoRefresh();
+    }
     const shouldRestoreAdvancedMenuScroll = state.filtersPanelOpen;
     const advancedMenuScrollTop = shouldRestoreAdvancedMenuScroll
         ? (document.querySelector('.lead-history-advanced-menu-scroll')?.scrollTop || 0)
@@ -1772,6 +2013,7 @@ function renderPanels() {
     const panelStates = new Map([
         [refs.overviewPanel, state.currentView === 'overview'],
         [refs.calendarPanel, state.currentView === 'calendar'],
+        [refs.emailPanel, state.currentView === 'email'],
         [refs.clientsPanel, isLeadsWorkspaceView(state.currentView)],
         [refs.membersPanel, state.currentView === 'members'],
         [refs.adminPanel, state.currentView === 'admin'],
@@ -1794,6 +2036,10 @@ function renderPanels() {
 
     if (state.currentView === 'calendar') {
         refs.calendarPanel.innerHTML = renderCalendarPage();
+    }
+
+    if (state.currentView === 'email') {
+        refs.emailPanel.innerHTML = renderEmailWorkspacePage();
     }
 
     if (isLeadsWorkspaceView(state.currentView)) {
@@ -1922,7 +2168,11 @@ function renderOverviewPanel() {
                                     <li>
                                         <div class="ov-activity-main">
                                             <span class="ov-activity-title">${escapeHtml(client.fullName || 'Unnamed lead')}</span>
-                                            <span class="ov-activity-meta">${client.email ? renderEmailLink(client.email, { placeholder: 'No contact info' }) : renderPhoneLink(client.phone, { placeholder: 'No contact info' })}</span>
+                                            <span class="ov-activity-meta">${client.email ? renderEmailLink(client.email, {
+                                                placeholder: 'No contact info',
+                                                clientId: client.id,
+                                                recipientName: client.fullName || client.firstName || client.lastName || ''
+                                            }) : renderPhoneLink(client.phone, { placeholder: 'No contact info' })}</span>
                                         </div>
                                         <span class="ov-meta-chip">${escapeHtml(formatDateTime(client.updatedAt))}</span>
                                     </li>
@@ -2976,7 +3226,10 @@ function renderLeadHistoryTableRows({
                 </button>
                 <span class="lead-history-submeta">${escapeHtml(buildClientMetaLine(client))}</span>
             </td>
-            <td>${renderEmailLink(client.email)}</td>
+            <td>${renderEmailLink(client.email, {
+                clientId: client.id,
+                recipientName: client.fullName || client.firstName || client.lastName || ''
+            })}</td>
             <td>${renderPhoneLink(client.phone)}</td>
             <td class="lead-history-tags-cell">${client.tags.length ? client.tags.slice(0, 3).map((tag) => `<span class="lead-history-tag"><strong>${escapeHtml(tag)}</strong></span>`).join(' ') : '<span class="lead-history-muted">—</span>'}</td>
             <td class="lead-history-notes-cell"><div class="lead-history-notes-preview">${escapeHtml(truncate(client.notes || 'No notes yet.', 96))}</div></td>
@@ -3413,7 +3666,10 @@ function renderLeadDetailPage() {
                         <div class="form-grid lead-detail-form-grid">
                             ${renderLeadField('First name', 'firstName', lead.firstName, isEditing && canEditLeadField(state.session, 'firstName', lead), 'text')}
                             ${renderLeadField('Last name', 'lastName', lead.lastName, isEditing && canEditLeadField(state.session, 'lastName', lead), 'text')}
-                            ${renderLeadField('Email', 'email', lead.email, isEditing && canEditLeadField(state.session, 'email', lead), 'email')}
+                            ${renderLeadField('Email', 'email', lead.email, isEditing && canEditLeadField(state.session, 'email', lead), 'email', {
+                                clientId: lead.id,
+                                recipientName: lead.fullName || lead.firstName || lead.lastName || ''
+                            })}
                             ${renderLeadField('Phone', 'phone', lead.phone, isEditing && canEditLeadField(state.session, 'phone', lead), 'text')}
                             ${renderLeadSelectField('Status', 'status', statusOptions, lead.status, canEditLeadWorkflowField(lead, 'status') || (isEditing && canEditLeadField(state.session, 'status', lead)))}
                             ${renderLeadSelectField('Disposition', 'disposition', dispositionOptions, lead.disposition || '', canEditLeadWorkflowField(lead, 'disposition') || (isEditing && canEditLeadField(state.session, 'disposition', lead)), null, { emptyLabel: 'No disposition' })}
@@ -3597,9 +3853,9 @@ function renderLeadHistoryEntries(entries) {
     `;
 }
 
-function renderLeadField(label, name, value, editable, type = 'text') {
+function renderLeadField(label, name, value, editable, type = 'text', options = {}) {
     if (!editable && name === 'email') {
-        return renderReadOnlyEmailField(label, name, value);
+        return renderReadOnlyEmailField(label, name, value, options);
     }
 
     if (!editable && name === 'phone') {
@@ -4310,7 +4566,7 @@ function formatMailboxSenderLabel(sender, fallbackName = '') {
     return `${displayName} <${sender.senderEmail}>`;
 }
 
-function getLeadEmailSenderOptions() {
+function getEmailSenderOptions() {
     const options = [];
     const personalSender = getPersonalMailboxSender();
     const supportSender = getSupportMailboxSender();
@@ -4332,6 +4588,318 @@ function getLeadEmailSenderOptions() {
     return options;
 }
 
+function getDefaultEmailSenderMode(senderOptions = getEmailSenderOptions()) {
+    return senderOptions.some((option) => option.value === 'personal')
+        ? 'personal'
+        : (senderOptions[0]?.value || 'personal');
+}
+
+function resolveEmailComposerSenderMode(senderMode, senderOptions = getEmailSenderOptions()) {
+    const normalizedSenderMode = normalizeWhitespace(senderMode) === 'support' ? 'support' : 'personal';
+    return senderOptions.some((option) => option.value === normalizedSenderMode)
+        ? normalizedSenderMode
+        : getDefaultEmailSenderMode(senderOptions);
+}
+
+function getEmailComposerLead() {
+    const leadId = normalizeWhitespace(state.emailComposer.leadId);
+    return leadId ? getAccessibleClientById(leadId) : null;
+}
+
+function syncEmailComposerDraft(form) {
+    if (!form) {
+        return;
+    }
+
+    const formData = new FormData(form);
+    const senderOptions = getEmailSenderOptions();
+
+    state.emailComposer = {
+        ...state.emailComposer,
+        leadId: normalizeWhitespace(formData.get('leadId')),
+        threadId: normalizeWhitespace(formData.get('threadId')),
+        inReplyTo: normalizeWhitespace(formData.get('inReplyTo')),
+        references: normalizeWhitespace(formData.get('references')),
+        composeMode: normalizeWhitespace(formData.get('composeMode')) || 'new',
+        recipientEmail: String(formData.get('recipientEmail') ?? ''),
+        senderMode: resolveEmailComposerSenderMode(formData.get('senderMode'), senderOptions),
+        subject: String(formData.get('subject') ?? ''),
+        bodyText: String(formData.get('bodyText') ?? '')
+    };
+}
+
+function getEmailWorkspaceMailboxes() {
+    if (Array.isArray(state.emailWorkspace.mailboxes) && state.emailWorkspace.mailboxes.length) {
+        return state.emailWorkspace.mailboxes;
+    }
+
+    return state.mailboxSenders.map((sender) => ({
+        ...sender,
+        syncState: []
+    }));
+}
+
+function getEmailWorkspaceSelectedMailbox() {
+    const selectedMailboxId = normalizeWhitespace(state.emailWorkspace.selectedMailboxId);
+    return getEmailWorkspaceMailboxes().find((mailbox) => mailbox.id === selectedMailboxId) || null;
+}
+
+function resolveInitialEmailMailboxId(mailboxes = getEmailWorkspaceMailboxes(), preferredMailboxId = '') {
+    const normalizedPreferredMailboxId = normalizeWhitespace(preferredMailboxId);
+
+    if (normalizedPreferredMailboxId && mailboxes.some((mailbox) => mailbox.id === normalizedPreferredMailboxId)) {
+        return normalizedPreferredMailboxId;
+    }
+
+    const personalSender = getPersonalMailboxSender();
+    if (personalSender && mailboxes.some((mailbox) => mailbox.id === personalSender.id)) {
+        return personalSender.id;
+    }
+
+    const supportSender = getSupportMailboxSender();
+    if (supportSender && mailboxes.some((mailbox) => mailbox.id === supportSender.id)) {
+        return supportSender.id;
+    }
+
+    return normalizeWhitespace(mailboxes[0]?.id);
+}
+
+function clearEmailWorkspaceAutoRefresh() {
+    window.clearTimeout(emailWorkspaceAutoRefreshTimer);
+    emailWorkspaceAutoRefreshTimer = null;
+}
+
+function scheduleEmailWorkspaceAutoRefresh() {
+    clearEmailWorkspaceAutoRefresh();
+
+    if (state.currentView !== 'email' || !normalizeWhitespace(state.emailWorkspace.selectedMailboxId)) {
+        return;
+    }
+
+    emailWorkspaceAutoRefreshTimer = window.setTimeout(async () => {
+        try {
+            await syncActiveEmailMailbox({ silent: true });
+        } catch (_error) {
+            // Sync errors are already surfaced inside syncActiveEmailMailbox.
+        }
+    }, 60000);
+}
+
+async function ensureEmailWorkspaceLoaded({ force = false, renderWhileLoading = true, preferredMailboxId = '', preserveThread = true } = {}) {
+    if (!hasPermission(state.session, PERMISSIONS.SEND_EMAIL)) {
+        return;
+    }
+
+    if (state.emailWorkspace.isLoading) {
+        return;
+    }
+
+    const shouldReload = force || !state.emailWorkspace.initialized;
+
+    if (!shouldReload) {
+        scheduleEmailWorkspaceAutoRefresh();
+        return;
+    }
+
+    state.emailWorkspace.isLoading = true;
+    if (renderWhileLoading) {
+        renderPanels();
+    }
+
+    try {
+        const mailboxes = await dataService.listEmailMailboxes();
+        state.emailWorkspace.mailboxes = mailboxes;
+        state.emailWorkspace.syncStatus = mailboxes.flatMap((mailbox) => Array.isArray(mailbox.syncState) ? mailbox.syncState : []);
+        state.emailWorkspace.selectedMailboxId = resolveInitialEmailMailboxId(mailboxes, preferredMailboxId || state.emailWorkspace.selectedMailboxId);
+        state.emailWorkspace.initialized = true;
+        await loadEmailThreads({ renderWhileLoading: false, preserveThread });
+    } catch (error) {
+        flashNotice(error.message || 'Unable to load the CRM inbox.', 'error');
+    } finally {
+        state.emailWorkspace.isLoading = false;
+        if (renderWhileLoading) {
+            renderPanels();
+        }
+        scheduleEmailWorkspaceAutoRefresh();
+    }
+}
+
+async function loadEmailThreads({ renderWhileLoading = true, preserveThread = true } = {}) {
+    const mailboxId = normalizeWhitespace(state.emailWorkspace.selectedMailboxId);
+
+    if (!mailboxId) {
+        state.emailWorkspace.threads = [];
+        state.emailWorkspace.selectedThreadId = '';
+        state.emailWorkspace.selectedThread = null;
+        if (renderWhileLoading) {
+            renderPanels();
+        }
+        return;
+    }
+
+    if (renderWhileLoading) {
+        state.emailWorkspace.isLoading = true;
+        renderPanels();
+    }
+
+    try {
+        const threads = await dataService.listEmailThreads({
+            mailboxId,
+            folder: state.emailWorkspace.selectedFolder,
+            searchQuery: state.emailWorkspace.searchQuery,
+            limit: 120
+        });
+
+        state.emailWorkspace.threads = threads;
+
+        const selectedThreadId = preserveThread && threads.some((thread) => thread.id === state.emailWorkspace.selectedThreadId)
+            ? state.emailWorkspace.selectedThreadId
+            : normalizeWhitespace(threads[0]?.id);
+
+        state.emailWorkspace.selectedThreadId = selectedThreadId;
+
+        if (selectedThreadId) {
+            await loadSelectedEmailThread({ renderWhileLoading: false, markRead: true });
+        } else {
+            state.emailWorkspace.selectedThread = null;
+        }
+    } catch (error) {
+        flashNotice(error.message || 'Unable to load email threads.', 'error');
+    } finally {
+        if (renderWhileLoading) {
+            state.emailWorkspace.isLoading = false;
+            renderPanels();
+        }
+        scheduleEmailWorkspaceAutoRefresh();
+    }
+}
+
+async function loadSelectedEmailThread({ renderWhileLoading = true, markRead = false } = {}) {
+    const threadId = normalizeWhitespace(state.emailWorkspace.selectedThreadId);
+    const mailboxId = normalizeWhitespace(state.emailWorkspace.selectedMailboxId);
+
+    if (!threadId || !mailboxId) {
+        state.emailWorkspace.selectedThread = null;
+        if (renderWhileLoading) {
+            renderPanels();
+        }
+        return;
+    }
+
+    if (renderWhileLoading) {
+        state.emailWorkspace.isLoading = true;
+        renderPanels();
+    }
+
+    try {
+        const thread = await dataService.getEmailThread(threadId);
+        state.emailWorkspace.selectedThread = thread;
+
+        if (thread && markRead && Number(thread.unreadCount) > 0) {
+            await dataService.markEmailThreadRead({ threadId, mailboxId });
+            state.emailWorkspace.threads = state.emailWorkspace.threads.map((entry) =>
+                entry.id === threadId
+                    ? { ...entry, unreadCount: 0 }
+                    : entry
+            );
+            state.emailWorkspace.selectedThread = {
+                ...thread,
+                unreadCount: 0,
+                messages: (thread.messages || []).map((message) => ({
+                    ...message,
+                    isRead: true
+                }))
+            };
+        }
+    } catch (error) {
+        flashNotice(error.message || 'Unable to open that email thread.', 'error');
+    } finally {
+        if (renderWhileLoading) {
+            state.emailWorkspace.isLoading = false;
+            renderPanels();
+        }
+    }
+}
+
+async function syncActiveEmailMailbox({ silent = false } = {}) {
+    const mailboxId = normalizeWhitespace(state.emailWorkspace.selectedMailboxId);
+
+    if (!mailboxId) {
+        return;
+    }
+
+    state.emailWorkspace.isSyncing = true;
+    renderPanels();
+
+    try {
+        const result = await dataService.syncEmailMailbox({
+            mailboxId,
+            folders: ['INBOX', 'SENT']
+        });
+        state.emailWorkspace.syncStatus = Array.isArray(result.syncState) ? result.syncState : [];
+        state.emailWorkspace.mailboxes = getEmailWorkspaceMailboxes().map((mailbox) =>
+            mailbox.id === mailboxId
+                ? { ...mailbox, syncState: state.emailWorkspace.syncStatus }
+                : mailbox
+        );
+        await loadEmailThreads({ renderWhileLoading: false, preserveThread: true });
+        if (!silent) {
+            flashNotice(`Mailbox synced. ${Number(result.syncedCount || 0).toLocaleString()} messages checked.`, 'success');
+        }
+    } catch (error) {
+        if (!silent) {
+            flashNotice(error.message || 'Unable to sync the mailbox.', 'error');
+        }
+    } finally {
+        state.emailWorkspace.isSyncing = false;
+        renderPanels();
+        scheduleEmailWorkspaceAutoRefresh();
+    }
+}
+
+async function openEmailComposerDrawer(options = {}) {
+    const lead = getAccessibleClientById(options.clientId);
+    const senderOptions = getEmailSenderOptions();
+    const requestedSenderMode = resolveEmailComposerSenderMode(options.senderMode, senderOptions);
+    const preferredMailboxId = requestedSenderMode === 'support'
+        ? getSupportMailboxSender()?.id
+        : getPersonalMailboxSender()?.id;
+
+    if (state.drawerMode) {
+        closeDrawer();
+    }
+
+    if (state.modal) {
+        closeModal();
+    }
+
+    state.emailComposer = {
+        ...createDefaultEmailComposerState(),
+        leadId: lead?.id || '',
+        threadId: normalizeWhitespace(options.threadId),
+        inReplyTo: normalizeWhitespace(options.inReplyTo),
+        references: normalizeWhitespace(options.references),
+        composeMode: normalizeWhitespace(options.composeMode) || 'new',
+        recipientEmail: String(options.recipientEmail ?? lead?.email ?? ''),
+        recipientName: normalizeWhitespace(options.recipientName || lead?.fullName || lead?.firstName || lead?.lastName || ''),
+        senderMode: requestedSenderMode,
+        subject: String(options.subject ?? ''),
+        bodyText: String(options.bodyText ?? '')
+    };
+
+    state.currentView = 'email';
+    state.mobileSearchOpen = false;
+    state.sidebarOpen = false;
+    state.emailWorkspace.previewMode = 'compose';
+    if (normalizeWhitespace(options.threadId)) {
+        state.emailWorkspace.selectedThreadId = normalizeWhitespace(options.threadId);
+    }
+    resetToolbarSuggestions();
+    syncShellState();
+    await ensureEmailWorkspaceLoaded({ preferredMailboxId, renderWhileLoading: false, preserveThread: true });
+    render();
+}
+
 function canSendEmailForLead(lead) {
     if (!lead) {
         return false;
@@ -4339,13 +4907,445 @@ function canSendEmailForLead(lead) {
 
     return hasPermission(state.session, PERMISSIONS.SEND_EMAIL)
         && canAccessClient(lead)
-        && Boolean(buildEmailHref(lead.email));
+        && Boolean(normalizeEmailAddress(lead.email));
 }
 
 function getLeadEmailHistory(lead) {
     return Array.isArray(lead?.emailHistory)
-        ? [...lead.emailHistory].sort((left, right) => Date.parse(right.createdAt ?? right.sentAt ?? 0) - Date.parse(left.createdAt ?? left.sentAt ?? 0))
+        ? [...lead.emailHistory].sort((left, right) => Date.parse(right.receivedAt ?? right.sentAt ?? right.createdAt ?? 0) - Date.parse(left.receivedAt ?? left.sentAt ?? left.createdAt ?? 0))
         : [];
+}
+
+function formatEmailThreadTimestamp(value) {
+    const timestamp = normalizeWhitespace(value);
+
+    if (!timestamp) {
+        return '—';
+    }
+
+    return isToday(timestamp)
+        ? formatDateTime(timestamp).split(',').slice(1).join(',').trim()
+        : formatDate(timestamp);
+}
+
+function buildEmailThreadLeadLabel(thread) {
+    const leadId = normalizeWhitespace(thread?.leadId);
+
+    if (!leadId) {
+        return '';
+    }
+
+    const lead = getAccessibleClientById(leadId);
+    return lead?.fullName || `Lead #${leadId}`;
+}
+
+function buildReplySubject(subject = '') {
+    const normalizedSubject = normalizeWhitespace(subject);
+
+    if (!normalizedSubject) {
+        return 'Re: No subject';
+    }
+
+    return /^re:/i.test(normalizedSubject)
+        ? normalizedSubject
+        : `Re: ${normalizedSubject}`;
+}
+
+function buildReplyRecipientList(thread, { includeAll = false } = {}) {
+    const selectedMailbox = getEmailWorkspaceSelectedMailbox();
+    const latestMessage = Array.isArray(thread?.messages) && thread.messages.length
+        ? thread.messages[thread.messages.length - 1]
+        : null;
+    const participants = Array.isArray(latestMessage?.participants) && latestMessage.participants.length
+        ? latestMessage.participants
+        : (Array.isArray(thread?.participants) ? thread.participants : []);
+    const mailboxEmail = normalizeEmailAddress(selectedMailbox?.senderEmail);
+    const fromParticipants = participants.filter((participant) => participant.role === 'from' && participant.email !== mailboxEmail);
+    const allToParticipants = participants.filter((participant) => participant.role === 'to' && participant.email !== mailboxEmail);
+    const toParticipants = includeAll
+        ? allToParticipants
+        : (fromParticipants.length ? [] : allToParticipants);
+
+    return dedupeStrings([
+        ...fromParticipants.map((participant) => participant.email),
+        ...toParticipants.map((participant) => participant.email)
+    ].filter(Boolean)).join(', ');
+}
+
+function openReplyComposer(thread, { includeAll = false } = {}) {
+    if (!thread) {
+        return;
+    }
+
+    const latestMessage = Array.isArray(thread.messages) && thread.messages.length
+        ? thread.messages[thread.messages.length - 1]
+        : null;
+    const selectedMailbox = getEmailWorkspaceSelectedMailbox();
+
+    state.emailComposer = {
+        ...createDefaultEmailComposerState(),
+        leadId: normalizeWhitespace(thread.leadId),
+        threadId: normalizeWhitespace(thread.id),
+        inReplyTo: normalizeWhitespace(latestMessage?.messageIdHeader),
+        references: normalizeWhitespace(latestMessage?.referencesHeader || latestMessage?.messageIdHeader),
+        composeMode: includeAll ? 'reply-all' : 'reply',
+        recipientEmail: buildReplyRecipientList(thread, { includeAll }),
+        recipientName: '',
+        senderMode: selectedMailbox?.kind === 'support' ? 'support' : getDefaultEmailSenderMode(),
+        subject: buildReplySubject(thread.subject),
+        bodyText: ''
+    };
+    state.emailWorkspace.previewMode = 'compose';
+    renderPanels();
+}
+
+function renderEmailWorkspacePage() {
+    const mailboxes = getEmailWorkspaceMailboxes();
+    const selectedMailbox = getEmailWorkspaceSelectedMailbox();
+    const selectedThread = state.emailWorkspace.selectedThread;
+    const isComposing = state.emailWorkspace.previewMode === 'compose';
+
+    return `
+        <div class="crm-email-page">
+            <section class="crm-email-shell">
+                <aside class="crm-email-rail">
+                    <div class="crm-email-rail-card">
+                        <div class="crm-email-rail-header">
+                            <span class="crm-kicker"><i class="fa-solid fa-envelope-open-text"></i> Email</span>
+                            <h1>Inbox</h1>
+                            <p>Keep every mailbox conversation inside the CRM workspace.</p>
+                        </div>
+
+                        <button class="crm-button crm-email-compose-button" type="button" data-action="open-email-composer">
+                            <i class="fa-solid fa-pen-to-square"></i> Compose
+                        </button>
+
+                        ${mailboxes.length ? `
+                            <label class="crm-settings-field">
+                                <span class="form-label">Mailbox</span>
+                                <select class="crm-select" data-action="select-email-mailbox">
+                                    ${mailboxes.map((mailbox) => `
+                                        <option value="${escapeHtml(mailbox.id)}" ${selectedMailbox?.id === mailbox.id ? 'selected' : ''}>${escapeHtml(formatMailboxSenderLabel(mailbox, mailbox.kind === 'support' ? 'Support' : state.session?.name || 'Mailbox'))}</option>
+                                    `).join('')}
+                                </select>
+                            </label>
+                        ` : `
+                            <div class="crm-admin-empty compact">
+                                <div>Connect a mailbox in Settings to open the CRM inbox.</div>
+                            </div>
+                        `}
+
+                        <div class="crm-email-folder-list">
+                            ${[
+                                ['INBOX', 'Inbox', 'fa-inbox'],
+                                ['SENT', 'Sent', 'fa-paper-plane'],
+                                ['ALL', 'All mail', 'fa-layer-group']
+                            ].map(([value, label, icon]) => `
+                                <button
+                                    class="crm-email-folder-button ${state.emailWorkspace.selectedFolder === value ? 'active' : ''}"
+                                    type="button"
+                                    data-action="select-email-folder"
+                                    data-folder="${value}"
+                                >
+                                    <span><i class="fa-solid ${icon}"></i> ${label}</span>
+                                    ${value === 'INBOX' ? `<strong>${Number(state.emailWorkspace.threads.filter((thread) => Number(thread.unreadCount) > 0).length || 0)}</strong>` : ''}
+                                </button>
+                            `).join('')}
+                        </div>
+
+                        <div class="crm-email-sync-card">
+                            <div>
+                                <div class="crm-email-sync-label">Sync status</div>
+                                <div class="crm-email-sync-copy">${escapeHtml(buildEmailSyncSummary(selectedMailbox))}</div>
+                            </div>
+                            <button class="crm-button-secondary" type="button" data-action="sync-email-mailbox" ${selectedMailbox ? '' : 'disabled'}>
+                                <i class="fa-solid ${state.emailWorkspace.isSyncing ? 'fa-circle-notch fa-spin' : 'fa-rotate'}"></i> Refresh
+                            </button>
+                        </div>
+
+                        ${!mailboxes.length ? `
+                            <button class="crm-button-ghost" type="button" data-action="jump-to-view" data-view="settings">
+                                <i class="fa-solid fa-gear"></i> Open Settings
+                            </button>
+                        ` : ''}
+                    </div>
+                </aside>
+
+                <section class="crm-email-list-pane">
+                    <div class="crm-email-list-toolbar">
+                        <div>
+                            <h2>Conversations</h2>
+                            <p>${escapeHtml(selectedMailbox ? `Viewing ${selectedMailbox.senderEmail}` : 'Choose a mailbox to start.')}</p>
+                        </div>
+                        <label class="crm-email-search">
+                            <i class="fa-solid fa-magnifying-glass"></i>
+                            <input
+                                class="crm-input"
+                                type="search"
+                                id="crm-email-search"
+                                placeholder="Search sender, subject, snippet..."
+                                value="${escapeHtml(state.emailWorkspace.searchQuery)}"
+                            >
+                        </label>
+                    </div>
+
+                    ${state.emailWorkspace.isLoading ? `
+                        <div class="crm-admin-empty compact">
+                            <div><i class="fa-solid fa-circle-notch fa-spin"></i> Loading mailbox threads...</div>
+                        </div>
+                    ` : !selectedMailbox ? `
+                        <div class="crm-admin-empty compact">
+                            <div>No connected mailbox is available for this CRM session yet.</div>
+                        </div>
+                    ` : state.emailWorkspace.threads.length ? `
+                        <div class="crm-email-thread-list">
+                            ${state.emailWorkspace.threads.map((thread) => `
+                                <article class="crm-email-thread-row ${state.emailWorkspace.selectedThreadId === thread.id && !isComposing ? 'active' : ''} ${Number(thread.unreadCount) > 0 ? 'is-unread' : ''}">
+                                    <button
+                                        class="crm-email-thread-star ${thread.isStarred ? 'active' : ''}"
+                                        type="button"
+                                        data-action="toggle-email-thread-star"
+                                        data-thread-id="${escapeHtml(thread.id)}"
+                                        aria-label="${thread.isStarred ? 'Remove star from thread' : 'Star thread'}"
+                                    >
+                                        <i class="fa-solid ${thread.isStarred ? 'fa-star' : 'fa-star'}"></i>
+                                    </button>
+                                    <button
+                                        class="crm-email-thread-button"
+                                        type="button"
+                                        data-action="open-email-thread"
+                                        data-thread-id="${escapeHtml(thread.id)}"
+                                    >
+                                        <div class="crm-email-thread-topline">
+                                            <strong>${escapeHtml(thread.participantSummary || 'Unknown sender')}</strong>
+                                            <span>${escapeHtml(formatEmailThreadTimestamp(thread.latestMessageAt))}</span>
+                                        </div>
+                                        <div class="crm-email-thread-subject-line">
+                                            <span class="crm-email-thread-subject">${escapeHtml(thread.subject || 'No subject')}</span>
+                                            ${thread.leadId ? `<span class="summary-chip">${escapeHtml(buildEmailThreadLeadLabel(thread))}</span>` : ''}
+                                            ${Number(thread.unreadCount) > 0 ? `<span class="crm-email-unread-pill">${escapeHtml(thread.unreadCount)}</span>` : ''}
+                                        </div>
+                                        <div class="crm-email-thread-snippet">${escapeHtml(thread.snippet || 'No preview available yet.')}</div>
+                                    </button>
+                                </article>
+                            `).join('')}
+                        </div>
+                    ` : `
+                        <div class="crm-admin-empty compact">
+                            <div>No conversations matched this folder yet. Sync the mailbox or start a new email.</div>
+                        </div>
+                    `}
+                </section>
+
+                <section class="crm-email-preview-pane ${isComposing ? 'is-compose' : ''}">
+                    ${isComposing
+                        ? renderEmailWorkspaceComposer()
+                        : selectedThread
+                            ? renderEmailThreadPreview(selectedThread)
+                            : renderEmailWorkspaceEmptyPreview(selectedMailbox)}
+                </section>
+            </section>
+        </div>
+    `;
+}
+
+function buildEmailSyncSummary(selectedMailbox) {
+    if (!selectedMailbox) {
+        return 'No mailbox selected yet.';
+    }
+
+    const syncState = (
+        Array.isArray(selectedMailbox.syncState) && selectedMailbox.syncState.length
+            ? selectedMailbox.syncState
+            : state.emailWorkspace.syncStatus.filter((entry) => entry.mailboxSenderId === selectedMailbox.id)
+    ).filter((entry) => ['INBOX', 'SENT'].includes(entry.folder));
+
+    if (!syncState.length) {
+        return 'Mailbox connected. Run the first sync to pull inbox and sent mail.';
+    }
+
+    const latestEntry = [...syncState].sort((left, right) => Date.parse(right.lastSyncedAt || 0) - Date.parse(left.lastSyncedAt || 0))[0];
+
+    if (latestEntry?.lastError) {
+        return latestEntry.lastError;
+    }
+
+    return latestEntry?.lastSyncedAt
+        ? `Last synced ${formatDateTime(latestEntry.lastSyncedAt)}`
+        : 'Ready to sync';
+}
+
+function renderEmailWorkspaceEmptyPreview(selectedMailbox) {
+    if (!selectedMailbox) {
+        return `
+            <div class="crm-email-empty-preview">
+                <i class="fa-solid fa-envelope-circle-check"></i>
+                <h2>Connect a mailbox</h2>
+                <p>Once a mailbox is connected, incoming and outgoing email will appear here.</p>
+            </div>
+        `;
+    }
+
+    return `
+        <div class="crm-email-empty-preview">
+            <i class="fa-solid fa-comments"></i>
+            <h2>Select a conversation</h2>
+            <p>Choose a thread from the list to preview messages, reply, or open the linked lead.</p>
+        </div>
+    `;
+}
+
+function renderEmailThreadPreview(thread) {
+    const leadLabel = buildEmailThreadLeadLabel(thread);
+
+    return `
+        <div class="crm-email-preview-card">
+            <div class="crm-email-preview-head">
+                <div>
+                    <span class="crm-kicker"><i class="fa-solid fa-comments"></i> Conversation</span>
+                    <h2>${escapeHtml(thread.subject || 'No subject')}</h2>
+                    <p>${escapeHtml(thread.participantSummary || 'Unknown sender')}</p>
+                </div>
+                <div class="crm-email-preview-actions">
+                    <button class="crm-button-secondary" type="button" data-action="reply-email-thread">
+                        <i class="fa-solid fa-reply"></i> Reply
+                    </button>
+                    <button class="crm-button-ghost" type="button" data-action="reply-all-email-thread">
+                        <i class="fa-solid fa-reply-all"></i> Reply all
+                    </button>
+                    ${thread.leadId ? `
+                        <button class="crm-button-ghost" type="button" data-action="open-lead-page" data-client-id="${escapeHtml(thread.leadId)}">
+                            <i class="fa-solid fa-user-large"></i> ${escapeHtml(leadLabel)}
+                        </button>
+                    ` : ''}
+                </div>
+            </div>
+
+            <div class="crm-email-preview-meta">
+                <span class="summary-chip">${escapeHtml(formatEmailThreadTimestamp(thread.latestMessageAt))}</span>
+                <span class="summary-chip">${escapeHtml(titleCase(thread.lastMessageDirection || 'incoming'))}</span>
+                <span class="summary-chip">${escapeHtml(titleCase(thread.lastMessageStatus || 'received'))}</span>
+            </div>
+
+            <div class="crm-email-message-stack">
+                ${(thread.messages || []).map((message) => `
+                    <article class="crm-email-message-card ${message.direction === 'incoming' ? 'incoming' : 'outgoing'}">
+                        <div class="crm-email-message-head">
+                            <div>
+                                <strong>${escapeHtml(message.direction === 'incoming' ? (message.senderName || message.senderEmail || 'Unknown sender') : (message.senderDisplayName || message.senderName || 'You'))}</strong>
+                                <div class="panel-subtitle">${escapeHtml((message.direction === 'incoming' ? message.senderEmail : message.toEmail) || 'No email')}</div>
+                            </div>
+                            <span>${escapeHtml(formatDateTime(message.receivedAt || message.sentAt || message.createdAt))}</span>
+                        </div>
+                        <div class="crm-email-message-body">${escapeHtml(message.bodyText || 'No plain text body available.')}</div>
+                    </article>
+                `).join('')}
+            </div>
+        </div>
+    `;
+}
+
+function renderEmailWorkspaceComposer() {
+    const lead = getEmailComposerLead();
+    const senderOptions = getEmailSenderOptions();
+    const draft = {
+        ...createDefaultEmailComposerState(),
+        ...state.emailComposer
+    };
+    const defaultSenderMode = resolveEmailComposerSenderMode(draft.senderMode, senderOptions);
+    const leadEmail = normalizeEmailAddress(lead?.email);
+
+    return `
+        <div class="crm-email-compose-pane">
+            <div class="crm-email-preview-head">
+                <div>
+                    <span class="crm-kicker"><i class="fa-solid fa-pen-to-square"></i> Compose</span>
+                    <h2>${escapeHtml(draft.composeMode === 'reply-all' ? 'Reply all' : (draft.composeMode === 'reply' ? 'Reply' : 'New email'))}</h2>
+                    <p>${escapeHtml(lead ? `Linked to ${lead.fullName || 'this lead'} while the recipient stays on ${leadEmail || 'the saved address'}.` : 'Send outbound email from your connected mailbox without leaving CRM.')}</p>
+                </div>
+                <button class="crm-button-ghost" type="button" data-action="close-email-compose">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            ${!senderOptions.length ? `
+                <div class="crm-admin-empty compact">
+                    <div>Connect your mailbox in Settings before sending CRM email.</div>
+                </div>
+                <div class="drawer-actions">
+                    <button class="crm-button-secondary" type="button" data-action="jump-to-view" data-view="settings">
+                        <i class="fa-solid fa-gear"></i> Open Settings
+                    </button>
+                </div>
+            ` : `
+                <form id="email-compose-form" class="crm-email-workspace-form">
+                    <input type="hidden" name="leadId" value="${escapeHtml(draft.leadId || '')}">
+                    <input type="hidden" name="threadId" value="${escapeHtml(draft.threadId || '')}">
+                    <input type="hidden" name="inReplyTo" value="${escapeHtml(draft.inReplyTo || '')}">
+                    <input type="hidden" name="references" value="${escapeHtml(draft.references || '')}">
+                    <input type="hidden" name="composeMode" value="${escapeHtml(draft.composeMode || 'new')}">
+                    <div class="form-grid">
+                        <label class="form-field form-field-full">
+                            <span class="form-label">To</span>
+                            <input
+                                class="crm-input"
+                                name="recipientEmail"
+                                type="text"
+                                value="${escapeHtml(draft.recipientEmail || '')}"
+                                placeholder="name@example.com, second@example.com"
+                                autocomplete="off"
+                                required
+                            >
+                            <span class="panel-subtitle">Use commas to send to multiple recipients.</span>
+                        </label>
+                        ${lead ? `
+                            <div class="crm-email-drawer-note form-field-full">
+                                Logged to this lead only while the recipient stays on <strong>${escapeHtml(leadEmail || 'the saved lead email')}</strong>.
+                            </div>
+                        ` : ''}
+                        <label class="form-field">
+                            <span class="form-label">From</span>
+                            ${senderOptions.length > 1 ? `
+                                <select class="crm-select" name="senderMode">
+                                    ${senderOptions.map((option) => `
+                                        <option value="${escapeHtml(option.value)}" ${option.value === defaultSenderMode ? 'selected' : ''}>${escapeHtml(option.label)}</option>
+                                    `).join('')}
+                                </select>
+                            ` : `
+                                <input type="hidden" name="senderMode" value="${escapeHtml(defaultSenderMode)}">
+                                <input class="crm-input" value="${escapeHtml(senderOptions[0]?.label || 'Personal mailbox')}" readonly>
+                            `}
+                        </label>
+                        <label class="form-field form-field-full">
+                            <span class="form-label">Subject</span>
+                            <input
+                                class="crm-input"
+                                name="subject"
+                                value="${escapeHtml(draft.subject || '')}"
+                                placeholder="Follow-up from Blue Chip Signals"
+                                maxlength="160"
+                                required
+                            >
+                        </label>
+                        <label class="form-field form-field-full">
+                            <span class="form-label">Message</span>
+                            <textarea
+                                class="crm-textarea"
+                                name="bodyText"
+                                placeholder="Write your email here..."
+                                maxlength="10000"
+                                required
+                            >${escapeHtml(draft.bodyText || '')}</textarea>
+                        </label>
+                    </div>
+                    <div class="drawer-actions">
+                        <button class="crm-button" type="submit"><i class="fa-solid fa-paper-plane"></i> Send Email</button>
+                        <button class="crm-button-ghost" type="button" data-action="close-email-compose">Cancel</button>
+                    </div>
+                </form>
+            `}
+        </div>
+    `;
 }
 
 function renderPersonalMailboxSettingsCard() {
@@ -4482,7 +5482,7 @@ function renderLeadEmailHistoryCard(lead) {
             <div class="panel-head">
                 <div>
                     <span class="lead-detail-card-label">Email</span>
-                    <h2 class="section-title">Outbound history</h2>
+                    <h2 class="section-title">Email history</h2>
                 </div>
                 ${canSendEmail ? `
                     <button class="crm-button-secondary lead-detail-action-button" type="button" data-action="open-email-composer" data-client-id="${escapeHtml(lead.id)}">
@@ -4504,61 +5504,46 @@ function renderLeadEmailHistoryCard(lead) {
                             </div>
                             <div class="note-history-copy">${escapeHtml(truncate(entry.bodyText || '', 220) || 'No message body.')}</div>
                             <div class="crm-email-history-meta">
-                                <span>${escapeHtml(formatDateTime(entry.sentAt || entry.createdAt))}</span>
-                                <span>${escapeHtml(entry.senderKind === 'support' ? 'Support inbox' : 'Personal mailbox')}</span>
+                                <span>${escapeHtml(formatDateTime(entry.receivedAt || entry.sentAt || entry.createdAt))}</span>
+                                <span>${escapeHtml(entry.direction === 'incoming' ? 'Incoming' : (entry.senderKind === 'support' ? 'Support inbox' : 'Personal mailbox'))}</span>
                                 ${entry.errorMessage ? `<span class="crm-email-history-error">${escapeHtml(entry.errorMessage)}</span>` : ''}
                             </div>
                         </article>
                     `).join('')}
                 </div>
-            ` : '<div class="panel-subtitle lead-detail-empty-copy">No outbound email has been logged for this record yet.</div>'}
+            ` : '<div class="panel-subtitle lead-detail-empty-copy">No email has been logged for this record yet.</div>'}
         </section>
     `;
 }
 
-function renderLeadEmailDrawer() {
-    const lead = getAccessibleClientById(state.drawerClientId);
-
-    if (!lead) {
-        return `
-            <div class="drawer-surface">
-                <div class="drawer-head">
-                    <div>
-                        <span class="crm-kicker"><i class="fa-solid fa-envelope"></i> Email</span>
-                        <h2 class="drawer-title">Lead unavailable</h2>
-                        <p class="panel-subtitle">This record is no longer available in your current CRM scope.</p>
-                    </div>
-                    <button class="crm-button-ghost" data-action="close-drawer"><i class="fa-solid fa-xmark"></i></button>
-                </div>
-                <div class="drawer-actions">
-                    <button class="crm-button-ghost" type="button" data-action="close-drawer">Close</button>
-                </div>
-            </div>
-        `;
-    }
-
-    const senderOptions = getLeadEmailSenderOptions();
-    const defaultSenderMode = senderOptions.some((option) => option.value === 'personal') ? 'personal' : (senderOptions[0]?.value || 'personal');
+function renderEmailComposeDrawer() {
+    const lead = getEmailComposerLead();
+    const senderOptions = getEmailSenderOptions();
+    const draft = {
+        ...createDefaultEmailComposerState(),
+        ...state.emailComposer,
+        leadId: lead?.id || normalizeWhitespace(state.emailComposer.leadId)
+    };
+    const defaultSenderMode = resolveEmailComposerSenderMode(draft.senderMode, senderOptions);
+    const normalizedRecipientEmail = normalizeEmailAddress(draft.recipientEmail);
+    const leadEmail = normalizeEmailAddress(lead?.email);
+    const titleTarget = lead?.fullName || normalizedRecipientEmail || draft.recipientName || 'recipient';
+    const subtitle = lead
+        ? `Send from your connected mailbox${getSupportMailboxSender() && canUseSupportMailbox() ? ' or the support inbox' : ''} without leaving CRM.`
+        : `Send from your connected mailbox${getSupportMailboxSender() && canUseSupportMailbox() ? ' or the support inbox' : ''} without leaving CRM.`;
 
     return `
         <div class="drawer-surface">
             <div class="drawer-head">
                 <div>
                     <span class="crm-kicker"><i class="fa-solid fa-envelope"></i> Email</span>
-                    <h2 class="drawer-title">Email ${escapeHtml(lead.fullName || 'lead')}</h2>
-                    <p class="panel-subtitle">Send from your connected mailbox${getSupportMailboxSender() && canUseSupportMailbox() ? ' or the support inbox' : ''} without leaving CRM.</p>
+                    <h2 class="drawer-title">${escapeHtml(lead ? `Email ${titleTarget}` : 'Compose Email')}</h2>
+                    <p class="panel-subtitle">${escapeHtml(subtitle)}</p>
                 </div>
                 <button class="crm-button-ghost" data-action="close-drawer"><i class="fa-solid fa-xmark"></i></button>
             </div>
 
-            ${!buildEmailHref(lead.email) ? `
-                <div class="crm-admin-empty compact">
-                    <div>This lead does not have a valid email address yet.</div>
-                </div>
-                <div class="drawer-actions">
-                    <button class="crm-button-ghost" type="button" data-action="close-drawer">Close</button>
-                </div>
-            ` : !senderOptions.length ? `
+            ${!senderOptions.length ? `
                 <div class="crm-admin-empty compact">
                     <div>Connect your mailbox in Settings before sending CRM email.</div>
                 </div>
@@ -4569,13 +5554,27 @@ function renderLeadEmailDrawer() {
                     <button class="crm-button-ghost" type="button" data-action="close-drawer">Close</button>
                 </div>
             ` : `
-                <form id="lead-email-form" class="crm-email-drawer-form">
-                    <input type="hidden" name="leadId" value="${escapeHtml(lead.id)}">
+                <form id="email-compose-form" class="crm-email-drawer-form">
+                    <input type="hidden" name="leadId" value="${escapeHtml(draft.leadId || '')}">
                     <div class="form-grid">
-                        <label class="form-field">
+                        <label class="form-field form-field-full">
                             <span class="form-label">To</span>
-                            <input class="crm-input" value="${escapeHtml(lead.email || '')}" readonly>
+                            <input
+                                class="crm-input"
+                                name="recipientEmail"
+                                type="email"
+                                value="${escapeHtml(draft.recipientEmail || '')}"
+                                placeholder="name@example.com"
+                                autocomplete="email"
+                                maxlength="254"
+                                required
+                            >
                         </label>
+                        ${lead ? `
+                            <div class="crm-email-drawer-note form-field-full">
+                                Logged to this lead only while the recipient stays on <strong>${escapeHtml(leadEmail || 'the saved lead email')}</strong>.
+                            </div>
+                        ` : ''}
                         <label class="form-field">
                             <span class="form-label">From</span>
                             ${senderOptions.length > 1 ? `
@@ -4591,11 +5590,24 @@ function renderLeadEmailDrawer() {
                         </label>
                         <label class="form-field form-field-full">
                             <span class="form-label">Subject</span>
-                            <input class="crm-input" name="subject" placeholder="Follow-up from Blue Chip Signals" maxlength="160" required>
+                            <input
+                                class="crm-input"
+                                name="subject"
+                                value="${escapeHtml(draft.subject || '')}"
+                                placeholder="Follow-up from Blue Chip Signals"
+                                maxlength="160"
+                                required
+                            >
                         </label>
                         <label class="form-field form-field-full">
                             <span class="form-label">Message</span>
-                            <textarea class="crm-textarea" name="bodyText" placeholder="Write your email here..." required></textarea>
+                            <textarea
+                                class="crm-textarea"
+                                name="bodyText"
+                                placeholder="Write your email here..."
+                                maxlength="10000"
+                                required
+                            >${escapeHtml(draft.bodyText || '')}</textarea>
                         </label>
                     </div>
                     <div class="drawer-actions">
@@ -4809,7 +5821,9 @@ function renderLookupPreviewDrawer(client) {
                             ${renderPreviewField('Email', {
                                 html: renderEmailLink(client.email, {
                                     className: 'crm-email-link crm-search-preview-email-link',
-                                    includeIcon: true
+                                    includeIcon: true,
+                                    clientId: client.id,
+                                    recipientName: client.fullName || client.firstName || client.lastName || ''
                                 })
                             }, { fullWidth: true })}
                             ${renderPreviewField('Business', client.businessName || '—', { fullWidth: true })}
@@ -4897,7 +5911,7 @@ function renderDrawer() {
     }
 
     if (state.drawerMode === 'email-compose') {
-        refs.drawer.innerHTML = renderLeadEmailDrawer();
+        refs.drawer.innerHTML = renderEmailComposeDrawer();
         return;
     }
 
@@ -5579,7 +6593,10 @@ function renderCreateDuplicateModal() {
                     <h3 class="section-title">Existing lead</h3>
                     <ul class="mini-list">
                         <li><span class="mini-list-title">Name</span><span class="mini-list-meta">${escapeHtml(duplicateLead.fullName || 'Unnamed lead')}</span></li>
-                        <li><span class="mini-list-title">Email</span><span class="mini-list-meta">${renderEmailLink(duplicateLead.email)}</span></li>
+                        <li><span class="mini-list-title">Email</span><span class="mini-list-meta">${renderEmailLink(duplicateLead.email, {
+                            clientId: duplicateLead.id,
+                            recipientName: duplicateLead.fullName || duplicateLead.firstName || duplicateLead.lastName || ''
+                        })}</span></li>
                         <li><span class="mini-list-title">Phone</span><span class="mini-list-meta">${renderPhoneLink(duplicateLead.phone)}</span></li>
                         <li><span class="mini-list-title">Assigned rep</span><span class="mini-list-meta">${escapeHtml(duplicateLead.assignedTo || 'Unassigned')}</span></li>
                     </ul>
@@ -5588,7 +6605,9 @@ function renderCreateDuplicateModal() {
                     <h3 class="section-title">Incoming lead</h3>
                     <ul class="mini-list">
                         <li><span class="mini-list-title">Name</span><span class="mini-list-meta">${escapeHtml(`${incomingPayload.firstName || ''} ${incomingPayload.lastName || ''}`.trim() || 'Unnamed lead')}</span></li>
-                        <li><span class="mini-list-title">Email</span><span class="mini-list-meta">${renderEmailLink(incomingPayload.email)}</span></li>
+                        <li><span class="mini-list-title">Email</span><span class="mini-list-meta">${renderEmailLink(incomingPayload.email, {
+                            recipientName: incomingPayload.fullName || incomingPayload.firstName || incomingPayload.lastName || ''
+                        })}</span></li>
                         <li><span class="mini-list-title">Phone</span><span class="mini-list-meta">${renderPhoneLink(incomingPayload.phone)}</span></li>
                         <li><span class="mini-list-title">Status</span><span class="mini-list-meta">${escapeHtml(titleCase(incomingPayload.status || 'new'))}</span></li>
                     </ul>
@@ -5905,7 +6924,9 @@ function renderImportModal() {
                         ${preview.previewRecords.map((client) => `
                             <tr>
                                 <td>${escapeHtml(client.fullName || 'Unnamed lead')}</td>
-                                <td>${renderEmailLink(client.email)}</td>
+                                <td>${renderEmailLink(client.email, {
+                                    recipientName: client.fullName || client.firstName || client.lastName || ''
+                                })}</td>
                                 <td>${renderPhoneLink(client.phone)}</td>
                                 <td>${escapeHtml((client.tags || []).join(', ') || '—')}</td>
                                 <td>${escapeHtml(client.status || 'new')}</td>
@@ -6908,6 +7929,7 @@ function closeDrawer() {
     state.drawerClientId = null;
     state.drawerEventId = null;
     state.drawerDate = '';
+    state.emailComposer = createDefaultEmailComposerState();
     state.calendar.clientPicker = createDefaultCalendarClientPickerState();
     state.calendar.formDraft = null;
     syncShellState();
@@ -6943,7 +7965,11 @@ async function openSearchPreviewDrawer(clientId) {
 function resetAuthenticatedCrmState() {
     workspacePageCache.clear();
     clearVisibleClientsCache();
+    window.clearTimeout(emailWorkspaceAutoRefreshTimer);
+    emailWorkspaceAutoRefreshTimer = null;
     state.calendar = createDefaultCalendarState();
+    state.emailComposer = createDefaultEmailComposerState();
+    state.emailWorkspace = createDefaultEmailWorkspaceState();
     state.clients = [];
     state.allowedTags = [];
     state.tagDefinitions = [];
@@ -7043,6 +8069,7 @@ document.addEventListener('click', async (event) => {
 
     const actionEl = event.target.closest('[data-action]');
     const clickedInsideAdvancedFilters = event.target.closest('.lead-history-advanced-shell');
+    const clickedInsideDesktopNav = event.target.closest('.crm-primary-nav');
 
     if (!actionEl) {
         if (state.filtersPanelOpen && !clickedInsideAdvancedFilters) {
@@ -7050,14 +8077,29 @@ document.addEventListener('click', async (event) => {
             return;
         }
 
+        let shouldRefreshTopbar = false;
+
+        if (state.desktopNavOpen && !clickedInsideDesktopNav) {
+            state.desktopNavOpen = false;
+            shouldRefreshTopbar = true;
+        }
+
         if (shouldShowSearchSuggestions() && !event.target.closest('.search-shell')) {
             resetToolbarSuggestions();
+            shouldRefreshTopbar = true;
+        }
+
+        if (shouldRefreshTopbar) {
             renderTopbar();
         }
         return;
     }
 
     const { action } = actionEl.dataset;
+
+    if (state.desktopNavOpen && action !== 'toggle-desktop-nav' && !clickedInsideDesktopNav) {
+        state.desktopNavOpen = false;
+    }
 
     if (state.searchSuggestionsOpen && action !== 'select-search-suggestion' && !actionEl.closest('.search-shell')) {
         resetToolbarSuggestions();
@@ -7119,9 +8161,19 @@ document.addEventListener('click', async (event) => {
 
     if (action === 'toggle-sidebar') {
         const nextIsOpen = !state.sidebarOpen;
+        state.desktopNavOpen = false;
         state.mobileSearchOpen = false;
         resetToolbarSuggestions();
         setSidebarOpen(nextIsOpen);
+        renderTopbar();
+        return;
+    }
+
+    if (action === 'toggle-desktop-nav') {
+        if (state.searchSuggestionsOpen) {
+            resetToolbarSuggestions();
+        }
+        state.desktopNavOpen = !state.desktopNavOpen;
         renderTopbar();
         return;
     }
@@ -7130,6 +8182,8 @@ document.addEventListener('click', async (event) => {
         if (state.sidebarOpen) {
             setSidebarOpen(false);
         }
+
+        state.desktopNavOpen = false;
 
         if (shouldShowMobileSearch() && !hasActiveToolbarSearch()) {
             state.mobileSearchOpen = false;
@@ -7145,6 +8199,7 @@ document.addEventListener('click', async (event) => {
     }
 
     if (action === 'select-search-suggestion') {
+        state.desktopNavOpen = false;
         resetToolbarSuggestions();
         renderTopbar();
         await openSearchPreviewDrawer(actionEl.dataset.clientId);
@@ -7180,6 +8235,11 @@ document.addEventListener('click', async (event) => {
             return;
         }
 
+        if (targetView === 'email' && !hasPermission(state.session, PERMISSIONS.SEND_EMAIL)) {
+            flashNotice('Email access is not enabled for this CRM session.', 'error');
+            return;
+        }
+
         if (action === 'jump-to-view' && state.drawerMode) {
             closeDrawer();
         }
@@ -7188,6 +8248,7 @@ document.addEventListener('click', async (event) => {
             state.adminTab = getValidAdminTab(actionEl.dataset.adminTab);
         }
 
+        state.desktopNavOpen = false;
         state.currentView = targetView === 'imports' ? 'admin' : targetView;
         if (targetView === 'imports') {
             state.adminTab = 'imports';
@@ -7214,6 +8275,11 @@ document.addEventListener('click', async (event) => {
         }
         if (targetView === 'calendar') {
             await refreshCalendarEvents({ anchorDate: getMonthCursorDate(), force: true, renderWhileLoading: false });
+            render();
+            return;
+        }
+        if (targetView === 'email') {
+            await ensureEmailWorkspaceLoaded({ renderWhileLoading: false, preserveThread: true });
             render();
             return;
         }
@@ -7560,14 +8626,96 @@ document.addEventListener('click', async (event) => {
     }
 
     if (action === 'open-email-composer') {
-        const lead = getAccessibleClientById(actionEl.dataset.clientId || state.detailClientId);
+        if (!hasPermission(state.session, PERMISSIONS.SEND_EMAIL)) {
+            flashNotice('This session cannot send CRM email.', 'error');
+            return;
+        }
 
-        if (!lead || !canSendEmailForLead(lead)) {
+        const lead = getAccessibleClientById(actionEl.dataset.clientId);
+        const recipientEmail = normalizeWhitespace(actionEl.dataset.recipientEmail);
+        const recipientName = normalizeWhitespace(actionEl.dataset.recipientName || lead?.fullName || '');
+
+        if (actionEl.dataset.clientId && !lead && !normalizeEmailAddress(recipientEmail)) {
             flashNotice('This record is not available for CRM email.', 'error');
             return;
         }
 
-        openDrawer('email-compose', { clientId: lead.id });
+        await openEmailComposerDrawer({
+            clientId: lead?.id || '',
+            recipientEmail: recipientEmail || lead?.email || '',
+            recipientName
+        });
+        return;
+    }
+
+    if (action === 'sync-email-mailbox') {
+        await syncActiveEmailMailbox();
+        return;
+    }
+
+    if (action === 'select-email-folder') {
+        state.emailWorkspace.selectedFolder = normalizeWhitespace(actionEl.dataset.folder).toUpperCase() || 'INBOX';
+        state.emailWorkspace.previewMode = 'thread';
+        await loadEmailThreads({ renderWhileLoading: true, preserveThread: false });
+        return;
+    }
+
+    if (action === 'open-email-thread') {
+        state.emailWorkspace.selectedThreadId = normalizeWhitespace(actionEl.dataset.threadId);
+        state.emailWorkspace.previewMode = 'thread';
+        await loadSelectedEmailThread({ renderWhileLoading: true, markRead: true });
+        return;
+    }
+
+    if (action === 'toggle-email-thread-star') {
+        const threadId = normalizeWhitespace(actionEl.dataset.threadId);
+        const mailboxId = normalizeWhitespace(state.emailWorkspace.selectedMailboxId);
+        const currentThread = state.emailWorkspace.threads.find((thread) => thread.id === threadId);
+
+        if (!threadId || !mailboxId || !currentThread) {
+            return;
+        }
+
+        try {
+            await dataService.toggleEmailThreadStar({
+                threadId,
+                mailboxId,
+                isStarred: !currentThread.isStarred
+            });
+
+            state.emailWorkspace.threads = state.emailWorkspace.threads.map((thread) =>
+                thread.id === threadId
+                    ? { ...thread, isStarred: !thread.isStarred }
+                    : thread
+            );
+
+            if (state.emailWorkspace.selectedThread?.id === threadId) {
+                state.emailWorkspace.selectedThread = {
+                    ...state.emailWorkspace.selectedThread,
+                    isStarred: !state.emailWorkspace.selectedThread.isStarred
+                };
+            }
+
+            renderPanels();
+        } catch (error) {
+            flashNotice(error.message || 'Unable to update the thread star.', 'error');
+        }
+        return;
+    }
+
+    if (action === 'reply-email-thread') {
+        openReplyComposer(state.emailWorkspace.selectedThread, { includeAll: false });
+        return;
+    }
+
+    if (action === 'reply-all-email-thread') {
+        openReplyComposer(state.emailWorkspace.selectedThread, { includeAll: true });
+        return;
+    }
+
+    if (action === 'close-email-compose') {
+        state.emailWorkspace.previewMode = 'thread';
+        renderPanels();
         return;
     }
 
@@ -8107,20 +9255,53 @@ document.addEventListener('submit', async (event) => {
         return;
     }
 
-    if (formId === 'lead-email-form') {
+    if (formId === 'email-compose-form') {
         event.preventDefault();
 
         try {
             const formData = new FormData(event.target);
-            await dataService.sendLeadEmail({
+            const message = await dataService.sendEmail({
                 leadId: formData.get('leadId'),
+                recipientEmail: formData.get('recipientEmail'),
+                threadId: formData.get('threadId'),
+                inReplyTo: formData.get('inReplyTo'),
+                references: formData.get('references'),
                 senderMode: formData.get('senderMode'),
                 subject: formData.get('subject'),
                 bodyText: formData.get('bodyText')
             });
-            closeDrawer();
-            await refreshWorkspaceAfterMutation();
-            flashNotice('Email sent and logged to this lead.', 'success');
+            state.emailWorkspace.previewMode = 'thread';
+            state.emailComposer = createDefaultEmailComposerState();
+            await ensureEmailWorkspaceLoaded({ force: true, renderWhileLoading: false, preserveThread: true });
+
+            if (normalizeWhitespace(message.threadId)) {
+                state.emailWorkspace.selectedThreadId = normalizeWhitespace(message.threadId);
+                await loadSelectedEmailThread({ renderWhileLoading: false, markRead: false });
+            }
+
+            if (message.loggedToLead && message.leadId) {
+                const refreshedLead = await dataService.getClientById(message.leadId).catch(() => null);
+                if (refreshedLead) {
+                    mergeClientCache([refreshedLead]);
+                }
+                flashNotice(
+                    message.warning
+                        ? `Email sent and logged to this lead. ${message.warning}`
+                        : 'Email sent and logged to this lead.',
+                    message.warning ? 'error' : 'success'
+                );
+            } else if (normalizeWhitespace(formData.get('leadId'))) {
+                flashNotice(
+                    message.warning
+                        ? `Email sent. Because the recipient changed, it was not logged to the lead. ${message.warning}`
+                        : 'Email sent. Because the recipient changed, it was not logged to the lead.',
+                    message.warning ? 'error' : 'success'
+                );
+            } else {
+                flashNotice(message.warning ? `Email sent. ${message.warning}` : 'Email sent.', message.warning ? 'error' : 'success');
+            }
+
+            renderPanels();
         } catch (error) {
             flashNotice(error.message || 'Unable to send the email.', 'error');
         }
@@ -8385,6 +9566,17 @@ document.addEventListener('change', (event) => {
 });
 
 document.addEventListener('input', (event) => {
+    if (event.target.closest?.('#email-compose-form')) {
+        syncEmailComposerDraft(event.target.closest('form'));
+        return;
+    }
+
+    if (event.target.id === 'crm-email-search') {
+        state.emailWorkspace.searchQuery = event.target.value;
+        void loadEmailThreads({ renderWhileLoading: true, preserveThread: false });
+        return;
+    }
+
     if (event.target.matches('.tag-picker-input')) {
         refreshTagSuggestions(event.target);
         return;
@@ -8481,7 +9673,14 @@ document.addEventListener('input', (event) => {
             resetToolbarSuggestions({ clearResults: true });
         }
 
-        renderTopbar();
+        const syncedSearchUi = syncToolbarSearchUi({
+            activeSurface: searchSurface,
+            caretPosition
+        });
+
+        if (!syncedSearchUi) {
+            renderTopbar();
+        }
 
         if (inWorkspaceSearchView) {
             renderSidebar();
@@ -8489,7 +9688,9 @@ document.addEventListener('input', (event) => {
             queueWorkspaceRefresh(getDefaultScopeForView());
         }
 
-        focusToolbarSearchInput(searchSurface, caretPosition);
+        if (!syncedSearchUi) {
+            focusToolbarSearchInput(searchSurface, caretPosition);
+        }
 
         if (normalizeWhitespace(nextValue)) {
             queueToolbarSuggestions({ surface: searchSurface });
@@ -8498,11 +9699,23 @@ document.addEventListener('input', (event) => {
 });
 
 window.addEventListener('resize', () => {
-    if (!state.session || isMobileNavViewport()) {
+    if (!state.session) {
         return;
     }
 
     let shouldRefreshChrome = false;
+
+    if (isMobileNavViewport()) {
+        if (state.desktopNavOpen) {
+            state.desktopNavOpen = false;
+            shouldRefreshChrome = true;
+        }
+
+        if (shouldRefreshChrome) {
+            renderTopbar();
+        }
+        return;
+    }
 
     if (state.sidebarOpen) {
         setSidebarOpen(false);
@@ -8511,6 +9724,11 @@ window.addEventListener('resize', () => {
 
     if (state.mobileSearchOpen) {
         state.mobileSearchOpen = false;
+        shouldRefreshChrome = true;
+    }
+
+    if (state.desktopNavOpen) {
+        state.desktopNavOpen = false;
         shouldRefreshChrome = true;
     }
 
@@ -8541,6 +9759,18 @@ document.addEventListener('paste', (event) => {
 });
 
 document.addEventListener('change', async (event) => {
+    if (event.target.closest?.('#email-compose-form')) {
+        syncEmailComposerDraft(event.target.closest('form'));
+        return;
+    }
+
+    if (event.target.matches('select[data-action="select-email-mailbox"]')) {
+        state.emailWorkspace.selectedMailboxId = normalizeWhitespace(event.target.value);
+        state.emailWorkspace.previewMode = 'thread';
+        await loadEmailThreads({ renderWhileLoading: true, preserveThread: false });
+        return;
+    }
+
     if (event.target.id === 'bulk-assignee') {
         state.bulkAssignRepId = event.target.value;
         renderPanels();
@@ -8672,13 +9902,27 @@ document.addEventListener('keydown', (event) => {
 
             if (!shouldShowSearchSuggestions()) {
                 state.searchSuggestionsOpen = true;
-                renderTopbar();
-                focusToolbarSearchInput(searchSurface, state.activeSearchCaret);
+                const syncedSearchUi = syncToolbarSearchUi({
+                    activeSurface: searchSurface,
+                    caretPosition: state.activeSearchCaret
+                });
+
+                if (!syncedSearchUi) {
+                    renderTopbar();
+                    focusToolbarSearchInput(searchSurface, state.activeSearchCaret);
+                }
 
                 if (!state.searchSuggestions.length && !state.searchSuggestionsLoading) {
                     state.searchSuggestionsLoading = true;
-                    renderTopbar();
-                    focusToolbarSearchInput(searchSurface, state.activeSearchCaret);
+                    const syncedLoadingUi = syncToolbarSearchUi({
+                        activeSurface: searchSurface,
+                        caretPosition: state.activeSearchCaret
+                    });
+
+                    if (!syncedLoadingUi) {
+                        renderTopbar();
+                        focusToolbarSearchInput(searchSurface, state.activeSearchCaret);
+                    }
                     queueToolbarSuggestions({ immediate: true, surface: searchSurface });
                 }
                 return;
@@ -8694,8 +9938,15 @@ document.addEventListener('keydown', (event) => {
                 : (state.activeSuggestionIndex + direction + state.searchSuggestions.length) % state.searchSuggestions.length;
 
             state.activeSuggestionIndex = nextIndex;
-            renderTopbar();
-            focusToolbarSearchInput(searchSurface, state.activeSearchCaret);
+            const syncedSearchUi = syncToolbarSearchUi({
+                activeSurface: searchSurface,
+                caretPosition: state.activeSearchCaret
+            });
+
+            if (!syncedSearchUi) {
+                renderTopbar();
+                focusToolbarSearchInput(searchSurface, state.activeSearchCaret);
+            }
             return;
         }
 
@@ -8716,8 +9967,15 @@ document.addEventListener('keydown', (event) => {
         if (event.key === 'Escape' && shouldShowSearchSuggestions()) {
             event.preventDefault();
             resetToolbarSuggestions();
-            renderTopbar();
-            focusToolbarSearchInput(searchSurface, state.activeSearchCaret);
+            const syncedSearchUi = syncToolbarSearchUi({
+                activeSurface: searchSurface,
+                caretPosition: state.activeSearchCaret
+            });
+
+            if (!syncedSearchUi) {
+                renderTopbar();
+                focusToolbarSearchInput(searchSurface, state.activeSearchCaret);
+            }
             return;
         }
     }
@@ -8749,6 +10007,12 @@ document.addEventListener('keydown', (event) => {
     }
 
     if (event.key !== 'Escape') {
+        return;
+    }
+
+    if (state.desktopNavOpen) {
+        state.desktopNavOpen = false;
+        renderTopbar();
         return;
     }
 
@@ -8784,9 +10048,15 @@ document.addEventListener('focusout', (event) => {
     if (event.target.matches('.crm-search')) {
         window.setTimeout(() => {
             if (!document.activeElement?.closest('.search-shell')) {
+                const searchSurface = getSearchSurfaceFromElement(event.target);
                 resetToolbarSuggestions();
                 setSearchShellExpanded(false);
-                renderTopbar();
+                if (!syncToolbarSearchUi({
+                    activeSurface: searchSurface,
+                    caretPosition: state.activeSearchCaret
+                })) {
+                    renderTopbar();
+                }
             }
         }, 120);
         return;
@@ -8850,8 +10120,15 @@ document.addEventListener('focusin', (event) => {
         state.activeSearchCaret = event.target.selectionStart ?? event.target.value.length;
         if (!state.searchShellExpanded) {
             setSearchShellExpanded(true);
-            renderTopbar();
-            focusToolbarSearchInput(searchSurface, state.activeSearchCaret);
+            const syncedSearchUi = syncToolbarSearchUi({
+                activeSurface: searchSurface,
+                caretPosition: state.activeSearchCaret
+            });
+
+            if (!syncedSearchUi) {
+                renderTopbar();
+                focusToolbarSearchInput(searchSurface, state.activeSearchCaret);
+            }
             return;
         }
 
@@ -8866,15 +10143,29 @@ document.addEventListener('focusin', (event) => {
         state.searchSuggestionsOpen = true;
 
         if (state.searchSuggestionsQuery === visibleQuery && (state.searchSuggestions.length || !state.searchSuggestionsLoading)) {
-            renderTopbar();
-            focusToolbarSearchInput(searchSurface, state.activeSearchCaret);
+            const syncedSearchUi = syncToolbarSearchUi({
+                activeSurface: searchSurface,
+                caretPosition: state.activeSearchCaret
+            });
+
+            if (!syncedSearchUi) {
+                renderTopbar();
+                focusToolbarSearchInput(searchSurface, state.activeSearchCaret);
+            }
             return;
         }
 
         state.searchSuggestionsLoading = true;
         state.searchSuggestionsQuery = visibleQuery;
-        renderTopbar();
-        focusToolbarSearchInput(searchSurface, state.activeSearchCaret);
+        const syncedSearchUi = syncToolbarSearchUi({
+            activeSurface: searchSurface,
+            caretPosition: state.activeSearchCaret
+        });
+
+        if (!syncedSearchUi) {
+            renderTopbar();
+            focusToolbarSearchInput(searchSurface, state.activeSearchCaret);
+        }
         queueToolbarSuggestions({ immediate: true, surface: searchSurface });
         return;
     }

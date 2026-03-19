@@ -144,6 +144,38 @@ export class CrmDataService {
     async backfillLeadTimeZones() {
         throw new Error('Lead time zone backfill is not available for this CRM data service.');
     }
+
+    async sendEmail() {
+        throw new Error('CRM email sending is not available for this CRM data service.');
+    }
+
+    async sendLeadEmail(payload = {}) {
+        return this.sendEmail(payload);
+    }
+
+    async listEmailMailboxes() {
+        return [];
+    }
+
+    async listEmailThreads() {
+        return [];
+    }
+
+    async getEmailThread() {
+        return null;
+    }
+
+    async syncEmailMailbox() {
+        throw new Error('Email sync is not available for this CRM data service.');
+    }
+
+    async markEmailThreadRead() {
+        return null;
+    }
+
+    async toggleEmailThreadStar() {
+        return null;
+    }
 }
 
 export function getImportFieldDefinitions() {

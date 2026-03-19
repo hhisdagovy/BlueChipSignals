@@ -33,6 +33,8 @@ Deno.serve(async (request) => {
       : profile.email
     const senderName = normalizeWhitespace(payload.senderName) || profile.fullName
     const smtpUsername = normalizeWhitespace(payload.smtpUsername || senderEmail).toLowerCase()
+    const imapInboxFolder = normalizeWhitespace(payload.imapInboxFolder) || 'INBOX'
+    const imapSentFolder = normalizeWhitespace(payload.imapSentFolder) || 'Sent'
 
     if (!senderEmail) {
       throw new Error('A sender email is required before saving the mailbox.')
@@ -48,7 +50,7 @@ Deno.serve(async (request) => {
 
     let senderQuery = supabase
       .from('mailbox_senders')
-      .select('id, kind, owner_user_id, sender_email, sender_name')
+      .select('id, kind, owner_user_id, sender_email, sender_name, imap_inbox_folder, imap_sent_folder')
 
     if (kind === 'support') {
       senderQuery = senderQuery.eq('kind', 'support').limit(1)
@@ -92,6 +94,8 @@ Deno.serve(async (request) => {
       ownerUserId: kind === 'personal' ? profile.id : null,
       senderEmail,
       senderName,
+      imapInboxFolder: normalizeWhitespace(existingSender?.imap_inbox_folder) || imapInboxFolder,
+      imapSentFolder: normalizeWhitespace(existingSender?.imap_sent_folder) || imapSentFolder,
       smtpUsername,
       smtpPassword
     })
@@ -106,6 +110,8 @@ Deno.serve(async (request) => {
         .update({
           sender_email: senderEmail,
           sender_name: senderName,
+          imap_inbox_folder: imapInboxFolder,
+          imap_sent_folder: imapSentFolder,
           is_active: true,
           last_verified_at: now,
           updated_by_user_id: profile.id,
@@ -124,6 +130,8 @@ Deno.serve(async (request) => {
           owner_user_id: kind === 'personal' ? profile.id : null,
           sender_email: senderEmail,
           sender_name: senderName,
+          imap_inbox_folder: imapInboxFolder,
+          imap_sent_folder: imapSentFolder,
           is_active: true,
           last_verified_at: now,
           created_by_user_id: profile.id,

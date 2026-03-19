@@ -220,7 +220,7 @@
 }
 
 .calendar-filter-chip.active {
-    color: var(--darker-bg);
+    color: var(--light-text);
     background: linear-gradient(135deg, var(--primary-gold), var(--secondary-gold));
     border-color: transparent;
 }
@@ -670,6 +670,7 @@
 .calendar-empty-chip:hover {
     border-color: rgba(201, 176, 55, 0.34);
     background: rgba(201, 176, 55, 0.14);
+    color: var(--light-text);
     transform: translateY(-1px);
 }
 
@@ -774,13 +775,27 @@
     min-width: 0;
 }
 
-.calendar-week-shell,
-.calendar-month-stage {
-    overflow: auto;
+.calendar-week-shell {
+    position: relative;
+    overflow-x: auto;
+    overflow-y: hidden;
+    border-radius: 24px;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
 }
 
-.calendar-week-shell {
-    border-radius: 24px;
+.calendar-week-shell::-webkit-scrollbar {
+    display: none;
+    width: 0;
+    height: 0;
+}
+
+.calendar-week-shell::-webkit-scrollbar-corner {
+    background: transparent;
+}
+
+.calendar-month-stage {
+    overflow: auto;
 }
 
 .calendar-week-head {
@@ -800,14 +815,21 @@
 }
 
 .calendar-week-day {
+    appearance: none;
+    -webkit-appearance: none;
     display: grid;
     gap: 0.18rem;
     justify-items: center;
     align-content: center;
     min-height: 58px;
+    margin: 0;
+    padding: 0;
+    border: none;
+    border-radius: 0;
     border-left: 1px solid rgba(255, 255, 255, 0.05);
     background: rgba(255, 255, 255, 0.015);
     color: var(--crm-text-soft);
+    box-shadow: none;
 }
 
 .calendar-week-day.selected {
@@ -829,8 +851,21 @@
     display: grid;
     grid-template-columns: 60px minmax(0, 1fr);
     max-height: calc(56px * 11);
-    overflow: auto;
+    overflow-x: hidden;
+    overflow-y: auto;
     min-width: 790px;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+}
+
+.calendar-week-body::-webkit-scrollbar {
+    display: none;
+    width: 0;
+    height: 0;
+}
+
+.calendar-week-body::-webkit-scrollbar-corner {
+    background: transparent;
 }
 
 .calendar-week-hours {
@@ -3328,7 +3363,7 @@ button {
 
 .lead-history-hero-left {
     display: grid;
-    gap: 0.25rem;
+    gap: 0;
 }
 
 .lead-history-scope-switch {
@@ -3340,7 +3375,7 @@ button {
     border-radius: 999px;
     border: 1px solid rgba(201, 176, 55, 0.16);
     background: rgba(255, 255, 255, 0.03);
-    margin-bottom: 0.7rem;
+    margin-bottom: 0;
 }
 
 .lead-history-scope-btn {
@@ -4492,6 +4527,65 @@ button {
     cursor: not-allowed;
 }
 
+.crm-phone-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    max-width: 100%;
+    color: var(--crm-accent);
+    font-weight: 600;
+    text-decoration: none;
+    text-underline-offset: 0.18em;
+}
+
+.crm-phone-link span,
+.crm-contact-field span {
+    overflow-wrap: anywhere;
+    word-break: break-word;
+}
+
+.crm-phone-link.has-icon i,
+.crm-contact-field i {
+    flex: 0 0 auto;
+    font-size: 0.82rem;
+}
+
+.crm-phone-link:hover,
+.crm-phone-link:focus-visible {
+    color: var(--primary-gold);
+    text-decoration: underline;
+    outline: none;
+}
+
+.crm-contact-field {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    text-decoration: none;
+}
+
+.crm-contact-field.is-callable {
+    cursor: pointer;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease, color 0.2s ease;
+}
+
+.crm-contact-field.is-callable:hover,
+.crm-contact-field.is-callable:focus-visible {
+    outline: none;
+    border-color: rgba(201, 176, 55, 0.34);
+    background: rgba(201, 176, 55, 0.08);
+    box-shadow: 0 0 0 3px rgba(201, 176, 55, 0.12);
+}
+
+.crm-contact-field.is-callable i {
+    color: var(--crm-accent);
+}
+
+.crm-contact-field.is-static {
+    cursor: default;
+}
+
 .crm-select {
     min-width: 160px;
 }
@@ -4915,6 +5009,11 @@ button {
     line-height: 1.55;
     overflow-wrap: anywhere;
     word-break: break-word;
+}
+
+.crm-search-preview-field-value .crm-phone-link {
+    width: fit-content;
+    max-width: 100%;
 }
 
 .crm-search-preview-chip-wrap {
@@ -5496,6 +5595,18 @@ button {
     box-shadow: none;
 }
 
+.lead-detail-contact-card .crm-contact-field.is-static {
+    opacity: 1;
+    color: rgba(255, 255, 255, 0.66);
+    border-color: rgba(255, 255, 255, 0.08);
+    background: rgba(255, 255, 255, 0.045);
+    box-shadow: none;
+}
+
+.lead-detail-contact-card .crm-contact-field.is-callable {
+    color: var(--light-text);
+}
+
 .lead-detail-contact-card .tag-picker-shell {
     min-height: 60px;
     border-radius: 16px;
@@ -5599,7 +5710,17 @@ button {
 }
 
 .crm-history-modal-copy {
+    --crm-history-copy-offset: 0.9rem;
     max-width: 720px;
+}
+
+.crm-history-modal-copy .modal-title {
+    padding-left: var(--crm-history-copy-offset);
+    margin-top: 0.3rem;
+}
+
+.crm-history-modal-copy .crm-history-modal-meta {
+    padding-left: var(--crm-history-copy-offset);
 }
 
 .crm-history-modal-meta {
@@ -6207,6 +6328,21 @@ button {
 
     .lead-detail-card-head-actions {
         justify-content: flex-start;
+    }
+
+    .lead-detail-calendar-card .panel-head {
+        align-items: flex-start;
+    }
+
+    .lead-detail-calendar-card .lead-detail-action-button {
+        align-self: flex-start;
+        padding: 0.48rem 0.7rem;
+        border-radius: 11px;
+        font-size: 0.82rem;
+    }
+
+    .lead-detail-calendar-card .lead-detail-action-button i {
+        font-size: 0.76rem;
     }
 
     .crm-settings-field-grid,

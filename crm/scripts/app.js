@@ -26,6 +26,7 @@ import {
     formatDate,
     formatDateTime,
     isToday,
+    normalizePhone,
     parseAreaCodes,
     parseMultiValueList,
     parseTags,
@@ -1260,7 +1261,7 @@ function getLeadDetailNavigationContext() {
     const currentIndex = visibleSet.findIndex((item) => item.id === state.detailClientId);
     const backLabel = state.lastWorkspaceView === 'members'
         ? 'Members'
-        : (state.lastWorkspaceView === 'assigned-leads' ? 'Assigned Leads' : 'Unassigned Leads');
+        : (state.lastWorkspaceView === 'assigned-leads' ? 'Assigned Leads' : 'Leads');
 
     return {
         detailScope,
@@ -1479,10 +1480,70 @@ function renderToolbarSuggestionList(surface = 'desktop') {
 }
 
 function renderPreviewField(label, value, { fullWidth = false } = {}) {
+    const isRichValue = value && typeof value === 'object' && !Array.isArray(value);
+    const fieldMarkup = isRichValue && typeof value.html === 'string'
+        ? value.html
+        : escapeHtml(isRichValue ? (value.text || '—') : (value || '—'));
+
     return `
         <div class="crm-search-preview-field ${fullWidth ? 'is-full' : ''}">
             <span class="crm-search-preview-field-label">${escapeHtml(label)}</span>
-            <div class="crm-search-preview-field-value">${escapeHtml(value || '—')}</div>
+            <div class="crm-search-preview-field-value">${fieldMarkup}</div>
+        </div>
+    `;
+}
+
+function buildPhoneHref(phoneValue) {
+    const displayValue = normalizeWhitespace(phoneValue);
+    const digits = normalizePhone(displayValue);
+
+    if (!displayValue || digits.length < 7) {
+        return '';
+    }
+
+    if (digits.length === 10) {
+        return `tel:+1${digits}`;
+    }
+
+    if (digits.length === 11) {
+        return `tel:+${digits}`;
+    }
+
+    return `tel:${digits}`;
+}
+
+function renderPhoneLink(phoneValue, { placeholder = '—', className = 'crm-phone-link', includeIcon = false } = {}) {
+    const displayValue = normalizeWhitespace(phoneValue);
+
+    if (!displayValue) {
+        return escapeHtml(placeholder);
+    }
+
+    const href = buildPhoneHref(displayValue);
+
+    if (!href) {
+        return escapeHtml(displayValue);
+    }
+
+    const classes = [className, includeIcon ? 'has-icon' : ''].filter(Boolean).join(' ');
+    const callLabel = `Call ${displayValue}`;
+
+    return `<a class="${classes}" href="${href}" aria-label="${escapeHtml(callLabel)}" title="${escapeHtml(callLabel)}">${includeIcon ? '<i class="fa-solid fa-phone" aria-hidden="true"></i>' : ''}<span>${escapeHtml(displayValue)}</span></a>`;
+}
+
+function renderReadOnlyPhoneField(label, name, value) {
+    const displayValue = normalizeWhitespace(value);
+    const href = buildPhoneHref(displayValue);
+    const callLabel = `Call ${displayValue}`;
+    const controlMarkup = href
+        ? `<a class="crm-input crm-contact-field is-callable" href="${href}" aria-label="${escapeHtml(callLabel)}" title="${escapeHtml(callLabel)}"><span>${escapeHtml(displayValue)}</span><i class="fa-solid fa-phone" aria-hidden="true"></i></a>`
+        : `<div class="crm-input crm-contact-field is-static"><span>${escapeHtml(displayValue || '—')}</span></div>`;
+
+    return `
+        <div class="form-field">
+            <span class="form-label">${escapeHtml(label)}</span>
+            <input type="hidden" name="${escapeHtml(name)}" value="${escapeHtml(value || '')}">
+            ${controlMarkup}
         </div>
     `;
 }
@@ -1810,7 +1871,7 @@ function renderOverviewPanel() {
                                     <li>
                                         <div class="ov-activity-main">
                                             <span class="ov-activity-title">${escapeHtml(client.fullName || 'Unnamed lead')}</span>
-                                            <span class="ov-activity-meta">${escapeHtml(client.email || client.phone || 'No contact info')}</span>
+                                            <span class="ov-activity-meta">${client.email ? escapeHtml(client.email) : renderPhoneLink(client.phone, { placeholder: 'No contact info' })}</span>
                                         </div>
                                         <span class="ov-meta-chip">${escapeHtml(formatDateTime(client.updatedAt))}</span>
                                     </li>
@@ -1840,7 +1901,7 @@ function renderCalendarPage() {
     const monthDate = getMonthCursorDate();
     const selectedDateEvents = getCalendarEventsForDate(selectedDateKey, filteredEvents);
     const calendarTitle = state.calendar.view === 'month'
-        ? formatCalendarMonthLabel(monthDate)
+        ? formatCalendarStageMonthLabel(monthDate)
         : formatCalendarWeekRangeLabel(selectedDate);
     const inlineFilterButtons = [
         renderCalendarFilterButton('mine', 'Mine'),
@@ -2238,10 +2299,10 @@ function formatCalendarWeekRangeLabel(anchorDate = getCalendarSelectedDate()) {
     const lastDay = weekDates[weekDates.length - 1];
 
     if (firstDay.getMonth() === lastDay.getMonth()) {
-        return `${new Intl.DateTimeFormat('en-US', { month: 'long' }).format(firstDay)} ${firstDay.getDate()}-${lastDay.getDate()}, ${lastDay.getFullYear()}`;
+        return `${new Intl.DateTimeFormat('en-US', { month: 'long' }).format(firstDay)} ${firstDay.getDate()}-${lastDay.getDate()}`;
     }
 
-    return `${new Intl.DateTimeFormat('en-US', { month: 'short' }).format(firstDay)} ${firstDay.getDate()} - ${new Intl.DateTimeFormat('en-US', { month: 'short' }).format(lastDay)} ${lastDay.getDate()}, ${lastDay.getFullYear()}`;
+    return `${new Intl.DateTimeFormat('en-US', { month: 'short' }).format(firstDay)} ${firstDay.getDate()} - ${new Intl.DateTimeFormat('en-US', { month: 'short' }).format(lastDay)} ${lastDay.getDate()}`;
 }
 
 function formatCalendarHourLabel(hour) {
@@ -2455,6 +2516,12 @@ function formatCalendarMonthLabel(value) {
     }).format(value instanceof Date ? value : new Date(value));
 }
 
+function formatCalendarStageMonthLabel(value) {
+    return new Intl.DateTimeFormat('en-US', {
+        month: 'long'
+    }).format(value instanceof Date ? value : new Date(value));
+}
+
 function formatCalendarFullDate(value) {
     return new Intl.DateTimeFormat('en-US', {
         weekday: 'long',
@@ -2603,8 +2670,6 @@ function renderLeadHistoryPanel({
                             Members
                         </button>
                     </div>
-                    <h1>${workspaceLabel}</h1>
-                    <p>${searchSummary}</p>
                 </div>
                 <span class="lead-history-hero-badge">${heroBadge}</span>
             </section>
@@ -2861,7 +2926,7 @@ function renderLeadHistoryTableRows({
                 <span class="lead-history-submeta">${escapeHtml(buildClientMetaLine(client))}</span>
             </td>
             <td>${escapeHtml(client.email || '—')}</td>
-            <td>${escapeHtml(client.phone || '—')}</td>
+            <td>${renderPhoneLink(client.phone)}</td>
             <td class="lead-history-tags-cell">${client.tags.length ? client.tags.slice(0, 3).map((tag) => `<span class="lead-history-tag"><strong>${escapeHtml(tag)}</strong></span>`).join(' ') : '<span class="lead-history-muted">—</span>'}</td>
             <td class="lead-history-notes-cell"><div class="lead-history-notes-preview">${escapeHtml(truncate(client.notes || 'No notes yet.', 96))}</div></td>
             <td><span class="status-pill ${escapeHtml(client.status)}">${escapeHtml(client.status)}</span></td>
@@ -3474,6 +3539,10 @@ function renderLeadHistoryEntries(entries) {
 }
 
 function renderLeadField(label, name, value, editable, type = 'text') {
+    if (!editable && name === 'phone') {
+        return renderReadOnlyPhoneField(label, name, value);
+    }
+
     return `
         <label class="form-field">
             <span class="form-label">${escapeHtml(label)}</span>
@@ -4336,7 +4405,12 @@ function renderLookupPreviewDrawer(client) {
                             <p class="crm-search-preview-section-copy">Primary ways to reach this record.</p>
                         </div>
                         <div class="crm-search-preview-field-grid">
-                            ${renderPreviewField('Phone', client.phone || '—')}
+                            ${renderPreviewField('Phone', {
+                                html: renderPhoneLink(client.phone, {
+                                    className: 'crm-phone-link crm-search-preview-phone-link',
+                                    includeIcon: true
+                                })
+                            })}
                             ${renderPreviewField('Email', client.email || '—', { fullWidth: true })}
                             ${renderPreviewField('Business', client.businessName || '—', { fullWidth: true })}
                         </div>
@@ -5032,7 +5106,7 @@ function renderLeadHistoryModal() {
             <div class="crm-modal crm-history-modal" role="dialog" aria-modal="true" aria-labelledby="crm-history-modal-title">
                 <div class="crm-history-modal-head">
                     <div class="crm-history-modal-copy">
-                        <span class="crm-kicker"><i class="fa-solid fa-timeline"></i> Lead history</span>
+                        <span class="crm-kicker">Lead history</span>
                         <h2 id="crm-history-modal-title" class="modal-title">History unavailable</h2>
                         <p class="panel-subtitle">This record is no longer available in the current workspace view.</p>
                     </div>
@@ -5053,9 +5127,8 @@ function renderLeadHistoryModal() {
         <div class="crm-modal crm-history-modal" role="dialog" aria-modal="true" aria-labelledby="crm-history-modal-title">
             <div class="crm-history-modal-head">
                 <div class="crm-history-modal-copy">
-                    <span class="crm-kicker"><i class="fa-solid fa-timeline"></i> ${escapeHtml(entityLabel)} history</span>
+                    <span class="crm-kicker">${escapeHtml(entityLabel)} history</span>
                     <h2 id="crm-history-modal-title" class="modal-title">${escapeHtml(detailName)}</h2>
-                    <p class="panel-subtitle">Review the full change log for this record without leaving the page.</p>
                     <div class="crm-history-modal-meta">
                         <span class="summary-chip"><i class="fa-solid fa-clock-rotate-left"></i> ${leadHistoryEntries.length.toLocaleString()} updates</span>
                         <span class="summary-chip"><i class="fa-solid fa-user-check"></i> ${escapeHtml(lead.assignedTo || 'Unassigned')}</span>
@@ -5102,7 +5175,7 @@ function renderCreateDuplicateModal() {
                     <ul class="mini-list">
                         <li><span class="mini-list-title">Name</span><span class="mini-list-meta">${escapeHtml(duplicateLead.fullName || 'Unnamed lead')}</span></li>
                         <li><span class="mini-list-title">Email</span><span class="mini-list-meta">${escapeHtml(duplicateLead.email || '—')}</span></li>
-                        <li><span class="mini-list-title">Phone</span><span class="mini-list-meta">${escapeHtml(duplicateLead.phone || '—')}</span></li>
+                        <li><span class="mini-list-title">Phone</span><span class="mini-list-meta">${renderPhoneLink(duplicateLead.phone)}</span></li>
                         <li><span class="mini-list-title">Assigned rep</span><span class="mini-list-meta">${escapeHtml(duplicateLead.assignedTo || 'Unassigned')}</span></li>
                     </ul>
                 </section>
@@ -5111,7 +5184,7 @@ function renderCreateDuplicateModal() {
                     <ul class="mini-list">
                         <li><span class="mini-list-title">Name</span><span class="mini-list-meta">${escapeHtml(`${incomingPayload.firstName || ''} ${incomingPayload.lastName || ''}`.trim() || 'Unnamed lead')}</span></li>
                         <li><span class="mini-list-title">Email</span><span class="mini-list-meta">${escapeHtml(incomingPayload.email || '—')}</span></li>
-                        <li><span class="mini-list-title">Phone</span><span class="mini-list-meta">${escapeHtml(incomingPayload.phone || '—')}</span></li>
+                        <li><span class="mini-list-title">Phone</span><span class="mini-list-meta">${renderPhoneLink(incomingPayload.phone)}</span></li>
                         <li><span class="mini-list-title">Status</span><span class="mini-list-meta">${escapeHtml(titleCase(incomingPayload.status || 'new'))}</span></li>
                     </ul>
                 </section>
@@ -5427,7 +5500,7 @@ function renderImportModal() {
                             <tr>
                                 <td>${escapeHtml(client.fullName || 'Unnamed lead')}</td>
                                 <td>${escapeHtml(client.email || '—')}</td>
-                                <td>${escapeHtml(client.phone || '—')}</td>
+                                <td>${renderPhoneLink(client.phone)}</td>
                                 <td>${escapeHtml((client.tags || []).join(', ') || '—')}</td>
                                 <td>${escapeHtml(client.status || 'new')}</td>
                             </tr>
@@ -6285,8 +6358,41 @@ function getLeadHistoryEntries(lead) {
         .sort((left, right) => Date.parse(right.changedAt ?? right.createdAt ?? 0) - Date.parse(left.changedAt ?? left.createdAt ?? 0));
 }
 
+function looksLikeCrmUserId(value) {
+    return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(normalizeWhitespace(value));
+}
+
+function resolveHistoryActorName(name, userId) {
+    const normalizedName = normalizeWhitespace(name);
+    const normalizedUserId = normalizeWhitespace(userId);
+
+    if (normalizedUserId) {
+        const matchedUser = state.users.find((user) => user.id === normalizedUserId) || authService.getUserById(normalizedUserId);
+
+        if (matchedUser?.role === 'admin') {
+            return 'Admin';
+        }
+
+        if (matchedUser?.name) {
+            return matchedUser.name;
+        }
+    }
+
+    if (normalizedName && !looksLikeCrmUserId(normalizedName)) {
+        return normalizedName;
+    }
+
+    if (normalizedUserId && looksLikeCrmUserId(normalizedUserId)) {
+        return 'Admin';
+    }
+
+    return normalizedName || normalizedUserId || '';
+}
+
 function getLeadHistoryActorLabel(entry) {
-    return entry?.changedByName || entry?.changedByUserId || entry?.createdByName || entry?.createdByUserId || 'System';
+    return resolveHistoryActorName(entry?.changedByName, entry?.changedByUserId)
+        || resolveHistoryActorName(entry?.createdByName, entry?.createdByUserId)
+        || 'System';
 }
 
 function getLeadDetailDispositionOptions(lead) {

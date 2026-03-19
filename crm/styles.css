@@ -2230,21 +2230,22 @@ button {
 }
 
 .lead-history-filters {
+    position: relative;
     background: rgba(10, 14, 22, 0.7);
     border: 1px solid rgba(201, 176, 55, 0.12);
     border-radius: 14px;
-    padding: 1rem 1.25rem;
+    padding: 0.9rem 1.1rem;
     display: flex;
     flex-wrap: wrap;
     align-items: center;
-    gap: 0.75rem;
+    gap: 0.55rem;
 }
 
 .lead-history-filter-group {
     display: flex;
     flex-wrap: wrap;
     align-items: center;
-    gap: 0.3rem;
+    gap: 0.45rem;
 }
 
 .lead-history-filter-group-saved {
@@ -2265,7 +2266,7 @@ button {
     width: 1px;
     height: 20px;
     background: rgba(255, 255, 255, 0.08);
-    margin: 0 0.25rem;
+    margin: 0 0.12rem;
 }
 
 .lead-history-pill {
@@ -2340,6 +2341,10 @@ button {
     min-width: 130px;
 }
 
+.lead-history-toolbar-select {
+    min-width: 138px;
+}
+
 .lead-history-select:focus {
     border-color: rgba(201, 176, 55, 0.45);
 }
@@ -2380,17 +2385,6 @@ button {
     cursor: not-allowed;
 }
 
-.lead-history-advanced {
-    display: grid;
-}
-
-.lead-history-advanced-grid {
-    display: grid;
-    grid-template-columns: minmax(0, 1.3fr) minmax(320px, 0.9fr);
-    gap: 1rem;
-}
-
-.lead-history-advanced-card,
 .lead-history-table-card {
     background: rgba(10, 14, 22, 0.7);
     border: 1px solid rgba(201, 176, 55, 0.12);
@@ -2398,8 +2392,48 @@ button {
     overflow: hidden;
 }
 
-.lead-history-advanced-card {
-    padding: 1.15rem 1.25rem;
+.lead-history-advanced-shell {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+}
+
+.lead-history-advanced-shell.open {
+    z-index: 46;
+}
+
+.lead-history-advanced-menu {
+    position: absolute;
+    top: calc(100% + 0.75rem);
+    right: 0;
+    width: min(440px, calc(100vw - 3rem));
+    max-height: min(84vh, 720px);
+    display: grid;
+    grid-template-rows: auto minmax(0, 1fr);
+    border-radius: 18px;
+    border: 1px solid rgba(201, 176, 55, 0.18);
+    background: rgba(5, 8, 16, 0.96);
+    box-shadow: 0 24px 54px rgba(0, 0, 0, 0.36);
+    backdrop-filter: blur(18px);
+    -webkit-backdrop-filter: blur(18px);
+    overflow: hidden;
+    z-index: 45;
+}
+
+.lead-history-advanced-menu-head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 0.65rem;
+    padding: 0.7rem 0.78rem 0.62rem;
+    border-bottom: 1px solid rgba(201, 176, 55, 0.08);
+    flex-wrap: wrap;
+}
+
+.lead-history-advanced-menu-scroll {
+    min-height: 0;
+    overflow-y: auto;
+    padding: 0.62rem 0.78rem 0.78rem;
 }
 
 .lead-history-section-head {
@@ -2412,27 +2446,52 @@ button {
 }
 
 .lead-history-section-title {
-    font-size: 0.86rem;
+    font-size: 0.82rem;
     font-weight: 700;
     color: rgba(255, 255, 255, 0.82);
 }
 
 .lead-history-section-copy {
-    margin-top: 0.25rem;
-    font-size: 0.78rem;
+    margin: 0.18rem 0 0;
+    font-size: 0.72rem;
+    line-height: 1.4;
     color: rgba(255, 255, 255, 0.42);
 }
 
 .lead-history-filter-panel {
-    gap: 0.85rem;
+    gap: 0.65rem;
 }
 
 .lead-history-save-form {
     margin-top: 0.35rem;
 }
 
+.lead-history-save-form.compact {
+    margin-top: 0;
+}
+
+.lead-history-saved-form-actions {
+    margin-top: 1rem;
+}
+
 .lead-history-saved-list {
     margin-top: 1rem;
+}
+
+.lead-history-saved-card {
+    padding: 0.8rem 0.85rem;
+}
+
+.lead-history-saved-card-actions {
+    margin-top: 0.75rem;
+}
+
+.lead-history-empty-state {
+    padding: 0.95rem 1rem;
+    border-radius: 14px;
+    border: 1px dashed rgba(255, 255, 255, 0.08);
+    color: rgba(255, 255, 255, 0.48);
+    background: rgba(255, 255, 255, 0.025);
 }
 
 .lead-history-table-meta {
@@ -3084,44 +3143,115 @@ button {
 }
 
 .multi-filter-group {
-    display: grid;
-    gap: 0.85rem;
-    padding: 1rem;
-    border-radius: 18px;
-    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: 14px;
+    border: 1px solid rgba(255, 255, 255, 0.07);
     background: rgba(255, 255, 255, 0.03);
+    overflow: hidden;
+    transition: border-color 0.18s ease, background 0.18s ease, box-shadow 0.18s ease;
 }
 
-.multi-filter-head {
+.multi-filter-group.open {
+    border-color: rgba(201, 176, 55, 0.2);
+    background: rgba(201, 176, 55, 0.05);
+    box-shadow: 0 0 0 1px rgba(201, 176, 55, 0.08) inset;
+}
+
+.multi-filter-toggle {
+    width: 100%;
+    padding: 0.62rem 0.72rem;
     display: flex;
+    align-items: center;
     justify-content: space-between;
-    gap: 0.9rem;
+    gap: 0.7rem;
+    border: none;
+    background: transparent;
+    color: inherit;
+    text-align: left;
+}
+
+.multi-filter-toggle-copy {
+    display: grid;
+    gap: 0.12rem;
+    min-width: 0;
+}
+
+.multi-filter-toggle-meta {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-shrink: 0;
+}
+
+.multi-filter-toggle-icon {
+    color: rgba(255, 255, 255, 0.42);
+    transition: transform 0.18s ease, color 0.18s ease;
+}
+
+.multi-filter-toggle:hover .mapping-label,
+.multi-filter-toggle:hover .multi-filter-toggle-icon {
+    color: rgba(255, 255, 255, 0.92);
+}
+
+.multi-filter-toggle:focus-visible {
+    outline: none;
+    box-shadow: inset 0 0 0 2px rgba(201, 176, 55, 0.2);
+}
+
+.multi-filter-group.open .multi-filter-toggle-icon {
+    color: var(--crm-accent);
+    transform: rotate(180deg);
+}
+
+.multi-filter-panel {
+    display: none;
+    gap: 0.65rem;
+    padding: 0 0.72rem 0.72rem;
+}
+
+.multi-filter-group.open .multi-filter-panel {
+    display: grid;
+}
+
+.multi-filter-panel-head {
+    display: flex;
     align-items: flex-start;
+    justify-content: space-between;
+    gap: 0.8rem;
     flex-wrap: wrap;
 }
 
 .multi-filter-shell {
     display: flex;
     flex-wrap: wrap;
-    gap: 0.55rem;
+    gap: 0.38rem;
     align-items: center;
-    min-height: 58px;
-    padding: 0.8rem 0.9rem;
-    border-radius: 16px;
+    min-height: 40px;
+    padding: 0.45rem 0.58rem;
+    border-radius: 12px;
     border: 1px solid rgba(255, 255, 255, 0.08);
     background: rgba(255, 255, 255, 0.025);
+}
+
+.multi-filter-select-shell {
+    display: block;
+}
+
+.multi-filter-select {
+    min-width: 0;
+    padding: 0.58rem 0.72rem;
+    border-radius: 10px;
 }
 
 .filter-token {
     display: inline-flex;
     align-items: center;
     gap: 0.45rem;
-    padding: 0.45rem 0.75rem;
+    padding: 0.36rem 0.62rem;
     border-radius: 999px;
     background: rgba(201, 176, 55, 0.12);
     border: 1px solid rgba(201, 176, 55, 0.2);
     color: var(--crm-accent);
-    font-size: 0.82rem;
+    font-size: 0.77rem;
     font-weight: 700;
 }
 
@@ -3145,12 +3275,12 @@ button {
 }
 
 .filter-token-input {
-    flex: 1 1 150px;
-    min-width: 140px;
+    flex: 1 1 130px;
+    min-width: 120px;
     border: none;
     background: transparent;
     color: var(--light-text);
-    padding: 0.35rem 0;
+    padding: 0.2rem 0;
 }
 
 .filter-token-input:focus {
@@ -3733,8 +3863,30 @@ button {
 }
 
 .mapping-hint {
+    margin: 0;
     color: var(--crm-text-muted);
     font-size: 0.84rem;
+}
+
+.lead-history-advanced-menu .mapping-label {
+    font-size: 0.79rem;
+    line-height: 1.12;
+}
+
+.lead-history-advanced-menu .mapping-hint {
+    font-size: 0.73rem;
+    line-height: 1.3;
+}
+
+.lead-history-advanced-menu .summary-chip {
+    gap: 0.35rem;
+    padding: 0.3rem 0.62rem;
+    font-size: 0.71rem;
+}
+
+.lead-history-advanced-menu .lead-history-clear-btn {
+    padding: 0.32rem 0.62rem;
+    font-size: 0.65rem;
 }
 
 .stats-strip {
@@ -4498,8 +4650,8 @@ button {
         grid-template-columns: 1fr;
     }
 
-    .lead-history-advanced-grid {
-        grid-template-columns: 1fr;
+    .lead-history-advanced-menu {
+        width: min(420px, calc(100vw - 2.5rem));
     }
 
     .auth-grid,
@@ -4552,6 +4704,18 @@ button {
         flex-basis: 100%;
     }
 
+    .lead-history-advanced-shell {
+        position: static;
+    }
+
+    .lead-history-advanced-menu {
+        left: 0;
+        right: 0;
+        top: calc(100% + 0.75rem);
+        width: auto;
+        margin-top: 0;
+    }
+
     .lead-history-hero {
         padding: 1.35rem 1.5rem;
     }
@@ -4578,6 +4742,12 @@ button {
 }
 
 @media (max-width: 768px) {
+    .lead-history-advanced-menu-head,
+    .lead-history-advanced-menu-scroll {
+        padding-left: 0.9rem;
+        padding-right: 0.9rem;
+    }
+
     body.crm-body.crm-nav-open {
         height: 100vh;
         height: 100dvh;
@@ -4866,8 +5036,7 @@ button {
 
     .lead-history-table-meta,
     .lead-history-bulk-bar,
-    .lead-history-pagination,
-    .lead-history-advanced-card {
+    .lead-history-pagination {
         padding-left: 1rem;
         padding-right: 1rem;
     }

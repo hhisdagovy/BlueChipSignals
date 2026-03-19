@@ -3,9 +3,11 @@ import {
   CRM_STATUS_OPTIONS
 } from './crm-data-service.js'
 import {
+  normalizeTimeZoneLabel,
   inferTimeZoneFromPhone,
   resolveLeadTimeZone
 } from './crm-time-zone-resolver.js'
+import { US_AREA_CODE_TIME_ZONE_GROUPS } from '../data/us-area-code-time-zones.js'
 import {
   buildFullName,
   dedupeStrings,
@@ -59,6 +61,12 @@ const LEAD_SUGGESTION_SELECT_COLUMNS = [
 const PROFILE_ACCESS_SELECT = 'role, active'
 const SUPABASE_BATCH_SIZE = 1000
 const SUPABASE_FILTER_BATCH_SIZE = 250
+const TIME_ZONE_FILTER_AREA_CODES = Object.freeze(Object.fromEntries(
+  Object.entries(US_AREA_CODE_TIME_ZONE_GROUPS).map(([timeZone, areaCodes]) => [
+    normalizeWhitespace(timeZone).toLowerCase(),
+    Array.isArray(areaCodes) ? areaCodes : []
+  ])
+))
 
 export class SupabaseCrmDataService extends CrmDataService {
   constructor() {
@@ -165,7 +173,7 @@ export class SupabaseCrmDataService extends CrmDataService {
     }
 
     if (normalizedStatusFilter !== 'all') {
-      query = query.eq('status', normalizedStatusFilter)
+      query = applyStoredStatusFilter(query, normalizedStatusFilter)
     }
 
     if (booleanExpression) {
@@ -254,7 +262,12 @@ export class SupabaseCrmDataService extends CrmDataService {
   }
 
   async saveClient(payload) {
-    const existing = payload.id ? await this.getClientById(payload.id) : null
+    const [existing, existingLeadRow] = payload.id
+      ? await Promise.all([
+        this.getClientById(payload.id),
+        this.fetchLeadRowById(payload.id)
+      ])
+      : [null, null]
     const client = this.normalizeManualClient(payload, existing, payload.actor ?? null)
     const dispositionDefinitions = await this.listDispositionDefinitions()
     const supabase = await getSupabase()
@@ -262,13 +275,38 @@ export class SupabaseCrmDataService extends CrmDataService {
 
     if (existing) {
       const updatePayload = buildLeadUpdatePayload(client, { dispositionDefinitions, existingLead: existing })
+
+      if (shouldPreserveStoredLeadStatus({
+        payload,
+        client,
+        existingLead: existing,
+        existingLeadRow
+      })) {
+        delete updatePayload.status
+      }
+
       const { error } = await supabase
         .from('leads')
         .update(updatePayload)
         .eq('id', existing.id)
 
       if (error) {
-        throw new Error(error.message || 'Unable to save the lead to Supabase.')
+        if (isLeadStatusConstraintError(error)) {
+          const recovered = await this.tryRecoverLeadStatusUpdate({
+            supabase,
+            leadId: existing.id,
+            updatePayload,
+            client,
+            existingLead: existing,
+            existingLeadRow
+          })
+
+          if (!recovered) {
+            throw new Error(describeLeadWriteError(error))
+          }
+        } else {
+          throw new Error(describeLeadWriteError(error))
+        }
       }
     } else {
       const insertPayload = buildLeadInsertPayload(client, { dispositionDefinitions, existingLead: existing })
@@ -279,7 +317,7 @@ export class SupabaseCrmDataService extends CrmDataService {
         .single()
 
       if (error) {
-        throw new Error(error.message || 'Unable to save the lead to Supabase.')
+        throw new Error(describeLeadWriteError(error))
       }
 
       leadId = String(data?.id ?? '').trim()
@@ -760,6 +798,72 @@ export class SupabaseCrmDataService extends CrmDataService {
     }
 
     return data ?? []
+  }
+
+  async fetchLeadRowById(clientId) {
+    const normalizedId = String(clientId ?? '').trim()
+
+    if (!normalizedId) {
+      return null
+    }
+
+    const [leadRow] = await this.fetchLeadRows((query) => query.eq('id', normalizedId).limit(1))
+    return leadRow || null
+  }
+
+  async tryRecoverLeadStatusUpdate({
+    supabase,
+    leadId,
+    updatePayload,
+    client,
+    existingLead,
+    existingLeadRow
+  } = {}) {
+    const normalizedLeadId = String(leadId ?? '').trim()
+
+    if (!normalizedLeadId) {
+      return false
+    }
+
+    const candidatePayloads = buildLeadStatusRecoveryPayloads({
+      updatePayload,
+      client,
+      existingLead,
+      existingLeadRow
+    })
+    const followUpPayload = omitLeadWorkflowFields(updatePayload)
+
+    for (const candidate of candidatePayloads) {
+      const { error } = await supabase
+        .from('leads')
+        .update(candidate)
+        .eq('id', normalizedLeadId)
+
+      if (!error) {
+        if (Object.keys(followUpPayload).length) {
+          const { error: followUpError } = await supabase
+            .from('leads')
+            .update(followUpPayload)
+            .eq('id', normalizedLeadId)
+
+          if (followUpError) {
+            if (!isLeadStatusConstraintError(followUpError)) {
+              throw new Error(describeLeadWriteError(followUpError))
+            }
+
+            continue
+          }
+        }
+
+        return true
+      }
+
+      if (!isLeadStatusConstraintError(error)) {
+        throw new Error(describeLeadWriteError(error))
+      }
+    }
+
+    return false
   }
 
   async fetchAllRows(table, configureQuery = (query) => query, selectClause = '*', errorMessage = '') {
@@ -1508,7 +1612,7 @@ function buildLeadInsertPayload(client, { dispositionDefinitions = [], existingL
     email: client.email,
     phone: client.phone,
     business_name: client.businessName || null,
-    status: normalizeStatus(client.status),
+    status: serializeStatusForStorage(client.status),
     lifecycle: normalizeLifecycle(client.lifecycleType),
     assigned_rep_id: client.assignedRepId || null,
     subscription_type: client.subscriptionType || null,
@@ -1532,7 +1636,7 @@ function buildLeadUpdatePayload(client, { dispositionDefinitions = [], existingL
     email: client.email,
     phone: client.phone,
     business_name: client.businessName || null,
-    status: normalizeStatus(client.status),
+    status: serializeStatusForStorage(client.status),
     lifecycle: normalizeLifecycle(client.lifecycleType),
     assigned_rep_id: client.assignedRepId || null,
     subscription_type: client.subscriptionType || null,
@@ -1545,6 +1649,146 @@ function buildLeadUpdatePayload(client, { dispositionDefinitions = [], existingL
     source_last_activity_raw: client.sourceLastActivityRaw || null,
     updated_at: client.updatedAt
   }
+}
+
+function shouldPreserveStoredLeadStatus({ payload, client, existingLead, existingLeadRow } = {}) {
+  if (!existingLead || !existingLeadRow) {
+    return false
+  }
+
+  const payloadIncludesStatus = Boolean(payload && Object.prototype.hasOwnProperty.call(payload, 'status'))
+  const nextStatus = normalizeStatus(payload?.status ?? client?.status)
+  const displayedStatus = normalizeStatus(existingLead.status)
+  const storedStatusRaw = normalizeWhitespace(existingLeadRow.status)
+  const serializedNextStatus = normalizeWhitespace(serializeStatusForStorage(client?.status ?? payload?.status))
+
+  if (!storedStatusRaw) {
+    return false
+  }
+
+  if (payloadIncludesStatus && displayedStatus && nextStatus !== displayedStatus) {
+    return false
+  }
+
+  if (normalizeWhitespace(storedStatusRaw).toLowerCase() === serializedNextStatus.toLowerCase()) {
+    return false
+  }
+
+  return true
+}
+
+function applyStoredStatusFilter(query, status) {
+  const normalizedStatus = normalizeStatus(status)
+  const statusVariants = dedupeStrings([
+    serializeStatusForStorage(normalizedStatus),
+    normalizedStatus,
+    ...getLeadStatusRecoveryVariants(normalizedStatus)
+  ])
+
+  if (!statusVariants.length) {
+    return query
+  }
+
+  if (statusVariants.length === 1) {
+    return query.eq('status', statusVariants[0])
+  }
+
+  return query.in('status', statusVariants)
+}
+
+function buildLeadStatusRecoveryPayloads({ updatePayload, client, existingLead, existingLeadRow } = {}) {
+  const normalizedStatus = normalizeStatus(client?.status ?? updatePayload?.status)
+  const normalizedLifecycle = normalizeLifecycle(client?.lifecycleType ?? updatePayload?.lifecycle)
+  const existingRawStatus = normalizeWhitespace(existingLeadRow?.status)
+  const existingRawLifecycle = normalizeWhitespace(existingLeadRow?.lifecycle)
+  const desiredStatus = normalizeWhitespace(updatePayload?.status)
+  const desiredLifecycle = normalizeWhitespace(updatePayload?.lifecycle) || normalizedLifecycle
+  const basePayload = {
+    updated_at: updatePayload?.updated_at ?? new Date().toISOString()
+  }
+  const preferredLifecycle = normalizedStatus === 'won' || normalizedLifecycle === 'member'
+    ? 'member'
+    : 'lead'
+  const statusVariants = dedupeStrings([
+    desiredStatus,
+    existingRawStatus,
+    serializeStatusForStorage(normalizedStatus),
+    normalizedStatus,
+    ...getLeadStatusRecoveryVariants(normalizedStatus)
+  ])
+  const lifecycleVariants = dedupeStrings([
+    desiredLifecycle,
+    existingRawLifecycle,
+    normalizeLifecycle(existingLead?.lifecycleType),
+    preferredLifecycle,
+    'lead',
+    'member'
+  ])
+  const candidates = []
+
+  const addCandidate = (status, lifecycle) => {
+    const normalizedCandidateStatus = normalizeWhitespace(status)
+    const normalizedCandidateLifecycle = normalizeWhitespace(lifecycle)
+
+    if (!normalizedCandidateStatus || !normalizedCandidateLifecycle) {
+      return
+    }
+
+    candidates.push({
+      ...basePayload,
+      status: normalizedCandidateStatus,
+      lifecycle: normalizedCandidateLifecycle
+    })
+  }
+
+  addCandidate(desiredStatus || serializeStatusForStorage(normalizedStatus), desiredLifecycle)
+
+  if (existingRawStatus) {
+    addCandidate(existingRawStatus, desiredLifecycle)
+  }
+
+  statusVariants.forEach((statusVariant) => {
+    addCandidate(statusVariant, preferredLifecycle)
+    addCandidate(statusVariant, desiredLifecycle)
+    lifecycleVariants.forEach((lifecycleVariant) => addCandidate(statusVariant, lifecycleVariant))
+  })
+
+  const seen = new Set()
+
+  return candidates.filter((candidate) => {
+    const key = JSON.stringify({
+      status: candidate.status ?? null,
+      lifecycle: candidate.lifecycle ?? null
+    })
+
+    if (seen.has(key)) {
+      return false
+    }
+
+    seen.add(key)
+    return true
+  })
+}
+
+function omitLeadWorkflowFields(updatePayload = {}) {
+  const nextPayload = { ...updatePayload }
+  delete nextPayload.status
+  delete nextPayload.lifecycle
+  return nextPayload
+}
+
+function isLeadStatusConstraintError(error) {
+  return normalizeWhitespace(error?.message || '').toLowerCase().includes('leads_status_check')
+}
+
+function describeLeadWriteError(error) {
+  const message = normalizeWhitespace(error?.message || '')
+
+  if (message.toLowerCase().includes('leads_status_check')) {
+    return 'This lead has a status value the database will not accept right now. Open Status, choose a standard CRM status, and save again.'
+  }
+
+  return message || 'Unable to save the lead to Supabase.'
 }
 
 function resolveDispositionLabel(dispositionId, dispositionDefinitions) {
@@ -1783,12 +2027,12 @@ function buildLeadBooleanExpression({ search = '', filters = {} } = {}) {
 
   const timeZones = normalizeFilterValues(filters?.multi?.timeZones)
   if (timeZones.length) {
-    groups.push(timeZones.map((value) => buildIlikeCondition('timezone', value)))
+    groups.push(buildTimeZoneFilterConditions(timeZones))
   }
 
   const areaCodes = normalizeAreaCodeFilterValues(filters?.multi?.areaCodes)
   if (areaCodes.length) {
-    groups.push(areaCodes.map((value) => buildIlikeCondition('phone', value, true)))
+    groups.push(dedupeStrings(areaCodes.flatMap((value) => buildPhoneAreaCodeConditions('phone', value))))
   }
 
   const nonEmptyGroups = groups.filter((group) => group.length)
@@ -1857,6 +2101,67 @@ function buildPhoneIlikeCondition(column, value, contains = false) {
   const body = digits.split('').join('*')
   const pattern = contains ? `*${body}*` : `${body}*`
   return `${column}.ilike.${pattern}`
+}
+
+function buildPhoneAreaCodeConditions(column, value) {
+  const digits = String(value ?? '').replace(/\D/g, '').slice(0, 3)
+
+  if (digits.length !== 3) {
+    return []
+  }
+
+  const patterns = dedupeStrings([
+    `${digits}*`,
+    `(${digits})*`,
+    `${digits} *`,
+    `${digits}-*`,
+    `${digits}.*`,
+    `1${digits}*`,
+    `1 ${digits}*`,
+    `1-${digits}*`,
+    `1.${digits}*`,
+    `1(${digits})*`,
+    `1 (${digits})*`,
+    `+1${digits}*`,
+    `+1 ${digits}*`,
+    `+1-${digits}*`,
+    `+1.${digits}*`,
+    `+1(${digits})*`,
+    `+1 (${digits})*`
+  ])
+
+  return patterns.map((pattern) => `${column}.ilike.${pattern}`)
+}
+
+function buildTimeZoneFilterConditions(values = []) {
+  return dedupeStrings(values.flatMap((value) => {
+    const canonicalTimeZone = normalizeTimeZoneLabel(value) || sanitizePostgrestValue(value)
+
+    if (!canonicalTimeZone) {
+      return []
+    }
+
+    if (canonicalTimeZone.toLowerCase() === 'unknown') {
+      return [
+        buildIlikeCondition('timezone', canonicalTimeZone),
+        'timezone.is.null'
+      ]
+    }
+
+    const conditions = [
+      `and(timezone_overridden.is.true,${buildIlikeCondition('timezone', canonicalTimeZone)})`
+    ]
+    const areaCodes = TIME_ZONE_FILTER_AREA_CODES[canonicalTimeZone.toLowerCase()] || []
+    const phoneConditions = dedupeStrings(areaCodes.flatMap((areaCode) => buildPhoneAreaCodeConditions('phone', areaCode)))
+
+    if (phoneConditions.length) {
+      conditions.push(`and(or(timezone_overridden.is.false,timezone_overridden.is.null),or(${phoneConditions.join(',')}))`)
+    }
+
+    conditions.push(`and(or(timezone_overridden.is.false,timezone_overridden.is.null),phone.is.null,${buildIlikeCondition('timezone', canonicalTimeZone)})`)
+
+    return conditions.filter(Boolean)
+  }))
 }
 
 function buildLeadSearchConditions(search = '') {
@@ -1938,11 +2243,53 @@ function pickValue(row, keys) {
 function normalizeStatus(value) {
   const normalized = normalizeWhitespace(value).toLowerCase()
 
-  if (normalized === 'member') {
+  if (!normalized) {
+    return 'new'
+  }
+
+  if (normalized.includes('qual')) {
+    return 'qualified'
+  }
+
+  if (normalized.includes('contact')) {
+    return 'contacted'
+  }
+
+  if (normalized.includes('inactive') || normalized.includes('lost')) {
+    return 'inactive'
+  }
+
+  if (normalized.includes('won') || normalized === 'member') {
     return 'won'
   }
 
   return CRM_STATUS_OPTIONS.includes(normalized) ? normalized : 'new'
+}
+
+function serializeStatusForStorage(value) {
+  const normalizedStatus = normalizeStatus(value)
+
+  if (normalizedStatus === 'inactive') {
+    return 'lost'
+  }
+
+  return normalizedStatus
+}
+
+function getLeadStatusRecoveryVariants(normalizedStatus) {
+  switch (normalizeStatus(normalizedStatus)) {
+    case 'contacted':
+      return ['contacted', 'Contacted']
+    case 'qualified':
+      return ['qualified', 'Qualified']
+    case 'won':
+      return ['won', 'WON', 'Won', 'member', 'Member']
+    case 'inactive':
+      return ['lost', 'inactive', 'Inactive', 'Lost']
+    case 'new':
+    default:
+      return ['new', 'New']
+  }
 }
 
 function serializeLeadStatus(value) {

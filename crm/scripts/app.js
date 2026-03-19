@@ -37,6 +37,7 @@ const authService = new SupabaseAuthService();
 const dataService = new SupabaseCrmDataService();
 const savedFilterService = new SupabaseSavedFilterService();
 const importFields = getImportFieldDefinitions();
+const ADVANCED_SUBSCRIPTION_TYPE_FILTER_OPTIONS = ['Single channel', 'Full Bundle'];
 
 const refs = {
     authGate: document.getElementById('auth-gate'),
@@ -79,20 +80,23 @@ const MULTI_FILTER_CONFIG = [
     {
         key: 'subscriptionTypes',
         label: 'Subscription type',
-        placeholder: 'Premium, Trial, Enterprise',
-        hint: 'Exact match, case insensitive.',
-        parser: parseMultiValueList
+        hint: 'Choose one of the supported subscription bundles.',
+        parser: parseMultiValueList,
+        control: 'select',
+        options: ADVANCED_SUBSCRIPTION_TYPE_FILTER_OPTIONS
     },
     {
         key: 'timeZones',
         label: 'Time zone',
-        placeholder: 'Eastern, Mountain, America/New_York',
-        hint: 'Exact match, case insensitive.',
-        parser: parseMultiValueList
+        hint: 'Choose from the supported CRM time zone labels.',
+        parser: parseMultiValueList,
+        control: 'select',
+        options: CRM_TIME_ZONE_OPTIONS
     }
 ];
 
 const MULTI_FILTER_LOOKUP = Object.fromEntries(MULTI_FILTER_CONFIG.map((config) => [config.key, config]));
+const DEFAULT_MULTI_FILTER_SECTION_KEY = MULTI_FILTER_CONFIG[0]?.key || 'savedViews';
 const WORKSPACE_UI_STATE_STORAGE_KEY = 'crm:workspace-ui-state';
 const WORKSPACE_PAGE_CACHE_TTL_MS = 2 * 60 * 1000;
 const WORKSPACE_PAGE_CACHE_MAX_ENTRIES = 24;
@@ -122,6 +126,13 @@ function createDefaultMultiFilters() {
         subscriptionTypes: [],
         timeZones: []
     };
+}
+
+function createDefaultFilterAccordionState() {
+    return Object.fromEntries([
+        ...MULTI_FILTER_CONFIG.map((config) => [config.key, false]),
+        ['savedViews', false]
+    ]);
 }
 
 function createDefaultFilters() {
@@ -195,6 +206,8 @@ const state = {
     sidebarOpen: false,
     mobileSearchOpen: false,
     filtersPanelOpen: false,
+    filterAccordionOpen: createDefaultFilterAccordionState(),
+    filterAccordionInitialized: false,
     selectedLeadIds: [],
     bulkAssignRepId: '',
     drawerMode: null,
@@ -316,6 +329,10 @@ function buildWorkspacePageCacheKey(scope) {
             direction: state.sort.direction
         }
     });
+}
+
+function shouldUseLocalWorkspaceFiltering(filters = state.filters) {
+    return Array.isArray(filters?.multi?.timeZones) && filters.multi.timeZones.length > 0;
 }
 
 function isAssignedLeadsView(view = state.currentView) {
@@ -557,7 +574,7 @@ async function refreshData() {
             state.session = refreshedSession || state.session;
             const savedFiltersPromise = savedFilterService.listVisible(state.session);
 
-            if (state.currentView === 'admin') {
+            if (state.currentView === 'admin' || shouldUseLocalWorkspaceFiltering()) {
                 applyFullClientDataSnapshot(await dataService.initialize());
             } else {
                 applyWorkspaceMetadataSnapshot(await dataService.initializeWorkspace());
@@ -875,7 +892,7 @@ async function handleAuthStateChange({ event, session, authUser, profile, error 
 }
 
 function supportsServerWorkspacePaging() {
-    return typeof dataService.listClientsPage === 'function';
+    return typeof dataService.listClientsPage === 'function' && !shouldUseLocalWorkspaceFiltering();
 }
 
 function getWorkspaceResult(scope) {
@@ -914,7 +931,18 @@ function getWorkspaceDisplayCount(scope, options = {}) {
 }
 
 async function refreshWorkspacePage(scope = getDefaultScopeForView(), { renderWhileLoading = true, force = false } = {}) {
-    if (!supportsServerWorkspacePaging() || !state.session) {
+    if (!state.session) {
+        return;
+    }
+
+    if (!supportsServerWorkspacePaging()) {
+        if (shouldUseLocalWorkspaceFiltering() && state.clientCacheMode !== 'full') {
+            await loadFullClientDataset();
+            return;
+        }
+
+        renderSidebar();
+        renderPanels();
         return;
     }
 
@@ -1475,6 +1503,10 @@ function renderLeadDetailUtilityRow() {
 
 function renderPanels() {
     persistWorkspaceUiState();
+    const shouldRestoreAdvancedMenuScroll = state.filtersPanelOpen;
+    const advancedMenuScrollTop = shouldRestoreAdvancedMenuScroll
+        ? (document.querySelector('.lead-history-advanced-menu-scroll')?.scrollTop || 0)
+        : 0;
 
     const panelStates = new Map([
         [refs.overviewPanel, state.currentView === 'overview'],
@@ -1520,6 +1552,15 @@ function renderPanels() {
 
     if (state.currentView === 'settings') {
         refs.settingsPanel.innerHTML = renderSettingsPanel();
+    }
+
+    if (shouldRestoreAdvancedMenuScroll) {
+        requestAnimationFrame(() => {
+            const menuScroll = document.querySelector('.lead-history-advanced-menu-scroll');
+            if (menuScroll) {
+                menuScroll.scrollTop = advancedMenuScrollTop;
+            }
+        });
     }
 }
 
@@ -1759,23 +1800,19 @@ function renderLeadHistoryPanel({
             <section class="lead-history-filters">
                 <div class="lead-history-filter-group">
                     <span class="lead-history-filter-label">Status</span>
-                    <button class="lead-history-pill ${state.filters.status === 'all' ? 'active' : ''}" data-action="set-status-filter" data-status="all">All</button>
-                    ${statusOptions.map((status) => `
-                        <button
-                            class="lead-history-pill status-${escapeHtml(status)} ${state.filters.status === status ? 'active' : ''}"
-                            data-action="set-status-filter"
-                            data-status="${status}"
-                        >
-                            ${escapeHtml(titleCase(status))}
-                        </button>
-                    `).join('')}
+                    <select id="status-filter" class="lead-history-select lead-history-toolbar-select">
+                        <option value="all">All statuses</option>
+                        ${statusOptions.map((status) => `
+                            <option value="${status}" ${state.filters.status === status ? 'selected' : ''}>${escapeHtml(titleCase(status))}</option>
+                        `).join('')}
+                    </select>
                 </div>
 
                 <div class="lead-history-filter-divider"></div>
 
                 <div class="lead-history-filter-group">
                     <span class="lead-history-filter-label">Tag</span>
-                    <select id="tag-filter" class="lead-history-select">
+                    <select id="tag-filter" class="lead-history-select lead-history-toolbar-select">
                         <option value="all">All tags</option>
                         ${availableTags.map((tag) => `
                             <option value="${escapeHtml(tag)}" ${state.filters.tag === tag ? 'selected' : ''}>${escapeHtml(tag)}</option>
@@ -1799,9 +1836,17 @@ function renderLeadHistoryPanel({
                     ${savedFilters.length > 4 ? `<span class="lead-history-filter-empty">+${savedFilters.length - 4} more</span>` : ''}
                 </div>
 
-                <button class="lead-history-clear-btn" data-action="open-filters">
-                    <i class="fa-solid fa-sliders"></i> ${state.filtersPanelOpen ? 'Hide Advanced' : 'Advanced'}${activeFilterCount ? ` (${activeFilterCount})` : ''}
-                </button>
+                <div class="lead-history-advanced-shell ${state.filtersPanelOpen ? 'open' : ''}">
+                    <button
+                        class="lead-history-clear-btn"
+                        data-action="open-filters"
+                        aria-expanded="${state.filtersPanelOpen ? 'true' : 'false'}"
+                        aria-controls="lead-history-advanced-menu"
+                    >
+                        <i class="fa-solid fa-sliders"></i> ${state.filtersPanelOpen ? 'Hide Advanced' : 'Advanced'}${activeFilterCount ? ` (${activeFilterCount})` : ''}
+                    </button>
+                    ${state.filtersPanelOpen ? renderLeadHistoryAdvancedMenu(savedFilters, activeSavedFilter, scope) : ''}
+                </div>
 
                 ${createAction}
                 ${assignmentViewAction}
@@ -1810,8 +1855,6 @@ function renderLeadHistoryPanel({
                     <i class="fa-solid fa-xmark"></i> Clear
                 </button>
             </section>
-
-            ${state.filtersPanelOpen ? renderLeadHistoryAdvancedFilters(savedFilters, activeSavedFilter, scope) : ''}
 
             <section class="lead-history-table-card">
                 <div class="lead-history-table-meta">
@@ -2035,89 +2078,37 @@ function renderWorkspaceCreateAction(scope, variant = 'toolbar') {
     `;
 }
 
-function renderLeadHistoryAdvancedFilters(savedFilters, activeSavedFilter, scope = 'leads') {
-    const isMembers = scope === 'members';
-    const singularLabel = isMembers ? 'member' : 'lead';
-    const savedViewPlaceholder = isMembers ? 'Active member renewals' : 'Morning follow-up list';
+function renderLeadHistoryAdvancedMenu(savedFilters, activeSavedFilter, scope = 'leads') {
+    const activeAdvancedGroupCount = Object.values(state.filters.multi).filter((values) => values.length).length;
 
     return `
-        <section class="lead-history-advanced">
-            <div class="lead-history-advanced-grid">
-                <section class="lead-history-advanced-card">
-                    <div class="lead-history-section-head">
-                        <div>
-                            <span class="lead-history-section-title">Advanced Filters</span>
-                            <p class="lead-history-section-copy">Stack first name, last name, area code, subscription, and time zone filters without leaving the page.</p>
-                        </div>
-                        <button class="lead-history-clear-btn" data-action="clear-client-filters">
-                            <i class="fa-solid fa-rotate-left"></i> Reset All
-                        </button>
-                    </div>
-
-                    <div class="crm-filter-panel lead-history-filter-panel">
-                        ${MULTI_FILTER_CONFIG.map((config) => renderMultiValueFilterGroup(config)).join('')}
-                    </div>
-                </section>
-
-                <section class="lead-history-advanced-card">
-                    <div class="lead-history-section-head">
-                        <div>
-                            <span class="lead-history-section-title">Saved Views</span>
-                            <p class="lead-history-section-copy">Save the current ${singularLabel} view for yourself or share it with the floor.</p>
-                        </div>
-                    </div>
-
-                    <form id="saved-filter-form" class="lead-history-save-form">
-                        <input type="hidden" name="id" value="${escapeHtml(state.activeSavedFilterId || '')}">
-                        <div class="form-grid single-column-grid">
-                            <label class="form-field">
-                                <span class="form-label">Filter name</span>
-                                <input class="crm-input" name="name" placeholder="${savedViewPlaceholder}" value="${escapeHtml(activeSavedFilter?.name || '')}">
-                            </label>
-                            <label class="form-field">
-                                <span class="form-label">Visibility</span>
-                                <select class="crm-select" name="visibility">
-                                    <option value="private">Private</option>
-                                    <option value="shared" ${activeSavedFilter?.visibility === 'shared' ? 'selected' : ''}>Shared</option>
-                                </select>
-                            </label>
-                        </div>
-                        <div class="modal-actions" style="margin-top: 1rem;">
-                            <button class="crm-button" type="submit"><i class="fa-solid fa-bookmark"></i> ${state.activeSavedFilterId ? 'Update' : 'Save'}</button>
-                            ${state.activeSavedFilterId ? '<button class="crm-button-ghost" type="button" data-action="clear-active-saved-filter">New</button>' : ''}
-                        </div>
-                    </form>
-
-                    <div class="history-list compact-history lead-history-saved-list">
-                        ${savedFilters.length ? savedFilters.map((filter) => `
-                            <article class="history-card">
-                                <div class="history-head">
-                                    <div>
-                                        <div class="history-title">${escapeHtml(filter.name)}</div>
-                                        <div class="panel-subtitle">${escapeHtml(filter.visibility === 'shared'
-                                            ? `Shared by ${filter.createdByName || filter.createdByUserId || 'CRM user'}`
-                                            : `Private to ${filter.createdByName || filter.createdByUserId || 'CRM user'}`)}</div>
-                                    </div>
-                                </div>
-                                <div class="modal-actions" style="margin-top: 0.85rem;">
-                                    <button class="crm-button-secondary" data-action="load-saved-filter" data-filter-id="${filter.id}">
-                                        <i class="fa-solid fa-bolt"></i> Load
-                                    </button>
-                                    ${canManageSavedFilter(filter) ? `
-                                        <button class="crm-button-ghost" data-action="edit-saved-filter" data-filter-id="${filter.id}">
-                                            <i class="fa-solid fa-pen"></i> Edit
-                                        </button>
-                                        <button class="crm-button-danger" data-action="delete-saved-filter" data-filter-id="${filter.id}">
-                                            <i class="fa-solid fa-trash"></i> Delete
-                                        </button>
-                                    ` : ''}
-                                </div>
-                            </article>
-                        `).join('') : '<div class="panel-subtitle">Save the current filter set to reuse it later.</div>'}
-                    </div>
-                </section>
+        <div
+            class="lead-history-advanced-menu"
+            id="lead-history-advanced-menu"
+            role="dialog"
+            aria-modal="false"
+            aria-label="Advanced filters"
+        >
+            <div class="lead-history-advanced-menu-head">
+                <div>
+                    <span class="lead-history-section-title">Advanced filters</span>
+                    <p class="lead-history-section-copy">Stack names, area codes, subscription types, time zones, and saved views without taking over the page.</p>
+                </div>
+                <div class="row-actions">
+                    <span class="summary-chip">${activeAdvancedGroupCount} group${activeAdvancedGroupCount === 1 ? '' : 's'} active</span>
+                    <button class="lead-history-clear-btn" data-action="clear-client-filters">
+                        <i class="fa-solid fa-rotate-left"></i> Reset All
+                    </button>
+                </div>
             </div>
-        </section>
+
+            <div class="lead-history-advanced-menu-scroll">
+                <div class="crm-filter-panel lead-history-filter-panel">
+                    ${MULTI_FILTER_CONFIG.map((config) => renderMultiValueFilterGroup(config)).join('')}
+                    ${renderSavedViewsAccordionSection(savedFilters, activeSavedFilter, scope)}
+                </div>
+            </div>
+        </div>
     `;
 }
 
@@ -2233,48 +2224,169 @@ function renderInlineFiltersPanel(workspaceLabel, savedFilters, activeSavedFilte
     `;
 }
 
-function renderMultiValueFilterGroup(config) {
-    const values = state.filters.multi[config.key];
+function renderSavedViewsAccordionSection(savedFilters, activeSavedFilter, scope = 'leads') {
+    const isMembers = scope === 'members';
+    const isOpen = Boolean(state.filterAccordionOpen.savedViews);
+    const savedViewPlaceholder = isMembers ? 'Active member renewals' : 'Morning follow-up list';
+    const savedViewsSummary = activeSavedFilter
+        ? `Editing ${activeSavedFilter.name}`
+        : `${savedFilters.length} saved`;
 
     return `
-        <section class="multi-filter-group">
-            <div class="multi-filter-head">
-                <div>
-                    <div class="mapping-label">${escapeHtml(config.label)}</div>
-                    <div class="mapping-hint">${escapeHtml(config.hint)}</div>
+        <section class="multi-filter-group ${isOpen ? 'open' : ''}">
+            <button
+                type="button"
+                class="multi-filter-toggle"
+                data-action="toggle-filter-section"
+                data-section="savedViews"
+                aria-expanded="${isOpen ? 'true' : 'false'}"
+            >
+                <span class="multi-filter-toggle-copy">
+                    <span class="mapping-label">Saved Views</span>
+                    <span class="mapping-hint">${escapeHtml(savedViewsSummary)}</span>
+                </span>
+                <span class="multi-filter-toggle-meta">
+                    <span class="summary-chip">${activeSavedFilter ? 'Editing' : `${savedFilters.length} saved`}</span>
+                    <i class="fa-solid fa-chevron-down multi-filter-toggle-icon"></i>
+                </span>
+            </button>
+
+            <div class="multi-filter-panel">
+                <div class="multi-filter-panel-head">
+                    <p class="mapping-hint">Save the current ${isMembers ? 'member' : 'lead'} view for yourself or share it with the floor.</p>
                 </div>
-                <div class="row-actions">
-                    <span class="summary-chip">${values.length} active</span>
+
+                <form id="saved-filter-form" class="lead-history-save-form compact">
+                    <input type="hidden" name="id" value="${escapeHtml(state.activeSavedFilterId || '')}">
+                    <div class="form-grid single-column-grid">
+                        <label class="form-field">
+                            <span class="form-label">Filter name</span>
+                            <input class="crm-input" name="name" placeholder="${savedViewPlaceholder}" value="${escapeHtml(activeSavedFilter?.name || '')}">
+                        </label>
+                        <label class="form-field">
+                            <span class="form-label">Visibility</span>
+                            <select class="crm-select" name="visibility">
+                                <option value="private">Private</option>
+                                <option value="shared" ${activeSavedFilter?.visibility === 'shared' ? 'selected' : ''}>Shared</option>
+                            </select>
+                        </label>
+                    </div>
+                    <div class="modal-actions lead-history-saved-form-actions">
+                        <button class="crm-button" type="submit"><i class="fa-solid fa-bookmark"></i> ${state.activeSavedFilterId ? 'Update' : 'Save'}</button>
+                        ${state.activeSavedFilterId ? '<button class="crm-button-ghost" type="button" data-action="clear-active-saved-filter">New</button>' : ''}
+                    </div>
+                </form>
+
+                <div class="history-list compact-history lead-history-saved-list">
+                    ${savedFilters.length ? savedFilters.map((filter) => `
+                        <article class="history-card lead-history-saved-card">
+                            <div class="history-head">
+                                <div>
+                                    <div class="history-title">${escapeHtml(filter.name)}</div>
+                                    <div class="panel-subtitle">${escapeHtml(filter.visibility === 'shared'
+                                        ? `Shared by ${filter.createdByName || filter.createdByUserId || 'CRM user'}`
+                                        : `Private to ${filter.createdByName || filter.createdByUserId || 'CRM user'}`)}</div>
+                                </div>
+                            </div>
+                            <div class="modal-actions lead-history-saved-card-actions">
+                                <button class="crm-button-secondary" data-action="load-saved-filter" data-filter-id="${filter.id}">
+                                    <i class="fa-solid fa-bolt"></i> Load
+                                </button>
+                                ${canManageSavedFilter(filter) ? `
+                                    <button class="crm-button-ghost" data-action="edit-saved-filter" data-filter-id="${filter.id}">
+                                        <i class="fa-solid fa-pen"></i> Edit
+                                    </button>
+                                    <button class="crm-button-danger" data-action="delete-saved-filter" data-filter-id="${filter.id}">
+                                        <i class="fa-solid fa-trash"></i> Delete
+                                    </button>
+                                ` : ''}
+                            </div>
+                        </article>
+                    `).join('') : '<div class="lead-history-empty-state">Save the current filter set to reuse it later.</div>'}
+                </div>
+            </div>
+        </section>
+    `;
+}
+
+function renderMultiValueFilterGroup(config) {
+    const values = state.filters.multi[config.key];
+    const isOpen = Boolean(state.filterAccordionOpen[config.key]);
+    const isSelectControl = config.control === 'select';
+    const summaryCopy = isSelectControl
+        ? (values[0] || 'No selection')
+        : (values.length ? `${values.length} active value${values.length === 1 ? '' : 's'}` : 'No values selected');
+    const summaryChip = isSelectControl
+        ? (values[0] ? 'Selected' : 'Any')
+        : `${values.length} active`;
+
+    return `
+        <section class="multi-filter-group ${isOpen ? 'open' : ''}">
+            <button
+                type="button"
+                class="multi-filter-toggle"
+                data-action="toggle-filter-section"
+                data-section="${config.key}"
+                aria-expanded="${isOpen ? 'true' : 'false'}"
+            >
+                <span class="multi-filter-toggle-copy">
+                    <span class="mapping-label">${escapeHtml(config.label)}</span>
+                    <span class="mapping-hint">${escapeHtml(summaryCopy)}</span>
+                </span>
+                <span class="multi-filter-toggle-meta">
+                    <span class="summary-chip">${escapeHtml(summaryChip)}</span>
+                    <i class="fa-solid fa-chevron-down multi-filter-toggle-icon"></i>
+                </span>
+            </button>
+
+            <div class="multi-filter-panel">
+                <div class="multi-filter-panel-head">
+                    <p class="mapping-hint">${escapeHtml(config.hint)}</p>
                     ${values.length ? `
-                        <button class="crm-button-ghost filter-clear-button" data-action="clear-filter-group" data-group="${config.key}">
+                        <button class="lead-history-clear-btn" data-action="clear-filter-group" data-group="${config.key}">
                             Clear
                         </button>
                     ` : ''}
                 </div>
-            </div>
 
-            <div class="multi-filter-shell">
-                ${values.map((value) => `
-                    <span class="filter-token">
-                        <span>${escapeHtml(value)}</span>
-                        <button
-                            type="button"
-                            class="filter-token-remove"
-                            data-action="remove-filter-token"
-                            data-group="${config.key}"
-                            data-value="${escapeHtml(value)}"
-                            aria-label="Remove ${escapeHtml(value)}"
+                ${isSelectControl ? `
+                    <label class="multi-filter-select-shell">
+                        <select
+                            class="crm-select multi-filter-select"
+                            data-filter-select-group="${config.key}"
+                            aria-label="${escapeHtml(config.label)} filter"
                         >
-                            <i class="fa-solid fa-xmark"></i>
-                        </button>
-                    </span>
-                `).join('')}
-                <input
-                    class="filter-token-input"
-                    data-filter-group="${config.key}"
-                    placeholder="${escapeHtml(config.placeholder)}"
-                    aria-label="${escapeHtml(config.label)} filter values"
-                >
+                            <option value="">All ${escapeHtml(config.label.toLowerCase())}s</option>
+                            ${(config.options || []).map((option) => `
+                                <option value="${escapeHtml(option)}" ${values[0] === option ? 'selected' : ''}>${escapeHtml(option)}</option>
+                            `).join('')}
+                        </select>
+                    </label>
+                ` : `
+                    <div class="multi-filter-shell">
+                        ${values.map((value) => `
+                            <span class="filter-token">
+                                <span>${escapeHtml(value)}</span>
+                                <button
+                                    type="button"
+                                    class="filter-token-remove"
+                                    data-action="remove-filter-token"
+                                    data-group="${config.key}"
+                                    data-value="${escapeHtml(value)}"
+                                    aria-label="Remove ${escapeHtml(value)}"
+                                >
+                                    <i class="fa-solid fa-xmark"></i>
+                                </button>
+                            </span>
+                        `).join('')}
+                        <input
+                            class="filter-token-input"
+                            data-filter-group="${config.key}"
+                            placeholder="${escapeHtml(config.placeholder || '')}"
+                            aria-label="${escapeHtml(config.label)} filter values"
+                        >
+                    </div>
+                `}
             </div>
         </section>
     `;
@@ -4481,10 +4593,54 @@ function getActiveFilterCount() {
         + (state.filters.tag !== 'all' ? 1 : 0);
 }
 
-function getActiveFilterGroupCount() {
-    return Object.values(state.filters.multi).filter((values) => values.length).length
-        + (state.filters.status !== 'all' ? 1 : 0)
-        + (state.filters.tag !== 'all' ? 1 : 0);
+function openFilterAccordionForActiveGroups({ includeDefault = false } = {}) {
+    let hasOpenGroup = false;
+
+    MULTI_FILTER_CONFIG.forEach((config) => {
+        const hasValues = Boolean(state.filters.multi[config.key]?.length);
+        if (hasValues) {
+            state.filterAccordionOpen[config.key] = true;
+            hasOpenGroup = true;
+        }
+    });
+
+    if (!hasOpenGroup && includeDefault) {
+        state.filterAccordionOpen[DEFAULT_MULTI_FILTER_SECTION_KEY] = true;
+    }
+}
+
+function initializeFilterAccordionState() {
+    state.filterAccordionOpen = createDefaultFilterAccordionState();
+    openFilterAccordionForActiveGroups({ includeDefault: true });
+    state.filterAccordionInitialized = true;
+}
+
+function toggleFilterAccordionSection(sectionKey) {
+    if (!Object.prototype.hasOwnProperty.call(state.filterAccordionOpen, sectionKey)) {
+        return;
+    }
+
+    state.filterAccordionOpen[sectionKey] = !state.filterAccordionOpen[sectionKey];
+    state.filterAccordionInitialized = true;
+}
+
+function focusAdvancedFilterTrigger() {
+    requestAnimationFrame(() => {
+        document.querySelector('.lead-history-advanced-shell [data-action="open-filters"]')?.focus();
+    });
+}
+
+function closeAdvancedFiltersPanel({ shouldFocusTrigger = false } = {}) {
+    if (!state.filtersPanelOpen) {
+        return;
+    }
+
+    state.filtersPanelOpen = false;
+    renderPanels();
+
+    if (shouldFocusTrigger) {
+        focusAdvancedFilterTrigger();
+    }
 }
 
 function getDefaultScopeForView() {
@@ -4598,6 +4754,28 @@ function addFilterTokens(groupKey, rawValue) {
     return true;
 }
 
+function setSelectFilterValue(groupKey, rawValue) {
+    const config = MULTI_FILTER_LOOKUP[groupKey];
+
+    if (!config?.options) {
+        return false;
+    }
+
+    const normalizedValue = normalizeWhitespace(rawValue);
+    const canonicalValue = config.options.find((option) => option.toLowerCase() === normalizedValue.toLowerCase()) || '';
+    const nextValues = canonicalValue ? [canonicalValue] : [];
+    const currentValues = state.filters.multi[groupKey];
+
+    if (currentValues.length === nextValues.length && currentValues.every((value, index) => value === nextValues[index])) {
+        return false;
+    }
+
+    state.filters.multi[groupKey] = nextValues;
+    state.activeSavedFilterId = null;
+    state.page = 1;
+    return true;
+}
+
 function removeFilterToken(groupKey, rawValue) {
     const current = state.filters.multi[groupKey];
     const valueKey = String(rawValue ?? '').toLowerCase();
@@ -4690,6 +4868,17 @@ function sanitizeLeadPayloadForSession(payload, existingLead = null) {
         nextPayload.assignedRepId = seniorRep.id;
         nextPayload.assignedTo = seniorRep.name;
         nextPayload.lifecycleType = 'lead';
+    }
+
+    if (nextPayload.lifecycleType === 'member') {
+        nextPayload.status = 'won';
+    } else if (nextPayload.status === 'won') {
+        nextPayload.lifecycleType = 'member';
+
+        if (!nextPayload.assignedRepId) {
+            nextPayload.assignedRepId = existingLead?.assignedRepId || state.session.id;
+            nextPayload.assignedTo = getUserNameById(nextPayload.assignedRepId) || existingLead?.assignedTo || state.session.name;
+        }
     }
 
     return nextPayload;
@@ -5005,6 +5194,9 @@ function resetAuthenticatedCrmState() {
         members: createEmptyWorkspaceResult()
     };
     state.mobileSearchOpen = false;
+    state.filtersPanelOpen = false;
+    state.filterAccordionOpen = createDefaultFilterAccordionState();
+    state.filterAccordionInitialized = false;
     state.selectedLeadIds = [];
     state.bulkAssignRepId = '';
     state.detailClientId = null;
@@ -5032,7 +5224,14 @@ function refreshWorkspaceChrome() {
     syncToolbarFilterButton();
 
     if (isWorkspaceListView(state.currentView)) {
-        queueWorkspaceRefresh(getDefaultScopeForView());
+        if (supportsServerWorkspacePaging()) {
+            queueWorkspaceRefresh(getDefaultScopeForView());
+            return;
+        }
+
+        if (shouldUseLocalWorkspaceFiltering() && state.clientCacheMode !== 'full') {
+            void refreshWorkspacePage(getDefaultScopeForView());
+        }
     }
 }
 
@@ -5063,8 +5262,14 @@ function syncToolbarFilterButton() {
 
 document.addEventListener('click', async (event) => {
     const actionEl = event.target.closest('[data-action]');
+    const clickedInsideAdvancedFilters = event.target.closest('.lead-history-advanced-shell');
 
     if (!actionEl) {
+        if (state.filtersPanelOpen && !clickedInsideAdvancedFilters) {
+            closeAdvancedFiltersPanel();
+            return;
+        }
+
         if (shouldShowSearchSuggestions() && !event.target.closest('.search-shell')) {
             resetToolbarSuggestions();
             renderTopbar();
@@ -5077,6 +5282,10 @@ document.addEventListener('click', async (event) => {
     if (state.searchSuggestionsOpen && action !== 'select-search-suggestion' && !actionEl.closest('.search-shell')) {
         resetToolbarSuggestions();
         renderTopbar();
+    }
+
+    if (state.filtersPanelOpen && action !== 'open-filters' && !actionEl.closest('.lead-history-advanced-shell')) {
+        state.filtersPanelOpen = false;
     }
 
     if (action === 'quick-login') {
@@ -5255,12 +5464,22 @@ document.addEventListener('click', async (event) => {
         }
 
         state.filtersPanelOpen = !state.filtersPanelOpen;
+        if (state.filtersPanelOpen && !state.filterAccordionInitialized) {
+            initializeFilterAccordionState();
+        }
         render();
+        return;
+    }
+
+    if (action === 'toggle-filter-section') {
+        toggleFilterAccordionSection(actionEl.dataset.section);
+        renderPanels();
         return;
     }
 
     if (action === 'clear-active-saved-filter') {
         state.activeSavedFilterId = null;
+        state.filterAccordionOpen.savedViews = true;
         renderPanels();
         return;
     }
@@ -5293,6 +5512,9 @@ document.addEventListener('click', async (event) => {
 
     if (action === 'edit-saved-filter') {
         state.activeSavedFilterId = actionEl.dataset.filterId;
+        state.filtersPanelOpen = true;
+        state.filterAccordionOpen.savedViews = true;
+        state.filterAccordionInitialized = true;
         renderPanels();
         return;
     }
@@ -6254,6 +6476,13 @@ document.addEventListener('change', async (event) => {
         return;
     }
 
+    if (event.target.matches('[data-filter-select-group]')) {
+        if (setSelectFilterValue(event.target.dataset.filterSelectGroup, event.target.value)) {
+            refreshWorkspaceChrome();
+        }
+        return;
+    }
+
     if (event.target.id === 'status-filter') {
         state.filters.status = event.target.value;
         state.activeSavedFilterId = null;
@@ -6377,9 +6606,12 @@ document.addEventListener('keydown', (event) => {
         if (event.key === 'Enter' || event.key === ',') {
             event.preventDefault();
             commitFilterInput(event.target);
+            return;
         }
 
-        return;
+        if (event.key !== 'Escape') {
+            return;
+        }
     }
 
     if (event.key !== 'Escape') {
@@ -6388,6 +6620,11 @@ document.addEventListener('keydown', (event) => {
 
     if (state.modal) {
         closeModal();
+        return;
+    }
+
+    if (state.filtersPanelOpen) {
+        closeAdvancedFiltersPanel({ shouldFocusTrigger: true });
         return;
     }
 
@@ -6946,6 +7183,8 @@ function applySavedFilter(savedFilter) {
     state.pageSize = [25, 50, 100, 250].includes(Number(payload.pageSize)) ? Number(payload.pageSize) : 50;
     state.activeSavedFilterId = savedFilter.id;
     state.page = 1;
+    openFilterAccordionForActiveGroups({ includeDefault: true });
+    state.filterAccordionInitialized = true;
     resetToolbarSuggestions({ clearResults: true });
 }
 

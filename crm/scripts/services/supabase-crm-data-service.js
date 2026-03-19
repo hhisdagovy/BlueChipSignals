@@ -58,6 +58,35 @@ const LEAD_SUGGESTION_SELECT_COLUMNS = [
   'timezone',
   'updated_at'
 ].join(', ')
+const CALENDAR_EVENT_SELECT_COLUMNS = [
+  'id',
+  'lead_id',
+  'owner_user_id',
+  'created_by_user_id',
+  'title',
+  'action_text',
+  'notes',
+  'start_at',
+  'end_at',
+  'event_time_zone',
+  'status',
+  'visibility',
+  'completed_at',
+  'canceled_at',
+  'created_at',
+  'updated_at'
+].join(', ')
+const CALENDAR_LEAD_SELECT_COLUMNS = [
+  'id',
+  'first_name',
+  'last_name',
+  'full_name',
+  'phone',
+  'email',
+  'lifecycle',
+  'timezone'
+].join(', ')
+const CALENDAR_EVENT_STATUS_OPTIONS = ['scheduled', 'completed', 'canceled', 'missed']
 const PROFILE_ACCESS_SELECT = 'role, active'
 const SUPABASE_BATCH_SIZE = 1000
 const SUPABASE_FILTER_BATCH_SIZE = 250
@@ -746,6 +775,310 @@ export class SupabaseCrmDataService extends CrmDataService {
     })
   }
 
+  async listCalendarEvents({ rangeStart = '', rangeEnd = '', visibilityScope = 'visible' } = {}) {
+    const normalizedVisibilityScope = normalizeCalendarVisibilityScope(visibilityScope)
+    const currentUserId = await this.getAuthenticatedUserId()
+    const normalizedRangeStart = normalizeCalendarQueryDateTime(rangeStart)
+    const normalizedRangeEnd = normalizeCalendarQueryDateTime(rangeEnd)
+
+    if ((normalizedVisibilityScope === 'mine' || normalizedVisibilityScope === 'shared') && !currentUserId) {
+      return []
+    }
+
+    if (normalizedVisibilityScope === 'shared') {
+      const shareRows = await this.fetchAllOptionalRows('calendar_event_shares', (query) =>
+        query.eq('shared_with_user_id', currentUserId)
+      )
+      const eventIds = dedupeStrings((shareRows ?? []).map((row) => row.event_id))
+
+      if (!eventIds.length) {
+        return []
+      }
+
+      const eventRows = await this.fetchAllOptionalRowsByIds(
+        'calendar_events',
+        'id',
+        eventIds,
+        (query) => {
+          let nextQuery = query
+
+          if (normalizedRangeStart) {
+            nextQuery = nextQuery.gte('start_at', normalizedRangeStart)
+          }
+
+          if (normalizedRangeEnd) {
+            nextQuery = nextQuery.lte('start_at', normalizedRangeEnd)
+          }
+
+          return nextQuery.order('start_at', { ascending: true, nullsFirst: false })
+        },
+        CALENDAR_EVENT_SELECT_COLUMNS,
+        'Unable to load shared calendar events from Supabase.'
+      )
+
+      return this.hydrateCalendarEvents(eventRows)
+    }
+
+    const eventRows = await this.fetchAllOptionalRows(
+      'calendar_events',
+      (query) => {
+        let nextQuery = query
+
+        if (normalizedVisibilityScope === 'mine') {
+          nextQuery = nextQuery.eq('owner_user_id', currentUserId)
+        }
+
+        if (normalizedRangeStart) {
+          nextQuery = nextQuery.gte('start_at', normalizedRangeStart)
+        }
+
+        if (normalizedRangeEnd) {
+          nextQuery = nextQuery.lte('start_at', normalizedRangeEnd)
+        }
+
+        return nextQuery.order('start_at', { ascending: true, nullsFirst: false })
+      },
+      CALENDAR_EVENT_SELECT_COLUMNS,
+      'Unable to load calendar events from Supabase.'
+    )
+
+    return this.hydrateCalendarEvents(eventRows)
+  }
+
+  async listLeadCalendarEvents(leadId) {
+    const normalizedLeadId = normalizeWhitespace(leadId)
+
+    if (!normalizedLeadId) {
+      return []
+    }
+
+    const eventRows = await this.fetchAllOptionalRows(
+      'calendar_events',
+      (query) => query
+        .eq('lead_id', normalizedLeadId)
+        .order('start_at', { ascending: true, nullsFirst: false }),
+      CALENDAR_EVENT_SELECT_COLUMNS,
+      'Unable to load follow-up events for this client.'
+    )
+
+    return this.hydrateCalendarEvents(eventRows)
+  }
+
+  async getCalendarEventById(eventId) {
+    const normalizedEventId = normalizeWhitespace(eventId)
+
+    if (!normalizedEventId) {
+      return null
+    }
+
+    const eventRows = await this.fetchAllOptionalRows(
+      'calendar_events',
+      (query) => query.eq('id', normalizedEventId).limit(1),
+      CALENDAR_EVENT_SELECT_COLUMNS,
+      'Unable to load the calendar event from Supabase.'
+    )
+
+    if (!eventRows.length) {
+      return null
+    }
+
+    const [event] = await this.hydrateCalendarEvents(eventRows)
+    return event || null
+  }
+
+  async createCalendarEvent(payload) {
+    const access = await this.assertActiveCalendarProfileAccess('schedule follow-up events')
+    const normalizedEvent = buildCalendarEventPayload(payload, {
+      actorUserId: access.userId,
+      defaultOwnerUserId: access.userId
+    })
+    const supabase = await getSupabase()
+    const { data, error } = await supabase
+      .from('calendar_events')
+      .insert({
+        lead_id: normalizedEvent.leadId,
+        owner_user_id: normalizedEvent.ownerUserId,
+        created_by_user_id: normalizedEvent.createdByUserId,
+        title: normalizedEvent.title,
+        action_text: normalizedEvent.actionText || null,
+        notes: normalizedEvent.notes || null,
+        start_at: normalizedEvent.startAt,
+        end_at: normalizedEvent.endAt || null,
+        event_time_zone: normalizedEvent.eventTimeZone,
+        status: normalizedEvent.status,
+        visibility: normalizedEvent.visibility,
+        completed_at: normalizedEvent.completedAt,
+        canceled_at: normalizedEvent.canceledAt,
+        created_at: normalizedEvent.createdAt,
+        updated_at: normalizedEvent.updatedAt
+      })
+      .select('id')
+      .single()
+
+    if (error) {
+      throw new Error(describeCalendarWriteError(error))
+    }
+
+    const eventId = normalizeWhitespace(data?.id)
+
+    if (!eventId) {
+      throw new Error('Supabase did not return the new calendar event id.')
+    }
+
+    await this.replaceCalendarEventShares(eventId, normalizedEvent.sharedWithUserIds)
+    await this.touchLead(normalizedEvent.leadId, { id: access.userId }, normalizedEvent.updatedAt)
+    return this.getCalendarEventById(eventId)
+  }
+
+  async updateCalendarEvent(eventId, payload) {
+    const normalizedEventId = normalizeWhitespace(eventId)
+
+    if (!normalizedEventId) {
+      throw new Error('Choose a calendar event before saving changes.')
+    }
+
+    const access = await this.assertActiveCalendarProfileAccess('edit follow-up events')
+    const existingEvent = await this.getCalendarEventById(normalizedEventId)
+
+    if (!existingEvent) {
+      throw new Error('That follow-up event is no longer available.')
+    }
+
+    const normalizedEvent = buildCalendarEventPayload(payload, {
+      existingEvent,
+      actorUserId: access.userId,
+      defaultOwnerUserId: existingEvent.ownerUserId || access.userId
+    })
+    const supabase = await getSupabase()
+    const { error } = await supabase
+      .from('calendar_events')
+      .update({
+        lead_id: normalizedEvent.leadId,
+        title: normalizedEvent.title,
+        action_text: normalizedEvent.actionText || null,
+        notes: normalizedEvent.notes || null,
+        start_at: normalizedEvent.startAt,
+        end_at: normalizedEvent.endAt || null,
+        event_time_zone: normalizedEvent.eventTimeZone,
+        status: normalizedEvent.status,
+        visibility: normalizedEvent.visibility,
+        completed_at: normalizedEvent.completedAt,
+        canceled_at: normalizedEvent.canceledAt,
+        updated_at: normalizedEvent.updatedAt
+      })
+      .eq('id', normalizedEventId)
+
+    if (error) {
+      throw new Error(describeCalendarWriteError(error))
+    }
+
+    await this.replaceCalendarEventShares(normalizedEventId, normalizedEvent.sharedWithUserIds)
+    await this.touchLead(normalizedEvent.leadId, { id: access.userId }, normalizedEvent.updatedAt)
+    return this.getCalendarEventById(normalizedEventId)
+  }
+
+  async updateCalendarEventStatus(eventId, status) {
+    const normalizedEventId = normalizeWhitespace(eventId)
+
+    if (!normalizedEventId) {
+      throw new Error('Choose a calendar event before updating its status.')
+    }
+
+    const access = await this.assertActiveCalendarProfileAccess('update follow-up event status')
+    const existingEvent = await this.getCalendarEventById(normalizedEventId)
+
+    if (!existingEvent) {
+      throw new Error('That follow-up event is no longer available.')
+    }
+
+    const normalizedStatus = normalizeCalendarEventStatus(status)
+    const updatedAt = new Date().toISOString()
+    const supabase = await getSupabase()
+    const { error } = await supabase
+      .from('calendar_events')
+      .update({
+        status: normalizedStatus,
+        completed_at: normalizedStatus === 'completed' ? updatedAt : null,
+        canceled_at: normalizedStatus === 'canceled' ? updatedAt : null,
+        updated_at: updatedAt
+      })
+      .eq('id', normalizedEventId)
+
+    if (error) {
+      throw new Error(describeCalendarWriteError(error))
+    }
+
+    await this.touchLead(existingEvent.leadId, { id: access.userId }, updatedAt)
+    return this.getCalendarEventById(normalizedEventId)
+  }
+
+  async replaceCalendarEventShares(eventId, userIds) {
+    const normalizedEventId = normalizeWhitespace(eventId)
+
+    if (!normalizedEventId) {
+      throw new Error('Choose a calendar event before updating shares.')
+    }
+
+    const access = await this.assertActiveCalendarProfileAccess('manage follow-up sharing')
+    const normalizedUserIds = dedupeStrings(Array.isArray(userIds) ? userIds : [userIds])
+      .map((value) => normalizeWhitespace(value))
+      .filter((value) => value && value !== access.userId)
+    const supabase = await getSupabase()
+    const { error: deleteError } = await supabase
+      .from('calendar_event_shares')
+      .delete()
+      .eq('event_id', normalizedEventId)
+
+    if (deleteError) {
+      throw new Error(describeCalendarWriteError(deleteError))
+    }
+
+    if (!normalizedUserIds.length) {
+      return []
+    }
+
+    const { error } = await supabase
+      .from('calendar_event_shares')
+      .insert(normalizedUserIds.map((sharedWithUserId) => ({
+        event_id: normalizedEventId,
+        shared_with_user_id: sharedWithUserId,
+        shared_by_user_id: access.userId
+      })))
+
+    if (error && !isDuplicateRowError(error)) {
+      throw new Error(describeCalendarWriteError(error))
+    }
+
+    return normalizedUserIds
+  }
+
+  async hydrateCalendarEvents(eventRows = []) {
+    const normalizedEventRows = Array.isArray(eventRows) ? eventRows : []
+
+    if (!normalizedEventRows.length) {
+      return []
+    }
+
+    const eventIds = dedupeStrings(normalizedEventRows.map((row) => row.id))
+    const leadIds = dedupeStrings(normalizedEventRows.map((row) => row.lead_id))
+    const [profileRows, shareRows, leadRows] = await Promise.all([
+      this.fetchOptionalRows('profiles'),
+      eventIds.length ? this.fetchAllOptionalRowsByIds('calendar_event_shares', 'event_id', eventIds) : Promise.resolve([]),
+      leadIds.length
+        ? this.fetchAllOptionalRowsByIds('leads', 'id', leadIds, (query) => query, CALENDAR_LEAD_SELECT_COLUMNS)
+        : Promise.resolve([])
+    ])
+
+    const usersById = new Map(profileRows.map(mapProfileUser).map((user) => [user.id, user]))
+    const sharesByEventId = buildCalendarEventSharesMap(shareRows, usersById)
+    const leadsById = buildCalendarLeadSummaryMap(leadRows)
+
+    return normalizedEventRows
+      .map((row) => mapCalendarEventRow(row, { usersById, sharesByEventId, leadsById }))
+      .filter((event) => Boolean(event.id))
+      .sort(sortCalendarEventsByStart)
+  }
+
   async findDuplicateClientCandidate(payload) {
     const normalizedEmail = normalizeEmail(payload?.email)
     const normalizedPhoneKey = normalizePhone(payload?.phone)
@@ -1162,6 +1495,49 @@ export class SupabaseCrmDataService extends CrmDataService {
     }
   }
 
+  async getAuthenticatedUserId() {
+    const supabase = await getSupabase()
+    const { data, error } = await supabase.auth.getUser()
+
+    if (error) {
+      throw new Error(error.message || 'Unable to verify the signed-in CRM user.')
+    }
+
+    return normalizeWhitespace(data?.user?.id)
+  }
+
+  async assertActiveCalendarProfileAccess(actionLabel = 'manage calendar events') {
+    const supabase = await getSupabase()
+    const userId = await this.getAuthenticatedUserId()
+
+    if (!userId) {
+      throw new Error('You must be signed in to manage follow-up events.')
+    }
+
+    const { data, error } = await supabase
+      .from('profiles')
+      .select(PROFILE_ACCESS_SELECT)
+      .eq('id', userId)
+      .maybeSingle()
+
+    if (error) {
+      throw new Error(error.message || 'Unable to load your CRM profile permissions.')
+    }
+
+    const role = normalizeProfileRole(data?.role)
+    const isActive = data?.active === true
+
+    if (!isActive) {
+      throw new Error(`Only active CRM users can ${actionLabel}.`)
+    }
+
+    return {
+      userId,
+      role,
+      isActive
+    }
+  }
+
   async assertActiveAdminProfileAccess(actionLabel = 'manage tags or dispositions') {
     const supabase = await getSupabase()
     const { data: authData, error: authError } = await supabase.auth.getUser()
@@ -1436,8 +1812,17 @@ function buildLeadHistoryMap(rows, usersById) {
       ?? usersById.get(changedByUserId)?.name
       ?? ''
     )
-    const oldValue = normalizeLeadHistoryFieldValue(fieldName, row.old_value ?? row.oldValue ?? row.previous_value ?? row.previousValue)
-    const newValue = normalizeLeadHistoryFieldValue(fieldName, row.new_value ?? row.newValue ?? row.nextValue)
+    const fieldLabel = formatLeadHistoryFieldLabel(fieldName)
+    const oldValue = normalizeLeadHistoryFieldValue(
+      fieldName,
+      row.old_value ?? row.oldValue ?? row.previous_value ?? row.previousValue,
+      usersById
+    )
+    const newValue = normalizeLeadHistoryFieldValue(
+      fieldName,
+      row.new_value ?? row.newValue ?? row.nextValue,
+      usersById
+    )
     const changedAt = row.changed_at ?? row.changedAt ?? row.created_at ?? row.createdAt ?? ''
 
     if (!leadId) {
@@ -1449,12 +1834,12 @@ function buildLeadHistoryMap(rows, usersById) {
       id: String(row.id ?? uid('activity')),
       type: normalizeLeadHistoryType(row.type ?? row.action_type, fieldName),
       fieldName: fieldName || 'unknown',
-      fieldLabel: fieldName || 'unknown',
+      fieldLabel,
       oldValue,
       previousValue: oldValue,
       newValue,
       nextValue: newValue,
-      message: normalizeWhitespace(row.message ?? buildLeadHistoryMessage(fieldName, oldValue, newValue)),
+      message: normalizeWhitespace(row.message ?? buildLeadHistoryMessage(fieldName, oldValue, newValue, fieldLabel)),
       changedAt,
       createdAt: changedAt,
       changedByUserId,
@@ -1470,6 +1855,229 @@ function buildLeadHistoryMap(rows, usersById) {
   })
 
   return map
+}
+
+function buildCalendarLeadSummaryMap(rows = []) {
+  return (rows ?? []).reduce((map, row) => {
+    const leadId = String(row.id ?? '').trim()
+    const firstName = normalizeWhitespace(row.first_name)
+    const lastName = normalizeWhitespace(row.last_name)
+    const fullName = normalizeWhitespace(row.full_name) || buildFullName(firstName, lastName)
+    const phoneKey = normalizePhone(row.phone)
+
+    if (!leadId) {
+      return map
+    }
+
+    map.set(leadId, {
+      id: leadId,
+      fullName: fullName || normalizeEmail(row.email) || formatPhone(phoneKey) || 'Unnamed lead',
+      email: normalizeEmail(row.email),
+      phone: formatPhone(phoneKey) || normalizeWhitespace(row.phone),
+      lifecycleType: resolveLeadRowLifecycle(row.lifecycle, []),
+      timeZone: normalizeTimeZoneLabel(row.timezone) || normalizeWhitespace(row.timezone) || 'Unknown'
+    })
+    return map
+  }, new Map())
+}
+
+function buildCalendarEventSharesMap(rows, usersById = new Map()) {
+  const map = new Map()
+
+  ;(rows ?? []).forEach((row) => {
+    const eventId = String(row.event_id ?? row.eventId ?? '').trim()
+    const sharedWithUserId = normalizeWhitespace(row.shared_with_user_id ?? row.sharedWithUserId)
+
+    if (!eventId || !sharedWithUserId) {
+      return
+    }
+
+    const current = map.get(eventId) || []
+    current.push({
+      userId: sharedWithUserId,
+      name: normalizeWhitespace(usersById.get(sharedWithUserId)?.name ?? ''),
+      email: normalizeWhitespace(usersById.get(sharedWithUserId)?.email ?? ''),
+      sharedByUserId: normalizeWhitespace(row.shared_by_user_id ?? row.sharedByUserId),
+      createdAt: row.created_at ?? row.createdAt ?? ''
+    })
+    map.set(eventId, current)
+  })
+
+  map.forEach((entries, eventId) => {
+    map.set(eventId, entries.sort((left, right) =>
+      (left.name || left.email || left.userId).localeCompare(right.name || right.email || right.userId)
+    ))
+  })
+
+  return map
+}
+
+function mapCalendarEventRow(row, { usersById = new Map(), sharesByEventId = new Map(), leadsById = new Map() } = {}) {
+  const eventId = String(row.id ?? '').trim()
+  const leadId = normalizeWhitespace(row.lead_id ?? row.leadId)
+  const ownerUserId = normalizeWhitespace(row.owner_user_id ?? row.ownerUserId)
+  const createdByUserId = normalizeWhitespace(row.created_by_user_id ?? row.createdByUserId)
+  const leadSummary = leadsById.get(leadId) || null
+  const shareEntries = sharesByEventId.get(eventId) || []
+  const title = normalizeWhitespace(row.title)
+
+  return {
+    id: eventId,
+    leadId,
+    ownerUserId,
+    ownerName: normalizeWhitespace(usersById.get(ownerUserId)?.name ?? ''),
+    createdByUserId,
+    createdByName: normalizeWhitespace(usersById.get(createdByUserId)?.name ?? ''),
+    title: title || buildDefaultCalendarEventTitle(leadSummary?.fullName),
+    actionText: normalizeWhitespace(row.action_text ?? row.actionText),
+    notes: normalizeNotes(row.notes),
+    startAt: row.start_at ?? row.startAt ?? '',
+    endAt: row.end_at ?? row.endAt ?? '',
+    eventTimeZone: normalizeTimeZoneLabel(row.event_time_zone ?? row.eventTimeZone) || normalizeWhitespace(row.event_time_zone ?? row.eventTimeZone) || 'Unknown',
+    status: normalizeCalendarEventStatus(row.status),
+    visibility: normalizeCalendarEventVisibility(row.visibility),
+    sharedWithUserIds: shareEntries.map((entry) => entry.userId),
+    sharedWithUsers: shareEntries,
+    createdAt: row.created_at ?? row.createdAt ?? '',
+    updatedAt: row.updated_at ?? row.updatedAt ?? '',
+    completedAt: row.completed_at ?? row.completedAt ?? '',
+    canceledAt: row.canceled_at ?? row.canceledAt ?? '',
+    leadName: leadSummary?.fullName || '',
+    leadEmail: leadSummary?.email || '',
+    leadPhone: leadSummary?.phone || '',
+    leadLifecycleType: leadSummary?.lifecycleType || '',
+    leadTimeZone: leadSummary?.timeZone || 'Unknown'
+  }
+}
+
+function sortCalendarEventsByStart(left, right) {
+  return (Date.parse(left?.startAt ?? 0) || 0) - (Date.parse(right?.startAt ?? 0) || 0)
+}
+
+function normalizeCalendarVisibilityScope(value) {
+  const normalized = normalizeWhitespace(value).toLowerCase()
+
+  if (normalized === 'mine') {
+    return 'mine'
+  }
+
+  if (normalized === 'shared') {
+    return 'shared'
+  }
+
+  if (normalized === 'all') {
+    return 'all'
+  }
+
+  return 'visible'
+}
+
+function normalizeCalendarEventStatus(value) {
+  const normalized = normalizeWhitespace(value).toLowerCase()
+  return CALENDAR_EVENT_STATUS_OPTIONS.includes(normalized) ? normalized : 'scheduled'
+}
+
+function normalizeCalendarEventVisibility(value) {
+  return normalizeWhitespace(value).toLowerCase() === 'shared' ? 'shared' : 'private'
+}
+
+function normalizeCalendarQueryDateTime(value) {
+  const normalized = normalizeWhitespace(value)
+
+  if (!normalized) {
+    return ''
+  }
+
+  const date = new Date(normalized)
+  return Number.isNaN(date.getTime()) ? '' : date.toISOString()
+}
+
+function normalizeCalendarEventDateTime(value, label = 'event time') {
+  const normalized = normalizeWhitespace(value)
+
+  if (!normalized) {
+    return ''
+  }
+
+  const date = new Date(normalized)
+
+  if (Number.isNaN(date.getTime())) {
+    throw new Error(`Choose a valid ${label}.`)
+  }
+
+  return date.toISOString()
+}
+
+function buildCalendarEventPayload(payload, { existingEvent = null, actorUserId = '', defaultOwnerUserId = '' } = {}) {
+  const now = new Date().toISOString()
+  const leadId = normalizeWhitespace(payload?.leadId ?? existingEvent?.leadId)
+  const title = normalizeWhitespace(payload?.title ?? existingEvent?.title)
+  const startAt = normalizeCalendarEventDateTime(payload?.startAt ?? existingEvent?.startAt, 'start time')
+  const rawEndAt = payload && Object.prototype.hasOwnProperty.call(payload, 'endAt')
+    ? payload?.endAt
+    : existingEvent?.endAt
+  const endAt = normalizeCalendarEventDateTime(rawEndAt, 'end time')
+  const eventTimeZone = normalizeTimeZoneLabel(payload?.eventTimeZone)
+    || normalizeWhitespace(payload?.eventTimeZone)
+    || normalizeTimeZoneLabel(existingEvent?.eventTimeZone)
+    || normalizeWhitespace(existingEvent?.eventTimeZone)
+    || 'Unknown'
+  const visibility = normalizeCalendarEventVisibility(payload?.visibility ?? existingEvent?.visibility)
+  const requestedShareIds = dedupeStrings(
+    Array.isArray(payload?.sharedWithUserIds)
+      ? payload.sharedWithUserIds
+      : (payload?.sharedWithUserIds ? [payload.sharedWithUserIds] : (existingEvent?.sharedWithUserIds || []))
+  )
+    .map((value) => normalizeWhitespace(value))
+    .filter((value) => value && value !== (existingEvent?.ownerUserId || actorUserId || defaultOwnerUserId))
+  const sharedWithUserIds = visibility === 'shared' ? requestedShareIds : []
+
+  if (!leadId) {
+    throw new Error('Choose a lead or member before scheduling a follow-up.')
+  }
+
+  if (!title) {
+    throw new Error('Add a title for the follow-up event.')
+  }
+
+  if (!startAt) {
+    throw new Error('Choose a valid start time.')
+  }
+
+  if (endAt && Date.parse(endAt) < Date.parse(startAt)) {
+    throw new Error('The end time must be after the start time.')
+  }
+
+  if (visibility === 'shared' && !sharedWithUserIds.length) {
+    throw new Error('Choose at least one coworker before sharing this follow-up.')
+  }
+
+  return {
+    leadId,
+    ownerUserId: normalizeWhitespace(existingEvent?.ownerUserId || defaultOwnerUserId || actorUserId),
+    createdByUserId: normalizeWhitespace(existingEvent?.createdByUserId || actorUserId || defaultOwnerUserId),
+    title,
+    actionText: normalizeWhitespace(payload?.actionText ?? existingEvent?.actionText),
+    notes: normalizeNotes(payload?.notes ?? existingEvent?.notes),
+    startAt,
+    endAt,
+    eventTimeZone,
+    status: normalizeCalendarEventStatus(payload?.status ?? existingEvent?.status),
+    visibility,
+    sharedWithUserIds,
+    completedAt: normalizeCalendarEventStatus(payload?.status ?? existingEvent?.status) === 'completed'
+      ? (existingEvent?.completedAt || now)
+      : null,
+    canceledAt: normalizeCalendarEventStatus(payload?.status ?? existingEvent?.status) === 'canceled'
+      ? (existingEvent?.canceledAt || now)
+      : null,
+    createdAt: existingEvent?.createdAt || now,
+    updatedAt: now
+  }
+}
+
+function buildDefaultCalendarEventTitle(leadName = '') {
+  return `Follow-up with ${normalizeWhitespace(leadName) || 'Client'}`
 }
 
 function mapLeadRow(row, { usersById, tagsByLeadId, notesByLeadId, historyByLeadId, dispositionDefinitions = [] }) {
@@ -1791,6 +2399,14 @@ function describeLeadWriteError(error) {
   return message || 'Unable to save the lead to Supabase.'
 }
 
+function describeCalendarWriteError(error) {
+  if (isMissingRelationError(error)) {
+    return 'Run the CRM calendar migration in Supabase before scheduling follow-ups.'
+  }
+
+  return normalizeWhitespace(error?.message) || 'Unable to save the calendar event to Supabase.'
+}
+
 function resolveDispositionLabel(dispositionId, dispositionDefinitions) {
   if (dispositionId) {
     const matchedDefinition = dispositionDefinitions.find((definition) => definition.id === dispositionId)
@@ -1894,6 +2510,41 @@ function normalizeLeadHistoryFieldName(value) {
   return normalized
 }
 
+function formatLeadHistoryFieldLabel(fieldName) {
+  const normalizedFieldName = normalizeLeadHistoryFieldName(fieldName)
+  const key = normalizeWhitespace(normalizedFieldName).toLowerCase()
+
+  if (key === 'assigned_rep_id' || key === 'assigned_to') {
+    return 'Assigned Rep'
+  }
+
+  if (key === 'timezone' || key === 'time_zone') {
+    return 'Time Zone'
+  }
+
+  if (!normalizedFieldName) {
+    return 'Unknown Field'
+  }
+
+  return normalizedFieldName
+    .replace(/[_-]+/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim()
+    .split(' ')
+    .map((word) => {
+      if (!word) {
+        return ''
+      }
+
+      if (word.toLowerCase() === 'id') {
+        return 'ID'
+      }
+
+      return `${word.charAt(0).toUpperCase()}${word.slice(1).toLowerCase()}`
+    })
+    .join(' ')
+}
+
 function resolveCurrentLeadStatus(historyEntries) {
   const statusEntry = (historyEntries ?? []).find((entry) => normalizeLeadHistoryFieldName(entry.fieldName) === 'status')
   return statusEntry ? normalizeStatus(statusEntry.newValue) : 'new'
@@ -1942,9 +2593,10 @@ function normalizeLeadHistoryValue(value) {
   return normalizeWhitespace(String(value)) || '—'
 }
 
-function normalizeLeadHistoryFieldValue(fieldName, value) {
+function normalizeLeadHistoryFieldValue(fieldName, value, usersById = new Map()) {
   const normalizedFieldName = normalizeLeadHistoryFieldName(fieldName)
   const normalizedValue = normalizeLeadHistoryValue(value)
+  const rawValue = normalizeWhitespace(value)
 
   if (normalizedFieldName === 'status') {
     return serializeLeadStatus(normalizeStatus(normalizedValue))
@@ -1952,6 +2604,14 @@ function normalizeLeadHistoryFieldValue(fieldName, value) {
 
   if (normalizedFieldName === 'lifecycle') {
     return normalizeLifecycle(normalizedValue)
+  }
+
+  if (normalizedFieldName === 'assigned_rep_id' || normalizedFieldName === 'assigned_to') {
+    if (!rawValue || normalizedValue === '—') {
+      return 'Unassigned'
+    }
+
+    return normalizeWhitespace(usersById.get(rawValue)?.name ?? normalizedValue) || 'Unassigned'
   }
 
   return normalizedValue
@@ -1989,9 +2649,9 @@ function normalizeLeadHistoryType(rawType, fieldName) {
   return 'change'
 }
 
-function buildLeadHistoryMessage(fieldName, oldValue, newValue) {
-  const normalizedFieldName = fieldName || 'Field'
-  return `${normalizedFieldName} changed from ${oldValue} to ${newValue}.`
+function buildLeadHistoryMessage(fieldName, oldValue, newValue, fieldLabel = formatLeadHistoryFieldLabel(fieldName)) {
+  const normalizedFieldLabel = fieldLabel || 'Field'
+  return `${normalizedFieldLabel} changed from ${oldValue} to ${newValue}.`
 }
 
 function normalizeStatusFilter(value) {
@@ -2316,6 +2976,12 @@ function isDuplicateRowError(error) {
   const code = normalizeWhitespace(error?.code)
   const message = normalizeWhitespace(error?.message).toLowerCase()
   return code === '23505' || message.includes('duplicate key') || message.includes('duplicate')
+}
+
+function isMissingRelationError(error) {
+  const code = normalizeWhitespace(error?.code)
+  const message = normalizeWhitespace(error?.message).toLowerCase()
+  return code === '42P01' || message.includes('does not exist')
 }
 
 function isRangeNotSatisfiableError(error) {

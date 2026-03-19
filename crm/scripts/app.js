@@ -19,6 +19,7 @@ import {
 } from './services/permissions.js';
 import { SupabaseSavedFilterService } from './services/supabase-saved-filter-service.js';
 import {
+    dedupeStrings,
     downloadTextFile,
     escapeHtml,
     extractAreaCode,
@@ -45,6 +46,7 @@ const refs = {
     sidebar: document.getElementById('crm-sidebar'),
     topbar: document.getElementById('crm-topbar'),
     overviewPanel: document.getElementById('crm-overview-panel'),
+    calendarPanel: document.getElementById('crm-calendar-panel'),
     clientsPanel: document.getElementById('crm-clients-panel'),
     membersPanel: document.getElementById('crm-members-panel'),
     adminPanel: document.getElementById('crm-admin-panel'),
@@ -101,8 +103,11 @@ const WORKSPACE_UI_STATE_STORAGE_KEY = 'crm:workspace-ui-state';
 const WORKSPACE_PAGE_CACHE_TTL_MS = 2 * 60 * 1000;
 const WORKSPACE_PAGE_CACHE_MAX_ENTRIES = 24;
 const SEARCH_SUGGESTION_DEBOUNCE_MS = 180;
-const WORKSPACE_VIEWS = new Set(['overview', 'clients', 'assigned-leads', 'members', 'admin', 'lead-detail', 'imports', 'settings']);
+const WORKSPACE_VIEWS = new Set(['overview', 'calendar', 'clients', 'assigned-leads', 'members', 'admin', 'lead-detail', 'imports', 'settings']);
 const WORKSPACE_PAGE_SIZES = [25, 50, 100, 250];
+const CALENDAR_EVENT_STATUS_OPTIONS = ['scheduled', 'completed', 'canceled', 'missed'];
+const CALENDAR_EVENT_VISIBILITY_OPTIONS = ['private', 'shared'];
+const CALENDAR_DAY_LABELS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 const ADMIN_TABS = Object.freeze([
     { id: 'team', icon: 'fa-users', label: 'Reps' },
     { id: 'tags', icon: 'fa-tags', label: 'Tags' },
@@ -161,6 +166,36 @@ function createEmptyWorkspaceSummary() {
     };
 }
 
+function createDefaultCalendarClientPickerState() {
+    return {
+        query: '',
+        selectedLeadId: '',
+        selectedLeadName: '',
+        selectedLeadMeta: '',
+        suggestions: [],
+        isOpen: false,
+        isLoading: false,
+        activeIndex: -1,
+        lastQuery: ''
+    };
+}
+
+function createDefaultCalendarState() {
+    return {
+        monthCursor: getMonthCursorValue(new Date()),
+        selectedDate: getDateKey(new Date()),
+        view: 'week',
+        filter: 'mine',
+        events: [],
+        leadEventsByLeadId: {},
+        isLoading: false,
+        rangeStart: '',
+        rangeEnd: '',
+        clientPicker: createDefaultCalendarClientPickerState(),
+        formDraft: null
+    };
+}
+
 function getValidAdminTab(tabId) {
     return ADMIN_TABS.some((tab) => tab.id === tabId) ? tabId : 'team';
 }
@@ -172,6 +207,7 @@ const state = {
     authRemember: authService.getRememberPreference(),
     authResolved: false,
     authSubmitting: false,
+    calendar: createDefaultCalendarState(),
     clients: [],
     allowedTags: [],
     tagDefinitions: [],
@@ -212,6 +248,8 @@ const state = {
     bulkAssignRepId: '',
     drawerMode: null,
     drawerClientId: null,
+    drawerEventId: null,
+    drawerDate: '',
     detailClientId: null,
     detailEditMode: false,
     detailEditSnapshot: null,
@@ -237,6 +275,9 @@ let workspaceRefreshTimer = null;
 let refreshDataPromise = null;
 let searchSuggestionsTimer = null;
 let searchSuggestionsRequestId = 0;
+let calendarClientSuggestionsTimer = null;
+let calendarClientSuggestionsRequestId = 0;
+let calendarClientFocusRestorePending = false;
 
 bootstrap();
 
@@ -581,6 +622,11 @@ async function refreshData() {
             }
             [state.users, state.savedFilters] = await Promise.all([usersPromise, savedFiltersPromise]);
 
+            if (state.calendar.filter === 'all' && !hasActiveAdminProfile()) {
+                state.calendar.filter = 'mine';
+            }
+            await refreshCalendarEvents({ force: true, renderWhileLoading: false });
+
             if (supportsServerWorkspacePaging() && state.currentView !== 'admin') {
                 const workspaceScope = state.lastWorkspaceView === 'members' ? 'members' : 'leads';
                 await refreshWorkspacePage(workspaceScope, { renderWhileLoading: false });
@@ -591,6 +637,7 @@ async function refreshData() {
 
                 if (detailedLead && canAccessClient(detailedLead)) {
                     mergeClientCache([detailedLead]);
+                    await loadLeadCalendarEvents(state.detailClientId, { force: true });
                 }
             }
 
@@ -695,6 +742,81 @@ async function loadFullClientDataset() {
         state.isLoading = false;
         render();
     }
+}
+
+function buildCalendarLoadRange(anchorDate = getMonthCursorDate()) {
+    return {
+        rangeStart: new Date(anchorDate.getFullYear(), anchorDate.getMonth() - 12, 1, 0, 0, 0, 0).toISOString(),
+        rangeEnd: new Date(anchorDate.getFullYear(), anchorDate.getMonth() + 13, 0, 23, 59, 59, 999).toISOString()
+    };
+}
+
+async function refreshCalendarEvents({ anchorDate = getMonthCursorDate(), force = false, renderWhileLoading = false } = {}) {
+    if (!state.session || typeof dataService.listCalendarEvents !== 'function') {
+        state.calendar.events = [];
+        state.calendar.isLoading = false;
+        return;
+    }
+
+    const range = buildCalendarLoadRange(anchorDate);
+
+    if (
+        !force
+        && state.calendar.rangeStart === range.rangeStart
+        && state.calendar.rangeEnd === range.rangeEnd
+        && Array.isArray(state.calendar.events)
+        && state.calendar.events.length
+    ) {
+        return;
+    }
+
+    state.calendar.isLoading = true;
+    if (renderWhileLoading) {
+        renderPanels();
+    }
+
+    try {
+        state.calendar.events = await dataService.listCalendarEvents(range);
+        state.calendar.rangeStart = range.rangeStart;
+        state.calendar.rangeEnd = range.rangeEnd;
+    } finally {
+        state.calendar.isLoading = false;
+        if (renderWhileLoading) {
+            renderPanels();
+        }
+    }
+}
+
+async function ensureCalendarEventsForDate(anchorDate) {
+    const date = anchorDate instanceof Date ? anchorDate : new Date(anchorDate);
+
+    if (Number.isNaN(date.getTime())) {
+        return;
+    }
+
+    const selectedTime = date.getTime();
+    const rangeStartTime = Date.parse(state.calendar.rangeStart || 0);
+    const rangeEndTime = Date.parse(state.calendar.rangeEnd || 0);
+
+    if (!rangeStartTime || !rangeEndTime || selectedTime < rangeStartTime || selectedTime > rangeEndTime) {
+        await refreshCalendarEvents({ anchorDate: date, force: true, renderWhileLoading: false });
+    }
+}
+
+async function loadLeadCalendarEvents(leadId, { force = false } = {}) {
+    const normalizedLeadId = normalizeWhitespace(leadId);
+
+    if (!normalizedLeadId || typeof dataService.listLeadCalendarEvents !== 'function') {
+        return [];
+    }
+
+    if (!force && Array.isArray(state.calendar.leadEventsByLeadId[normalizedLeadId])) {
+        return state.calendar.leadEventsByLeadId[normalizedLeadId];
+    }
+
+    const events = await dataService.listLeadCalendarEvents(normalizedLeadId);
+    state.calendar.leadEventsByLeadId[normalizedLeadId] = events;
+    return events;
 }
 
 function syncShellState() {
@@ -1084,6 +1206,7 @@ function mergeClientCache(incomingClients) {
 function getPrimaryNavItems() {
     return [
         { view: 'overview', label: 'Dashboard', icon: 'fa-chart-line', badge: null },
+        { view: 'calendar', label: 'Calendar', icon: 'fa-calendar-days', badge: null },
         { view: 'clients', label: 'Leads', icon: 'fa-address-book', badge: getWorkspaceDisplayCount('leads').toLocaleString() },
         hasActiveAdminProfile()
             ? { view: 'admin', label: 'Admin', icon: 'fa-shield-halved', badge: null }
@@ -1114,6 +1237,10 @@ function getActivePrimaryNavView() {
 
     if (state.currentView === 'assigned-leads') {
         return 'clients';
+    }
+
+    if (state.currentView === 'calendar') {
+        return 'calendar';
     }
 
     if (state.currentView === 'imports') {
@@ -1169,6 +1296,30 @@ function shouldShowMobileSearch() {
     return !state.sidebarOpen && (state.mobileSearchOpen || hasActiveToolbarSearch());
 }
 
+function getClampedInputCaret(input, caretPosition = null) {
+    const valueLength = input?.value?.length ?? 0;
+
+    if (typeof caretPosition !== 'number' || Number.isNaN(caretPosition)) {
+        return valueLength;
+    }
+
+    return Math.max(0, Math.min(caretPosition, valueLength));
+}
+
+function restoreInputCaret(input, caretPosition = null) {
+    if (!input) {
+        return null;
+    }
+
+    const caret = getClampedInputCaret(input, caretPosition);
+
+    if (typeof input.setSelectionRange === 'function') {
+        input.setSelectionRange(caret, caret);
+    }
+
+    return caret;
+}
+
 function focusToolbarSearchInput(surface = 'mobile', caretPosition = null) {
     requestAnimationFrame(() => {
         const selector = surface === 'desktop'
@@ -1181,11 +1332,9 @@ function focusToolbarSearchInput(surface = 'mobile', caretPosition = null) {
         }
 
         input.focus();
-
-        if (typeof input.setSelectionRange === 'function') {
-            const caret = typeof caretPosition === 'number' ? caretPosition : input.value.length;
-            input.setSelectionRange(caret, caret);
-        }
+        const caret = restoreInputCaret(input, caretPosition);
+        state.activeSearchSurface = surface;
+        state.activeSearchCaret = caret;
     });
 }
 
@@ -1510,6 +1659,7 @@ function renderPanels() {
 
     const panelStates = new Map([
         [refs.overviewPanel, state.currentView === 'overview'],
+        [refs.calendarPanel, state.currentView === 'calendar'],
         [refs.clientsPanel, isLeadsWorkspaceView(state.currentView)],
         [refs.membersPanel, state.currentView === 'members'],
         [refs.adminPanel, state.currentView === 'admin'],
@@ -1528,6 +1678,10 @@ function renderPanels() {
 
     if (state.currentView === 'overview') {
         refs.overviewPanel.innerHTML = renderOverviewPanel();
+    }
+
+    if (state.currentView === 'calendar') {
+        refs.calendarPanel.innerHTML = renderCalendarPage();
     }
 
     if (isLeadsWorkspaceView(state.currentView)) {
@@ -1588,7 +1742,6 @@ function renderOverviewPanel() {
                 <div class="ov-hero-inner">
                     <span class="ov-hero-label">Workspace Overview</span>
                     <h1>CRM <em>Overview</em></h1>
-                    <p class="ov-hero-desc">Monitor lead flow, member growth, and recent activity from one workspace.</p>
                     <div class="ov-feature">
                         <span class="ov-feature-label">Active Leads</span>
                         <div class="ov-feature-number">${metrics.totalLeads.toLocaleString()}</div>
@@ -1603,22 +1756,20 @@ function renderOverviewPanel() {
                     <article class="ov-stat-tile" id="ov-stat-leads">
                         <div class="ov-stat-tile-label">Total Leads</div>
                         <div class="ov-stat-tile-value">${metrics.totalLeads.toLocaleString()}</div>
-                        <div class="ov-stat-tile-sub">Across the active pipeline</div>
                     </article>
                     <article class="ov-stat-tile" id="ov-stat-members">
                         <div class="ov-stat-tile-label">Members</div>
                         <div class="ov-stat-tile-value">${metrics.totalMembers.toLocaleString()}</div>
-                        <div class="ov-stat-tile-sub">Moved into the members workspace</div>
                     </article>
                     <article class="ov-stat-tile" id="ov-stat-status">
                         <div class="ov-stat-tile-label">Top Status</div>
                         <div class="ov-stat-tile-value">${metrics.topStatus.count.toLocaleString()}</div>
-                        <div class="ov-stat-tile-sub">${escapeHtml(metrics.topStatus.label)}</div>
+                        ${metrics.topStatus.label ? `<div class="ov-stat-tile-sub">${escapeHtml(metrics.topStatus.label)}</div>` : ''}
                     </article>
                     <article class="ov-stat-tile" id="ov-stat-tag">
                         <div class="ov-stat-tile-label">Top Tag</div>
                         <div class="ov-stat-tile-value">${metrics.topTag.count.toLocaleString()}</div>
-                        <div class="ov-stat-tile-sub">${escapeHtml(metrics.topTag.label)}</div>
+                        ${metrics.topTag.label ? `<div class="ov-stat-tile-sub">${escapeHtml(metrics.topTag.label)}</div>` : ''}
                     </article>
                 </div>
 
@@ -1673,13 +1824,675 @@ function renderOverviewPanel() {
                         <div class="ov-tag-cloud">
                             ${metrics.tagCounts.slice(0, 10).map(([tag, count]) => `
                                 <span class="ov-tag-chip"><strong>${escapeHtml(tag)}</strong> ${count.toLocaleString()}</span>
-                            `).join('') || '<span class="ov-card-empty">No tags available yet.</span>'}
+                            `).join('') || '<span class="ov-card-empty">Tag data will appear here.</span>'}
                         </div>
                     </section>
                 </div>
             </div>
         </div>
     `;
+}
+
+function renderCalendarPage() {
+    const filteredEvents = getVisibleCalendarEvents();
+    const selectedDate = getCalendarSelectedDate();
+    const selectedDateKey = getDateKey(selectedDate);
+    const monthDate = getMonthCursorDate();
+    const selectedDateEvents = getCalendarEventsForDate(selectedDateKey, filteredEvents);
+    const calendarTitle = state.calendar.view === 'month'
+        ? formatCalendarMonthLabel(monthDate)
+        : formatCalendarWeekRangeLabel(selectedDate);
+    const inlineFilterButtons = [
+        renderCalendarFilterButton('mine', 'Mine'),
+        renderCalendarFilterButton('shared', 'Shared'),
+        hasActiveAdminProfile() ? renderCalendarFilterButton('all', 'All') : ''
+    ].filter(Boolean).join('');
+
+    return `
+        <div class="calendar-shell">
+            <aside class="calendar-sidebar-rail">
+                <button class="calendar-compose-button" type="button" data-action="open-calendar-event-drawer">
+                    <i class="fa-solid fa-plus"></i>
+                    <span>Schedule</span>
+                </button>
+
+                <div class="calendar-mini-card">
+                    <div class="calendar-mini-toolbar">
+                        <button class="calendar-mini-nav" type="button" data-action="calendar-prev-mini-month" aria-label="Previous mini month">
+                            <i class="fa-solid fa-chevron-left"></i>
+                        </button>
+                        <div class="calendar-mini-label">${escapeHtml(formatCalendarMonthLabel(monthDate))}</div>
+                        <button class="calendar-mini-nav" type="button" data-action="calendar-next-mini-month" aria-label="Next mini month">
+                            <i class="fa-solid fa-chevron-right"></i>
+                        </button>
+                    </div>
+                    <div class="calendar-mini-weekdays">
+                        ${CALENDAR_DAY_LABELS.map((label) => `<span>${escapeHtml(label.slice(0, 1))}</span>`).join('')}
+                    </div>
+                    <div class="calendar-mini-grid">
+                        ${buildCalendarGridDates(monthDate).map((day) => renderCalendarMiniDayCell(day, monthDate, filteredEvents)).join('')}
+                    </div>
+                </div>
+
+                <div class="calendar-sidebar-events">
+                    ${selectedDateEvents.length
+                        ? selectedDateEvents.slice(0, 5).map((event) => renderCalendarCompactEvent(event)).join('')
+                        : `
+                            <button
+                                class="calendar-empty-chip"
+                                type="button"
+                                data-action="open-calendar-event-drawer"
+                                data-date="${escapeHtml(selectedDateKey)}"
+                            >
+                                <i class="fa-solid fa-calendar-plus"></i>
+                                <span>${escapeHtml(formatCalendarFullDate(selectedDate))}</span>
+                            </button>
+                        `}
+                </div>
+            </aside>
+
+            <section class="calendar-stage">
+                <div class="calendar-stage-toolbar">
+                    <div class="calendar-stage-toolbar-left">
+                        <button class="calendar-toolbar-button" type="button" data-action="calendar-today">Today</button>
+                        <div class="calendar-period-nav">
+                            <button class="calendar-icon-button" type="button" data-action="calendar-prev-period" aria-label="Previous">
+                                <i class="fa-solid fa-chevron-left"></i>
+                            </button>
+                            <button class="calendar-icon-button" type="button" data-action="calendar-next-period" aria-label="Next">
+                                <i class="fa-solid fa-chevron-right"></i>
+                            </button>
+                        </div>
+                        <div class="calendar-stage-title">${escapeHtml(calendarTitle)}</div>
+                    </div>
+
+                    <div class="calendar-stage-toolbar-right">
+                        <div class="calendar-inline-filters" role="tablist" aria-label="Calendar visibility filter">
+                            ${inlineFilterButtons}
+                        </div>
+                        <div class="calendar-view-switch" role="tablist" aria-label="Calendar view">
+                            <button class="calendar-view-button ${state.calendar.view === 'week' ? 'active' : ''}" type="button" data-action="set-calendar-view" data-view="week">Week</button>
+                            <button class="calendar-view-button ${state.calendar.view === 'month' ? 'active' : ''}" type="button" data-action="set-calendar-view" data-view="month">Month</button>
+                        </div>
+                    </div>
+                </div>
+
+                ${state.calendar.isLoading && !filteredEvents.length
+                    ? renderLoadingState('Loading calendar events...')
+                    : (state.calendar.view === 'month'
+                        ? renderCalendarMonthStage(monthDate, filteredEvents)
+                        : renderCalendarWeekView(selectedDate, filteredEvents))}
+            </section>
+        </div>
+    `;
+}
+
+function renderCalendarFilterButton(filterValue, label) {
+    const isActive = state.calendar.filter === filterValue;
+    return `
+        <button
+            class="calendar-filter-chip ${isActive ? 'active' : ''}"
+            type="button"
+            data-action="set-calendar-filter"
+            data-filter="${escapeHtml(filterValue)}"
+            aria-pressed="${isActive ? 'true' : 'false'}"
+        >
+            ${escapeHtml(label)}
+        </button>
+    `;
+}
+
+function renderCalendarDayCell(day, monthDate, events = []) {
+    const dateKey = getDateKey(day);
+    const dayEvents = getCalendarEventsForDate(dateKey, events);
+    const hiddenCount = Math.max(dayEvents.length - 3, 0);
+    const isTodayCell = getDateKey(new Date()) === dateKey;
+    const isSelected = state.calendar.selectedDate === dateKey;
+    const isOutsideMonth = day.getMonth() !== monthDate.getMonth();
+
+    return `
+        <div
+            class="calendar-day-cell ${isTodayCell ? 'today' : ''} ${isSelected ? 'selected' : ''} ${isOutsideMonth ? 'outside-month' : ''}"
+            data-action="select-calendar-date"
+            data-date="${escapeHtml(dateKey)}"
+        >
+            <div class="calendar-day-head">
+                <span class="calendar-day-number">${day.getDate()}</span>
+                <span class="calendar-day-count">${dayEvents.length ? `${dayEvents.length} event${dayEvents.length === 1 ? '' : 's'}` : ''}</span>
+            </div>
+
+            <div class="calendar-day-events">
+                ${dayEvents.slice(0, 3).map((event) => `
+                    <button
+                        class="calendar-day-event ${escapeHtml(event.status)}"
+                        type="button"
+                        data-action="open-calendar-event-drawer"
+                        data-event-id="${escapeHtml(event.id)}"
+                    >
+                        <span>${escapeHtml(formatCalendarTime(event.startAt))}</span>
+                        <strong>${escapeHtml(truncate(event.title, 28))}</strong>
+                    </button>
+                `).join('')}
+                ${hiddenCount ? `<div class="calendar-day-more">+${hiddenCount} more</div>` : ''}
+            </div>
+        </div>
+    `;
+}
+
+function renderCalendarEventList(events = [], { emptyCopy = 'No follow-ups available.', showLeadName = true } = {}) {
+    if (!events.length) {
+        return `<div class="calendar-empty-state">${escapeHtml(emptyCopy)}</div>`;
+    }
+
+    return `
+        <div class="calendar-event-list">
+            ${events.map((event) => renderCalendarEventCard(event, { showLeadName })).join('')}
+        </div>
+    `;
+}
+
+function renderCalendarEventCard(event, { showLeadName = true } = {}) {
+    const canManage = canManageCalendarEvent(event);
+    const accessibleLead = getAccessibleClientById(event.leadId);
+    const detailLine = [
+        formatCalendarEventStamp(event),
+        event.eventTimeZone || 'Unknown',
+        event.ownerName ? `Owner: ${event.ownerName}` : '',
+        event.visibility === 'shared'
+            ? `Shared${event.sharedWithUsers?.length ? ` with ${event.sharedWithUsers.length}` : ''}`
+            : 'Private'
+    ].filter(Boolean).join(' · ');
+    const summaryCopy = normalizeWhitespace(event.actionText || event.notes || '');
+
+    return `
+        <article class="calendar-event-card ${escapeHtml(event.status)}">
+            <div class="calendar-event-head">
+                <div>
+                    <div class="calendar-event-badges">
+                        <span class="calendar-status-pill ${escapeHtml(event.status)}">${escapeHtml(titleCase(event.status))}</span>
+                        <span class="calendar-visibility-pill ${escapeHtml(event.visibility)}">${escapeHtml(titleCase(event.visibility))}</span>
+                    </div>
+                    <h3>${escapeHtml(event.title)}</h3>
+                    ${showLeadName && event.leadName ? `<div class="calendar-event-lead">${escapeHtml(event.leadName)}</div>` : ''}
+                    ${summaryCopy ? `<p>${escapeHtml(truncate(summaryCopy, 160))}</p>` : ''}
+                </div>
+                <button
+                    class="crm-button-ghost"
+                    type="button"
+                    data-action="open-calendar-event-drawer"
+                    data-event-id="${escapeHtml(event.id)}"
+                >
+                    <i class="fa-solid fa-arrow-up-right-from-square"></i> Open
+                </button>
+            </div>
+
+            <div class="calendar-event-meta">${escapeHtml(detailLine)}</div>
+
+            <div class="calendar-event-actions">
+                ${accessibleLead ? `
+                    <button
+                        class="crm-button-ghost"
+                        type="button"
+                        data-action="open-lead-page"
+                        data-client-id="${escapeHtml(accessibleLead.id)}"
+                    >
+                        <i class="fa-solid fa-user-large"></i> Open Client
+                    </button>
+                ` : ''}
+                ${renderCalendarStatusActions(event, canManage)}
+            </div>
+        </article>
+    `;
+}
+
+function renderCalendarStatusActions(event, canManage) {
+    if (!canManage) {
+        return '';
+    }
+
+    if (event.status === 'scheduled') {
+        return `
+            <button class="crm-button-secondary" type="button" data-action="set-calendar-event-status" data-event-id="${escapeHtml(event.id)}" data-status="completed">
+                <i class="fa-solid fa-check"></i> Complete
+            </button>
+            <button class="crm-button-ghost" type="button" data-action="set-calendar-event-status" data-event-id="${escapeHtml(event.id)}" data-status="canceled">
+                <i class="fa-solid fa-ban"></i> Cancel
+            </button>
+            ${Date.parse(event.startAt || 0) < Date.now() ? `
+                <button class="crm-button-ghost" type="button" data-action="set-calendar-event-status" data-event-id="${escapeHtml(event.id)}" data-status="missed">
+                    <i class="fa-solid fa-clock-rotate-left"></i> Mark Missed
+                </button>
+            ` : ''}
+        `;
+    }
+
+    return `
+        <button class="crm-button-secondary" type="button" data-action="open-calendar-event-drawer" data-event-id="${escapeHtml(event.id)}">
+            <i class="fa-solid fa-pen"></i> Edit
+        </button>
+        <button class="crm-button-ghost" type="button" data-action="set-calendar-event-status" data-event-id="${escapeHtml(event.id)}" data-status="scheduled">
+            <i class="fa-solid fa-rotate-right"></i> Reopen
+        </button>
+    `;
+}
+
+function renderCalendarCompactEvent(event) {
+    return `
+        <button
+            class="calendar-sidebar-event ${escapeHtml(event.status)}"
+            type="button"
+            data-action="open-calendar-event-drawer"
+            data-event-id="${escapeHtml(event.id)}"
+        >
+            <span>${escapeHtml(formatCalendarTime(event.startAt))}</span>
+            <strong>${escapeHtml(truncate(event.title, 32))}</strong>
+            ${event.leadName ? `<small>${escapeHtml(truncate(event.leadName, 30))}</small>` : ''}
+        </button>
+    `;
+}
+
+function renderCalendarMiniDayCell(day, monthDate, events = []) {
+    const dateKey = getDateKey(day);
+    const dayEvents = getCalendarEventsForDate(dateKey, events);
+    const isSelected = state.calendar.selectedDate === dateKey;
+    const isTodayCell = getDateKey(new Date()) === dateKey;
+    const isOutsideMonth = day.getMonth() !== monthDate.getMonth();
+
+    return `
+        <button
+            class="calendar-mini-day ${isSelected ? 'selected' : ''} ${isTodayCell ? 'today' : ''} ${isOutsideMonth ? 'outside-month' : ''}"
+            type="button"
+            data-action="select-calendar-date"
+            data-date="${escapeHtml(dateKey)}"
+            aria-label="${escapeHtml(formatCalendarFullDate(day))}"
+        >
+            <span>${day.getDate()}</span>
+            ${dayEvents.length ? '<i class="calendar-mini-day-dot"></i>' : ''}
+        </button>
+    `;
+}
+
+function renderCalendarWeekView(selectedDate, events = []) {
+    const weekDates = buildCalendarWeekDates(selectedDate);
+
+    return `
+        <div class="calendar-week-shell">
+            <div class="calendar-week-head">
+                <div class="calendar-week-offset">${escapeHtml(formatCalendarUtcOffset())}</div>
+                ${weekDates.map((day) => {
+                    const dateKey = getDateKey(day);
+                    const isSelected = state.calendar.selectedDate === dateKey;
+                    return `
+                        <button
+                            class="calendar-week-day ${isSelected ? 'selected' : ''}"
+                            type="button"
+                            data-action="select-calendar-date"
+                            data-date="${escapeHtml(dateKey)}"
+                        >
+                            <span>${escapeHtml(new Intl.DateTimeFormat('en-US', { weekday: 'short' }).format(day).toUpperCase())}</span>
+                            <strong>${day.getDate()}</strong>
+                        </button>
+                    `;
+                }).join('')}
+            </div>
+
+            <div class="calendar-week-body">
+                <div class="calendar-week-hours">
+                    ${Array.from({ length: 24 }, (_value, hour) => `
+                        <div class="calendar-hour-label">${escapeHtml(formatCalendarHourLabel(hour))}</div>
+                    `).join('')}
+                </div>
+
+                <div class="calendar-week-columns">
+                    ${weekDates.map((day) => renderCalendarWeekColumn(day, getCalendarEventsForDate(getDateKey(day), events))).join('')}
+                </div>
+            </div>
+        </div>
+    `;
+}
+
+function renderCalendarWeekColumn(day, events = []) {
+    const layouts = buildCalendarWeekEventLayouts(events);
+    const isTodayColumn = getDateKey(new Date()) === getDateKey(day);
+
+    return `
+        <div class="calendar-week-column ${isTodayColumn ? 'today' : ''}">
+            ${Array.from({ length: 24 }, () => '<div class="calendar-week-slot"></div>').join('')}
+            ${layouts.map((layout) => renderCalendarWeekEventBlock(layout)).join('')}
+        </div>
+    `;
+}
+
+function renderCalendarWeekEventBlock(layout) {
+    const width = 100 / Math.max(layout.columnCount, 1);
+    const left = layout.columnIndex * width;
+    return `
+        <button
+            class="calendar-week-event ${escapeHtml(layout.event.status)}"
+            type="button"
+            data-action="open-calendar-event-drawer"
+            data-event-id="${escapeHtml(layout.event.id)}"
+            style="--calendar-event-top:${layout.top}px; --calendar-event-height:${layout.height}px; --calendar-event-left:${left}%; --calendar-event-width:${width}%;"
+        >
+            <span>${escapeHtml(formatCalendarTime(layout.event.startAt))}</span>
+            <strong>${escapeHtml(truncate(layout.event.title, 24))}</strong>
+            ${layout.event.leadName ? `<small>${escapeHtml(truncate(layout.event.leadName, 22))}</small>` : ''}
+        </button>
+    `;
+}
+
+function renderCalendarMonthStage(monthDate, events = []) {
+    return `
+        <div class="calendar-month-stage">
+            ${CALENDAR_DAY_LABELS.map((label) => `<div class="calendar-month-weekday">${escapeHtml(label)}</div>`).join('')}
+            ${buildCalendarGridDates(monthDate).map((day) => renderCalendarMonthCell(day, monthDate, events)).join('')}
+        </div>
+    `;
+}
+
+function renderCalendarMonthCell(day, monthDate, events = []) {
+    const dateKey = getDateKey(day);
+    const dayEvents = getCalendarEventsForDate(dateKey, events);
+    const isSelected = state.calendar.selectedDate === dateKey;
+    const isTodayCell = getDateKey(new Date()) === dateKey;
+    const isOutsideMonth = day.getMonth() !== monthDate.getMonth();
+
+    return `
+        <div
+            class="calendar-month-cell ${isSelected ? 'selected' : ''} ${isTodayCell ? 'today' : ''} ${isOutsideMonth ? 'outside-month' : ''}"
+            data-action="select-calendar-date"
+            data-date="${escapeHtml(dateKey)}"
+        >
+            <div class="calendar-month-number">${day.getDate()}</div>
+            <div class="calendar-month-events">
+                ${dayEvents.slice(0, 4).map((event) => `
+                    <button
+                        class="calendar-month-event ${escapeHtml(event.status)}"
+                        type="button"
+                        data-action="open-calendar-event-drawer"
+                        data-event-id="${escapeHtml(event.id)}"
+                    >
+                        <span>${escapeHtml(formatCalendarTime(event.startAt))}</span>
+                        <strong>${escapeHtml(truncate(event.title, 24))}</strong>
+                    </button>
+                `).join('')}
+                ${dayEvents.length > 4 ? `<div class="calendar-month-more">+${dayEvents.length - 4}</div>` : ''}
+            </div>
+        </div>
+    `;
+}
+
+function getCalendarSelectedDate() {
+    return parseDateKey(state.calendar.selectedDate || getDateKey(new Date()));
+}
+
+function buildCalendarWeekDates(anchorDate = getCalendarSelectedDate()) {
+    const selectedDate = anchorDate instanceof Date ? anchorDate : new Date(anchorDate);
+    const weekStart = new Date(selectedDate.getFullYear(), selectedDate.getMonth(), selectedDate.getDate() - selectedDate.getDay(), 12);
+    return Array.from({ length: 7 }, (_value, index) => new Date(weekStart.getFullYear(), weekStart.getMonth(), weekStart.getDate() + index, 12));
+}
+
+function formatCalendarWeekRangeLabel(anchorDate = getCalendarSelectedDate()) {
+    const weekDates = buildCalendarWeekDates(anchorDate);
+    const firstDay = weekDates[0];
+    const lastDay = weekDates[weekDates.length - 1];
+
+    if (firstDay.getMonth() === lastDay.getMonth()) {
+        return `${new Intl.DateTimeFormat('en-US', { month: 'long' }).format(firstDay)} ${firstDay.getDate()}-${lastDay.getDate()}, ${lastDay.getFullYear()}`;
+    }
+
+    return `${new Intl.DateTimeFormat('en-US', { month: 'short' }).format(firstDay)} ${firstDay.getDate()} - ${new Intl.DateTimeFormat('en-US', { month: 'short' }).format(lastDay)} ${lastDay.getDate()}, ${lastDay.getFullYear()}`;
+}
+
+function formatCalendarHourLabel(hour) {
+    const date = new Date(2026, 0, 1, hour, 0, 0, 0);
+    return new Intl.DateTimeFormat('en-US', {
+        hour: 'numeric'
+    }).format(date);
+}
+
+function formatCalendarUtcOffset() {
+    const offsetMinutes = -new Date().getTimezoneOffset();
+    const sign = offsetMinutes >= 0 ? '+' : '-';
+    const hours = String(Math.floor(Math.abs(offsetMinutes) / 60)).padStart(2, '0');
+    const minutes = String(Math.abs(offsetMinutes) % 60).padStart(2, '0');
+    return `GMT${sign}${hours}${minutes === '00' ? '' : `:${minutes}`}`;
+}
+
+function getCalendarEventStartMinutes(event) {
+    const startDate = new Date(event.startAt);
+
+    if (Number.isNaN(startDate.getTime())) {
+        return 0;
+    }
+
+    return (startDate.getHours() * 60) + startDate.getMinutes();
+}
+
+function getCalendarEventEndMinutes(event) {
+    const endDate = new Date(event.endAt || '');
+
+    if (!Number.isNaN(endDate.getTime())) {
+        return (endDate.getHours() * 60) + endDate.getMinutes();
+    }
+
+    return Math.min(getCalendarEventStartMinutes(event) + 45, 24 * 60);
+}
+
+function buildCalendarWeekEventLayouts(events = []) {
+    const hourHeight = 56;
+    const layouts = [];
+    const activeLayouts = [];
+
+    [...events]
+        .filter((event) => normalizeWhitespace(event.status) !== 'canceled')
+        .sort((left, right) => Date.parse(left.startAt || 0) - Date.parse(right.startAt || 0))
+        .forEach((event) => {
+            const startMinutes = getCalendarEventStartMinutes(event);
+            const endMinutes = Math.max(getCalendarEventEndMinutes(event), startMinutes + 30);
+
+            for (let index = activeLayouts.length - 1; index >= 0; index -= 1) {
+                if (activeLayouts[index].endMinutes <= startMinutes) {
+                    activeLayouts.splice(index, 1);
+                }
+            }
+
+            const usedColumns = new Set(activeLayouts.map((layout) => layout.columnIndex));
+            let columnIndex = 0;
+            while (usedColumns.has(columnIndex)) {
+                columnIndex += 1;
+            }
+
+            const layout = {
+                event,
+                startMinutes,
+                endMinutes,
+                columnIndex,
+                columnCount: 1,
+                top: (startMinutes / 60) * hourHeight,
+                height: Math.max(((endMinutes - startMinutes) / 60) * hourHeight, 28)
+            };
+
+            activeLayouts.push(layout);
+            layouts.push(layout);
+        });
+
+    layouts.forEach((layout) => {
+        const overlappingLayouts = layouts.filter((candidate) =>
+            candidate.startMinutes < layout.endMinutes && candidate.endMinutes > layout.startMinutes
+        );
+        layout.columnCount = Math.max(1, ...overlappingLayouts.map((candidate) => candidate.columnIndex + 1));
+    });
+
+    return layouts;
+}
+
+function getVisibleCalendarEvents() {
+    const allEvents = Array.isArray(state.calendar.events) ? [...state.calendar.events] : [];
+
+    return allEvents
+        .filter((event) => {
+            if (state.calendar.filter === 'mine') {
+                return event.ownerUserId === state.session?.id;
+            }
+
+            if (state.calendar.filter === 'shared') {
+                return event.ownerUserId !== state.session?.id && Array.isArray(event.sharedWithUserIds)
+                    && event.sharedWithUserIds.includes(state.session?.id);
+            }
+
+            return true;
+        })
+        .sort((left, right) => Date.parse(left.startAt || 0) - Date.parse(right.startAt || 0));
+}
+
+function getCalendarEventsForDate(dateKey, events = getVisibleCalendarEvents()) {
+    return [...(events || [])]
+        .filter((event) => getDateKey(event.startAt) === dateKey)
+        .sort((left, right) => Date.parse(left.startAt || 0) - Date.parse(right.startAt || 0));
+}
+
+function getCalendarFilterLabel(filterValue) {
+    if (filterValue === 'shared') {
+        return 'Shared with me';
+    }
+
+    if (filterValue === 'all') {
+        return 'All visible events';
+    }
+
+    return 'My follow-ups';
+}
+
+function getCalendarEventById(eventId) {
+    const normalizedEventId = normalizeWhitespace(eventId);
+
+    if (!normalizedEventId) {
+        return null;
+    }
+
+    const leadEventCollections = Object.values(state.calendar.leadEventsByLeadId || {});
+    return [...(state.calendar.events || []), ...leadEventCollections.flat()]
+        .find((event) => event.id === normalizedEventId) || null;
+}
+
+function canManageCalendarEvent(event) {
+    if (!event) {
+        return false;
+    }
+
+    return hasActiveAdminProfile() || event.ownerUserId === state.session?.id;
+}
+
+function buildCalendarGridDates(monthDate) {
+    const firstDay = new Date(monthDate.getFullYear(), monthDate.getMonth(), 1, 12);
+    const lastDay = new Date(monthDate.getFullYear(), monthDate.getMonth() + 1, 0, 12);
+    const gridStart = new Date(firstDay.getFullYear(), firstDay.getMonth(), firstDay.getDate() - firstDay.getDay(), 12);
+    const trailingDays = 6 - lastDay.getDay();
+    const gridEnd = new Date(lastDay.getFullYear(), lastDay.getMonth(), lastDay.getDate() + trailingDays, 12);
+    const days = [];
+
+    for (let cursor = new Date(gridStart); cursor <= gridEnd; cursor = new Date(cursor.getFullYear(), cursor.getMonth(), cursor.getDate() + 1, 12)) {
+        days.push(new Date(cursor));
+    }
+
+    return days;
+}
+
+function getMonthCursorDate(value = state.calendar.monthCursor) {
+    const cursor = value ? new Date(value) : new Date();
+
+    if (Number.isNaN(cursor.getTime())) {
+        return new Date(new Date().getFullYear(), new Date().getMonth(), 1, 12);
+    }
+
+    return new Date(cursor.getFullYear(), cursor.getMonth(), 1, 12);
+}
+
+function getMonthCursorValue(value = new Date()) {
+    const monthDate = value instanceof Date ? value : new Date(value);
+    return new Date(monthDate.getFullYear(), monthDate.getMonth(), 1, 12).toISOString();
+}
+
+function getDateKey(value) {
+    const date = value instanceof Date ? value : new Date(value);
+
+    if (Number.isNaN(date.getTime())) {
+        return '';
+    }
+
+    return [
+        date.getFullYear(),
+        String(date.getMonth() + 1).padStart(2, '0'),
+        String(date.getDate()).padStart(2, '0')
+    ].join('-');
+}
+
+function parseDateKey(dateKey) {
+    const [year, month, day] = String(dateKey || '').split('-').map((part) => Number(part));
+
+    if (!year || !month || !day) {
+        return new Date();
+    }
+
+    return new Date(year, month - 1, day, 12);
+}
+
+function isSameCalendarMonth(value, monthDate) {
+    const date = value instanceof Date ? value : new Date(value);
+
+    if (Number.isNaN(date.getTime())) {
+        return false;
+    }
+
+    return date.getFullYear() === monthDate.getFullYear() && date.getMonth() === monthDate.getMonth();
+}
+
+function formatCalendarMonthLabel(value) {
+    return new Intl.DateTimeFormat('en-US', {
+        month: 'long',
+        year: 'numeric'
+    }).format(value instanceof Date ? value : new Date(value));
+}
+
+function formatCalendarFullDate(value) {
+    return new Intl.DateTimeFormat('en-US', {
+        weekday: 'long',
+        month: 'long',
+        day: 'numeric',
+        year: 'numeric'
+    }).format(value instanceof Date ? value : new Date(value));
+}
+
+function formatCalendarTime(value) {
+    return new Intl.DateTimeFormat('en-US', {
+        hour: 'numeric',
+        minute: '2-digit'
+    }).format(new Date(value));
+}
+
+function formatCalendarEventStamp(event) {
+    const startAt = Date.parse(event.startAt || 0);
+    const endAt = Date.parse(event.endAt || 0);
+
+    if (!startAt) {
+        return 'Time unavailable';
+    }
+
+    if (!endAt) {
+        return `${formatDate(event.startAt)} · ${formatCalendarTime(event.startAt)}`;
+    }
+
+    return `${formatDate(event.startAt)} · ${formatCalendarTime(event.startAt)}-${formatCalendarTime(event.endAt)}`;
+}
+
+function formatCalendarShortStamp(value) {
+    return new Intl.DateTimeFormat('en-US', {
+        month: 'short',
+        day: 'numeric',
+        hour: 'numeric',
+        minute: '2-digit'
+    }).format(new Date(value));
 }
 
 function renderClientsPanel(scope = 'leads') {
@@ -1751,7 +2564,6 @@ function renderLeadHistoryPanel({
         : (isAssignedLeadsPage ? 'Already Assigned Leads' : (hasPermission(state.session, PERMISSIONS.ASSIGN_LEADS) ? 'Unassigned Leads' : 'Leads'));
     const workspaceLabelLower = workspaceLabel.toLowerCase();
     const singularLabel = isMembers ? 'member' : 'lead';
-    const heroIcon = isMembers ? 'fa-users-viewfinder' : 'fa-address-book';
     const statusOptions = CRM_STATUS_OPTIONS;
     const availableTags = getAvailableTags();
     const createAction = renderWorkspaceCreateAction(scope, 'toolbar');
@@ -1791,7 +2603,7 @@ function renderLeadHistoryPanel({
                             Members
                         </button>
                     </div>
-                    <h1><i class="fa-solid ${heroIcon}"></i> ${workspaceLabel}</h1>
+                    <h1>${workspaceLabel}</h1>
                     <p>${searchSummary}</p>
                 </div>
                 <span class="lead-history-hero-badge">${heroBadge}</span>
@@ -2418,6 +3230,8 @@ function renderLeadDetailPage() {
     const noteHistory = Array.isArray(lead.noteHistory)
         ? [...lead.noteHistory].sort((left, right) => Date.parse(right.createdAt ?? 0) - Date.parse(left.createdAt ?? 0))
         : [];
+    const leadCalendarEvents = [...(state.calendar.leadEventsByLeadId[lead.id] || [])]
+        .sort((left, right) => Date.parse(left.startAt || 0) - Date.parse(right.startAt || 0));
     const dispositionOptions = getLeadDetailDispositionOptions(lead);
     const showToSeniorRepField = isToDispositionValue(lead.disposition);
     const selectedToSeniorRepId = showToSeniorRepField && seniorRepOptions.some((user) => user.id === lead.assignedRepId)
@@ -2426,9 +3240,6 @@ function renderLeadDetailPage() {
     const entityLabel = isMember ? 'Member' : 'Lead';
     const detailName = lead.fullName || `Unnamed ${entityLabel.toLowerCase()}`;
     const heroSummary = buildLeadDetailSummary(lead);
-    const formIntroCopy = isEditing
-        ? `Edit ${entityLabel.toLowerCase()} contact information, assignment, and workflow details from one focused form.`
-        : `Review ${entityLabel.toLowerCase()} contact information, ownership, and workflow details. Use Edit when you need to make changes.`;
     const autoTimeZoneLabel = lead.autoTimeZone || 'Unknown';
 
     return `
@@ -2458,17 +3269,15 @@ function renderLeadDetailPage() {
                     <div class="lead-detail-card-head">
                         <div class="lead-detail-card-head-copy">
                             <span class="lead-detail-card-label">Contact & workflow</span>
-                            <h2>${escapeHtml(entityLabel)} record</h2>
-                            <p>${escapeHtml(formIntroCopy)}</p>
                         </div>
                         <div class="lead-detail-card-head-actions">
                             ${canOpenEditMode ? `
-                                <button class="crm-button-ghost" data-action="${isEditing ? 'cancel-lead-edit' : 'toggle-lead-edit'}">
+                                <button class="crm-button-ghost lead-detail-action-button" data-action="${isEditing ? 'cancel-lead-edit' : 'toggle-lead-edit'}">
                                     <i class="fa-solid ${isEditing ? 'fa-xmark' : 'fa-pen'}"></i> ${isEditing ? 'Cancel Edit' : 'Edit'}
                                 </button>
                             ` : ''}
-                            <button class="crm-button-ghost" data-action="toggle-lead-history">
-                                <i class="fa-solid fa-timeline"></i> Lead History
+                            <button class="crm-button-ghost lead-detail-action-button" data-action="toggle-lead-history">
+                                Lead History
                             </button>
                         </div>
                     </div>
@@ -2496,8 +3305,6 @@ function renderLeadDetailPage() {
                                     `).join('')}
                                 </select>
                             </label>
-                            ${renderLeadField('Follow up at', 'followUpAt', lead.followUpAt, canEditLeadWorkflowField(lead, 'followUpAt') || (isEditing && canEditLeadField(state.session, 'followUpAt', lead)), 'datetime-local')}
-                            ${renderLeadField('Follow up action', 'followUpAction', lead.followUpAction, canEditLeadWorkflowField(lead, 'followUpAction') || (isEditing && canEditLeadField(state.session, 'followUpAction', lead)))}
                             ${renderLeadSelectField('Assigned rep', 'assignedRepId', assigneeOptions.map((user) => user.id), lead.assignedRepId || '', isEditing && canAdminEdit, assigneeOptions, { emptyLabel: 'Unassigned' })}
                             ${renderLeadField('Lifecycle', 'lifecycleTypeDisplay', titleCase(lead.lifecycleType || 'lead'), false)}
                             ${canSaveWorkflow ? `
@@ -2524,8 +3331,8 @@ function renderLeadDetailPage() {
 
                         <div class="drawer-actions lead-detail-form-actions">
                             ${canSaveWorkflow ? `
-                                <button class="crm-button" type="submit">
-                                    <i class="fa-solid fa-floppy-disk"></i> ${isEditing ? 'Save Lead Changes' : 'Save Workflow Updates'}
+                                <button class="crm-button lead-detail-action-button" type="submit">
+                                    Save
                                 </button>
                             ` : ''}
                             ${isEditing ? `
@@ -2548,12 +3355,31 @@ function renderLeadDetailPage() {
                 </section>
 
                 <aside class="lead-detail-sidebar">
+                    <section class="crm-card lead-detail-side-card lead-detail-calendar-card">
+                        <div class="panel-head">
+                            <div>
+                                <span class="lead-detail-card-label">Follow-ups</span>
+                                <h2 class="section-title">Upcoming follow-ups</h2>
+                            </div>
+                            <button class="crm-button-secondary lead-detail-action-button" type="button" data-action="open-calendar-event-drawer" data-client-id="${escapeHtml(lead.id)}">
+                                <i class="fa-solid fa-plus"></i> Schedule
+                            </button>
+                        </div>
+
+                        ${leadCalendarEvents.length
+                            ? renderCalendarEventList(leadCalendarEvents.slice(0, 6), {
+                                emptyCopy: 'No scheduled follow-ups yet for this client.',
+                                showLeadName: false
+                            })
+                            : (lead.followUpAt
+                                ? `<div class="calendar-empty-state">Legacy follow-up detected for ${escapeHtml(formatDateTime(lead.followUpAt))}. Run the Supabase calendar backfill to bring older callbacks into this new calendar.</div>`
+                                : '<div class="calendar-empty-state">No scheduled follow-ups yet for this client.</div>')}
+                    </section>
+
                     <section class="crm-card lead-detail-side-card lead-detail-notes-card">
                         <div class="panel-head">
                             <div>
                                 <span class="lead-detail-card-label">Conversation</span>
-                                <h2 class="section-title">Notes</h2>
-                                <p class="panel-copy">Capture the latest call summary, objections, and follow-up context without leaving the record.</p>
                             </div>
                         </div>
 
@@ -2566,7 +3392,7 @@ function renderLeadDetailPage() {
                                     <textarea class="crm-textarea" name="noteEntry" placeholder="Add the latest call summary, objection, or follow-up context...">${escapeHtml(editableNote?.content || '')}</textarea>
                                 </label>
                                 <div class="drawer-actions lead-detail-form-actions">
-                                    <button class="crm-button-secondary" type="submit"><i class="fa-solid fa-note-sticky"></i> Save Notes</button>
+                                    <button class="crm-button-secondary lead-detail-action-button" type="submit">Save Notes</button>
                                     ${editableNote ? `
                                         <button class="crm-button-ghost" type="button" data-action="cancel-note-edit">
                                             <i class="fa-solid fa-xmark"></i> Cancel note edit
@@ -2626,7 +3452,7 @@ function renderLeadHistoryEntries(entries) {
                 <article class="history-card">
                     <div class="history-head">
                         <div>
-                            <div class="history-title">${escapeHtml(entry.fieldName || entry.fieldLabel || 'Unknown field')}</div>
+                            <div class="history-title">${escapeHtml(entry.fieldLabel || entry.fieldName || 'Unknown field')}</div>
                             <div class="panel-subtitle">Changed by ${escapeHtml(getLeadHistoryActorLabel(entry))}</div>
                         </div>
                         <span class="summary-chip">${escapeHtml(formatDateTime(entry.changedAt || entry.createdAt))}</span>
@@ -3596,6 +4422,11 @@ function renderDrawer() {
         return;
     }
 
+    if (state.drawerMode === 'calendar-event') {
+        refs.drawer.innerHTML = renderCalendarEventDrawer();
+        return;
+    }
+
     const isCreatingMember = state.drawerMode === 'create-member';
     const client = createBlankClient(isCreatingMember ? 'member' : 'lead');
 
@@ -3690,6 +4521,417 @@ function renderDrawer() {
 
                 <div class="drawer-actions">
                     <button class="crm-button" type="submit"><i class="fa-solid fa-floppy-disk"></i> Save ${entityLabel}</button>
+                    <button class="crm-button-ghost" type="button" data-action="close-drawer">Cancel</button>
+                </div>
+            </form>
+        </div>
+    `;
+}
+
+function getCalendarLeadOptions() {
+    return [...state.clients]
+        .filter((client) => canAccessClient(client))
+        .sort((left, right) => (left.fullName || '').localeCompare(right.fullName || ''));
+}
+
+function buildDefaultCalendarStartValue(dateKey = state.drawerDate || state.calendar.selectedDate) {
+    if (dateKey) {
+        const parsedDate = parseDateKey(dateKey);
+        return toDateTimeInputValue(new Date(parsedDate.getFullYear(), parsedDate.getMonth(), parsedDate.getDate(), 10, 0, 0, 0));
+    }
+
+    const now = new Date();
+    const roundedMinutes = now.getMinutes() > 30 ? 60 : 30;
+    const suggested = new Date(now.getFullYear(), now.getMonth(), now.getDate(), now.getHours(), roundedMinutes, 0, 0);
+    return toDateTimeInputValue(suggested);
+}
+
+function buildCalendarClientMeta(client = {}) {
+    return getSearchSuggestionMeta(client) || buildClientMetaLine(client);
+}
+
+function captureCalendarEventDraft() {
+    const form = refs.drawer?.querySelector('#calendar-event-form');
+
+    if (!form) {
+        return state.calendar.formDraft;
+    }
+
+    const formData = new FormData(form);
+    return {
+        eventId: normalizeWhitespace(formData.get('eventId')),
+        title: String(formData.get('title') ?? ''),
+        actionText: String(formData.get('actionText') ?? ''),
+        notes: String(formData.get('notes') ?? ''),
+        startAt: String(formData.get('startAt') ?? ''),
+        endAt: String(formData.get('endAt') ?? ''),
+        eventTimeZone: String(formData.get('eventTimeZone') ?? ''),
+        visibility: String(formData.get('visibility') ?? ''),
+        sharedWithUserIds: formData.getAll('sharedWithUserIds').map((value) => normalizeWhitespace(value)).filter(Boolean)
+    };
+}
+
+function preserveCalendarEventDraft() {
+    state.calendar.formDraft = captureCalendarEventDraft();
+}
+
+function syncCalendarClientPicker({ leadId = '', name = '', meta = '' } = {}) {
+    state.calendar.clientPicker = {
+        ...createDefaultCalendarClientPickerState(),
+        query: name || '',
+        selectedLeadId: leadId || '',
+        selectedLeadName: name || '',
+        selectedLeadMeta: meta || ''
+    };
+}
+
+function syncCalendarClientPickerFromDrawerContext() {
+    const eventRecord = getCalendarEventById(state.drawerEventId);
+    const clientId = normalizeWhitespace(state.drawerClientId || eventRecord?.leadId);
+    const selectedLead = getAccessibleClientById(clientId);
+    const fallbackName = selectedLead?.fullName || eventRecord?.leadName || '';
+    const fallbackMeta = selectedLead
+        ? buildCalendarClientMeta(selectedLead)
+        : [eventRecord?.leadPhone, eventRecord?.leadEmail, eventRecord?.leadLifecycleType ? titleCase(eventRecord.leadLifecycleType) : ''].filter(Boolean).join(' · ');
+
+    syncCalendarClientPicker({
+        leadId: clientId,
+        name: fallbackName,
+        meta: fallbackMeta
+    });
+}
+
+function focusCalendarClientSearchInput(caret = null) {
+    const input = refs.drawer?.querySelector('.calendar-client-search-input');
+
+    if (!input) {
+        return;
+    }
+
+    calendarClientFocusRestorePending = true;
+    input.focus();
+    const position = typeof caret === 'number' ? caret : input.value.length;
+    input.setSelectionRange(position, position);
+}
+
+function applyCalendarClientSuggestionSelection(suggestion) {
+    if (!suggestion) {
+        return;
+    }
+
+    if (!state.drawerEventId && state.calendar.formDraft) {
+        const previousSuggestedTitle = `Follow-up with ${state.calendar.clientPicker.selectedLeadName || 'Client'}`;
+        if (normalizeWhitespace(state.calendar.formDraft.title).toLowerCase() === normalizeWhitespace(previousSuggestedTitle).toLowerCase()) {
+            state.calendar.formDraft.title = '';
+        }
+    }
+
+    state.calendar.clientPicker = {
+        ...createDefaultCalendarClientPickerState(),
+        query: suggestion.fullName || '',
+        selectedLeadId: suggestion.id,
+        selectedLeadName: suggestion.fullName || '',
+        selectedLeadMeta: getSearchSuggestionMeta(suggestion) || buildClientMetaLine(suggestion)
+    };
+}
+
+function renderCalendarClientSuggestionList() {
+    const picker = state.calendar.clientPicker;
+
+    if (!picker.isOpen) {
+        return '';
+    }
+
+    return `
+        <div class="crm-search-suggestion-panel calendar-client-suggestion-panel">
+            <div class="crm-search-suggestion-head">
+                <span>Matches</span>
+                <span>${picker.isLoading ? 'Searching...' : `${picker.suggestions.length} showing`}</span>
+            </div>
+            <div class="crm-search-suggestion-list" role="listbox" aria-label="Calendar client suggestions">
+                ${picker.isLoading ? `
+                    <div class="crm-search-suggestion-empty">
+                        <i class="fa-solid fa-circle-notch fa-spin"></i>
+                        Looking up clients...
+                    </div>
+                ` : picker.suggestions.length ? picker.suggestions.map((suggestion, index) => `
+                    <button
+                        type="button"
+                        class="crm-search-suggestion-item ${index === picker.activeIndex ? 'active' : ''}"
+                        data-action="select-calendar-client-suggestion"
+                        data-client-id="${escapeHtml(suggestion.id)}"
+                    >
+                        <span class="crm-search-suggestion-copy">
+                            <span class="crm-search-suggestion-label">
+                                ${escapeHtml(suggestion.fullName || 'Unnamed lead')}
+                                <span class="crm-search-suggestion-type ${suggestion.lifecycleType === 'member' ? 'member' : 'lead'}">
+                                    ${escapeHtml(titleCase(suggestion.lifecycleType || 'lead'))}
+                                </span>
+                            </span>
+                            <span class="crm-search-suggestion-meta">${escapeHtml(getSearchSuggestionMeta(suggestion) || buildClientMetaLine(suggestion))}</span>
+                        </span>
+                    </button>
+                `).join('') : `
+                    <div class="crm-search-suggestion-empty">
+                        <i class="fa-solid fa-magnifying-glass"></i>
+                        No matching leads or members.
+                    </div>
+                `}
+            </div>
+        </div>
+    `;
+}
+
+function queueCalendarClientSuggestions({ immediate = false, caret = null } = {}) {
+    const query = normalizeWhitespace(state.calendar.clientPicker.query);
+
+    preserveCalendarEventDraft();
+    window.clearTimeout(calendarClientSuggestionsTimer);
+    calendarClientSuggestionsRequestId += 1;
+
+    if (!query) {
+        state.calendar.clientPicker.suggestions = [];
+        state.calendar.clientPicker.isLoading = false;
+        state.calendar.clientPicker.isOpen = false;
+        state.calendar.clientPicker.activeIndex = -1;
+        state.calendar.clientPicker.lastQuery = '';
+        renderDrawer();
+        focusCalendarClientSearchInput(caret);
+        return;
+    }
+
+    const requestId = calendarClientSuggestionsRequestId;
+    const runLookup = async () => {
+        try {
+            const suggestions = await dataService.searchClientSuggestions({ query, limit: 5 });
+
+            if (requestId !== calendarClientSuggestionsRequestId || normalizeWhitespace(state.calendar.clientPicker.query) !== query) {
+                return;
+            }
+
+            state.calendar.clientPicker.suggestions = suggestions;
+            state.calendar.clientPicker.activeIndex = suggestions.length ? 0 : -1;
+        } catch (error) {
+            if (requestId !== calendarClientSuggestionsRequestId) {
+                return;
+            }
+
+            state.calendar.clientPicker.suggestions = [];
+            state.calendar.clientPicker.activeIndex = -1;
+            flashNotice(error.message || 'Unable to load client suggestions.', 'error');
+        } finally {
+            if (requestId !== calendarClientSuggestionsRequestId) {
+                return;
+            }
+
+            state.calendar.clientPicker.isLoading = false;
+            state.calendar.clientPicker.isOpen = true;
+            state.calendar.clientPicker.lastQuery = query;
+            renderDrawer();
+            focusCalendarClientSearchInput(caret);
+        }
+    };
+
+    state.calendar.clientPicker.isLoading = true;
+    state.calendar.clientPicker.isOpen = true;
+    renderDrawer();
+    focusCalendarClientSearchInput(caret);
+
+    if (immediate) {
+        runLookup();
+        return;
+    }
+
+    calendarClientSuggestionsTimer = window.setTimeout(runLookup, SEARCH_SUGGESTION_DEBOUNCE_MS);
+}
+
+function renderCalendarEventDrawer() {
+    const eventRecord = getCalendarEventById(state.drawerEventId);
+    const canManage = !eventRecord || canManageCalendarEvent(eventRecord);
+    const picker = state.calendar.clientPicker;
+    const draft = state.calendar.formDraft || {};
+    const selectedLeadId = normalizeWhitespace(picker.selectedLeadId || state.drawerClientId || eventRecord?.leadId);
+    const selectedLead = getAccessibleClientById(selectedLeadId);
+    const selectedLeadName = picker.selectedLeadName || selectedLead?.fullName || eventRecord?.leadName || '';
+    const selectedLeadMeta = picker.selectedLeadMeta || (
+        selectedLead
+            ? buildCalendarClientMeta(selectedLead)
+            : [eventRecord?.leadPhone, eventRecord?.leadEmail, eventRecord?.leadLifecycleType ? titleCase(eventRecord.leadLifecycleType) : ''].filter(Boolean).join(' · ')
+    );
+    const suggestedTitle = `Follow-up with ${selectedLeadName || 'Client'}`;
+    const titleValue = !eventRecord && (!normalizeWhitespace(draft.title) || normalizeWhitespace(draft.title).toLowerCase() === 'follow-up with client')
+        ? suggestedTitle
+        : (draft.title ?? eventRecord?.title ?? suggestedTitle);
+    const startAtValue = draft.startAt ?? (eventRecord ? toDateTimeInputValue(eventRecord.startAt) : buildDefaultCalendarStartValue());
+    const endAtValue = draft.endAt ?? toDateTimeInputValue(eventRecord?.endAt || '');
+    const actionTextValue = draft.actionText ?? eventRecord?.actionText ?? '';
+    const notesValue = draft.notes ?? eventRecord?.notes ?? '';
+    const eventTimeZoneOptions = dedupeStrings([
+        draft.eventTimeZone,
+        eventRecord?.eventTimeZone,
+        selectedLead?.timeZone,
+        eventRecord?.leadTimeZone,
+        ...CRM_TIME_ZONE_OPTIONS
+    ]).filter(Boolean);
+    const shareableUsers = getAssignableUsers({ includeAdmin: true })
+        .filter((user) => user.id !== (eventRecord?.ownerUserId || state.session?.id));
+    const selectedShareIds = new Set(draft.sharedWithUserIds?.length ? draft.sharedWithUserIds : (eventRecord?.sharedWithUserIds || []));
+    const visibility = draft.visibility || eventRecord?.visibility || 'private';
+
+    if (eventRecord && !canManage) {
+        return `
+            <div class="drawer-surface calendar-event-drawer">
+                <div class="drawer-head">
+                    <div>
+                        <h2 class="drawer-title">${escapeHtml(eventRecord.title)}</h2>
+                    </div>
+                    <button class="crm-button-ghost" data-action="close-drawer"><i class="fa-solid fa-xmark"></i></button>
+                </div>
+
+                <div class="calendar-drawer-readonly">
+                    <div class="calendar-event-badges">
+                        <span class="calendar-status-pill ${escapeHtml(eventRecord.status)}">${escapeHtml(titleCase(eventRecord.status))}</span>
+                        <span class="calendar-visibility-pill ${escapeHtml(eventRecord.visibility)}">${escapeHtml(titleCase(eventRecord.visibility))}</span>
+                    </div>
+                    ${eventRecord.leadName ? `<div class="calendar-readonly-line"><strong>Client:</strong> ${escapeHtml(eventRecord.leadName)}</div>` : ''}
+                    ${eventRecord.ownerName ? `<div class="calendar-readonly-line"><strong>Owner:</strong> ${escapeHtml(eventRecord.ownerName)}</div>` : ''}
+                    <div class="calendar-readonly-line"><strong>When:</strong> ${escapeHtml(formatCalendarEventStamp(eventRecord))} · ${escapeHtml(eventRecord.eventTimeZone || 'Unknown')}</div>
+                    ${eventRecord.actionText ? `<div class="calendar-readonly-line"><strong>Action:</strong> ${escapeHtml(eventRecord.actionText)}</div>` : ''}
+                    ${eventRecord.notes ? `<div class="calendar-readonly-copy">${escapeHtml(eventRecord.notes)}</div>` : ''}
+                    <div class="drawer-actions">
+                        ${getAccessibleClientById(eventRecord.leadId) ? `
+                            <button class="crm-button-secondary" type="button" data-action="open-lead-page" data-client-id="${escapeHtml(eventRecord.leadId)}">
+                                <i class="fa-solid fa-user-large"></i> Open Client
+                            </button>
+                        ` : ''}
+                        <button class="crm-button-ghost" type="button" data-action="close-drawer">Close</button>
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+
+    const actionLabel = eventRecord ? 'Save follow-up changes' : 'Schedule follow-up';
+    const canSubmit = Boolean(selectedLeadId);
+
+    return `
+        <div class="drawer-surface calendar-event-drawer">
+            <div class="drawer-head">
+                <div>
+                    <h2 class="drawer-title">${escapeHtml(titleValue)}</h2>
+                </div>
+                <button class="crm-button-ghost" data-action="close-drawer"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+
+            ${eventRecord ? `
+                <div class="calendar-drawer-status-row">
+                    <div class="calendar-event-badges">
+                        <span class="calendar-status-pill ${escapeHtml(eventRecord.status)}">${escapeHtml(titleCase(eventRecord.status))}</span>
+                        <span class="calendar-visibility-pill ${escapeHtml(eventRecord.visibility)}">${escapeHtml(titleCase(eventRecord.visibility))}</span>
+                    </div>
+                    <div class="calendar-event-actions">
+                        ${renderCalendarStatusActions(eventRecord, true)}
+                    </div>
+                </div>
+            ` : ''}
+
+            <form id="calendar-event-form" class="calendar-event-form">
+                <input type="hidden" name="eventId" value="${escapeHtml(eventRecord?.id || '')}">
+                <input type="hidden" name="leadId" value="${escapeHtml(selectedLeadId)}">
+
+                <div class="form-grid">
+                    <label class="form-field form-field-full">
+                        <span class="form-label">Client</span>
+                        <div class="search-shell calendar-client-search-shell ${picker.isOpen ? 'is-expanded' : ''}">
+                            <i class="fa-solid fa-magnifying-glass"></i>
+                            <input
+                                class="calendar-client-search-input"
+                                type="search"
+                                value="${escapeHtml(picker.query)}"
+                                placeholder="Search by name, email, or phone"
+                                autocomplete="off"
+                                role="combobox"
+                                aria-autocomplete="list"
+                                aria-expanded="${picker.isOpen ? 'true' : 'false'}"
+                            >
+                            ${renderCalendarClientSuggestionList()}
+                        </div>
+                        ${selectedLeadId ? `
+                            <div class="calendar-client-selection">
+                                <strong>${escapeHtml(selectedLeadName || 'Client selected')}</strong>
+                                ${selectedLeadMeta ? `<span>${escapeHtml(selectedLeadMeta)}</span>` : ''}
+                            </div>
+                        ` : '<div class="calendar-client-selection empty">Pick a client before saving.</div>'}
+                    </label>
+
+                    <label class="form-field">
+                        <span class="form-label">Title</span>
+                        <input class="crm-input" name="title" value="${escapeHtml(titleValue)}" placeholder="Follow-up with client" required>
+                    </label>
+
+                    <label class="form-field">
+                        <span class="form-label">Start time</span>
+                        <input class="crm-input" name="startAt" type="datetime-local" value="${escapeHtml(startAtValue)}" required>
+                    </label>
+
+                    <label class="form-field">
+                        <span class="form-label">End time</span>
+                        <input class="crm-input" name="endAt" type="datetime-local" value="${escapeHtml(endAtValue)}">
+                    </label>
+
+                    <label class="form-field">
+                        <span class="form-label">Event time zone</span>
+                        <select class="crm-select" name="eventTimeZone">
+                            ${eventTimeZoneOptions.map((timeZone) => `
+                                <option value="${escapeHtml(timeZone)}" ${(draft.eventTimeZone || eventRecord?.eventTimeZone || selectedLead?.timeZone || eventRecord?.leadTimeZone || 'Unknown') === timeZone ? 'selected' : ''}>
+                                    ${escapeHtml(timeZone)}
+                                </option>
+                            `).join('')}
+                        </select>
+                    </label>
+
+                    <label class="form-field">
+                        <span class="form-label">Visibility</span>
+                        <select class="crm-select" name="visibility">
+                            ${CALENDAR_EVENT_VISIBILITY_OPTIONS.map((option) => `
+                                <option value="${escapeHtml(option)}" ${visibility === option ? 'selected' : ''}>${escapeHtml(titleCase(option))}</option>
+                            `).join('')}
+                        </select>
+                    </label>
+
+                    <label class="form-field form-field-full">
+                        <span class="form-label">Action text</span>
+                        <input class="crm-input" name="actionText" value="${escapeHtml(actionTextValue)}" placeholder="Review objection, confirm payment, final onboarding call">
+                    </label>
+
+                    <label class="form-field form-field-full">
+                        <span class="form-label">Notes</span>
+                        <textarea class="crm-textarea" name="notes" placeholder="Add extra context the next rep or shared teammate should see...">${escapeHtml(notesValue)}</textarea>
+                    </label>
+
+                    <fieldset class="form-field form-field-full calendar-share-fieldset">
+                        <span class="form-label">Share with teammates</span>
+                        <div class="calendar-share-grid">
+                            ${shareableUsers.length ? shareableUsers.map((user) => `
+                                <label class="calendar-share-option">
+                                    <input
+                                        type="checkbox"
+                                        name="sharedWithUserIds"
+                                        value="${escapeHtml(user.id)}"
+                                        ${selectedShareIds.has(user.id) ? 'checked' : ''}
+                                    >
+                                    <span>${escapeHtml(user.name)}</span>
+                                </label>
+                            `).join('') : '<div class="panel-subtitle">No additional teammates are available to share with.</div>'}
+                        </div>
+                        <span class="panel-subtitle">Shares apply only when visibility is set to Shared.</span>
+                    </fieldset>
+                </div>
+
+                <div class="drawer-actions">
+                    <button class="crm-button" type="submit" ${canSubmit ? '' : 'disabled'}>
+                        <i class="fa-solid fa-floppy-disk"></i> ${escapeHtml(actionLabel)}
+                    </button>
                     <button class="crm-button-ghost" type="button" data-action="close-drawer">Cancel</button>
                 </div>
             </form>
@@ -4293,8 +5535,8 @@ function getDashboardMetrics() {
                 .sort((left, right) => Date.parse(right.updatedAt || 0) - Date.parse(left.updatedAt || 0))
                 .slice(0, 5),
             memberShare: totalRecords ? Math.round((totalMembers / totalRecords) * 100) : 0,
-            topTag: { label: 'No tags', count: 0 },
-            topStatus: { label: 'No status', count: 0 }
+            topTag: { label: '', count: 0 },
+            topStatus: { label: '', count: 0 }
         };
     }
 
@@ -4316,8 +5558,8 @@ function getDashboardMetrics() {
         taggedLeadCount,
         recentlyUpdated,
         memberShare: totalRecords ? Math.round((members.length / totalRecords) * 100) : 0,
-        topTag: tagCounts[0] ? { label: tagCounts[0][0], count: tagCounts[0][1] } : { label: 'No tags', count: 0 },
-        topStatus: statusCounts[0] ? { label: titleCase(statusCounts[0][0]), count: statusCounts[0][1] } : { label: 'No status', count: 0 }
+        topTag: tagCounts[0] ? { label: tagCounts[0][0], count: tagCounts[0][1] } : { label: '', count: 0 },
+        topStatus: statusCounts[0] ? { label: titleCase(statusCounts[0][0]), count: statusCounts[0][1] } : { label: '', count: 0 }
     };
 }
 
@@ -4656,7 +5898,7 @@ function getSortIcon(field) {
 }
 
 function isDrawerOpen() {
-    return ['create', 'create-member', 'lookup-preview'].includes(state.drawerMode);
+    return ['create', 'create-member', 'lookup-preview', 'calendar-event'].includes(state.drawerMode);
 }
 
 function createBlankClient(lifecycleType = 'lead') {
@@ -4826,8 +6068,12 @@ function sanitizeLeadPayloadForSession(payload, existingLead = null) {
     nextPayload.lifecycleType = nextPayload.lifecycleType || existingLead?.lifecycleType || 'lead';
     nextPayload.status = normalizeLeadStatus(nextPayload.status || existingLead?.status || 'new');
     nextPayload.disposition = normalizeWhitespace(nextPayload.disposition || '');
-    nextPayload.followUpAction = normalizeWhitespace(nextPayload.followUpAction || '');
-    nextPayload.followUpAt = normalizeWhitespace(nextPayload.followUpAt || '');
+    if (Object.prototype.hasOwnProperty.call(nextPayload, 'followUpAction')) {
+        nextPayload.followUpAction = normalizeWhitespace(nextPayload.followUpAction || '');
+    }
+    if (Object.prototype.hasOwnProperty.call(nextPayload, 'followUpAt')) {
+        nextPayload.followUpAt = normalizeWhitespace(nextPayload.followUpAt || '');
+    }
     if (Object.prototype.hasOwnProperty.call(nextPayload, 'timeZone')) {
         nextPayload.timeZone = normalizeWhitespace(nextPayload.timeZone || '');
     }
@@ -5006,8 +6252,6 @@ function getLeadFormSnapshot(lead) {
         disposition: lead.disposition || '',
         subscriptionType: lead.subscriptionType || '',
         timeZone: lead.timezoneOverridden ? (lead.timeZone || '') : '',
-        followUpAction: lead.followUpAction || '',
-        followUpAt: toDateTimeInputValue(lead.followUpAt),
         assignedRepId: lead.assignedRepId || '',
         lifecycleType: lead.lifecycleType || 'lead',
         tags: parseTags(lead.tags || []).join(', ')
@@ -5026,8 +6270,6 @@ function getLeadFormState(form) {
         disposition: normalizeWhitespace(formData.get('disposition')),
         subscriptionType: normalizeWhitespace(formData.get('subscriptionType')),
         timeZone: normalizeWhitespace(formData.get('timeZone')),
-        followUpAction: normalizeWhitespace(formData.get('followUpAction')),
-        followUpAt: normalizeWhitespace(formData.get('followUpAt')),
         assignedRepId: normalizeWhitespace(formData.get('assignedRepId')),
         lifecycleType: normalizeWhitespace(formData.get('lifecycleType')) || 'lead',
         tags: parseTags(formData.get('tags')).join(', ')
@@ -5056,6 +6298,7 @@ function getLeadDetailDispositionOptions(lead) {
 function getAdminMetrics() {
     const leads = getScopedClients('leads', { ignoreSearch: true, ignoreFilters: true });
     const members = getScopedClients('members', { ignoreSearch: true, ignoreFilters: true });
+    const calendarEvents = [...(state.calendar.events || [])];
     const reps = getAdminWorkspaceUsers();
     const assignedLeads = leads.filter((lead) => lead.assignedRepId).length;
     const unassignedLeads = leads.length - assignedLeads;
@@ -5087,15 +6330,11 @@ function getAdminMetrics() {
         activityEntries.filter((entry) => entry.type === 'disposition').map((entry) => entry.createdByName || entry.createdByUserId || 'Local user')
     );
     const followUpsByRep = aggregateCounts(
-        activityEntries.filter((entry) => entry.type === 'follow-up').map((entry) => entry.createdByName || entry.createdByUserId || 'Local user')
+        calendarEvents.map((event) => event.ownerName || getUserNameById(event.ownerUserId) || 'Local user')
     );
-    const followUpsDue = leads.filter((lead) => {
-        if (!lead.followUpAt) {
-            return false;
-        }
-
-        return new Date(lead.followUpAt) <= new Date();
-    }).length;
+    const followUpsDue = calendarEvents.filter((event) =>
+        event.status === 'scheduled' && Date.parse(event.startAt || 0) <= Date.now()
+    ).length;
 
     return {
         totalReps: reps.length,
@@ -5129,16 +6368,28 @@ function closeModal() {
     renderModal();
 }
 
-function openDrawer(mode) {
+function openDrawer(mode, options = {}) {
     state.drawerMode = mode;
-    state.drawerClientId = null;
+    state.drawerClientId = options.clientId || null;
+    state.drawerEventId = options.eventId || null;
+    state.drawerDate = options.date || '';
+    state.calendar.formDraft = null;
+    if (mode === 'calendar-event') {
+        syncCalendarClientPickerFromDrawerContext();
+    }
     renderDrawer();
     syncShellState();
 }
 
 function closeDrawer() {
+    window.clearTimeout(calendarClientSuggestionsTimer);
+    calendarClientSuggestionsRequestId += 1;
     state.drawerMode = null;
     state.drawerClientId = null;
+    state.drawerEventId = null;
+    state.drawerDate = '';
+    state.calendar.clientPicker = createDefaultCalendarClientPickerState();
+    state.calendar.formDraft = null;
     syncShellState();
     renderDrawer();
 }
@@ -5160,6 +6411,8 @@ async function openSearchPreviewDrawer(clientId) {
         setSearchShellExpanded(false);
         state.drawerMode = 'lookup-preview';
         state.drawerClientId = clientId;
+        state.drawerEventId = null;
+        state.drawerDate = '';
         renderDrawer();
         syncShellState();
     } catch (error) {
@@ -5170,6 +6423,7 @@ async function openSearchPreviewDrawer(clientId) {
 function resetAuthenticatedCrmState() {
     workspacePageCache.clear();
     clearVisibleClientsCache();
+    state.calendar = createDefaultCalendarState();
     state.clients = [];
     state.allowedTags = [];
     state.tagDefinitions = [];
@@ -5261,6 +6515,11 @@ function syncToolbarFilterButton() {
 }
 
 document.addEventListener('click', async (event) => {
+    if (event.target.matches('.crm-search')) {
+        state.activeSearchSurface = getSearchSurfaceFromElement(event.target);
+        state.activeSearchCaret = event.target.selectionStart ?? event.target.value.length;
+    }
+
     const actionEl = event.target.closest('[data-action]');
     const clickedInsideAdvancedFilters = event.target.closest('.lead-history-advanced-shell');
 
@@ -5424,6 +6683,12 @@ document.addEventListener('click', async (event) => {
         }
         if (targetView === 'admin') {
             await loadFullClientDataset();
+            await refreshCalendarEvents({ force: true, renderWhileLoading: false });
+            render();
+            return;
+        }
+        if (targetView === 'calendar') {
+            await refreshCalendarEvents({ anchorDate: getMonthCursorDate(), force: true, renderWhileLoading: false });
             render();
             return;
         }
@@ -5443,6 +6708,146 @@ document.addEventListener('click', async (event) => {
 
     if (action === 'new-member') {
         openDrawer('create-member');
+        return;
+    }
+
+    if (action === 'open-calendar-event-drawer') {
+        openDrawer('calendar-event', {
+            clientId: actionEl.dataset.clientId || '',
+            eventId: actionEl.dataset.eventId || '',
+            date: actionEl.dataset.date || ''
+        });
+        return;
+    }
+
+    if (action === 'select-calendar-client-suggestion') {
+        const suggestion = state.calendar.clientPicker.suggestions.find((entry) => entry.id === actionEl.dataset.clientId);
+
+        if (!suggestion) {
+            return;
+        }
+
+        preserveCalendarEventDraft();
+        applyCalendarClientSuggestionSelection(suggestion);
+        renderDrawer();
+        focusCalendarClientSearchInput();
+        return;
+    }
+
+    if (action === 'set-calendar-filter') {
+        const nextFilter = actionEl.dataset.filter || 'mine';
+        if (nextFilter === 'all' && !hasActiveAdminProfile()) {
+            state.calendar.filter = 'mine';
+        } else {
+            state.calendar.filter = nextFilter;
+        }
+        renderPanels();
+        return;
+    }
+
+    if (action === 'select-calendar-date') {
+        const nextDate = parseDateKey(actionEl.dataset.date || state.calendar.selectedDate);
+        state.calendar.selectedDate = getDateKey(nextDate);
+        state.calendar.monthCursor = getMonthCursorValue(nextDate);
+        await ensureCalendarEventsForDate(nextDate);
+        renderPanels();
+        return;
+    }
+
+    if (action === 'set-calendar-view') {
+        state.calendar.view = actionEl.dataset.view === 'month' ? 'month' : 'week';
+        await ensureCalendarEventsForDate(getCalendarSelectedDate());
+        renderPanels();
+        return;
+    }
+
+    if (action === 'calendar-prev-period') {
+        const currentDate = getCalendarSelectedDate();
+        const previousDate = state.calendar.view === 'month'
+            ? new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1, 12)
+            : new Date(currentDate.getFullYear(), currentDate.getMonth(), currentDate.getDate() - 7, 12);
+        state.calendar.selectedDate = getDateKey(previousDate);
+        state.calendar.monthCursor = getMonthCursorValue(previousDate);
+        await ensureCalendarEventsForDate(previousDate);
+        renderPanels();
+        return;
+    }
+
+    if (action === 'calendar-next-period') {
+        const currentDate = getCalendarSelectedDate();
+        const nextDate = state.calendar.view === 'month'
+            ? new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 1, 12)
+            : new Date(currentDate.getFullYear(), currentDate.getMonth(), currentDate.getDate() + 7, 12);
+        state.calendar.selectedDate = getDateKey(nextDate);
+        state.calendar.monthCursor = getMonthCursorValue(nextDate);
+        await ensureCalendarEventsForDate(nextDate);
+        renderPanels();
+        return;
+    }
+
+    if (action === 'calendar-prev-mini-month') {
+        const previousMonth = new Date(getMonthCursorDate().getFullYear(), getMonthCursorDate().getMonth() - 1, 1, 12);
+        state.calendar.monthCursor = getMonthCursorValue(previousMonth);
+        if (state.calendar.view === 'month') {
+            state.calendar.selectedDate = getDateKey(previousMonth);
+        }
+        await ensureCalendarEventsForDate(previousMonth);
+        renderPanels();
+        return;
+    }
+
+    if (action === 'calendar-next-mini-month') {
+        const nextMonth = new Date(getMonthCursorDate().getFullYear(), getMonthCursorDate().getMonth() + 1, 1, 12);
+        state.calendar.monthCursor = getMonthCursorValue(nextMonth);
+        if (state.calendar.view === 'month') {
+            state.calendar.selectedDate = getDateKey(nextMonth);
+        }
+        await ensureCalendarEventsForDate(nextMonth);
+        renderPanels();
+        return;
+    }
+
+    if (action === 'calendar-prev-month') {
+        const previousMonth = new Date(getMonthCursorDate().getFullYear(), getMonthCursorDate().getMonth() - 1, 1, 12);
+        state.calendar.monthCursor = getMonthCursorValue(previousMonth);
+        state.calendar.selectedDate = getDateKey(previousMonth);
+        await refreshCalendarEvents({ anchorDate: previousMonth, force: true, renderWhileLoading: false });
+        renderPanels();
+        return;
+    }
+
+    if (action === 'calendar-next-month') {
+        const nextMonth = new Date(getMonthCursorDate().getFullYear(), getMonthCursorDate().getMonth() + 1, 1, 12);
+        state.calendar.monthCursor = getMonthCursorValue(nextMonth);
+        state.calendar.selectedDate = getDateKey(nextMonth);
+        await refreshCalendarEvents({ anchorDate: nextMonth, force: true, renderWhileLoading: false });
+        renderPanels();
+        return;
+    }
+
+    if (action === 'calendar-today') {
+        const today = new Date();
+        state.calendar.monthCursor = getMonthCursorValue(today);
+        state.calendar.selectedDate = getDateKey(today);
+        await ensureCalendarEventsForDate(today);
+        renderPanels();
+        return;
+    }
+
+    if (action === 'set-calendar-event-status') {
+        try {
+            const eventRecord = getCalendarEventById(actionEl.dataset.eventId);
+
+            if (!eventRecord || !canManageCalendarEvent(eventRecord)) {
+                throw new Error('Only the event owner or an admin can update follow-up statuses.');
+            }
+
+            await dataService.updateCalendarEventStatus(actionEl.dataset.eventId, actionEl.dataset.status);
+            await refreshWorkspaceAfterMutation();
+            flashNotice('Follow-up status updated.', 'success');
+        } catch (error) {
+            flashNotice(error.message || 'Unable to update the follow-up status.', 'error');
+        }
         return;
     }
 
@@ -6149,6 +7554,45 @@ document.addEventListener('submit', async (event) => {
         return;
     }
 
+    if (formId === 'calendar-event-form') {
+        event.preventDefault();
+
+        try {
+            const formData = new FormData(event.target);
+            const eventId = normalizeWhitespace(formData.get('eventId'));
+            const payload = {
+                leadId: normalizeWhitespace(formData.get('leadId')),
+                title: normalizeWhitespace(formData.get('title')),
+                actionText: normalizeWhitespace(formData.get('actionText')),
+                notes: String(formData.get('notes') ?? ''),
+                startAt: normalizeWhitespace(formData.get('startAt')),
+                endAt: normalizeWhitespace(formData.get('endAt')),
+                eventTimeZone: normalizeWhitespace(formData.get('eventTimeZone')),
+                visibility: normalizeWhitespace(formData.get('visibility')) || 'private',
+                sharedWithUserIds: formData.getAll('sharedWithUserIds').map((value) => normalizeWhitespace(value))
+            };
+
+            if (eventId) {
+                const existingEvent = getCalendarEventById(eventId);
+
+                if (!existingEvent || !canManageCalendarEvent(existingEvent)) {
+                    throw new Error('Only the event owner or an admin can edit this follow-up.');
+                }
+
+                await dataService.updateCalendarEvent(eventId, payload);
+            } else {
+                await dataService.createCalendarEvent(payload);
+            }
+
+            closeDrawer();
+            await refreshWorkspaceAfterMutation();
+            flashNotice(eventId ? 'Follow-up updated.' : 'Follow-up scheduled.', 'success');
+        } catch (error) {
+            flashNotice(error.message || 'Unable to save the follow-up.', 'error');
+        }
+        return;
+    }
+
     if (formId === 'lead-note-form') {
         event.preventDefault();
 
@@ -6359,9 +7803,7 @@ document.addEventListener('input', (event) => {
         requestAnimationFrame(() => {
             const input = document.getElementById('admin-user-search');
             input?.focus();
-            if (input && typeof input.setSelectionRange === 'function') {
-                input.setSelectionRange(caretPosition, caretPosition);
-            }
+            restoreInputCaret(input, caretPosition);
         });
         return;
     }
@@ -6376,6 +7818,41 @@ document.addEventListener('input', (event) => {
         if (timeZoneSelect) {
             timeZoneSelect.value = '';
         }
+        return;
+    }
+
+    if (event.target.matches('.calendar-client-search-input')) {
+        const caretPosition = event.target.selectionStart ?? event.target.value.length;
+        const nextValue = event.target.value;
+        const normalizedValue = normalizeWhitespace(nextValue);
+        const selectedLeadMatchesQuery = normalizeWhitespace(state.calendar.clientPicker.selectedLeadName).toLowerCase() === normalizedValue.toLowerCase();
+
+        preserveCalendarEventDraft();
+        state.calendar.clientPicker.query = nextValue;
+        state.calendar.clientPicker.isOpen = Boolean(normalizedValue);
+        state.calendar.clientPicker.isLoading = Boolean(normalizedValue);
+        state.calendar.clientPicker.activeIndex = 0;
+
+        if (!selectedLeadMatchesQuery) {
+            state.calendar.clientPicker.selectedLeadId = '';
+            state.calendar.clientPicker.selectedLeadName = '';
+            state.calendar.clientPicker.selectedLeadMeta = '';
+        }
+
+        if (!normalizedValue) {
+            state.calendar.clientPicker.suggestions = [];
+            state.calendar.clientPicker.isOpen = false;
+            state.calendar.clientPicker.isLoading = false;
+            state.calendar.clientPicker.activeIndex = -1;
+            state.calendar.clientPicker.lastQuery = '';
+            renderDrawer();
+            focusCalendarClientSearchInput(caretPosition);
+            return;
+        }
+
+        renderDrawer();
+        focusCalendarClientSearchInput(caretPosition);
+        queueCalendarClientSuggestions({ caret: caretPosition });
         return;
     }
 
@@ -6522,6 +7999,69 @@ document.addEventListener('change', async (event) => {
 });
 
 document.addEventListener('keydown', (event) => {
+    if (event.target.matches('.calendar-client-search-input')) {
+        const picker = state.calendar.clientPicker;
+
+        if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
+            const visibleQuery = normalizeWhitespace(picker.query);
+
+            if (!visibleQuery) {
+                return;
+            }
+
+            event.preventDefault();
+
+            if (!picker.isOpen) {
+                preserveCalendarEventDraft();
+                state.calendar.clientPicker.isOpen = true;
+                renderDrawer();
+                focusCalendarClientSearchInput();
+                queueCalendarClientSuggestions({ immediate: true });
+                return;
+            }
+
+            if (!picker.suggestions.length) {
+                return;
+            }
+
+            const direction = event.key === 'ArrowDown' ? 1 : -1;
+            const nextIndex = picker.activeIndex < 0
+                ? 0
+                : (picker.activeIndex + direction + picker.suggestions.length) % picker.suggestions.length;
+            state.calendar.clientPicker.activeIndex = nextIndex;
+            preserveCalendarEventDraft();
+            renderDrawer();
+            focusCalendarClientSearchInput();
+            return;
+        }
+
+        if (event.key === 'Enter' && picker.isOpen && picker.activeIndex >= 0) {
+            const suggestion = picker.suggestions[picker.activeIndex];
+
+            if (!suggestion) {
+                return;
+            }
+
+            event.preventDefault();
+            preserveCalendarEventDraft();
+            applyCalendarClientSuggestionSelection(suggestion);
+            renderDrawer();
+            focusCalendarClientSearchInput();
+            return;
+        }
+
+        if (event.key === 'Escape' && picker.isOpen) {
+            event.preventDefault();
+            preserveCalendarEventDraft();
+            state.calendar.clientPicker.isOpen = false;
+            state.calendar.clientPicker.isLoading = false;
+            state.calendar.clientPicker.activeIndex = -1;
+            renderDrawer();
+            focusCalendarClientSearchInput();
+            return;
+        }
+    }
+
     if (event.target.matches('.crm-search')) {
         const searchSurface = getSearchSurfaceFromElement(event.target);
         state.activeSearchSurface = searchSurface;
@@ -6634,6 +8174,19 @@ document.addEventListener('keydown', (event) => {
 });
 
 document.addEventListener('focusout', (event) => {
+    if (event.target.matches('.calendar-client-search-input')) {
+        window.setTimeout(() => {
+            if (!document.activeElement?.closest('.calendar-client-search-shell')) {
+                preserveCalendarEventDraft();
+                state.calendar.clientPicker.isOpen = false;
+                state.calendar.clientPicker.isLoading = false;
+                state.calendar.clientPicker.activeIndex = -1;
+                renderDrawer();
+            }
+        }, 120);
+        return;
+    }
+
     if (event.target.matches('.crm-search')) {
         window.setTimeout(() => {
             if (!document.activeElement?.closest('.search-shell')) {
@@ -6667,6 +8220,34 @@ refs.modalLayer.addEventListener('click', (event) => {
 });
 
 document.addEventListener('focusin', (event) => {
+    if (event.target.matches('.calendar-client-search-input')) {
+        if (calendarClientFocusRestorePending) {
+            calendarClientFocusRestorePending = false;
+            return;
+        }
+
+        const visibleQuery = normalizeWhitespace(state.calendar.clientPicker.query);
+
+        if (!visibleQuery) {
+            return;
+        }
+
+        preserveCalendarEventDraft();
+        state.calendar.clientPicker.isOpen = true;
+
+        if (state.calendar.clientPicker.lastQuery === visibleQuery && (state.calendar.clientPicker.suggestions.length || !state.calendar.clientPicker.isLoading)) {
+            renderDrawer();
+            focusCalendarClientSearchInput(event.target.selectionStart ?? event.target.value.length);
+            return;
+        }
+
+        state.calendar.clientPicker.isLoading = true;
+        renderDrawer();
+        focusCalendarClientSearchInput(event.target.selectionStart ?? event.target.value.length);
+        queueCalendarClientSuggestions({ immediate: true, caret: event.target.selectionStart ?? event.target.value.length });
+        return;
+    }
+
     if (event.target.matches('.crm-search')) {
         const searchSurface = getSearchSurfaceFromElement(event.target);
         const visibleQuery = normalizeWhitespace(getToolbarSearchValue());
@@ -6872,8 +8453,6 @@ function getMergeComparisonFields(existingLead, incomingPayload) {
         { key: 'subscriptionType', label: 'Subscription type', existing: existingLead.subscriptionType || '', incoming: incomingPayload.subscriptionType || '', choices: ['existing', 'incoming'] },
         { key: 'timeZone', label: 'Time zone', existing: existingLead.timezoneOverridden ? (existingLead.timeZone || '') : '', incoming: incomingPayload.timeZone || '', choices: ['existing', 'incoming'] },
         { key: 'disposition', label: 'Disposition', existing: existingLead.disposition || '', incoming: incomingPayload.disposition || '', choices: ['existing', 'incoming'] },
-        { key: 'followUpAction', label: 'Follow up action', existing: existingLead.followUpAction || '', incoming: incomingPayload.followUpAction || '', choices: ['existing', 'incoming'] },
-        { key: 'followUpAt', label: 'Follow up at', existing: existingLead.followUpAt || '', incoming: incomingPayload.followUpAt || '', choices: ['existing', 'incoming'] },
         { key: 'tags', label: 'Tags', existing: (existingLead.tags || []).join(', '), incoming: incomingTags.join(', '), choices: ['existing', 'incoming', 'combine'] },
         { key: 'notes', label: 'Notes', existing: existingLead.notes || '', incoming: incomingPayload.notes || '', choices: ['existing', 'incoming', 'combine'] }
     ];
@@ -6915,9 +8494,7 @@ function buildResolvedMergePayload(existingLead, incomingPayload, formData) {
         'status',
         'subscriptionType',
         'timeZone',
-        'disposition',
-        'followUpAction',
-        'followUpAt'
+        'disposition'
     ].forEach((field) => {
         if (!normalizeWhitespace(existingLead[field]) && normalizeWhitespace(incomingPayload[field])) {
             resolved[field] = incomingPayload[field];
@@ -7198,6 +8775,7 @@ async function openLeadDetailPage(clientId, sourceView = 'clients') {
         }
 
         mergeClientCache([detailedLead]);
+        await loadLeadCalendarEvents(clientId, { force: true });
     } catch (error) {
         flashNotice(error.message || 'Unable to load the lead details.', 'error');
         return;

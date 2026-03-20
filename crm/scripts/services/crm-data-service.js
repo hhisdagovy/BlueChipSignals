@@ -176,6 +176,10 @@ export class CrmDataService {
     async toggleEmailThreadStar() {
         return null;
     }
+
+    async saveCallPreference() {
+        throw new Error('Call preference saving is not available for this CRM data service.');
+    }
 }
 
 export function getImportFieldDefinitions() {

@@ -117,6 +117,11 @@ const ADMIN_TABS = Object.freeze([
     { id: 'activity', icon: 'fa-chart-column', label: 'Activity' },
     { id: 'imports', icon: 'fa-file-arrow-up', label: 'Imports' }
 ]);
+const CALL_PREFERENCE_OPTIONS = Object.freeze([
+    { value: 'system_default', label: 'System default' },
+    { value: 'google_voice', label: 'Google Voice' }
+]);
+const GOOGLE_VOICE_SETUP_URL = 'https://support.google.com/voice/answer/11397414?hl=en';
 const visibleClientsCache = {
     clientsRef: null,
     filtersKey: '',
@@ -564,10 +569,12 @@ function buildAuthRefreshKey({ session, authUser, profile }) {
     return JSON.stringify({
         sessionId: String(session?.id ?? ''),
         sessionRole: String(session?.role ?? ''),
+        sessionCallPreference: String(session?.callPreference ?? ''),
         authUserId: String(authUser?.id ?? ''),
         profileId: String(profile?.id ?? ''),
         profileRole: String(profile?.role ?? ''),
-        profileActive: profile?.isActive !== false
+        profileActive: profile?.isActive !== false,
+        profileCallPreference: String(profile?.callPreference ?? '')
     });
 }
 
@@ -1732,6 +1739,206 @@ function buildPhoneHref(phoneValue) {
     return `tel:${digits}`;
 }
 
+function normalizeCallPreference(value) {
+    return normalizeWhitespace(value).toLowerCase() === 'google_voice'
+        ? 'google_voice'
+        : 'system_default';
+}
+
+function getCurrentCallPreference() {
+    return normalizeCallPreference(state.profile?.callPreference || state.session?.callPreference);
+}
+
+function getCallPreferenceLabel(callPreference = getCurrentCallPreference()) {
+    return normalizeCallPreference(callPreference) === 'google_voice'
+        ? 'Google Voice'
+        : 'System default';
+}
+
+function isLikelyMobileCallingDevice() {
+    const userAgent = navigator.userAgent || '';
+    return /android|iphone|ipad|ipod|iemobile|opera mini/i.test(userAgent);
+}
+
+function buildPhoneCallLabel(displayValue, callPreference = getCurrentCallPreference()) {
+    return normalizeCallPreference(callPreference) === 'google_voice'
+        ? `Call ${displayValue} with Google Voice`
+        : `Call ${displayValue}`;
+}
+
+function renderPhoneModeBadge(callPreference = getCurrentCallPreference()) {
+    return normalizeCallPreference(callPreference) === 'google_voice'
+        ? '<span class="crm-phone-link-badge">Voice</span>'
+        : '';
+}
+
+function renderPhoneUtilityActions(displayValue, { variant = 'inline', callPreference = getCurrentCallPreference() } = {}) {
+    const normalizedDisplayValue = normalizeWhitespace(displayValue);
+
+    if (!normalizedDisplayValue) {
+        return '';
+    }
+
+    const resolvedCallPreference = normalizeCallPreference(callPreference);
+    const actionClassName = variant === 'field'
+        ? 'crm-phone-utility-actions is-field'
+        : 'crm-phone-utility-actions';
+    const utilityActions = resolvedCallPreference === 'google_voice'
+        ? [
+            `
+                <a
+                    class="crm-phone-utility-button"
+                    href="${buildPhoneHref(normalizedDisplayValue)}"
+                    aria-label="${escapeHtml(`Call ${normalizedDisplayValue} with your system default phone app`)}"
+                    title="Use system default for this call"
+                >
+                    <i class="fa-solid fa-mobile-screen-button" aria-hidden="true"></i>
+                </a>
+            `.replace(/\s+/g, ' ').trim(),
+            `
+                <button
+                    class="crm-phone-utility-button"
+                    type="button"
+                    data-action="copy-phone-number"
+                    data-phone="${escapeHtml(normalizedDisplayValue)}"
+                    aria-label="${escapeHtml(`Copy ${normalizedDisplayValue}`)}"
+                    title="Copy number"
+                >
+                    <i class="fa-solid fa-copy" aria-hidden="true"></i>
+                </button>
+            `.replace(/\s+/g, ' ').trim()
+        ]
+        : [
+            `
+                <a
+                    class="crm-phone-utility-button"
+                    href="${GOOGLE_VOICE_SETUP_URL}"
+                    target="_blank"
+                    rel="noreferrer"
+                    aria-label="Open Google Voice setup help"
+                    title="Google Voice setup"
+                >
+                    <i class="fa-solid fa-circle-question" aria-hidden="true"></i>
+                </a>
+            `.replace(/\s+/g, ' ').trim(),
+            `
+                <button
+                    class="crm-phone-utility-button"
+                    type="button"
+                    data-action="copy-phone-number"
+                    data-phone="${escapeHtml(normalizedDisplayValue)}"
+                    aria-label="${escapeHtml(`Copy ${normalizedDisplayValue}`)}"
+                    title="Copy number"
+                >
+                    <i class="fa-solid fa-copy" aria-hidden="true"></i>
+                </button>
+            `.replace(/\s+/g, ' ').trim()
+        ];
+
+    return `<span class="${actionClassName}">${utilityActions.join('')}</span>`;
+}
+
+function buildPhoneActionTarget(phoneValue) {
+    const href = buildPhoneHref(phoneValue);
+
+    return {
+        href,
+        target: '',
+        rel: ''
+    };
+}
+
+function renderPhoneActionGroup(
+    phoneValue,
+    {
+        placeholder = '—',
+        className = 'crm-phone-link',
+        includeIcon = false,
+        variant = 'inline',
+        callPreference = getCurrentCallPreference()
+    } = {}
+) {
+    const displayValue = normalizeWhitespace(phoneValue);
+
+    if (!displayValue) {
+        return escapeHtml(placeholder);
+    }
+
+    const targetConfig = buildPhoneActionTarget(displayValue);
+    const href = targetConfig.href;
+
+    if (!href) {
+        return escapeHtml(displayValue);
+    }
+
+    const resolvedCallPreference = normalizeCallPreference(callPreference);
+    const callLabel = buildPhoneCallLabel(displayValue, resolvedCallPreference);
+    const title = resolvedCallPreference === 'google_voice'
+        ? (isLikelyMobileCallingDevice()
+            ? `${callLabel}. On mobile, CRM uses your device's normal phone flow.`
+            : `${callLabel}. If this still opens another calling app, enable Google Voice one-click dialing in your browser.`)
+        : callLabel;
+    const wrapperClasses = [
+        'crm-phone-action-group',
+        variant === 'field' ? 'is-field' : '',
+        resolvedCallPreference === 'google_voice' ? 'is-google-voice' : ''
+    ].filter(Boolean).join(' ');
+    const primaryClasses = [
+        className,
+        includeIcon || resolvedCallPreference === 'google_voice' ? 'has-icon' : '',
+        resolvedCallPreference === 'google_voice' ? 'is-google-voice' : ''
+    ].filter(Boolean).join(' ');
+    const phoneIcon = resolvedCallPreference === 'google_voice' ? 'fa-phone-volume' : 'fa-phone';
+
+    return `
+        <span class="${wrapperClasses}">
+            <a class="${primaryClasses}" href="${href}" aria-label="${escapeHtml(callLabel)}" title="${escapeHtml(title)}">
+                <span class="crm-phone-primary-copy"><span>${escapeHtml(displayValue)}</span>${renderPhoneModeBadge(resolvedCallPreference)}</span>
+                ${includeIcon || resolvedCallPreference === 'google_voice' ? `<i class="fa-solid ${phoneIcon}" aria-hidden="true"></i>` : ''}
+            </a>
+            ${renderPhoneUtilityActions(displayValue, { variant, callPreference: resolvedCallPreference })}
+        </span>
+    `.replace(/\s+/g, ' ').trim();
+}
+
+async function copyTextToClipboard(value, { promptLabel = 'Copy this value:' } = {}) {
+    const normalizedValue = String(value ?? '');
+
+    if (!normalizedValue) {
+        throw new Error('Nothing is available to copy right now.');
+    }
+
+    try {
+        if (navigator.clipboard?.writeText) {
+            await navigator.clipboard.writeText(normalizedValue);
+            return 'clipboard';
+        }
+    } catch (_error) {
+        // Fall through to legacy copy support.
+    }
+
+    const textArea = document.createElement('textarea');
+    textArea.value = normalizedValue;
+    textArea.setAttribute('readonly', 'readonly');
+    textArea.style.position = 'fixed';
+    textArea.style.opacity = '0';
+    textArea.style.pointerEvents = 'none';
+    document.body.appendChild(textArea);
+    textArea.focus();
+    textArea.select();
+
+    try {
+        if (document.execCommand('copy')) {
+            return 'clipboard';
+        }
+    } finally {
+        document.body.removeChild(textArea);
+    }
+
+    window.prompt(promptLabel, normalizedValue);
+    return 'prompt';
+}
+
 function normalizeEmailAddress(emailValue) {
     const displayValue = normalizeWhitespace(emailValue).toLowerCase();
 
@@ -1782,30 +1989,23 @@ function renderEmailLink(
 }
 
 function renderPhoneLink(phoneValue, { placeholder = '—', className = 'crm-phone-link', includeIcon = false } = {}) {
-    const displayValue = normalizeWhitespace(phoneValue);
-
-    if (!displayValue) {
-        return escapeHtml(placeholder);
-    }
-
-    const href = buildPhoneHref(displayValue);
-
-    if (!href) {
-        return escapeHtml(displayValue);
-    }
-
-    const classes = [className, includeIcon ? 'has-icon' : ''].filter(Boolean).join(' ');
-    const callLabel = `Call ${displayValue}`;
-
-    return `<a class="${classes}" href="${href}" aria-label="${escapeHtml(callLabel)}" title="${escapeHtml(callLabel)}">${includeIcon ? '<i class="fa-solid fa-phone" aria-hidden="true"></i>' : ''}<span>${escapeHtml(displayValue)}</span></a>`;
+    return renderPhoneActionGroup(phoneValue, {
+        placeholder,
+        className,
+        includeIcon,
+        variant: 'inline'
+    });
 }
 
 function renderReadOnlyPhoneField(label, name, value) {
     const displayValue = normalizeWhitespace(value);
     const href = buildPhoneHref(displayValue);
-    const callLabel = `Call ${displayValue}`;
     const controlMarkup = href
-        ? `<a class="crm-input crm-contact-field is-callable" href="${href}" aria-label="${escapeHtml(callLabel)}" title="${escapeHtml(callLabel)}"><span>${escapeHtml(displayValue)}</span><i class="fa-solid fa-phone" aria-hidden="true"></i></a>`
+        ? renderPhoneActionGroup(displayValue, {
+            className: 'crm-input crm-contact-field is-callable',
+            includeIcon: true,
+            variant: 'field'
+        })
         : `<div class="crm-input crm-contact-field is-static"><span>${escapeHtml(displayValue || '—')}</span></div>`;
 
     return `
@@ -5473,6 +5673,72 @@ function renderSupportMailboxSettingsCard() {
     `;
 }
 
+function renderCallingPreferenceSettingsCard() {
+    const currentCallPreference = getCurrentCallPreference();
+    const isGoogleVoiceDefault = currentCallPreference === 'google_voice';
+
+    return `
+        <section class="crm-settings-card">
+            <div class="crm-settings-card-head">
+                <div class="crm-settings-card-title">
+                    <span class="crm-settings-card-icon"><i class="fa-solid fa-phone-volume"></i></span>
+                    <div>
+                        <h2>Calling preferences</h2>
+                        <p>Choose whether CRM call buttons follow your normal device setup or your Google Voice browser setup.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="crm-settings-quick-stats">
+                <div class="crm-settings-quick-stat">
+                    <span>Default mode</span>
+                    <strong>${escapeHtml(getCallPreferenceLabel(currentCallPreference))}</strong>
+                </div>
+                <div class="crm-settings-quick-stat">
+                    <span>Desktop flow</span>
+                    <strong>${escapeHtml(isGoogleVoiceDefault ? 'Google Voice one-click dialing' : 'System call handler')}</strong>
+                </div>
+            </div>
+
+            <form id="call-preference-form" class="crm-mailbox-form">
+                <div class="crm-settings-field-grid">
+                    <label class="crm-settings-field">
+                        <span class="form-label">Default call routing</span>
+                        <select class="crm-select" name="callPreference">
+                            ${CALL_PREFERENCE_OPTIONS.map((option) => `
+                                <option value="${escapeHtml(option.value)}" ${currentCallPreference === option.value ? 'selected' : ''}>
+                                    ${escapeHtml(option.label)}
+                                </option>
+                            `).join('')}
+                        </select>
+                        <span class="panel-subtitle">
+                            ${escapeHtml(
+                                isGoogleVoiceDefault
+                                    ? 'Google Voice mode still uses normal browser phone links. If calls are opening another app, set Google Voice as the browser handler for phone links.'
+                                    : 'System default uses the browser or device calling app already configured on this machine.'
+                            )}
+                        </span>
+                    </label>
+                    <label class="crm-settings-field">
+                        <span class="form-label">Google Voice setup</span>
+                        <div class="crm-settings-field-value">${escapeHtml(isLikelyMobileCallingDevice() ? 'Mobile keeps your normal device call flow.' : 'Desktop browser setup required.')}</div>
+                        <span class="panel-subtitle">Google Voice calling on the web is a desktop browser flow. Mobile still follows your device's normal calling setup.</span>
+                    </label>
+                </div>
+
+                <div class="settings-actions crm-settings-action-row">
+                    <button class="crm-button-secondary" type="submit"><i class="fa-solid fa-phone-volume"></i> Save calling preference</button>
+                    <a class="crm-button-ghost" href="${GOOGLE_VOICE_SETUP_URL}" target="_blank" rel="noreferrer">
+                        <i class="fa-solid fa-arrow-up-right-from-square"></i> Google Voice setup
+                    </a>
+                </div>
+            </form>
+
+            <div class="crm-settings-support-note">Every phone action also includes Copy number. When Google Voice is your default, the fallback button opens the system call handler for that one call.</div>
+        </section>
+    `;
+}
+
 function renderLeadEmailHistoryCard(lead) {
     const emailHistory = getLeadEmailHistory(lead);
     const canSendEmail = canSendEmailForLead(lead);
@@ -5684,6 +5950,7 @@ function renderSettingsPanel() {
                     </div>
                 </section>
 
+                ${renderCallingPreferenceSettingsCard()}
                 ${renderPersonalMailboxSettingsCard()}
                 ${renderSupportMailboxSettingsCard()}
 
@@ -8648,6 +8915,17 @@ document.addEventListener('click', async (event) => {
         return;
     }
 
+    if (action === 'copy-phone-number') {
+        try {
+            const phoneValue = normalizeWhitespace(actionEl.dataset.phone);
+            const copyResult = await copyTextToClipboard(phoneValue, { promptLabel: 'Copy this phone number:' });
+            flashNotice(copyResult === 'prompt' ? 'Phone number ready to copy.' : 'Phone number copied.', 'success');
+        } catch (error) {
+            flashNotice(error.message || 'Unable to copy that phone number.', 'error');
+        }
+        return;
+    }
+
     if (action === 'sync-email-mailbox') {
         await syncActiveEmailMailbox();
         return;
@@ -9214,6 +9492,20 @@ document.addEventListener('submit', async (event) => {
             closeDrawer();
         } catch (error) {
             flashNotice(error.message || 'Unable to save the lead.', 'error');
+        }
+        return;
+    }
+
+    if (formId === 'call-preference-form') {
+        event.preventDefault();
+
+        try {
+            const formData = new FormData(event.target);
+            await dataService.saveCallPreference(formData.get('callPreference'));
+            flashNotice('Calling preference saved.', 'success');
+            await refreshData();
+        } catch (error) {
+            flashNotice(error.message || 'Unable to save your calling preference.', 'error');
         }
         return;
     }

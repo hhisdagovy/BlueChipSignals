@@ -1144,6 +1144,24 @@ export class SupabaseCrmDataService extends CrmDataService {
     return mapMailboxSenderRow(data?.sender || {})
   }
 
+  async saveCallPreference(callPreference) {
+    const { data, error } = await this.invokeAuthenticatedFunction('crm-save-profile-preferences', {
+      callPreference: normalizeCallPreference(callPreference)
+    })
+
+    if (error) {
+      throw new Error(await describeFunctionInvokeError(error, 'Unable to save your calling preference.'))
+    }
+
+    if (data?.error) {
+      throw new Error(data.error)
+    }
+
+    return {
+      callPreference: normalizeCallPreference(data?.profile?.callPreference ?? data?.profile?.call_preference ?? callPreference)
+    }
+  }
+
   async sendEmail({
     leadId,
     recipientEmail = '',
@@ -3954,4 +3972,10 @@ function normalizeProfileRole(role) {
   }
 
   return 'sales'
+}
+
+function normalizeCallPreference(value) {
+  return normalizeWhitespace(value).toLowerCase() === 'google_voice'
+    ? 'google_voice'
+    : 'system_default'
 }

@@ -6,7 +6,8 @@ import {
 
 const SESSION_KEY = 'bluechip_crm_session_v1'
 const USERS_KEY = 'bluechip_crm_users_v1'
-const PROFILE_SELECT = 'id, email, full_name, role, active'
+const PROFILE_SELECT = 'id, email, full_name, role, active, call_preference'
+const PROFILE_SELECT_FALLBACK = 'id, email, full_name, role, active'
 const PROFILE_ACCESS_SELECT = 'id, role, active'
 
 export class SupabaseAuthService {
@@ -64,9 +65,7 @@ export class SupabaseAuthService {
 
   async listUsers() {
     const supabase = await getSupabase()
-    const { data, error } = await supabase
-      .from('profiles')
-      .select(PROFILE_SELECT)
+    const { data, error } = await selectProfilesWithFallback(supabase)
 
     if (error) {
       if (this.usersCache.length) {
@@ -263,6 +262,7 @@ export class SupabaseAuthService {
       name: profile.fullName || authSession.user.user_metadata?.full_name || authSession.user.email || 'CRM User',
       role: profile.role,
       title: profile.title,
+      callPreference: profile.callPreference,
       loggedInAt: new Date().toISOString()
     }
 
@@ -290,11 +290,7 @@ export class SupabaseAuthService {
   async fetchProfile(userId) {
     const supabase = await getSupabase()
     const normalizedUserId = String(userId ?? '').trim()
-    const { data, error } = await supabase
-      .from('profiles')
-      .select(PROFILE_SELECT)
-      .eq('id', normalizedUserId)
-      .maybeSingle()
+    const { data, error } = await selectProfileByIdWithFallback(supabase, normalizedUserId)
 
     if (error) {
       throw new Error(describeProfileLookupError(error))
@@ -414,8 +410,56 @@ function mapProfileRow(profile) {
     role,
     title: deriveRoleTitle(role),
     isSeniorRep: role === 'senior',
-    isActive: profile.active !== false
+    isActive: profile.active !== false,
+    callPreference: normalizeCallPreference(profile.call_preference ?? profile.callPreference)
   }
+}
+
+async function selectProfilesWithFallback(supabase) {
+  let response = await supabase
+    .from('profiles')
+    .select(PROFILE_SELECT)
+
+  if (!isMissingCallPreferenceColumnError(response.error)) {
+    return response
+  }
+
+  response = await supabase
+    .from('profiles')
+    .select(PROFILE_SELECT_FALLBACK)
+
+  return response
+}
+
+async function selectProfileByIdWithFallback(supabase, userId) {
+  let response = await supabase
+    .from('profiles')
+    .select(PROFILE_SELECT)
+    .eq('id', userId)
+    .maybeSingle()
+
+  if (!isMissingCallPreferenceColumnError(response.error)) {
+    return response
+  }
+
+  response = await supabase
+    .from('profiles')
+    .select(PROFILE_SELECT_FALLBACK)
+    .eq('id', userId)
+    .maybeSingle()
+
+  return response
+}
+
+function isMissingCallPreferenceColumnError(error) {
+  const message = String(error?.message ?? '').toLowerCase()
+  return message.includes('call_preference') && message.includes('does not exist')
+}
+
+function normalizeCallPreference(value) {
+  return String(value ?? '').trim().toLowerCase() === 'google_voice'
+    ? 'google_voice'
+    : 'system_default'
 }
 
 function describeProfileLookupError(error) {

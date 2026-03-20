@@ -4777,6 +4777,86 @@ button {
     text-underline-offset: 0.18em;
 }
 
+.crm-phone-action-group {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    flex-wrap: wrap;
+    max-width: 100%;
+}
+
+.crm-phone-action-group.is-field {
+    display: flex;
+    width: 100%;
+    align-items: stretch;
+    gap: 0.55rem;
+}
+
+.crm-phone-action-group.is-field .crm-contact-field {
+    flex: 1 1 auto;
+    min-width: 0;
+}
+
+.crm-phone-primary-copy {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.42rem;
+    min-width: 0;
+}
+
+.crm-phone-link-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.14rem 0.42rem;
+    border-radius: 999px;
+    background: rgba(102, 185, 255, 0.18);
+    color: #a8dbff;
+    font-size: 0.64rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    white-space: nowrap;
+}
+
+.crm-phone-utility-actions {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    flex: 0 0 auto;
+}
+
+.crm-phone-utility-actions.is-field {
+    align-self: stretch;
+}
+
+.crm-phone-utility-button {
+    appearance: none;
+    -webkit-appearance: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.95rem;
+    min-width: 1.95rem;
+    height: 1.95rem;
+    border-radius: 999px;
+    border: 1px solid rgba(201, 176, 55, 0.2);
+    background: rgba(255, 255, 255, 0.04);
+    color: rgba(255, 244, 214, 0.86);
+    cursor: pointer;
+    font: inherit;
+    text-decoration: none;
+    transition: transform 0.16s ease, border-color 0.2s ease, background 0.2s ease, color 0.2s ease;
+}
+
+.crm-phone-utility-button:hover,
+.crm-phone-utility-button:focus-visible {
+    outline: none;
+    transform: translateY(-1px);
+    border-color: rgba(201, 176, 55, 0.42);
+    background: rgba(201, 176, 55, 0.12);
+    color: var(--primary-gold);
+}
+
 .crm-email-trigger,
 .crm-contact-field-button {
     appearance: none;
@@ -4841,6 +4921,15 @@ button {
 
 .crm-contact-field.is-callable i {
     color: var(--crm-accent);
+}
+
+.crm-phone-link.is-google-voice,
+.crm-contact-field.is-google-voice {
+    color: #8fd0ff;
+}
+
+.crm-contact-field .crm-phone-primary-copy {
+    flex: 1 1 auto;
 }
 
 .crm-contact-field.is-static {
@@ -5273,6 +5362,11 @@ button {
 }
 
 .crm-search-preview-field-value .crm-phone-link {
+    width: fit-content;
+    max-width: 100%;
+}
+
+.crm-search-preview-field-value .crm-phone-action-group {
     width: fit-content;
     max-width: 100%;
 }

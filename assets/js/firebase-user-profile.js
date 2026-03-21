@@ -26,6 +26,8 @@ export function normalizeUserProfile(userData = {}, options = {}) {
     const plan = normalizeText(source.plan).toLowerCase();
     const allowedTicker = normalizeText(source.allowedTicker).toUpperCase();
     const subscriptionStatus = normalizeText(source.subscriptionStatus);
+    const entitlementStatus = normalizeText(source.entitlementStatus).toLowerCase();
+    const pendingChannelSelection = Boolean(source.pendingChannelSelection) || entitlementStatus === 'pending_channel_selection';
     const setupCompleted = getCanonicalSetupCompleted(source);
     const missingFields = [];
 
@@ -36,7 +38,7 @@ export function normalizeUserProfile(userData = {}, options = {}) {
         if (!subscriptionStatus) {
             missingFields.push('subscriptionStatus');
         }
-        if (plan === 'single' && !allowedTicker) {
+        if (plan === 'single' && !allowedTicker && !pendingChannelSelection) {
             missingFields.push('allowedTicker');
         }
     }
@@ -48,6 +50,8 @@ export function normalizeUserProfile(userData = {}, options = {}) {
         plan,
         allowedTicker,
         subscriptionStatus,
+        entitlementStatus,
+        pendingChannelSelection,
         setupCompleted,
         profileComplete: setupCompleted,
         missingFields,
@@ -140,6 +144,15 @@ export function evaluateUserAccess(profile, options = {}) {
         return {
             status: 'setup_incomplete',
             code: 'setup_incomplete',
+            profile: normalizedProfile,
+            message: ''
+        };
+    }
+
+    if (!normalizedProfile.isAdmin && normalizedProfile.entitlementStatus === 'pending_channel_selection') {
+        return {
+            status: 'pending_channel_selection',
+            code: 'pending_channel_selection',
             profile: normalizedProfile,
             message: ''
         };

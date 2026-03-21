@@ -132,6 +132,25 @@ service cloud.firestore {
       allow update: if isAdmin() || isSafeSelfUserUpdate(userId);
     }
 
+    // canonical fulfillment collections: admins only from console / backend
+    match /orders/{docId} {
+      allow read, write: if isAdmin();
+    }
+
+    match /entitlements/{userId} {
+      allow read: if isSignedIn() && (request.auth.uid == userId || isAdmin());
+      allow write: if isAdmin();
+    }
+
+    match /channel_access/{userId} {
+      allow read: if isSignedIn() && (request.auth.uid == userId || isAdmin());
+      allow write: if isAdmin();
+    }
+
+    match /provisioning_events/{docId} {
+      allow read, write: if isAdmin();
+    }
+
     // ── Catch-all: deny everything else ────────────────────────────────────
     match /{document=**} {
       allow read, write: if false;

@@ -51,6 +51,36 @@ function getStripeClient() {
   })
 }
 
+function deriveProductKeyWithFallback({
+  metadata,
+  lineItems
+}: {
+  metadata: Record<string, unknown>
+  lineItems: Array<Record<string, any>>
+}) {
+  const fromMetadata = deriveProductKey({ metadata, lineItems })
+
+  if (fromMetadata) {
+    return { productKey: fromMetadata, source: 'metadata' }
+  }
+
+  const singlePriceId = String(Deno.env.get('STRIPE_PRICE_SINGLE_CHANNEL') ?? '').trim()
+  const bundlePriceId = String(Deno.env.get('STRIPE_PRICE_FULL_BUNDLE') ?? '').trim()
+  const sessionPriceIds = lineItems
+    .map((item) => String(item?.price?.id ?? '').trim())
+    .filter(Boolean)
+
+  if (singlePriceId && sessionPriceIds.includes(singlePriceId)) {
+    return { productKey: PRODUCT_KEYS.SINGLE_CHANNEL, source: 'price_id_fallback' }
+  }
+
+  if (bundlePriceId && sessionPriceIds.includes(bundlePriceId)) {
+    return { productKey: PRODUCT_KEYS.FULL_BUNDLE, source: 'price_id_fallback' }
+  }
+
+  return { productKey: '', source: 'unknown' }
+}
+
 async function findAuthUserIdByEmail(supabase: ReturnType<typeof getSupabaseAdminClient>, email: string) {
   const normalizedEmail = normalizeEmail(email)
 
@@ -241,11 +271,52 @@ Deno.serve(async (request) => {
 
     const metadata = session.metadata ?? {}
     const lineItems = session.line_items?.data ?? []
-    const productKey = deriveProductKey({ metadata, lineItems })
+    const { productKey, source: productSource } = deriveProductKeyWithFallback({ metadata, lineItems })
 
     if (!productKey) {
-      throw new Error('Unable to derive product key from Stripe session metadata or line items.')
+      const now = new Date().toISOString()
+      await supabase.from('bcs_orders').upsert({
+        checkout_session_id: session.id,
+        stripe_event_id: stripeEventId,
+        payment_intent_id: typeof session.payment_intent === 'string' ? session.payment_intent : session.payment_intent?.id ?? null,
+        stripe_customer_id: typeof session.customer === 'string' ? session.customer : session.customer?.id ?? null,
+        customer_email: normalizeEmail(session.customer_details?.email ?? session.customer_email ?? ''),
+        customer_name: String(session.customer_details?.name ?? session.customer?.name ?? '').trim() || null,
+        fulfillment_status: ENTITLEMENT_STATUS.PROVISIONING_FAILED,
+        provisioning_error: 'unknown_product_key',
+        stripe_metadata: {
+          metadata,
+          lineItems: lineItems.map((item) => ({
+            priceId: item?.price?.id ?? null,
+            description: item?.description ?? null
+          }))
+        },
+        updated_at: now
+      }, { onConflict: 'checkout_session_id' })
+
+      await supabase.from('bcs_provisioning_events').insert({
+        stripe_event_id: stripeEventId,
+        checkout_session_id: session.id,
+        event_type: event.type,
+        status: ENTITLEMENT_STATUS.PROVISIONING_FAILED,
+        payload: {
+          error: 'unknown_product_key',
+          metadata,
+          lineItems: lineItems.map((item) => ({
+            priceId: item?.price?.id ?? null,
+            description: item?.description ?? null
+          }))
+        }
+      })
+
+      return jsonResponse({
+        received: true,
+        status: 'provisioning_failed_unknown_product',
+        stripeEventId
+      })
     }
+
+    console.log('stripe-checkout-fulfillment product derived', { stripeEventId, productKey, productSource })
 
     // Edit the product metadata lookup in _shared/stripe.ts if Stripe price/product metadata changes.
     const requestedTicker = normalizeTicker(
@@ -273,6 +344,7 @@ Deno.serve(async (request) => {
       stripe_customer_id: typeof session.customer === 'string' ? session.customer : session.customer?.id ?? null,
       user_id: userId,
       email: customerEmail,
+      customer_email: customerEmail,
       customer_name: customerName || null,
       product_key: productKey,
       plan_key: entitlement.plan,
@@ -323,12 +395,14 @@ Deno.serve(async (request) => {
       throw new Error(entitlementError.message || 'Unable to upsert bcs_entitlements.')
     }
 
-    const { error: accessError } = await supabase
-      .from('bcs_channel_access')
-      .upsert(accessRow, { onConflict: userId ? 'user_id' : 'email' })
+    if (userId) {
+      const { error: accessError } = await supabase
+        .from('bcs_channel_access')
+        .upsert(accessRow, { onConflict: 'user_id' })
 
-    if (accessError) {
-      throw new Error(accessError.message || 'Unable to upsert bcs_channel_access.')
+      if (accessError) {
+        throw new Error(accessError.message || 'Unable to upsert bcs_channel_access.')
+      }
     }
 
     const eventRow = {

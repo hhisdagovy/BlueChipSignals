@@ -1845,7 +1845,7 @@
                     <div class="stock-ticker-icon" style="background:linear-gradient(135deg,rgba(179,161,125,0.22),rgba(179,161,125,0.06));border-color:rgba(179,161,125,0.28);color:var(--primary-gold);"><i class="fas fa-chart-bar"></i></div>
                     <div class="stock-info"><span class="ticker">SPY</span> <span class="name">S&P 500 ETF Trust</span></div>
                     <div class="stock-actions">
-                        <a href="https://t.me/+vaznP276aM1jMGVh" target="_blank" class="tg-btn"><i class="fab fa-telegram"></i> Telegram</a>
+                        <button class="tg-btn" type="button" data-telegram-button data-ticker="SPY" disabled><i class="fab fa-telegram"></i> Locked</button>
                         <button class="signals-link" onclick="openGuideModal('SPY')">View Guide &rarr;</button>
                     </div>
                 </div>
@@ -1854,7 +1854,7 @@
                     <div class="stock-ticker-icon" style="background:linear-gradient(135deg,rgba(255,102,102,0.2),rgba(255,102,102,0.05));border-color:rgba(255,102,102,0.28);color:#ff6666;"><i class="fas fa-bolt"></i></div>
                     <div class="stock-info"><span class="ticker">TSLA</span> <span class="name">Tesla, Inc.</span></div>
                     <div class="stock-actions">
-                        <a href="https://t.me/+EUxramV9fkI4MDVh" target="_blank" class="tg-btn"><i class="fab fa-telegram"></i> Telegram</a>
+                        <button class="tg-btn" type="button" data-telegram-button data-ticker="TSLA" disabled><i class="fab fa-telegram"></i> Locked</button>
                         <button class="signals-link" onclick="openGuideModal('TSLA')">View Guide &rarr;</button>
                     </div>
                 </div>
@@ -1863,7 +1863,7 @@
                     <div class="stock-ticker-icon" style="background:linear-gradient(135deg,rgba(91,158,255,0.2),rgba(91,158,255,0.05));border-color:rgba(91,158,255,0.28);color:#5b9eff;"><i class="fab fa-meta"></i></div>
                     <div class="stock-info"><span class="ticker">META</span> <span class="name">Meta Platforms</span></div>
                     <div class="stock-actions">
-                        <a href="https://t.me/+95vOUdI99VM0ZDNh" target="_blank" class="tg-btn"><i class="fab fa-telegram"></i> Telegram</a>
+                        <button class="tg-btn" type="button" data-telegram-button data-ticker="META" disabled><i class="fab fa-telegram"></i> Locked</button>
                         <button class="signals-link" onclick="openGuideModal('META')">View Guide &rarr;</button>
                     </div>
                 </div>
@@ -1872,7 +1872,7 @@
                     <div class="stock-ticker-icon" style="background:linear-gradient(135deg,rgba(210,210,210,0.18),rgba(210,210,210,0.05));border-color:rgba(200,200,200,0.25);color:#d0d0d0;"><i class="fab fa-apple"></i></div>
                     <div class="stock-info"><span class="ticker">AAPL</span> <span class="name">Apple Inc.</span></div>
                     <div class="stock-actions">
-                        <a href="https://t.me/+ItfI3WYEZ1g1NzQx" target="_blank" class="tg-btn"><i class="fab fa-telegram"></i> Telegram</a>
+                        <button class="tg-btn" type="button" data-telegram-button data-ticker="AAPL" disabled><i class="fab fa-telegram"></i> Locked</button>
                         <button class="signals-link" onclick="openGuideModal('AAPL')">View Guide &rarr;</button>
                     </div>
                 </div>
@@ -1881,7 +1881,7 @@
                     <div class="stock-ticker-icon" style="background:linear-gradient(135deg,rgba(143,219,47,0.2),rgba(143,219,47,0.05));border-color:rgba(143,219,47,0.28);color:#8fdb2f;"><i class="fas fa-microchip"></i></div>
                     <div class="stock-info"><span class="ticker">NVDA</span> <span class="name">NVIDIA Corporation</span></div>
                     <div class="stock-actions">
-                        <a href="https://t.me/+_de2o3DNnu44ODg5" target="_blank" class="tg-btn"><i class="fab fa-telegram"></i> Telegram</a>
+                        <button class="tg-btn" type="button" data-telegram-button data-ticker="NVDA" disabled><i class="fab fa-telegram"></i> Locked</button>
                         <button class="signals-link" onclick="openGuideModal('NVDA')">View Guide &rarr;</button>
                     </div>
                 </div>
@@ -1890,7 +1890,7 @@
                     <div class="stock-ticker-icon" style="background:linear-gradient(135deg,rgba(255,170,51,0.2),rgba(255,170,51,0.05));border-color:rgba(255,170,51,0.28);color:#ffaa33;"><i class="fab fa-amazon"></i></div>
                     <div class="stock-info"><span class="ticker">AMZN</span> <span class="name">Amazon.com, Inc.</span></div>
                     <div class="stock-actions">
-                        <a href="https://t.me/+XEuyiOt5-Vc1OTJh" target="_blank" class="tg-btn"><i class="fab fa-telegram"></i> Telegram</a>
+                        <button class="tg-btn" type="button" data-telegram-button data-ticker="AMZN" disabled><i class="fab fa-telegram"></i> Locked</button>
                         <button class="signals-link" onclick="openGuideModal('AMZN')">View Guide &rarr;</button>
                     </div>
                 </div>
@@ -2311,12 +2311,49 @@
 
     <!-- Firebase Authentication + Portfolio Stats -->
     <script type="module">
-        import { auth, db, onAuthStateChanged, signOut, doc, getDoc } from './assets/js/firebase-config.js';
+        import { auth, db, functions, httpsCallable, onAuthStateChanged, signOut, doc, getDoc } from './assets/js/firebase-config.js';
         import { checkPageMaintenance, redirectToAccountIssue } from './assets/js/firebase-auth-check.js';
         import { loadAndEvaluateUserProfile } from './assets/js/firebase-user-profile.js';
 
         /* Expose db so backend-signals.js (non-module) can use Firestore directly */
         window._bcsDb = db;
+        const getDashboardAccessState = httpsCallable(functions, 'getDashboardAccessState');
+
+
+        async function loadDashboardAccessState() {
+            try {
+                const result = await getDashboardAccessState({});
+                return result.data || {};
+            } catch (error) {
+                console.error('Error loading dashboard access state:', error);
+                return { entitlementStatus: 'unavailable', telegramChannels: [], allowedTickers: [] };
+            }
+        }
+
+        function renderTelegramAccess(accessState = {}) {
+            const channelMap = new Map((accessState.telegramChannels || []).map((channel) => [channel.ticker, channel]));
+            const isPending = accessState.pendingChannelSelection || accessState.entitlementStatus === 'pending_channel_selection';
+
+            document.querySelectorAll('[data-telegram-button]').forEach((button) => {
+                const ticker = button.dataset.ticker || '';
+                const channel = channelMap.get(ticker);
+
+                if (channel && channel.inviteUrl) {
+                    button.disabled = false;
+                    button.classList.remove('row-locked');
+                    button.innerHTML = '<i class="fab fa-telegram"></i> Telegram';
+                    button.onclick = () => window.open(channel.inviteUrl, '_blank', 'noopener');
+                } else if (isPending) {
+                    button.disabled = true;
+                    button.innerHTML = '<i class="fas fa-hourglass-half"></i> Pending';
+                    button.onclick = null;
+                } else {
+                    button.disabled = true;
+                    button.innerHTML = '<i class="fas fa-lock"></i> Locked';
+                    button.onclick = null;
+                }
+            });
+        }
 
         async function getUserProfile(userId) {
             try {
@@ -2325,7 +2362,7 @@
                     requireEntitlements: true
                 });
 
-                if (profileResult.status === 'ok') {
+                if (profileResult.status === 'ok' || profileResult.status === 'pending_channel_selection') {
                     return profileResult.profile;
                 }
 
@@ -2351,7 +2388,7 @@
             }
         }
 
-        function updateDashboard(userData) {
+        function updateDashboard(userData, accessState = {}) {
             const welcomeMessage     = document.getElementById('welcomeMessage');
             const subscriptionStatus = document.getElementById('subscriptionStatus');
             const subBadge           = subscriptionStatus ? subscriptionStatus.closest('.sub-badge') : null;
@@ -2381,15 +2418,18 @@
                     if (window.BCSSignals) window.BCSSignals.init({ tickerFilter: null });
                 } else if (plan === 'single') {
                     const ticker = (userData.allowedTicker || '').toUpperCase();
-                    subscriptionStatus.textContent = `Single Channel · ${ticker}`;
+                    if (accessState.pendingChannelSelection || !ticker) {
+                        subscriptionStatus.textContent = 'Single Channel · Pending selection';
+                        if (window.BCSSignals) window.BCSSignals.init({ tickerFilter: '__NO_ACCESS__' });
+                    } else {
+                        subscriptionStatus.textContent = `Single Channel · ${ticker}`;
+                        if (window.BCSSignals) window.BCSSignals.init({ tickerFilter: ticker });
+                    }
                     if (subBadge) subBadge.classList.add('single-plan');
-                    applyPlanRestrictions(ticker);
+                    applyPlanRestrictions(ticker, accessState);
 
                     const qstatChannels = document.getElementById('qstatChannels');
-                    if (qstatChannels) qstatChannels.textContent = `1 Active · ${ticker}`;
-
-                    /* Show only this user's ticker in the signals grid */
-                    if (window.BCSSignals) window.BCSSignals.init({ tickerFilter: ticker });
+                    if (qstatChannels) qstatChannels.textContent = accessState.pendingChannelSelection || !ticker ? '0 Active · Pending selection' : `1 Active · ${ticker}`;
                 } else if (plan === 'bundle') {
                     subscriptionStatus.textContent = 'Full Bundle';
                     /* Full access -  show all signals */
@@ -2420,11 +2460,12 @@
                     }
                 }
 
+                renderTelegramAccess(accessState);
                 renderPortfolioStats(userData.trades || [], userData.tradePlans || []);
             }
         }
 
-        function applyPlanRestrictions(allowedTicker) {
+        function applyPlanRestrictions(allowedTicker, accessState = {}) {
             /* Update the Latest Signals heading to show the user's ticker */
             const sigHeading = document.querySelector('.signals-section-title');
             if (sigHeading) {
@@ -2439,6 +2480,13 @@
                     row.classList.add('row-locked');
                 }
             });
+
+            if (accessState.pendingChannelSelection) {
+                const stocksCard = document.querySelector('.card-stocks');
+                if (stocksCard && !stocksCard.querySelector('[data-pending-selection-note]')) {
+                    stocksCard.insertAdjacentHTML('afterbegin', `<div class="info-note" data-pending-selection-note style="margin-bottom:1rem;"><i class="fas fa-hourglass-half"></i> Your payment was received. Choose your single-channel ticker in <a href="welcome-setup.html" style="color:var(--primary-gold);text-decoration:underline;">welcome setup</a> to unlock Telegram access.</div>`);
+                }
+            }
 
             /* Gate the tool links (Journal + Planner) */
             const toolLinks = document.getElementById('stats-tool-links');

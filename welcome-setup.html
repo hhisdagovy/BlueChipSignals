@@ -307,6 +307,20 @@
                 </select>
             </div>
 
+
+            <div class="form-group" id="tickerSelectionGroup" style="display:none;">
+                <label for="singleChannelTicker">Choose Your Signal Channel <span class="required">*</span></label>
+                <select id="singleChannelTicker" name="singleChannelTicker">
+                    <option value="">Select your ticker</option>
+                    <option value="SPY">SPY</option>
+                    <option value="TSLA">TSLA</option>
+                    <option value="META">META</option>
+                    <option value="AAPL">AAPL</option>
+                    <option value="NVDA">NVDA</option>
+                    <option value="AMZN">AMZN</option>
+                </select>
+            </div>
+
             <div class="form-group" style="margin-bottom:1rem;">
                 <label style="display:flex;align-items:flex-start;gap:0.75rem;cursor:pointer;font-size:0.9rem;font-weight:400;color:rgba(255,255,255,0.7);">
                     <input type="checkbox" id="termsCheckbox" required
@@ -342,7 +356,7 @@
     <script src="assets/js/footer-component.js"></script>
 
     <script type="module">
-        import { auth, onAuthStateChanged } from './assets/js/firebase-config.js';
+        import { auth, functions, httpsCallable, onAuthStateChanged } from './assets/js/firebase-config.js';
         import { checkPageMaintenance } from './assets/js/firebase-auth-check.js';
         import {
             getAccountIssueMessage,
@@ -355,12 +369,23 @@
         const errorMessage = document.getElementById('errorMessage');
         const successMessage = document.getElementById('successMessage');
         let currentProfile = null;
+        const selectSingleChannelTicker = httpsCallable(functions, 'selectSingleChannelTicker');
 
         function setSetupBlocked(message) {
             errorMessage.textContent = message;
             errorMessage.style.display = 'block';
             successMessage.style.display = 'none';
             submitBtn.disabled = true;
+        }
+
+        function syncPendingTickerSelection(profile) {
+            const tickerGroup = document.getElementById('tickerSelectionGroup');
+            const tickerSelect = document.getElementById('singleChannelTicker');
+            const needsTicker = profile && profile.plan === 'single' && profile.pendingChannelSelection;
+
+            tickerGroup.style.display = needsTicker ? 'block' : 'none';
+            tickerSelect.required = needsTicker;
+            tickerSelect.value = profile?.allowedTicker || '';
         }
 
         function fillExistingProfile(profile, user) {
@@ -412,6 +437,7 @@
 
                 currentProfile = userData;
                 fillExistingProfile(userData, user);
+                syncPendingTickerSelection(userData);
             } catch (error) {
                 console.error('Unable to load setup profile:', error);
                 setSetupBlocked(getAccountIssueMessage());
@@ -454,10 +480,17 @@
             const phone = document.getElementById('phone').value.trim();
             const experience = document.getElementById('experience').value;
             const interests = document.getElementById('interests').value;
+            const selectedTicker = document.getElementById('singleChannelTicker').value;
 
             // Validate required fields
             if (!firstName || !lastName) {
                 errorMessage.textContent = 'Please fill in all required fields.';
+                errorMessage.style.display = 'block';
+                return;
+            }
+
+            if (currentProfile.plan === 'single' && currentProfile.pendingChannelSelection && !selectedTicker) {
+                errorMessage.textContent = 'Please choose your signal channel before continuing.';
                 errorMessage.style.display = 'block';
                 return;
             }
@@ -475,6 +508,10 @@
             errorMessage.style.display = 'none';
 
             try {
+                if (currentProfile.plan === 'single' && currentProfile.pendingChannelSelection) {
+                    await selectSingleChannelTicker({ ticker: selectedTicker });
+                }
+
                 const onboardingResult = await updateUserOnboardingProfile(user.uid, {
                     firstName: firstName,
                     lastName: lastName,

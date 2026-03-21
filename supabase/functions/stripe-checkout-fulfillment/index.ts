@@ -291,19 +291,19 @@ Deno.serve(async (request) => {
       email: customerEmail,
       product_key: productKey,
       plan_key: entitlement.plan,
+      plan: entitlement.plan,
       allowed_ticker: entitlement.allowedTicker || null,
       allowed_tickers: entitlement.allowedTickers,
       fulfillment_status: entitlement.fulfillmentStatus,
+      entitlement_status: entitlement.fulfillmentStatus,
       checkout_session_id: session.id,
       updated_at: now
     }
 
     const accessRow = {
       user_id: userId,
-      email: customerEmail,
-      product_key: productKey,
-      allowed_tickers: entitlement.allowedTickers,
-      fulfillment_status: entitlement.fulfillmentStatus,
+      entitlement_status: entitlement.fulfillmentStatus,
+      telegram_channels: entitlement.allowedTickers,
       updated_at: now
     }
 
@@ -335,17 +335,16 @@ Deno.serve(async (request) => {
       stripe_event_id: stripeEventId,
       checkout_session_id: session.id,
       user_id: userId,
-      email: customerEmail,
       event_type: event.type,
       status: entitlement.fulfillmentStatus,
       payload: {
+        customerEmail,
         customerName,
         productKey,
         requestedTicker,
         allowedTickers: entitlement.allowedTickers,
         pendingChannelSelection: entitlement.pendingChannelSelection
-      },
-      processed_at: now
+      }
     }
 
     const { error: provisioningError } = await supabase

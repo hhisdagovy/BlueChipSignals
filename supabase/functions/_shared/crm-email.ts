@@ -521,11 +521,13 @@ export function buildEmailHtml({
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         ${templateHeadStyles}
       </head>
-      <body class="body bcs-email-body" style="margin: 0; padding: 0;">
-        <div style="font-family: Arial, sans-serif; color: #111827; line-height: 1.65;">
-          <div style="white-space: normal;">${escapedBody}</div>
-          <div style="margin-top: 24px;">
-            <div style="white-space: normal;">${signatureMarkup}</div>
+      <body style="margin: 0; padding: 0;">
+        <div class="body bcs-email-body" style="margin: 0; padding: 0;">
+          <div style="font-family: Arial, sans-serif; color: #111827; line-height: 1.65;">
+            <div style="white-space: normal;">${escapedBody}</div>
+            <div style="margin-top: 24px;">
+              <div style="white-space: normal;">${signatureMarkup}</div>
+            </div>
           </div>
         </div>
       </body>
@@ -541,13 +543,8 @@ function getTemplateSignatureHeadCss() {
           padding-right: 4px !important;
         }
 
-        .body .bcs-signature .bcs-signature-avatar-cell {
-          padding-left: 6px !important;
-          padding-right: 0 !important;
-        }
-
         .body .bcs-signature .bcs-signature-avatar-wrap {
-          margin-left: 6px !important;
+          margin-left: 8px !important;
         }
 
         .body .bcs-signature .bcs-signature-divider-cell {
@@ -575,15 +572,28 @@ function getTemplateSignatureHeadCss() {
           line-height: 1.24 !important;
           white-space: nowrap !important;
         }
-      }
 
-      u + .body .bcs-signature .bcs-signature-avatar-cell {
-        padding-left: 6px !important;
-        padding-right: 0 !important;
+        .body .bcs-signature .bcs-signature-name,
+        .body .bcs-signature .bcs-signature-job-title,
+        .body .bcs-signature .bcs-signature-contact-value,
+        .body .bcs-signature .bcs-signature-contact-value a {
+          color: #ffffff !important;
+          -webkit-text-fill-color: #ffffff !important;
+        }
+
+        .body .bcs-signature .bcs-signature-name {
+          font-size: 14px !important;
+          line-height: 1.04 !important;
+          white-space: nowrap !important;
+        }
+
+        .body .bcs-signature .bcs-signature-job-title {
+          white-space: nowrap !important;
+        }
       }
 
       u + .body .bcs-signature .bcs-signature-avatar-wrap {
-        margin-left: 6px !important;
+        margin-left: 8px !important;
       }
 
       u + .body .bcs-signature .bcs-signature-social-cell {
@@ -602,18 +612,38 @@ function getTemplateSignatureHeadCss() {
         white-space: nowrap !important;
       }
 
+      u + .body .bcs-signature .bcs-signature-name,
+      u + .body .bcs-signature .bcs-signature-job-title,
+      u + .body .bcs-signature .bcs-signature-contact-value,
+      u + .body .bcs-signature .bcs-signature-contact-value a {
+        color: #ffffff !important;
+        -webkit-text-fill-color: #ffffff !important;
+      }
+
+      u + .body .bcs-signature .bcs-signature-name {
+        font-size: 14px !important;
+        line-height: 1.04 !important;
+        white-space: nowrap !important;
+      }
+
+      u + .body .bcs-signature .bcs-signature-job-title {
+        white-space: nowrap !important;
+      }
+
       u + .body .bcs-signature .bcs-gmail-white-screen {
-        display: inline !important;
+        display: inline-block !important;
         background: #000000 !important;
         mix-blend-mode: screen !important;
+        white-space: inherit !important;
       }
 
       u + .body .bcs-signature .bcs-gmail-white-difference {
-        display: inline !important;
+        display: inline-block !important;
         background: #000000 !important;
         color: #ffffff !important;
         -webkit-text-fill-color: #ffffff !important;
         mix-blend-mode: difference !important;
+        white-space: inherit !important;
       }
     </style>
   `.trim()

@@ -397,26 +397,6 @@ Deno.serve(async (request) => {
       },
     );
 
-    const metadata = session.metadata ?? {};
-    const lineItems = session.line_items?.data ?? [];
-    const metadataProductKey = deriveProductKey({ metadata, lineItems });
-    const fallbackProductKey = metadataProductKey
-      ? ""
-      : deriveProductKeyFromPriceId(lineItems);
-    const productKey = metadataProductKey || fallbackProductKey;
-    const productSource = metadataProductKey
-      ? "metadata"
-      : fallbackProductKey
-        ? "price_id_fallback"
-        : "unknown";
-
-    console.log("stripe-checkout-fulfillment product source", {
-      stripeEventId,
-      checkoutSessionId: session.id,
-      productSource,
-      productKey: productKey || null,
-    });
-
     const metadata = session.metadata ?? {}
     const lineItems = session.line_items?.data ?? []
     const { productKey, source: productSource } = deriveProductKeyWithFallback({ metadata, lineItems })

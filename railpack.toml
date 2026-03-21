@@ -1,0 +1,8 @@
+[options]
+pythonVersion = "3.13.11"
+
+[phases.install]
+cmds = ["pip install -r backend/requirements.txt"]
+
+[start]
+cmd = "cd backend && gunicorn main_flask:app --bind 0.0.0.0:$PORT"

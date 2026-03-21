@@ -1,5 +1,6 @@
 import {
   assertLeadAccess,
+  buildEmailText,
   assertSenderModeAccess,
   buildEmailHtml,
   buildEmailParticipants,
@@ -83,9 +84,18 @@ Deno.serve(async (request) => {
 
     const sender = await loadMailboxSenderWithSecret(supabase, profile, senderMode)
     const sentAt = new Date().toISOString()
+    const deliveredBodyText = buildEmailText({
+      senderName: sender.senderName,
+      bodyText,
+      signatureText: sender.signatureText
+    })
     const bodyHtml = buildEmailHtml({
       senderName: sender.senderName,
-      bodyText
+      bodyText,
+      signatureMode: sender.signatureMode,
+      signatureTemplate: sender.signatureTemplate,
+      signatureHtmlOverride: sender.signatureHtmlOverride,
+      signatureText: sender.signatureText
     })
     const loggedToLead = Boolean(lead && leadEmail && recipientEmails.length === 1 && recipientEmails[0] === leadEmail)
     const referencesTokens = dedupeStrings([
@@ -125,7 +135,7 @@ Deno.serve(async (request) => {
         from: `"${sender.senderName}" <${sender.senderEmail}>`,
         to: recipientEmails.join(', '),
         subject,
-        text: bodyText,
+        text: deliveredBodyText,
         html: bodyHtml,
         replyTo: sender.senderEmail,
         ...(inReplyTo ? { inReplyTo } : {}),

@@ -177,6 +177,13 @@ export class CrmDataService {
         return null;
     }
 
+    async uploadSignatureHeadshot() {
+        throw new Error('Signature asset uploads are not available for this CRM data service.');
+    }
+
+    async uploadSignatureBanner() {
+        throw new Error('Signature asset uploads are not available for this CRM data service.');
+    }
     async saveCallPreference() {
         throw new Error('Call preference saving is not available for this CRM data service.');
     }

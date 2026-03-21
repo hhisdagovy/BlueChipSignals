@@ -121,7 +121,8 @@ const CALL_PREFERENCE_OPTIONS = Object.freeze([
     { value: 'system_default', label: 'System default' },
     { value: 'google_voice', label: 'Google Voice' }
 ]);
-const GOOGLE_VOICE_SETUP_URL = 'https://support.google.com/voice/answer/11397414?hl=en';
+const GOOGLE_VOICE_HELP_URL = 'https://support.google.com/voice/answer/3379129?hl=en';
+const GOOGLE_VOICE_WEB_CALL_BASE_URL = 'https://voice.google.com/u/0/calls?a=nc,';
 const visibleClientsCache = {
     clientsRef: null,
     filtersKey: '',
@@ -235,6 +236,26 @@ function createDefaultEmailWorkspaceState() {
     };
 }
 
+function createDefaultMailboxSignatureDraftState() {
+    return {
+        personal: null,
+        support: null
+    };
+}
+
+function shouldShowSignaturePreviewByDefault() {
+    return typeof window === 'undefined' ? true : window.innerWidth >= 1100;
+}
+
+function createDefaultSettingsUiState() {
+    return {
+        selectedSettingsSection: 'account',
+        expandedMailboxEditorKind: '',
+        expandedSignatureSubpanel: 'identity',
+        showSignaturePreview: shouldShowSignaturePreviewByDefault()
+    };
+}
+
 function getValidAdminTab(tabId) {
     return ADMIN_TABS.some((tab) => tab.id === tabId) ? tabId : 'team';
 }
@@ -253,6 +274,8 @@ const state = {
     dispositionDefinitions: [],
     users: [],
     mailboxSenders: [],
+    mailboxSignatureDrafts: createDefaultMailboxSignatureDraftState(),
+    ...createDefaultSettingsUiState(),
     savedFilters: [],
     importHistory: [],
     workspaceSummary: createEmptyWorkspaceSummary(),
@@ -314,6 +337,7 @@ const state = {
 restorePersistedWorkspaceUiState();
 
 let noticeTimer = null;
+const inlineFeedbackTimers = new Map();
 let workspaceRefreshTimer = null;
 let refreshDataPromise = null;
 let searchSuggestionsTimer = null;
@@ -1739,6 +1763,21 @@ function buildPhoneHref(phoneValue) {
     return `tel:${digits}`;
 }
 
+function buildGoogleVoicePhoneHref(phoneValue) {
+    const telHref = buildPhoneHref(phoneValue);
+    const dialTarget = telHref.replace(/^tel:/, '');
+
+    if (!dialTarget) {
+        return '';
+    }
+
+    return `${GOOGLE_VOICE_WEB_CALL_BASE_URL}${encodeURIComponent(dialTarget)}`;
+}
+
+function isLikelyMobileCallingDevice() {
+    const userAgent = navigator.userAgent || '';
+    return /android|iphone|ipad|ipod|iemobile|opera mini/i.test(userAgent);
+}
 function normalizeCallPreference(value) {
     return normalizeWhitespace(value).toLowerCase() === 'google_voice'
         ? 'google_voice'
@@ -1753,11 +1792,6 @@ function getCallPreferenceLabel(callPreference = getCurrentCallPreference()) {
     return normalizeCallPreference(callPreference) === 'google_voice'
         ? 'Google Voice'
         : 'System default';
-}
-
-function isLikelyMobileCallingDevice() {
-    const userAgent = navigator.userAgent || '';
-    return /android|iphone|ipad|ipod|iemobile|opera mini/i.test(userAgent);
 }
 
 function buildPhoneCallLabel(displayValue, callPreference = getCurrentCallPreference()) {
@@ -1812,11 +1846,11 @@ function renderPhoneUtilityActions(displayValue, { variant = 'inline', callPrefe
             `
                 <a
                     class="crm-phone-utility-button"
-                    href="${GOOGLE_VOICE_SETUP_URL}"
+                    href="${GOOGLE_VOICE_HELP_URL}"
                     target="_blank"
                     rel="noreferrer"
-                    aria-label="Open Google Voice setup help"
-                    title="Google Voice setup"
+                    aria-label="Open Google Voice calling help"
+                    title="Google Voice help"
                 >
                     <i class="fa-solid fa-circle-question" aria-hidden="true"></i>
                 </a>
@@ -1838,13 +1872,32 @@ function renderPhoneUtilityActions(displayValue, { variant = 'inline', callPrefe
     return `<span class="${actionClassName}">${utilityActions.join('')}</span>`;
 }
 
-function buildPhoneActionTarget(phoneValue) {
-    const href = buildPhoneHref(phoneValue);
+function buildPhoneActionTarget(phoneValue, callPreference = getCurrentCallPreference()) {
+    const resolvedCallPreference = normalizeCallPreference(callPreference);
+    const systemDefaultHref = buildPhoneHref(phoneValue);
+
+    if (!systemDefaultHref) {
+        return {
+            href: '',
+            target: '',
+            rel: ''
+        };
+    }
+
+    if (resolvedCallPreference !== 'google_voice' || isLikelyMobileCallingDevice()) {
+        return {
+            href: systemDefaultHref,
+            target: '',
+            rel: ''
+        };
+    }
+
+    const googleVoiceHref = buildGoogleVoicePhoneHref(phoneValue);
 
     return {
-        href,
-        target: '',
-        rel: ''
+        href: googleVoiceHref || systemDefaultHref,
+        target: googleVoiceHref ? '_blank' : '',
+        rel: googleVoiceHref ? 'noreferrer' : ''
     };
 }
 
@@ -1864,7 +1917,7 @@ function renderPhoneActionGroup(
         return escapeHtml(placeholder);
     }
 
-    const targetConfig = buildPhoneActionTarget(displayValue);
+    const targetConfig = buildPhoneActionTarget(displayValue, callPreference);
     const href = targetConfig.href;
 
     if (!href) {
@@ -1876,7 +1929,7 @@ function renderPhoneActionGroup(
     const title = resolvedCallPreference === 'google_voice'
         ? (isLikelyMobileCallingDevice()
             ? `${callLabel}. On mobile, CRM uses your device's normal phone flow.`
-            : `${callLabel}. If this still opens another calling app, enable Google Voice one-click dialing in your browser.`)
+            : `${callLabel}. This opens Google Voice in a new tab if you are signed into the correct Google account.`)
         : callLabel;
     const wrapperClasses = [
         'crm-phone-action-group',
@@ -1892,7 +1945,7 @@ function renderPhoneActionGroup(
 
     return `
         <span class="${wrapperClasses}">
-            <a class="${primaryClasses}" href="${href}" aria-label="${escapeHtml(callLabel)}" title="${escapeHtml(title)}">
+            <a class="${primaryClasses}" href="${href}" ${targetConfig.target ? `target="${targetConfig.target}"` : ''} ${targetConfig.rel ? `rel="${targetConfig.rel}"` : ''} aria-label="${escapeHtml(callLabel)}" title="${escapeHtml(title)}">
                 <span class="crm-phone-primary-copy"><span>${escapeHtml(displayValue)}</span>${renderPhoneModeBadge(resolvedCallPreference)}</span>
                 ${includeIcon || resolvedCallPreference === 'google_voice' ? `<i class="fa-solid ${phoneIcon}" aria-hidden="true"></i>` : ''}
             </a>
@@ -1914,7 +1967,7 @@ async function copyTextToClipboard(value, { promptLabel = 'Copy this value:' } =
             return 'clipboard';
         }
     } catch (_error) {
-        // Fall through to legacy copy support.
+        // Fall back to a hidden textarea so copy still works in more browsers.
     }
 
     const textArea = document.createElement('textarea');
@@ -4753,8 +4806,105 @@ function getSupportMailboxSender() {
     return state.mailboxSenders.find((sender) => sender.kind === 'support' && sender.isActive !== false) || null;
 }
 
+function normalizeMailboxKind(mailboxKind = 'personal') {
+    return normalizeWhitespace(mailboxKind).toLowerCase() === 'support' ? 'support' : 'personal';
+}
+
+function getMailboxSignatureDraft(mailboxKind = 'personal') {
+    return state.mailboxSignatureDrafts[normalizeMailboxKind(mailboxKind)] || null;
+}
+
+function setMailboxSignatureDraft(mailboxKind = 'personal', draft = null) {
+    const normalizedMailboxKind = normalizeMailboxKind(mailboxKind);
+
+    if (!draft) {
+        state.mailboxSignatureDrafts[normalizedMailboxKind] = null;
+        return;
+    }
+
+    state.mailboxSignatureDrafts[normalizedMailboxKind] = {
+        senderName: normalizeWhitespace(draft.senderName),
+        senderEmail: normalizeWhitespace(draft.senderEmail).toLowerCase(),
+        signatureMode: normalizeSignatureModeValue(draft.signatureMode),
+        signatureTemplate: normalizeSignatureTemplateDraft(draft.signatureTemplate, draft.senderName, draft.senderEmail),
+        signatureHtmlOverride: String(draft.signatureHtmlOverride ?? ''),
+        signatureText: String(draft.signatureText ?? '')
+    };
+}
+
+function buildMailboxSignatureEditorSender(mailboxKind = 'personal', sender = null, senderName = '', senderEmail = '') {
+    const draft = getMailboxSignatureDraft(mailboxKind);
+
+    if (!draft) {
+        return sender;
+    }
+
+    return {
+        ...(sender || {}),
+        senderName: draft.senderName || normalizeWhitespace(senderName) || sender?.senderName || '',
+        senderEmail: draft.senderEmail || normalizeWhitespace(senderEmail).toLowerCase() || sender?.senderEmail || '',
+        signatureMode: draft.signatureMode,
+        signatureTemplate: normalizeSignatureTemplateDraft(draft.signatureTemplate, draft.senderName || senderName, draft.senderEmail || senderEmail),
+        signatureHtmlOverride: draft.signatureHtmlOverride,
+        signatureText: draft.signatureText
+    };
+}
+
 function canUseSupportMailbox() {
     return state.session?.role === 'admin' || state.session?.role === 'support';
+}
+
+function getSettingsSectionDefinitions(leadCount = 0, memberCount = 0) {
+    const totalRecords = Number(leadCount || 0) + Number(memberCount || 0);
+    const sections = [
+        {
+            id: 'account',
+            label: 'Account',
+            icon: 'fa-user-shield',
+            status: getRoleLabel(state.session?.role || 'sales')
+        },
+        {
+            id: 'calling',
+            label: 'Calling',
+            icon: 'fa-phone-volume',
+            status: getCallPreferenceLabel()
+        },
+        {
+            id: 'personal_mailbox',
+            label: 'My Mailbox',
+            icon: 'fa-envelope-circle-check',
+            status: getPersonalMailboxSender() ? 'Connected' : 'Needs setup'
+        }
+    ];
+
+    if (isAdminSession(state.session)) {
+        sections.push({
+            id: 'support_mailbox',
+            label: 'Support Mailbox',
+            icon: 'fa-headset',
+            status: getSupportMailboxSender() ? 'Configured' : 'Not configured'
+        });
+    }
+
+    sections.push({
+        id: 'workspace_tools',
+        label: 'Workspace Tools',
+        icon: 'fa-screwdriver-wrench',
+        status: `${totalRecords.toLocaleString()} records`
+    });
+
+    return sections;
+}
+
+function getValidSettingsSection(sectionId = '') {
+    const availableSections = getSettingsSectionDefinitions().map((section) => section.id);
+    const normalizedSectionId = normalizeWhitespace(sectionId);
+    return availableSections.includes(normalizedSectionId) ? normalizedSectionId : 'account';
+}
+
+function getValidSignatureSubpanel(subpanel = '') {
+    const normalized = normalizeWhitespace(subpanel).toLowerCase();
+    return ['identity', 'media', 'links'].includes(normalized) ? normalized : 'identity';
 }
 
 function formatMailboxSenderLabel(sender, fallbackName = '') {
@@ -5128,6 +5278,834 @@ function formatEmailThreadTimestamp(value) {
         : formatDate(timestamp);
 }
 
+function getMailboxSignaturePlaceholder(senderName = '') {
+    return `Best regards,\n${normalizeWhitespace(senderName || state.session?.name || 'Your Name') || 'Your Name'}\nBlue Chip Signals`;
+}
+
+function normalizeSignatureModeValue(value = '') {
+    const normalized = normalizeWhitespace(value).toLowerCase();
+
+    if (normalized === 'template') {
+        return 'template';
+    }
+
+    if (normalized === 'html_override') {
+        return 'html_override';
+    }
+
+    return 'plain_text';
+}
+
+function createDefaultSignatureTemplate(senderName = '', senderEmail = '') {
+    return {
+        displayName: normalizeWhitespace(senderName || state.session?.name || ''),
+        jobTitle: '',
+        phone: '',
+        email: normalizeWhitespace(senderEmail || state.session?.email || '').toLowerCase(),
+        websiteUrl: '',
+        headshotPath: '',
+        headshotUrl: '',
+        socialLinks: [],
+        ctaImagePath: '',
+        ctaImageUrl: '',
+        ctaHeadline: '',
+        ctaSubtext: '',
+        ctaUrl: '',
+        disclaimerText: ''
+    };
+}
+
+function normalizeSignatureTemplateDraft(template = {}, senderName = '', senderEmail = '') {
+    const base = createDefaultSignatureTemplate(senderName, senderEmail);
+    const socialLinks = Array.isArray(template.socialLinks) ? template.socialLinks : [];
+
+    return {
+        ...base,
+        displayName: normalizeWhitespace(template.displayName ?? base.displayName),
+        jobTitle: normalizeWhitespace(template.jobTitle),
+        phone: normalizeWhitespace(template.phone),
+        email: normalizeWhitespace(template.email ?? base.email).toLowerCase(),
+        websiteUrl: normalizeWhitespace(template.websiteUrl),
+        headshotPath: normalizeWhitespace(template.headshotPath),
+        headshotUrl: normalizeWhitespace(template.headshotUrl),
+        socialLinks: socialLinks
+            .map((entry) => ({
+                network: normalizeWhitespace(entry?.network).toLowerCase(),
+                url: normalizeWhitespace(entry?.url),
+                label: normalizeWhitespace(entry?.label)
+            }))
+            .filter((entry) => entry.network || entry.url)
+            .slice(0, 4),
+        ctaImagePath: normalizeWhitespace(template.ctaImagePath),
+        ctaImageUrl: normalizeWhitespace(template.ctaImageUrl),
+        ctaHeadline: normalizeWhitespace(template.ctaHeadline),
+        ctaSubtext: normalizeWhitespace(template.ctaSubtext),
+        ctaUrl: normalizeWhitespace(template.ctaUrl),
+        disclaimerText: String(template.disclaimerText ?? '').replace(/\r\n/g, '\n').replace(/\r/g, '\n').trim()
+    };
+}
+
+function getSignatureEditorInitialTab(sender, senderName = '', senderEmail = '') {
+    const mode = normalizeSignatureModeValue(sender?.signatureMode);
+
+    if (mode === 'html_override') {
+        return 'html';
+    }
+
+    if (mode === 'plain_text' && !sender?.signatureTemplate?.headshotPath && !sender?.signatureTemplate?.ctaImagePath) {
+        return 'preview';
+    }
+
+    return 'template';
+}
+
+function buildSignatureSocialRows(template) {
+    const rows = Array.from({ length: 4 }, (_, index) => template.socialLinks[index] || {
+        network: '',
+        url: '',
+        label: ''
+    });
+
+    return rows;
+}
+
+function getSignatureSocialNetworkOptions() {
+    return [
+        { value: '', label: 'No icon' },
+        { value: 'linkedin', label: 'LinkedIn' },
+        { value: 'facebook', label: 'Facebook' },
+        { value: 'x', label: 'X / Twitter' },
+        { value: 'telegram', label: 'Telegram' },
+        { value: 'instagram', label: 'Instagram' },
+        { value: 'youtube', label: 'YouTube' }
+    ];
+}
+
+function getSignatureSocialIconMarkup(network = '') {
+    const normalized = normalizeWhitespace(network).toLowerCase();
+
+    if (normalized === 'linkedin') {
+        return `
+            <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                <rect x="2" y="2" width="20" height="20" rx="6" fill="#0A66C2"></rect>
+                <circle cx="8" cy="8.15" r="1.45" fill="#ffffff"></circle>
+                <rect x="6.7" y="10" width="2.6" height="7.2" rx="1.1" fill="#ffffff"></rect>
+                <path d="M12 10h2.25v1.05c.45-.7 1.18-1.25 2.52-1.25 2 0 3.23 1.28 3.23 3.74v3.66h-2.62v-3.23c0-1.04-.38-1.75-1.31-1.75-.72 0-1.18.48-1.38.95-.08.18-.1.42-.1.67v3.36H12z" fill="#ffffff"></path>
+            </svg>
+        `;
+    }
+
+    if (normalized === 'facebook') {
+        return `
+            <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                <circle cx="12" cy="12" r="10" fill="#1877F2"></circle>
+                <path d="M13.3 8.2h1.76V5.74c-.3-.04-1.3-.12-2.48-.12-2.46 0-4.14 1.5-4.14 4.26v2.38H5.7v2.78h2.74v7h3.34v-7h2.62l.42-2.78h-3.04v-2.1c0-.8.22-1.96 2.02-1.96z" fill="#ffffff"></path>
+            </svg>
+        `;
+    }
+
+    if (normalized === 'telegram') {
+        return `
+            <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                <circle cx="12" cy="12" r="10" fill="#24A1DE"></circle>
+                <path d="M17.46 7.38 6.85 11.53c-.73.3-.72.7-.14.88l2.72.85 1.05 3.28c.13.37.06.52.45.52.3 0 .43-.14.6-.3l1.32-1.28 2.74 2.03c.5.28.86.14.99-.47l1.8-8.5c.2-.74-.28-1.08-.92-.79Zm-1.56 2.03-4.92 4.43-.19 2.02-.86-2.83 5.97-3.77c.26-.16.5-.07.3.15Z" fill="#ffffff"></path>
+            </svg>
+        `;
+    }
+
+    if (normalized === 'instagram') {
+        return `
+            <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                <rect x="2" y="2" width="20" height="20" rx="6" fill="#DD2A7B"></rect>
+                <rect x="7" y="7" width="10" height="10" rx="3" fill="none" stroke="#ffffff" stroke-width="1.9"></rect>
+                <circle cx="12" cy="12" r="2.5" fill="none" stroke="#ffffff" stroke-width="1.9"></circle>
+                <circle cx="16.2" cy="7.9" r="1.1" fill="#ffffff"></circle>
+            </svg>
+        `;
+    }
+
+    if (normalized === 'youtube') {
+        return `
+            <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                <rect x="3" y="6" width="18" height="12" rx="4" fill="#FF0033"></rect>
+                <path d="M10 9.2v5.6l4.9-2.8z" fill="#ffffff"></path>
+            </svg>
+        `;
+    }
+
+    return `
+        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+            <rect x="2" y="2" width="20" height="20" rx="6" fill="#111111"></rect>
+            <path d="M7.3 6.7h2.6l2.58 3.4 2.86-3.4h1.88l-3.9 4.61 4.59 6.01h-2.62l-2.95-3.87-3.25 3.87H7.2l4.35-5.16z" fill="#ffffff"></path>
+        </svg>
+    `;
+}
+
+function buildPlainTextSignatureFallback({ senderName = '', signatureMode = 'plain_text', signatureTemplate = {}, signatureHtmlOverride = '', signatureText = '' } = {}) {
+    const resolvedMode = normalizeSignatureModeValue(signatureMode);
+
+    if (resolvedMode === 'template') {
+        const template = normalizeSignatureTemplateDraft(signatureTemplate, senderName);
+        const lines = [
+            template.displayName || normalizeWhitespace(senderName),
+            template.jobTitle,
+            template.phone ? `T: ${template.phone}` : '',
+            template.email ? `E: ${template.email}` : '',
+            template.websiteUrl ? `W: ${template.websiteUrl}` : '',
+            template.disclaimerText ? `\n${template.disclaimerText}` : ''
+        ].filter(Boolean);
+
+        return lines.join('\n').trim() || getMailboxSignaturePlaceholder(senderName);
+    }
+
+    if (resolvedMode === 'html_override') {
+        const stripped = String(signatureHtmlOverride ?? '')
+            .replace(/<\s*br\s*\/?>/gi, '\n')
+            .replace(/<\s*\/\s*(p|div|tr|li|table|tbody)\s*>/gi, '\n')
+            .replace(/<[^>]+>/g, ' ')
+            .replace(/\r\n/g, '\n')
+            .replace(/\r/g, '\n')
+            .split('\n')
+            .map((line) => line.replace(/\s+/g, ' ').trim())
+            .filter((line, index, lines) => line || (index > 0 && lines[index - 1]))
+            .join('\n')
+            .trim();
+
+        return stripped || getMailboxSignaturePlaceholder(senderName);
+    }
+
+    return String(signatureText ?? '').replace(/\r\n/g, '\n').replace(/\r/g, '\n').trim() || getMailboxSignaturePlaceholder(senderName);
+}
+
+function sanitizeSignatureHtmlPreview(value = '') {
+    let html = String(value ?? '').trim();
+
+    if (!html) {
+        return '';
+    }
+
+    html = html
+        .replace(/<!--[\s\S]*?-->/g, '')
+        .replace(/<\s*(script|style|iframe|object|embed|form|input|button|textarea|select|video|audio|svg|math|meta|link|base)[^>]*>[\s\S]*?<\s*\/\s*\1\s*>/gi, '')
+        .replace(/<\s*(script|style|iframe|object|embed|form|input|button|textarea|select|video|audio|svg|math|meta|link|base)\b[^>]*\/?>/gi, '')
+        .replace(/\son[a-z-]+\s*=\s*("[^"]*"|'[^']*'|[^\s>]+)/gi, '');
+
+    return html;
+}
+
+function renderSignaturePreviewCard({ senderName = '', senderEmail = '', signatureMode = 'plain_text', signatureTemplate = {}, signatureHtmlOverride = '', signatureText = '' } = {}) {
+    const resolvedMode = normalizeSignatureModeValue(signatureMode);
+    const template = normalizeSignatureTemplateDraft(signatureTemplate, senderName, senderEmail);
+
+    if (resolvedMode === 'html_override') {
+        const sanitizedHtml = sanitizeSignatureHtmlPreview(signatureHtmlOverride);
+
+        return sanitizedHtml
+            ? `<div class="crm-signature-preview-card crm-signature-preview-card-html">${sanitizedHtml}</div>`
+            : '<div class="crm-signature-preview-empty">Your custom HTML signature will preview here once you add markup.</div>';
+    }
+
+    if (resolvedMode === 'plain_text') {
+        return `
+            <div class="crm-signature-preview-card crm-signature-preview-card-plain">
+                <pre>${escapeHtml(buildPlainTextSignatureFallback({
+                    senderName,
+                    signatureMode: resolvedMode,
+                    signatureTemplate: template,
+                    signatureHtmlOverride,
+                    signatureText
+                }))}</pre>
+            </div>
+        `;
+    }
+
+    const displayName = template.displayName || normalizeWhitespace(senderName) || 'Your Name';
+    const websiteLabel = normalizeWhitespace(template.websiteUrl).replace(/^https?:\/\//i, '').replace(/\/$/, '');
+    const headshotMarkup = template.headshotUrl
+        ? `<img src="${escapeHtml(template.headshotUrl)}" alt="${escapeHtml(displayName)}">`
+        : `<span>${escapeHtml((displayName || 'Y').charAt(0).toUpperCase())}</span>`;
+    const socialLinks = buildSignatureSocialRows(template).filter((entry) => entry.network && entry.url);
+    const disclaimerMarkup = template.disclaimerText
+        ? `<div class="crm-signature-preview-disclaimer">${escapeHtml(template.disclaimerText)}</div>`
+        : '';
+    const contactRows = [
+        template.phone ? { label: 'T', value: template.phone } : null,
+        template.email ? { label: 'E', value: template.email } : null,
+        websiteLabel ? { label: 'W', value: websiteLabel } : null
+    ].filter(Boolean);
+    const contactMarkup = contactRows.length ? `
+        <div class="crm-signature-preview-copy crm-signature-preview-copy-contact">
+            <div class="crm-signature-preview-contact">
+                ${contactRows.map((row) => `
+                    <div class="crm-signature-preview-contact-row">
+                        <span class="crm-signature-preview-contact-label">${escapeHtml(row.label)}:</span>
+                        <span class="crm-signature-preview-contact-value">${escapeHtml(row.value)}</span>
+                    </div>
+                `).join('')}
+            </div>
+        </div>
+    ` : '';
+
+    return `
+        <div class="crm-signature-preview-card">
+            <div class="crm-signature-preview-top">
+                <div class="crm-signature-preview-primary">
+                    <strong>${escapeHtml(displayName)}</strong>
+                    <span>${escapeHtml(template.jobTitle || 'Your title')}</span>
+                    ${socialLinks.length ? `
+                        <div class="crm-signature-preview-social">
+                            ${socialLinks.map((entry) => `
+                                <a href="${escapeHtml(entry.url)}" target="_blank" rel="noopener noreferrer" aria-label="${escapeHtml(entry.network)}">${getSignatureSocialIconMarkup(entry.network)}</a>
+                            `).join('')}
+                        </div>
+                    ` : ''}
+                </div>
+                <div class="crm-signature-preview-avatar">${headshotMarkup}</div>
+                ${contactMarkup}
+            </div>
+            ${(template.ctaHeadline || template.ctaSubtext || template.ctaImageUrl) ? `
+                <div class="crm-signature-preview-banner ${template.ctaImageUrl ? 'has-image' : ''}">
+                    ${template.ctaImageUrl ? `
+                        <div class="crm-signature-preview-banner-media">
+                            <img src="${escapeHtml(template.ctaImageUrl)}" alt="${escapeHtml(template.ctaHeadline || 'Banner image')}">
+                        </div>
+                    ` : ''}
+                    <div class="crm-signature-preview-banner-copy">
+                        ${template.ctaHeadline ? `<strong>${escapeHtml(template.ctaHeadline)}</strong>` : ''}
+                        ${template.ctaSubtext ? `<span>${escapeHtml(template.ctaSubtext)}</span>` : ''}
+                        ${template.ctaUrl ? `<em>${escapeHtml(normalizeWhitespace(template.ctaUrl).replace(/^https?:\/\//i, ''))}</em>` : ''}
+                    </div>
+                </div>
+            ` : ''}
+            ${disclaimerMarkup}
+        </div>
+    `;
+}
+
+function renderMailboxSignatureBuilder({ mailboxKind = 'personal', sender = null, senderName = '', senderEmail = '' } = {}) {
+    const resolvedTemplate = normalizeSignatureTemplateDraft(sender?.signatureTemplate, senderName, senderEmail);
+    const resolvedMode = normalizeSignatureModeValue(sender?.signatureMode || (sender?.signatureHtmlOverride ? 'html_override' : (sender?.signatureText ? 'plain_text' : 'template')));
+    const activeTab = getSignatureEditorInitialTab(sender, senderName, senderEmail);
+    const socialRows = buildSignatureSocialRows(resolvedTemplate);
+    const networkOptions = getSignatureSocialNetworkOptions();
+    const activeSubpanel = getValidSignatureSubpanel(state.expandedSignatureSubpanel);
+    const previewButtonLabel = state.showSignaturePreview ? 'Hide preview' : 'Show preview';
+
+    return `
+        <div class="crm-signature-editor" data-mailbox-kind="${escapeHtml(mailboxKind)}">
+            <input type="hidden" name="signatureMode" value="${escapeHtml(resolvedMode)}" data-signature-mode-input>
+            <div class="crm-signature-editor-head">
+                <div class="crm-signature-mode-pill" data-signature-mode-label>${escapeHtml(resolvedMode === 'html_override' ? 'Advanced HTML' : (resolvedMode === 'template' ? 'Template builder' : 'Plain text only'))}</div>
+                <div class="crm-signature-tabs" role="tablist" aria-label="Email signature editor">
+                    <button class="crm-signature-tab ${activeTab === 'template' ? 'is-active' : ''}" type="button" data-signature-tab-button data-signature-tab="template">Template</button>
+                    <button class="crm-signature-tab ${activeTab === 'html' ? 'is-active' : ''}" type="button" data-signature-tab-button data-signature-tab="html">Advanced HTML</button>
+                    <button class="crm-signature-tab ${activeTab === 'preview' ? 'is-active' : ''}" type="button" data-signature-tab-button data-signature-tab="preview">Plain Text Preview</button>
+                </div>
+            </div>
+
+            <section class="crm-signature-panel ${activeTab === 'template' ? 'is-active' : ''}" data-signature-panel="template">
+                <div class="crm-signature-template-toolbar">
+                    <div class="crm-signature-group-tabs" role="tablist" aria-label="Template builder groups">
+                        <button
+                            class="crm-signature-group-tab ${activeSubpanel === 'identity' ? 'is-active' : ''}"
+                            type="button"
+                            data-signature-group-button
+                            data-signature-group="identity"
+                        >
+                            Identity
+                        </button>
+                        <button
+                            class="crm-signature-group-tab ${activeSubpanel === 'media' ? 'is-active' : ''}"
+                            type="button"
+                            data-signature-group-button
+                            data-signature-group="media"
+                        >
+                            Media
+                        </button>
+                        <button
+                            class="crm-signature-group-tab ${activeSubpanel === 'links' ? 'is-active' : ''}"
+                            type="button"
+                            data-signature-group-button
+                            data-signature-group="links"
+                        >
+                            Links + CTA
+                        </button>
+                    </div>
+                    <button
+                        class="crm-button-ghost crm-signature-preview-toggle"
+                        type="button"
+                        data-signature-preview-toggle
+                    >
+                        <i class="fa-regular fa-eye"></i> ${escapeHtml(previewButtonLabel)}
+                    </button>
+                </div>
+
+                <div class="crm-signature-template-shell ${state.showSignaturePreview ? '' : 'is-preview-hidden-mobile'}" data-signature-template-shell>
+                    <div class="crm-signature-template-fields">
+                        <section class="crm-signature-section-card ${activeSubpanel === 'identity' ? 'is-active-mobile' : ''}" data-signature-group-panel="identity">
+                            <div class="crm-signature-section-head">
+                                <div>
+                                    <strong>Identity & contact</strong>
+                                    <span>Core fields shown across the top row of the signature card.</span>
+                                </div>
+                            </div>
+                            <div class="crm-signature-grid">
+                                <label class="crm-settings-field">
+                                    <span class="form-label">Display name</span>
+                                    <input class="crm-input" name="signatureDisplayName" value="${escapeHtml(resolvedTemplate.displayName || senderName)}" placeholder="Your full name">
+                                </label>
+                                <label class="crm-settings-field">
+                                    <span class="form-label">Job title</span>
+                                    <input class="crm-input" name="signatureJobTitle" value="${escapeHtml(resolvedTemplate.jobTitle)}" placeholder="Sales Executive">
+                                </label>
+                                <label class="crm-settings-field">
+                                    <span class="form-label">Phone</span>
+                                    <input class="crm-input" name="signaturePhone" value="${escapeHtml(resolvedTemplate.phone)}" placeholder="+1 (555) 555-5555">
+                                </label>
+                                <label class="crm-settings-field">
+                                    <span class="form-label">Email</span>
+                                    <input class="crm-input" name="signatureEmail" value="${escapeHtml(resolvedTemplate.email || senderEmail)}" placeholder="you@bluechipsignals.online">
+                                </label>
+                                <label class="crm-settings-field crm-settings-field-full">
+                                    <span class="form-label">Website URL</span>
+                                    <input class="crm-input" name="signatureWebsiteUrl" value="${escapeHtml(resolvedTemplate.websiteUrl)}" placeholder="https://bluechipsignals.online">
+                                </label>
+                            </div>
+                        </section>
+
+                        <section class="crm-signature-section-card ${activeSubpanel === 'media' ? 'is-active-mobile' : ''}" data-signature-group-panel="media">
+                            <div class="crm-signature-section-head">
+                                <div>
+                                    <strong>Media</strong>
+                                    <span>Keep asset previews compact while still showing exactly what will be used.</span>
+                                </div>
+                            </div>
+                            <div class="crm-signature-asset-grid">
+                                ${renderSignatureAssetField({
+                                    label: 'Headshot',
+                                    inputName: 'signatureHeadshotUpload',
+                                    hiddenName: 'signatureHeadshotPath',
+                                    currentPath: resolvedTemplate.headshotPath,
+                                    currentUrl: resolvedTemplate.headshotUrl,
+                                    mailboxKind,
+                                    assetKind: 'headshot'
+                                })}
+                                ${renderSignatureAssetField({
+                                    label: 'CTA banner',
+                                    inputName: 'signatureBannerUpload',
+                                    hiddenName: 'signatureCtaImagePath',
+                                    currentPath: resolvedTemplate.ctaImagePath,
+                                    currentUrl: resolvedTemplate.ctaImageUrl,
+                                    mailboxKind,
+                                    assetKind: 'banner'
+                                })}
+                            </div>
+                        </section>
+
+                        <section class="crm-signature-section-card ${activeSubpanel === 'links' ? 'is-active-mobile' : ''}" data-signature-group-panel="links">
+                            <div class="crm-signature-section-head">
+                                <div>
+                                    <strong>Social links, CTA & disclaimer</strong>
+                                    <span>Fine-tune the lower card content without stretching the editor into one long column.</span>
+                                </div>
+                            </div>
+                            <div class="crm-signature-grid">
+                                ${socialRows.map((entry, index) => `
+                                    <div class="crm-signature-social-row">
+                                        <label class="crm-settings-field">
+                                            <span class="form-label">Social ${index + 1}</span>
+                                            <select class="crm-select" name="signatureSocialNetwork${index + 1}">
+                                                ${networkOptions.map((option) => `
+                                                    <option value="${escapeHtml(option.value)}" ${option.value === entry.network ? 'selected' : ''}>${escapeHtml(option.label)}</option>
+                                                `).join('')}
+                                            </select>
+                                        </label>
+                                        <label class="crm-settings-field">
+                                            <span class="form-label">Link</span>
+                                            <input class="crm-input" name="signatureSocialUrl${index + 1}" value="${escapeHtml(entry.url)}" placeholder="https://...">
+                                        </label>
+                                    </div>
+                                `).join('')}
+                                <label class="crm-settings-field">
+                                    <span class="form-label">CTA headline</span>
+                                    <input class="crm-input" name="signatureCtaHeadline" value="${escapeHtml(resolvedTemplate.ctaHeadline)}" placeholder="Book your health check">
+                                </label>
+                                <label class="crm-settings-field">
+                                    <span class="form-label">CTA link</span>
+                                    <input class="crm-input" name="signatureCtaUrl" value="${escapeHtml(resolvedTemplate.ctaUrl)}" placeholder="https://bluechipsignals.online/book">
+                                </label>
+                                <label class="crm-settings-field crm-settings-field-full">
+                                    <span class="form-label">CTA subtext</span>
+                                    <textarea class="crm-textarea crm-signature-mini-textarea" name="signatureCtaSubtext" placeholder="Short supporting copy for the banner card.">${escapeHtml(resolvedTemplate.ctaSubtext)}</textarea>
+                                </label>
+                                <label class="crm-settings-field crm-settings-field-full">
+                                    <span class="form-label">Disclaimer</span>
+                                    <textarea class="crm-textarea crm-signature-mini-textarea" name="signatureDisclaimerText" placeholder="Confidentiality or compliance note shown in fine print at the bottom of the signature.">${escapeHtml(resolvedTemplate.disclaimerText)}</textarea>
+                                </label>
+                            </div>
+                        </section>
+                    </div>
+
+                    <div class="crm-signature-preview-shell crm-signature-preview-shell-template" data-signature-template-preview>
+                        <div class="crm-signature-preview-head">
+                            <strong>Live preview</strong>
+                            <span>The CRM preview matches your theme; sent emails use an email-safe HTML version.</span>
+                        </div>
+                        <div data-signature-preview>${renderSignaturePreviewCard({
+                            senderName,
+                            senderEmail,
+                            signatureMode: 'template',
+                            signatureTemplate: resolvedTemplate,
+                            signatureText: sender?.signatureText || ''
+                        })}</div>
+                    </div>
+                </div>
+            </section>
+
+            <section class="crm-signature-panel ${activeTab === 'html' ? 'is-active' : ''}" data-signature-panel="html">
+                <div class="crm-signature-html-shell">
+                    <label class="crm-settings-field crm-settings-field-full">
+                        <span class="form-label">Custom HTML signature</span>
+                        <textarea class="crm-textarea crm-signature-html-textarea" name="signatureHtmlOverride" placeholder="<table>...</table>">${escapeHtml(sender?.signatureHtmlOverride || '')}</textarea>
+                        <span class="panel-subtitle">We sanitize this HTML before sending. Keep it email-client friendly: tables, inline styles, links, and images only.</span>
+                    </label>
+                    <div class="crm-signature-preview-shell">
+                        <div class="crm-signature-preview-head">
+                            <strong>Sanitized preview</strong>
+                            <span>The sent version strips unsafe tags, scripts, embeds, and external styles.</span>
+                        </div>
+                        <div data-signature-preview>${renderSignaturePreviewCard({
+                            senderName,
+                            senderEmail,
+                            signatureMode: 'html_override',
+                            signatureTemplate: resolvedTemplate,
+                            signatureHtmlOverride: sender?.signatureHtmlOverride || '',
+                            signatureText: sender?.signatureText || ''
+                        })}</div>
+                    </div>
+                </div>
+            </section>
+
+            <section class="crm-signature-panel ${activeTab === 'preview' ? 'is-active' : ''}" data-signature-panel="preview">
+                <div class="crm-signature-section-card crm-signature-section-card-plain">
+                    <div class="crm-signature-preview-head">
+                        <strong>Plain text fallback</strong>
+                        <span>This version is used for text-only delivery and legacy email clients.</span>
+                    </div>
+                    <div class="crm-signature-plain-actions">
+                        <button class="crm-button-ghost" type="button" data-signature-set-mode="plain_text">Use Plain Text Only</button>
+                    </div>
+                    <label class="crm-settings-field crm-settings-field-full">
+                        <span class="form-label">Fallback signature text</span>
+                        <textarea class="crm-textarea crm-signature-plain-textarea" name="signatureText" data-signature-plain-textarea>${escapeHtml(buildPlainTextSignatureFallback({
+                            senderName,
+                            signatureMode: resolvedMode,
+                            signatureTemplate: resolvedTemplate,
+                            signatureHtmlOverride: sender?.signatureHtmlOverride || '',
+                            signatureText: sender?.signatureText || ''
+                        }))}</textarea>
+                        <span class="panel-subtitle">This text stays editable. If you choose “Use Plain Text Only,” this becomes the live signature.</span>
+                    </label>
+                </div>
+            </section>
+        </div>
+    `;
+}
+
+function getSignatureAssetFeedbackKey(mailboxKind = 'personal', assetKind = 'headshot') {
+    const normalizedMailboxKind = normalizeWhitespace(mailboxKind).toLowerCase() === 'support' ? 'support' : 'personal';
+    const normalizedAssetKind = normalizeWhitespace(assetKind).toLowerCase() === 'banner' ? 'banner' : 'headshot';
+    return `${normalizedMailboxKind}-${normalizedAssetKind}-asset-feedback`;
+}
+
+function renderSignatureAssetField({ label = '', inputName = '', hiddenName = '', currentPath = '', currentUrl = '', mailboxKind = 'personal', assetKind = 'headshot' } = {}) {
+    return `
+        <div class="crm-signature-asset-card crm-signature-asset-card-${escapeHtml(assetKind)}">
+            <div class="crm-signature-asset-head">
+                <strong>${escapeHtml(label)}</strong>
+                <span>${currentPath ? 'Uploaded' : 'Optional'}</span>
+            </div>
+            <div class="crm-signature-asset-preview crm-signature-asset-preview-${escapeHtml(assetKind)} ${currentUrl ? 'has-image' : ''}" data-signature-asset-preview="${escapeHtml(assetKind)}">
+                ${currentUrl ? `<img src="${escapeHtml(currentUrl)}" alt="${escapeHtml(label)}">` : '<span>No image selected</span>'}
+            </div>
+            <input type="hidden" name="${escapeHtml(hiddenName)}" value="${escapeHtml(currentPath)}" data-signature-asset-path="${escapeHtml(assetKind)}">
+            <div class="crm-signature-asset-actions" data-inline-feedback-container="${escapeHtml(getSignatureAssetFeedbackKey(mailboxKind, assetKind))}">
+                <label class="crm-button-secondary crm-signature-upload-button">
+                    <input type="file" accept="image/png,image/jpeg,image/webp,image/gif" class="hidden" name="${escapeHtml(inputName)}" data-signature-upload="${escapeHtml(assetKind)}" data-mailbox-kind="${escapeHtml(mailboxKind)}">
+                    <i class="fa-solid fa-cloud-arrow-up"></i> Upload
+                </label>
+                <button class="crm-button-ghost crm-signature-clear-button" type="button" data-signature-clear-asset="${escapeHtml(assetKind)}">Clear</button>
+            </div>
+        </div>
+    `;
+}
+
+function collectSignatureTemplateFromForm(form, { senderName = '', senderEmail = '' } = {}) {
+    const formData = new FormData(form);
+    const socialLinks = Array.from({ length: 4 }, (_, index) => {
+        const rowIndex = index + 1;
+        return {
+            network: normalizeWhitespace(formData.get(`signatureSocialNetwork${rowIndex}`)).toLowerCase(),
+            url: normalizeWhitespace(formData.get(`signatureSocialUrl${rowIndex}`)),
+            label: ''
+        };
+    }).filter((entry) => entry.network && entry.url);
+
+    return normalizeSignatureTemplateDraft({
+        displayName: formData.get('signatureDisplayName') || senderName,
+        jobTitle: formData.get('signatureJobTitle'),
+        phone: formData.get('signaturePhone'),
+        email: formData.get('signatureEmail') || senderEmail,
+        websiteUrl: formData.get('signatureWebsiteUrl'),
+        headshotPath: formData.get('signatureHeadshotPath'),
+        headshotUrl: form.querySelector('[data-signature-asset-preview="headshot"] img')?.getAttribute('src') || '',
+        socialLinks,
+        ctaImagePath: formData.get('signatureCtaImagePath'),
+        ctaImageUrl: form.querySelector('[data-signature-asset-preview="banner"] img')?.getAttribute('src') || '',
+        ctaHeadline: formData.get('signatureCtaHeadline'),
+        ctaSubtext: formData.get('signatureCtaSubtext'),
+        ctaUrl: formData.get('signatureCtaUrl'),
+        disclaimerText: formData.get('signatureDisclaimerText')
+    }, senderName, senderEmail);
+}
+
+function collectSignatureDraftFromForm(form) {
+    const formData = new FormData(form);
+    const senderName = normalizeWhitespace(formData.get('senderName')) || state.session?.name || '';
+    const senderEmail = normalizeWhitespace(
+        formData.get('signatureEmail')
+        || formData.get('senderEmail')
+        || formData.get('senderEmailDisplay')
+        || state.session?.email
+    ).toLowerCase();
+    const signatureMode = normalizeSignatureModeValue(formData.get('signatureMode'));
+    const signatureTemplate = collectSignatureTemplateFromForm(form, { senderName, senderEmail });
+    const signatureHtmlOverride = String(formData.get('signatureHtmlOverride') ?? '');
+    const signatureText = String(formData.get('signatureText') ?? '');
+
+    return {
+        senderName,
+        senderEmail,
+        signatureMode,
+        signatureTemplate,
+        signatureHtmlOverride,
+        signatureText
+    };
+}
+
+function getSignatureModeLabel(value = '') {
+    const mode = normalizeSignatureModeValue(value);
+
+    if (mode === 'template') {
+        return 'Template builder';
+    }
+
+    if (mode === 'html_override') {
+        return 'Advanced HTML';
+    }
+
+    return 'Plain text only';
+}
+
+function setSignatureEditorActiveTab(form, nextTab) {
+    const normalizedTab = ['template', 'html', 'preview'].includes(nextTab) ? nextTab : 'template';
+
+    form.querySelectorAll('[data-signature-tab-button]').forEach((button) => {
+        button.classList.toggle('is-active', button.dataset.signatureTab === normalizedTab);
+    });
+
+    form.querySelectorAll('[data-signature-panel]').forEach((panel) => {
+        panel.classList.toggle('is-active', panel.dataset.signaturePanel === normalizedTab);
+    });
+}
+
+function setSignatureEditorActiveSubpanel(form, nextSubpanel) {
+    if (!form) {
+        return;
+    }
+
+    const normalizedSubpanel = getValidSignatureSubpanel(nextSubpanel);
+    state.expandedSignatureSubpanel = normalizedSubpanel;
+
+    form.querySelectorAll('[data-signature-group-button]').forEach((button) => {
+        button.classList.toggle('is-active', button.dataset.signatureGroup === normalizedSubpanel);
+    });
+
+    form.querySelectorAll('[data-signature-group-panel]').forEach((panel) => {
+        panel.classList.toggle('is-active-mobile', panel.dataset.signatureGroupPanel === normalizedSubpanel);
+    });
+}
+
+function setSignaturePreviewVisibility(form, shouldShow) {
+    if (!form) {
+        return;
+    }
+
+    state.showSignaturePreview = Boolean(shouldShow);
+    const templateShell = form.querySelector('[data-signature-template-shell]');
+
+    if (templateShell) {
+        templateShell.classList.toggle('is-preview-hidden-mobile', !state.showSignaturePreview);
+    }
+
+    form.querySelectorAll('[data-signature-preview-toggle]').forEach((button) => {
+        button.innerHTML = `<i class="fa-regular fa-eye"></i> ${escapeHtml(state.showSignaturePreview ? 'Hide preview' : 'Show preview')}`;
+    });
+}
+
+function updateSignatureEditorPreview(form, { preservePlainText = false } = {}) {
+    if (!form) {
+        return;
+    }
+
+    const draft = collectSignatureDraftFromForm(form);
+    const editor = form.querySelector('.crm-signature-editor');
+    setMailboxSignatureDraft(editor?.dataset.mailboxKind, draft);
+    const previewMarkup = renderSignaturePreviewCard(draft);
+
+    form.querySelectorAll('[data-signature-preview]').forEach((previewNode) => {
+        previewNode.innerHTML = previewMarkup;
+    });
+
+    const modeLabel = form.querySelector('[data-signature-mode-label]');
+
+    if (modeLabel) {
+        modeLabel.textContent = getSignatureModeLabel(draft.signatureMode);
+    }
+
+    const plainTextArea = form.querySelector('[data-signature-plain-textarea]');
+
+    if (plainTextArea && (!preservePlainText || draft.signatureMode !== 'plain_text')) {
+        plainTextArea.value = buildPlainTextSignatureFallback(draft);
+    }
+}
+
+function setSignatureEditorMode(form, mode, { activateTab = true } = {}) {
+    const normalizedMode = normalizeSignatureModeValue(mode);
+    const modeInput = form?.querySelector('[data-signature-mode-input]');
+
+    if (modeInput) {
+        modeInput.value = normalizedMode;
+    }
+
+    if (activateTab) {
+        setSignatureEditorActiveTab(form, normalizedMode === 'html_override' ? 'html' : (normalizedMode === 'template' ? 'template' : 'preview'));
+    }
+
+    updateSignatureEditorPreview(form, { preservePlainText: normalizedMode === 'plain_text' });
+}
+
+function getMailboxSenderForKind(mailboxKind = 'personal') {
+    return normalizeWhitespace(mailboxKind).toLowerCase() === 'support'
+        ? getSupportMailboxSender()
+        : getPersonalMailboxSender();
+}
+
+async function handleSignatureAssetUpload(fileInput) {
+    const form = fileInput?.closest('form');
+    const [file] = fileInput?.files ?? [];
+
+    if (!form || !file) {
+        return;
+    }
+
+    const mailboxKind = normalizeWhitespace(fileInput.dataset.mailboxKind).toLowerCase() === 'support' ? 'support' : 'personal';
+    const sender = getMailboxSenderForKind(mailboxKind);
+    const signatureDraft = collectSignatureDraftFromForm(form);
+    const uploadResult = normalizeWhitespace(fileInput.dataset.signatureUpload) === 'banner'
+        ? await dataService.uploadSignatureBanner(sender?.id, file, {
+            senderKind: mailboxKind,
+            ownerUserId: sender?.ownerUserId || state.session?.id || '',
+            senderEmail: signatureDraft.senderEmail || sender?.senderEmail || ''
+        })
+        : await dataService.uploadSignatureHeadshot(sender?.id, file, {
+            senderKind: mailboxKind,
+            ownerUserId: sender?.ownerUserId || state.session?.id || '',
+            senderEmail: signatureDraft.senderEmail || sender?.senderEmail || ''
+        });
+
+    const assetKind = normalizeWhitespace(fileInput.dataset.signatureUpload) === 'banner' ? 'banner' : 'headshot';
+    const assetLabel = assetKind === 'banner' ? 'CTA banner' : 'Headshot';
+    const feedbackKey = getSignatureAssetFeedbackKey(mailboxKind, assetKind);
+    const hiddenInput = form.querySelector(`[data-signature-asset-path="${assetKind}"]`);
+    const previewContainer = form.querySelector(`[data-signature-asset-preview="${assetKind}"]`);
+    const assetCard = previewContainer?.closest('.crm-signature-asset-card');
+    const assetStatusLabel = assetCard?.querySelector('.crm-signature-asset-head span');
+
+    if (hiddenInput) {
+        hiddenInput.value = uploadResult.path;
+    }
+
+    if (previewContainer) {
+        const localPreviewUrl = URL.createObjectURL(file);
+        setSignatureAssetPreview(previewContainer, localPreviewUrl, assetLabel);
+    }
+
+    if (assetStatusLabel) {
+        assetStatusLabel.textContent = 'Uploaded';
+    }
+
+    fileInput.value = '';
+    setSignatureEditorMode(form, 'template');
+    showInlineActionFeedback(feedbackKey, `${assetLabel} uploaded. Save the mailbox to apply it.`, 'success');
+}
+
+function clearSignatureAsset(form, assetKind = 'headshot') {
+    if (!form) {
+        return;
+    }
+
+    const normalizedAssetKind = normalizeWhitespace(assetKind).toLowerCase() === 'banner' ? 'banner' : 'headshot';
+    const assetLabel = normalizedAssetKind === 'banner' ? 'CTA banner' : 'Headshot';
+    const mailboxKind = normalizeWhitespace(form.querySelector('.crm-signature-editor')?.dataset.mailboxKind).toLowerCase() === 'support' ? 'support' : 'personal';
+    const hiddenInput = form.querySelector(`[data-signature-asset-path="${normalizedAssetKind}"]`);
+    const previewContainer = form.querySelector(`[data-signature-asset-preview="${normalizedAssetKind}"]`);
+    const assetCard = previewContainer?.closest('.crm-signature-asset-card');
+    const assetStatusLabel = assetCard?.querySelector('.crm-signature-asset-head span');
+
+    if (hiddenInput) {
+        hiddenInput.value = '';
+    }
+
+    if (previewContainer) {
+        setSignatureAssetPreview(previewContainer, '', assetLabel);
+    }
+
+    if (assetStatusLabel) {
+        assetStatusLabel.textContent = 'Optional';
+    }
+
+    updateSignatureEditorPreview(form, { preservePlainText: normalizeSignatureModeValue(form.querySelector('[data-signature-mode-input]')?.value) === 'plain_text' });
+    showInlineActionFeedback(getSignatureAssetFeedbackKey(mailboxKind, normalizedAssetKind), `${assetLabel} removed from this draft.`, 'success');
+}
+
+function setSignatureAssetPreview(previewContainer, imageUrl = '', altText = 'Signature image') {
+    if (!previewContainer) {
+        return;
+    }
+
+    const previousObjectUrl = normalizeWhitespace(previewContainer.dataset.objectUrl);
+
+    if (previousObjectUrl && previousObjectUrl.startsWith('blob:') && previousObjectUrl !== imageUrl) {
+        try {
+            URL.revokeObjectURL(previousObjectUrl);
+        } catch (_error) {
+            // Ignore browser cleanup failures.
+        }
+    }
+
+    if (imageUrl) {
+        previewContainer.classList.add('has-image');
+        previewContainer.dataset.objectUrl = imageUrl.startsWith('blob:') ? imageUrl : '';
+        previewContainer.innerHTML = `<img src="${escapeHtml(imageUrl)}" alt="${escapeHtml(altText)}">`;
+        return;
+    }
+
+    previewContainer.classList.remove('has-image');
+    previewContainer.dataset.objectUrl = '';
+    previewContainer.innerHTML = '<span>No image selected</span>';
+}
+
 function buildEmailThreadLeadLabel(thread) {
     const leadId = normalizeWhitespace(thread?.leadId);
 
@@ -5149,6 +6127,109 @@ function buildReplySubject(subject = '') {
     return /^re:/i.test(normalizedSubject)
         ? normalizedSubject
         : `Re: ${normalizedSubject}`;
+}
+
+function normalizeEmailBodyForDisplay(value = '') {
+    return String(value ?? '')
+        .replace(/\r\n/g, '\n')
+        .replace(/\r/g, '\n')
+        .trim();
+}
+
+function splitEmailBodyForDisplay(value = '') {
+    const normalizedBody = normalizeEmailBodyForDisplay(value);
+
+    if (!normalizedBody) {
+        return {
+            body: '',
+            quoted: ''
+        };
+    }
+
+    const lines = normalizedBody.split('\n');
+    const quoteStartIndex = lines.findIndex((line, index) => {
+        const normalizedLine = line.trim();
+        const nextLine = (lines[index + 1] || '').trim();
+
+        if (!normalizedLine) {
+            return false;
+        }
+
+        if (/^>/.test(normalizedLine)) {
+            return true;
+        }
+
+        if (/^On .+ wrote:$/i.test(normalizedLine)) {
+            return true;
+        }
+
+        if (/^From:\s/i.test(normalizedLine) && (/^Sent:\s/i.test(nextLine) || /^Date:\s/i.test(nextLine))) {
+            return true;
+        }
+
+        return false;
+    });
+
+    if (quoteStartIndex <= 0) {
+        return {
+            body: normalizedBody,
+            quoted: ''
+        };
+    }
+
+    return {
+        body: lines.slice(0, quoteStartIndex).join('\n').trim(),
+        quoted: lines.slice(quoteStartIndex).join('\n').trim()
+    };
+}
+
+function renderEmailMessageTextBlock(value = '', className = 'crm-email-message-body') {
+    const normalizedValue = normalizeEmailBodyForDisplay(value);
+
+    if (!normalizedValue) {
+        return '';
+    }
+
+    return `<div class="${className}">${escapeHtml(normalizedValue)}</div>`;
+}
+
+function renderEmailThreadMessage(message) {
+    const isIncoming = message.direction === 'incoming';
+    const primaryLabel = isIncoming
+        ? (message.senderName || message.senderEmail || 'Unknown sender')
+        : (message.senderDisplayName || message.senderName || 'You');
+    const secondaryLabel = isIncoming
+        ? (message.senderEmail || 'No email')
+        : (message.toEmail || 'No recipient');
+    const { body, quoted } = splitEmailBodyForDisplay(message.bodyText || '');
+    const bubbleBody = body || normalizeEmailBodyForDisplay(message.bodyText || '') || 'No plain text body available.';
+    const avatarLabel = (primaryLabel || '?').charAt(0).toUpperCase();
+
+    return `
+        <div class="crm-email-message-row ${isIncoming ? 'incoming' : 'outgoing'}">
+            <article class="crm-email-message-card ${isIncoming ? 'incoming' : 'outgoing'}">
+                <div class="crm-email-message-head">
+                    <div class="crm-email-message-person">
+                        <span class="crm-email-message-avatar">${escapeHtml(avatarLabel)}</span>
+                        <div>
+                            <strong>${escapeHtml(primaryLabel)}</strong>
+                            <div class="panel-subtitle">${escapeHtml(secondaryLabel)}</div>
+                        </div>
+                    </div>
+                    <span>${escapeHtml(formatDateTime(message.receivedAt || message.sentAt || message.createdAt))}</span>
+                </div>
+                <div class="crm-email-message-bubble">
+                    ${renderEmailMessageTextBlock(bubbleBody)}
+                    ${quoted ? `
+                        <div class="crm-email-message-quote">
+                            <div class="crm-email-message-quote-label">Earlier in the thread</div>
+                            ${renderEmailMessageTextBlock(quoted, 'crm-email-message-quote-copy')}
+                        </div>
+                    ` : ''}
+                </div>
+            </article>
+        </div>
+    `;
 }
 
 function buildReplyRecipientList(thread, { includeAll = false } = {}) {
@@ -5264,7 +6345,7 @@ function renderEmailWorkspacePage() {
                         </div>
 
                         ${!mailboxes.length ? `
-                            <button class="crm-button-ghost" type="button" data-action="jump-to-view" data-view="settings">
+                            <button class="crm-button-ghost" type="button" data-action="jump-to-view" data-view="settings" data-settings-section="personal_mailbox" data-mailbox-kind="personal">
                                 <i class="fa-solid fa-gear"></i> Open Settings
                             </button>
                         ` : ''}
@@ -5424,22 +6505,11 @@ function renderEmailThreadPreview(thread) {
             <div class="crm-email-preview-meta">
                 <span class="summary-chip">${escapeHtml(formatEmailThreadTimestamp(thread.latestMessageAt))}</span>
                 <span class="summary-chip">${escapeHtml(titleCase(thread.lastMessageDirection || 'incoming'))}</span>
-                <span class="summary-chip">${escapeHtml(titleCase(thread.lastMessageStatus || 'received'))}</span>
+                <span class="summary-chip">${escapeHtml(titleCase(thread.lastMessageDisplayStatus || thread.lastMessageStatus || 'received'))}</span>
             </div>
 
             <div class="crm-email-message-stack">
-                ${(thread.messages || []).map((message) => `
-                    <article class="crm-email-message-card ${message.direction === 'incoming' ? 'incoming' : 'outgoing'}">
-                        <div class="crm-email-message-head">
-                            <div>
-                                <strong>${escapeHtml(message.direction === 'incoming' ? (message.senderName || message.senderEmail || 'Unknown sender') : (message.senderDisplayName || message.senderName || 'You'))}</strong>
-                                <div class="panel-subtitle">${escapeHtml((message.direction === 'incoming' ? message.senderEmail : message.toEmail) || 'No email')}</div>
-                            </div>
-                            <span>${escapeHtml(formatDateTime(message.receivedAt || message.sentAt || message.createdAt))}</span>
-                        </div>
-                        <div class="crm-email-message-body">${escapeHtml(message.bodyText || 'No plain text body available.')}</div>
-                    </article>
-                `).join('')}
+                ${(thread.messages || []).map((message) => renderEmailThreadMessage(message)).join('')}
             </div>
         </div>
     `;
@@ -5473,7 +6543,7 @@ function renderEmailWorkspaceComposer() {
                     <div>Connect your mailbox in Settings before sending CRM email.</div>
                 </div>
                 <div class="drawer-actions">
-                    <button class="crm-button-secondary" type="button" data-action="jump-to-view" data-view="settings">
+                    <button class="crm-button-secondary" type="button" data-action="jump-to-view" data-view="settings" data-settings-section="personal_mailbox" data-mailbox-kind="personal">
                         <i class="fa-solid fa-gear"></i> Open Settings
                     </button>
                 </div>
@@ -5536,6 +6606,7 @@ function renderEmailWorkspaceComposer() {
                                 maxlength="10000"
                                 required
                             >${escapeHtml(draft.bodyText || '')}</textarea>
+                            <span class="panel-subtitle">Your saved signature is added automatically when the email sends.</span>
                         </label>
                     </div>
                     <div class="drawer-actions">
@@ -5548,65 +6619,239 @@ function renderEmailWorkspaceComposer() {
     `;
 }
 
-function renderPersonalMailboxSettingsCard() {
-    const personalSender = getPersonalMailboxSender();
-    const statusLabel = personalSender ? 'Connected' : 'Not connected';
+function renderCallPreferenceSettingsCard() {
+    const currentPreference = getCurrentCallPreference();
+    const isGoogleVoice = normalizeCallPreference(currentPreference) === 'google_voice';
 
     return `
-        <section class="crm-settings-card crm-settings-card-wide">
-            <div class="crm-settings-card-head">
-                <div class="crm-settings-card-title">
-                    <span class="crm-settings-card-icon"><i class="fa-solid fa-envelope-circle-check"></i></span>
-                    <div>
-                        <h2>My mailbox</h2>
-                        <p>Connect your own company mailbox so CRM emails send from your address.</p>
+        <div class="crm-settings-stage-grid crm-settings-stage-grid-two">
+            <section class="crm-settings-card crm-settings-card-compact">
+                <div class="crm-settings-card-head">
+                    <div class="crm-settings-card-title">
+                        <span class="crm-settings-card-icon"><i class="fa-solid fa-phone-volume"></i></span>
+                        <div><h2>Calling overview</h2></div>
                     </div>
                 </div>
-            </div>
 
-            <div class="crm-settings-quick-stats">
-                <div class="crm-settings-quick-stat">
-                    <span>Status</span>
-                    <strong>${escapeHtml(statusLabel)}</strong>
-                </div>
-                <div class="crm-settings-quick-stat">
-                    <span>Sender</span>
-                    <strong>${escapeHtml(personalSender?.senderEmail || state.session.email || 'Not available')}</strong>
-                </div>
-                <div class="crm-settings-quick-stat">
-                    <span>Last verified</span>
-                    <strong>${escapeHtml(personalSender?.lastVerifiedAt ? formatDateTime(personalSender.lastVerifiedAt) : 'Not yet')}</strong>
-                </div>
-            </div>
-
-            <form id="personal-mailbox-form" class="crm-mailbox-form">
-                <div class="crm-settings-field-grid">
-                    <label class="crm-settings-field">
-                        <span class="form-label">Sender name</span>
-                        <input class="crm-input" name="senderName" value="${escapeHtml(personalSender?.senderName || state.session.name || '')}" placeholder="Your full name" required>
-                    </label>
-                    <label class="crm-settings-field">
-                        <span class="form-label">Sender email</span>
-                        <input class="crm-input" name="senderEmailDisplay" value="${escapeHtml(state.session.email || '')}" readonly>
-                        <span class="panel-subtitle">Personal mailbox sends are locked to your CRM profile email.</span>
-                    </label>
-                    <label class="crm-settings-field">
-                        <span class="form-label">SMTP username</span>
-                        <input class="crm-input" name="smtpUsername" value="${escapeHtml(personalSender?.senderEmail || state.session.email || '')}" placeholder="your.name@company.com" required>
-                    </label>
-                    <label class="crm-settings-field">
-                        <span class="form-label">Mailbox password</span>
-                        <input class="crm-input" name="smtpPassword" type="password" placeholder="${personalSender ? 'Leave blank to keep current password' : 'Enter mailbox password'}" ${personalSender ? '' : 'required'}>
-                        <span class="panel-subtitle">We verify the mailbox before saving it.</span>
-                    </label>
+                <div class="crm-settings-quick-stats crm-settings-quick-stats-compact">
+                    <div class="crm-settings-quick-stat">
+                        <span>Default mode</span>
+                        <strong>${escapeHtml(getCallPreferenceLabel(currentPreference))}</strong>
+                    </div>
+                    <div class="crm-settings-quick-stat">
+                        <span>Desktop support</span>
+                        <strong>Chrome, Edge, Firefox</strong>
+                    </div>
+                    <div class="crm-settings-quick-stat">
+                        <span>Mobile</span>
+                        <strong>Native phone flow</strong>
+                    </div>
+                    <div class="crm-settings-quick-stat">
+                        <span>Browser handoff</span>
+                        <strong>${escapeHtml(isGoogleVoice ? 'Google Voice web' : 'System tel links')}</strong>
+                    </div>
                 </div>
 
-                <div class="settings-actions crm-settings-action-row">
-                    <button class="crm-button-secondary" type="submit"><i class="fa-solid fa-plug-circle-check"></i> ${personalSender ? 'Update mailbox' : 'Connect mailbox'}</button>
+                <div class="crm-settings-support-note">Google Voice remains desktop-first. On mobile, the CRM keeps using your device's normal calling behavior and your phone app settings decide whether Google Voice or your carrier handles the call.</div>
+            </section>
+
+            <section class="crm-settings-card crm-settings-card-compact">
+                <div class="crm-settings-subcard-head">
+                    <div>
+                        <strong>Default call routing</strong>
+                        <span>Update the behavior without leaving Settings.</span>
+                    </div>
                 </div>
-            </form>
-        </section>
+                <form id="call-preference-form" class="crm-mailbox-form crm-settings-inline-form">
+                    <div class="crm-settings-field-grid crm-settings-field-grid-compact">
+                        <label class="crm-settings-field crm-settings-field-full">
+                            <span class="form-label">Call routing</span>
+                            <select class="crm-select" name="callPreference">
+                                ${CALL_PREFERENCE_OPTIONS.map((option) => `
+                                    <option value="${escapeHtml(option.value)}" ${option.value === currentPreference ? 'selected' : ''}>${escapeHtml(option.label)}</option>
+                                `).join('')}
+                            </select>
+                            <span class="panel-subtitle">Google Voice mode opens Google Voice directly on desktop, so make sure the correct Google account is already signed in inside your browser.</span>
+                        </label>
+                    </div>
+
+                    <div class="settings-actions crm-settings-action-row crm-settings-inline-actions" data-inline-feedback-container="call-preference-form">
+                        <button class="crm-button-secondary" type="submit">
+                            <i class="fa-solid fa-phone"></i> Save calling preference
+                        </button>
+                        <a class="crm-button-ghost" href="${GOOGLE_VOICE_HELP_URL}" target="_blank" rel="noreferrer">
+                            <i class="fa-solid fa-arrow-up-right-from-square"></i> Google Voice setup
+                        </a>
+                    </div>
+                </form>
+            </section>
+        </div>
     `;
+}
+
+function renderMailboxSettingsSection({
+    mailboxKind = 'personal',
+    title = 'Mailbox',
+    icon = 'fa-envelope',
+    sender = null,
+    editorSender = null,
+    formId = '',
+    senderNameLabel = 'Sender name',
+    senderNameValue = '',
+    senderEmailLabel = 'Sender email',
+    senderEmailValue = '',
+    senderEmailReadOnly = false,
+    senderEmailHint = '',
+    smtpUsernameValue = '',
+    saveButtonLabel = 'Save mailbox',
+    supportNote = '',
+    emptyStatusLabel = 'Not connected'
+} = {}) {
+    const normalizedMailboxKind = normalizeMailboxKind(mailboxKind);
+    const isExpanded = state.expandedMailboxEditorKind === normalizedMailboxKind;
+    const statusLabel = sender ? (normalizedMailboxKind === 'support' ? 'Configured' : 'Connected') : emptyStatusLabel;
+    const editorDisplayName = editorSender?.senderName || senderNameValue;
+    const editorDisplayEmail = editorSender?.senderEmail || senderEmailValue;
+
+    return `
+        <div class="crm-settings-stage-stack">
+            <section class="crm-settings-card crm-settings-card-compact crm-settings-mailbox-summary">
+                <div class="crm-settings-card-head">
+                    <div class="crm-settings-card-title">
+                        <span class="crm-settings-card-icon"><i class="fa-solid ${escapeHtml(icon)}"></i></span>
+                        <div><h2>${escapeHtml(title)}</h2></div>
+                    </div>
+                    <button
+                        class="crm-button-secondary crm-settings-card-toggle"
+                        type="button"
+                        data-action="toggle-mailbox-editor"
+                        data-mailbox-kind="${escapeHtml(normalizedMailboxKind)}"
+                    >
+                        <i class="fa-solid ${isExpanded ? 'fa-chevron-up' : (sender ? 'fa-pen-to-square' : 'fa-plug-circle-check')}"></i>
+                        ${escapeHtml(isExpanded ? 'Collapse editor' : (sender ? 'Edit mailbox' : 'Connect mailbox'))}
+                    </button>
+                </div>
+
+                <div class="crm-settings-quick-stats crm-settings-quick-stats-compact">
+                    <div class="crm-settings-quick-stat">
+                        <span>Status</span>
+                        <strong>${escapeHtml(statusLabel)}</strong>
+                    </div>
+                    <div class="crm-settings-quick-stat">
+                        <span>Sender</span>
+                        <strong>${escapeHtml(sender?.senderEmail || senderEmailValue || 'Not available')}</strong>
+                    </div>
+                    <div class="crm-settings-quick-stat">
+                        <span>Last verified</span>
+                        <strong>${escapeHtml(sender?.lastVerifiedAt ? formatDateTime(sender.lastVerifiedAt) : 'Not yet')}</strong>
+                    </div>
+                    <div class="crm-settings-quick-stat">
+                        <span>Signature</span>
+                        <strong>${escapeHtml(sender ? getSignatureModeLabel(sender.signatureMode || 'template') : 'Not set')}</strong>
+                    </div>
+                </div>
+
+                ${supportNote ? `<div class="crm-settings-support-note">${escapeHtml(supportNote)}</div>` : ''}
+            </section>
+
+            ${isExpanded ? `
+                <section class="crm-settings-card crm-settings-card-compact crm-settings-mailbox-editor-card">
+                    <form id="${escapeHtml(formId)}" class="crm-mailbox-form crm-settings-mailbox-form">
+                        <div class="crm-mailbox-editor-layout">
+                            <section class="crm-settings-subcard">
+                                <div class="crm-settings-subcard-head">
+                                    <div>
+                                        <strong>Mailbox credentials</strong>
+                                        <span>Stored securely and verified before the mailbox is saved.</span>
+                                    </div>
+                                </div>
+
+                                <div class="crm-settings-field-grid crm-settings-field-grid-compact">
+                                    <label class="crm-settings-field">
+                                        <span class="form-label">${escapeHtml(senderNameLabel)}</span>
+                                        <input class="crm-input" name="senderName" value="${escapeHtml(senderNameValue)}" placeholder="Your full name" required>
+                                    </label>
+                                    <label class="crm-settings-field">
+                                        <span class="form-label">${escapeHtml(senderEmailLabel)}</span>
+                                        <input
+                                            class="crm-input"
+                                            name="${senderEmailReadOnly ? 'senderEmailDisplay' : 'senderEmail'}"
+                                            type="${senderEmailReadOnly ? 'text' : 'email'}"
+                                            value="${escapeHtml(senderEmailValue)}"
+                                            placeholder="support@company.com"
+                                            ${senderEmailReadOnly ? 'readonly' : 'required'}
+                                        >
+                                        ${senderEmailHint ? `<span class="panel-subtitle">${escapeHtml(senderEmailHint)}</span>` : ''}
+                                    </label>
+                                    <label class="crm-settings-field">
+                                        <span class="form-label">SMTP username</span>
+                                        <input class="crm-input" name="smtpUsername" value="${escapeHtml(smtpUsernameValue)}" placeholder="your.name@company.com" required>
+                                    </label>
+                                    <label class="crm-settings-field">
+                                        <span class="form-label">Mailbox password</span>
+                                        <input class="crm-input" name="smtpPassword" type="password" placeholder="${sender ? 'Leave blank to keep current password' : 'Enter mailbox password'}" ${sender ? '' : 'required'}>
+                                        <span class="panel-subtitle">Leave blank to keep the current secret. We re-verify the mailbox whenever you update it.</span>
+                                    </label>
+                                </div>
+                            </section>
+
+                            <section class="crm-settings-subcard crm-settings-subcard-signature">
+                                <div class="crm-settings-subcard-head">
+                                    <div>
+                                        <strong>Email signature</strong>
+                                        <span>Compact builder with grouped fields, thumbnail assets, and a bounded live preview.</span>
+                                    </div>
+                                </div>
+                                ${renderMailboxSignatureBuilder({
+                                    mailboxKind: normalizedMailboxKind,
+                                    sender: editorSender,
+                                    senderName: editorDisplayName,
+                                    senderEmail: editorDisplayEmail
+                                })}
+                            </section>
+                        </div>
+
+                        <div class="settings-actions crm-settings-action-row crm-settings-editor-footer" data-inline-feedback-container="${escapeHtml(formId)}">
+                            <button class="crm-button-secondary" type="submit">
+                                <i class="fa-solid ${normalizedMailboxKind === 'support' ? 'fa-shield-heart' : 'fa-plug-circle-check'}"></i> ${escapeHtml(saveButtonLabel)}
+                            </button>
+                            <button class="crm-button-ghost" type="button" data-action="toggle-mailbox-editor" data-mailbox-kind="${escapeHtml(normalizedMailboxKind)}">
+                                Close editor
+                            </button>
+                        </div>
+                    </form>
+                </section>
+            ` : ''}
+        </div>
+    `;
+}
+
+function renderPersonalMailboxSettingsCard() {
+    const personalSender = getPersonalMailboxSender();
+    const personalEditorSender = buildMailboxSignatureEditorSender(
+        'personal',
+        personalSender,
+        personalSender?.senderName || state.session.name || '',
+        personalSender?.senderEmail || state.session.email || ''
+    );
+
+    return renderMailboxSettingsSection({
+        mailboxKind: 'personal',
+        title: 'My mailbox',
+        icon: 'fa-envelope-circle-check',
+        sender: personalSender,
+        editorSender: personalEditorSender,
+        formId: 'personal-mailbox-form',
+        senderNameLabel: 'Sender name',
+        senderNameValue: personalEditorSender?.senderName || personalSender?.senderName || state.session.name || '',
+        senderEmailLabel: 'Sender email',
+        senderEmailValue: state.session.email || '',
+        senderEmailReadOnly: true,
+        senderEmailHint: 'Personal mailbox sends are locked to your CRM profile email.',
+        smtpUsernameValue: personalSender?.senderEmail || state.session.email || '',
+        saveButtonLabel: personalSender ? 'Update mailbox' : 'Connect mailbox',
+        supportNote: 'Your saved signature is added automatically to outgoing email from this mailbox.'
+    });
 }
 
 function renderSupportMailboxSettingsCard() {
@@ -5615,130 +6860,173 @@ function renderSupportMailboxSettingsCard() {
     }
 
     const supportSender = getSupportMailboxSender();
-    const statusLabel = supportSender ? 'Configured' : 'Not configured';
+    const supportEditorSender = buildMailboxSignatureEditorSender(
+        'support',
+        supportSender,
+        supportSender?.senderName || 'Support Team',
+        supportSender?.senderEmail || ''
+    );
 
+    return renderMailboxSettingsSection({
+        mailboxKind: 'support',
+        title: 'Support mailbox',
+        icon: 'fa-headset',
+        sender: supportSender,
+        editorSender: supportEditorSender,
+        formId: 'support-mailbox-form',
+        senderNameLabel: 'Support sender name',
+        senderNameValue: supportEditorSender?.senderName || supportSender?.senderName || 'Support Team',
+        senderEmailLabel: 'Support sender email',
+        senderEmailValue: supportEditorSender?.senderEmail || supportSender?.senderEmail || '',
+        senderEmailReadOnly: false,
+        senderEmailHint: 'Support users can send from this inbox after an admin configures it.',
+        smtpUsernameValue: supportSender?.senderEmail || '',
+        saveButtonLabel: supportSender ? 'Update support inbox' : 'Connect support inbox',
+        supportNote: 'Only admin users can update the support mailbox. Support users can send from it once it is configured.',
+        emptyStatusLabel: 'Not configured'
+    });
+}
+
+function renderSettingsAccountSection({ leadCount = 0, memberCount = 0 } = {}) {
     return `
-        <section class="crm-settings-card">
+        <section class="crm-settings-card crm-settings-card-compact">
             <div class="crm-settings-card-head">
                 <div class="crm-settings-card-title">
-                    <span class="crm-settings-card-icon"><i class="fa-solid fa-headset"></i></span>
-                    <div>
-                        <h2>Support mailbox</h2>
-                        <p>Configure the shared support inbox available to support users and admins.</p>
-                    </div>
+                    <span class="crm-settings-card-icon"><i class="fa-solid fa-user-shield"></i></span>
+                    <div><h2>Account</h2></div>
                 </div>
             </div>
 
-            <div class="crm-settings-quick-stats">
+            <div class="crm-settings-quick-stats crm-settings-quick-stats-compact">
                 <div class="crm-settings-quick-stat">
-                    <span>Status</span>
-                    <strong>${escapeHtml(statusLabel)}</strong>
+                    <span>Signed in as</span>
+                    <strong>${escapeHtml(state.session.name)}</strong>
                 </div>
                 <div class="crm-settings-quick-stat">
-                    <span>Sender</span>
-                    <strong>${escapeHtml(supportSender?.senderEmail || 'Not configured')}</strong>
+                    <span>Access level</span>
+                    <strong>${escapeHtml(getRoleLabel(state.session.role))}</strong>
                 </div>
                 <div class="crm-settings-quick-stat">
-                    <span>Last verified</span>
-                    <strong>${escapeHtml(supportSender?.lastVerifiedAt ? formatDateTime(supportSender.lastVerifiedAt) : 'Not yet')}</strong>
+                    <span>Lead inventory</span>
+                    <strong>${leadCount.toLocaleString()}</strong>
+                </div>
+                <div class="crm-settings-quick-stat">
+                    <span>Member inventory</span>
+                    <strong>${memberCount.toLocaleString()}</strong>
                 </div>
             </div>
 
-            <form id="support-mailbox-form" class="crm-mailbox-form">
-                <div class="crm-settings-field-grid">
-                    <label class="crm-settings-field">
-                        <span class="form-label">Support sender name</span>
-                        <input class="crm-input" name="senderName" value="${escapeHtml(supportSender?.senderName || 'Support Team')}" placeholder="Support Team" required>
-                    </label>
-                    <label class="crm-settings-field">
-                        <span class="form-label">Support sender email</span>
-                        <input class="crm-input" name="senderEmail" type="email" value="${escapeHtml(supportSender?.senderEmail || '')}" placeholder="support@company.com" required>
-                    </label>
-                    <label class="crm-settings-field">
-                        <span class="form-label">SMTP username</span>
-                        <input class="crm-input" name="smtpUsername" value="${escapeHtml(supportSender?.senderEmail || '')}" placeholder="support@company.com" required>
-                    </label>
-                    <label class="crm-settings-field">
-                        <span class="form-label">Mailbox password</span>
-                        <input class="crm-input" name="smtpPassword" type="password" placeholder="${supportSender ? 'Leave blank to keep current password' : 'Enter mailbox password'}" ${supportSender ? '' : 'required'}>
-                    </label>
-                </div>
+            <div class="crm-settings-field-grid crm-settings-field-grid-compact">
+                <label class="crm-settings-field">
+                    <span class="form-label">Email</span>
+                    <div class="crm-settings-field-value">${escapeHtml(state.session.email || 'Not available')}</div>
+                </label>
+                <label class="crm-settings-field">
+                    <span class="form-label">Workspace session</span>
+                    <div class="crm-settings-field-value">${escapeHtml(isAdminSession(state.session) ? 'Admin maintenance enabled' : 'Sales workspace session')}</div>
+                </label>
+            </div>
 
-                <div class="settings-actions crm-settings-action-row">
-                    <button class="crm-button-secondary" type="submit"><i class="fa-solid fa-shield-heart"></i> ${supportSender ? 'Update support inbox' : 'Connect support inbox'}</button>
-                </div>
-            </form>
-            <div class="crm-settings-support-note">Only admin users can update the support mailbox. Support users can send from it once it is configured.</div>
+            <div class="settings-actions crm-settings-action-row crm-settings-inline-actions">
+                <button class="crm-button" data-action="logout"><i class="fa-solid fa-right-from-bracket"></i> Logout</button>
+            </div>
         </section>
     `;
 }
 
-function renderCallingPreferenceSettingsCard() {
-    const currentCallPreference = getCurrentCallPreference();
-    const isGoogleVoiceDefault = currentCallPreference === 'google_voice';
-
+function renderWorkspaceToolsSettingsSection({ leadCount = 0, memberCount = 0, canManageSettings = false, canExport = false } = {}) {
     return `
-        <section class="crm-settings-card">
-            <div class="crm-settings-card-head">
-                <div class="crm-settings-card-title">
-                    <span class="crm-settings-card-icon"><i class="fa-solid fa-phone-volume"></i></span>
-                    <div>
-                        <h2>Calling preferences</h2>
-                        <p>Choose whether CRM call buttons follow your normal device setup or your Google Voice browser setup.</p>
+        <div class="crm-settings-stage-grid crm-settings-stage-grid-two">
+            <section class="crm-settings-card crm-settings-card-compact">
+                <div class="crm-settings-card-head">
+                    <div class="crm-settings-card-title">
+                        <span class="crm-settings-card-icon"><i class="fa-solid fa-file-export"></i></span>
+                        <div><h2>Exports</h2></div>
                     </div>
                 </div>
-            </div>
 
-            <div class="crm-settings-quick-stats">
-                <div class="crm-settings-quick-stat">
-                    <span>Default mode</span>
-                    <strong>${escapeHtml(getCallPreferenceLabel(currentCallPreference))}</strong>
-                </div>
-                <div class="crm-settings-quick-stat">
-                    <span>Desktop flow</span>
-                    <strong>${escapeHtml(isGoogleVoiceDefault ? 'Google Voice one-click dialing' : 'System call handler')}</strong>
-                </div>
-            </div>
-
-            <form id="call-preference-form" class="crm-mailbox-form">
-                <div class="crm-settings-field-grid">
-                    <label class="crm-settings-field">
-                        <span class="form-label">Default call routing</span>
-                        <select class="crm-select" name="callPreference">
-                            ${CALL_PREFERENCE_OPTIONS.map((option) => `
-                                <option value="${escapeHtml(option.value)}" ${currentCallPreference === option.value ? 'selected' : ''}>
-                                    ${escapeHtml(option.label)}
-                                </option>
-                            `).join('')}
-                        </select>
-                        <span class="panel-subtitle">
-                            ${escapeHtml(
-                                isGoogleVoiceDefault
-                                    ? 'Google Voice mode still uses normal browser phone links. If calls are opening another app, set Google Voice as the browser handler for phone links.'
-                                    : 'System default uses the browser or device calling app already configured on this machine.'
-                            )}
-                        </span>
-                    </label>
-                    <label class="crm-settings-field">
-                        <span class="form-label">Google Voice setup</span>
-                        <div class="crm-settings-field-value">${escapeHtml(isLikelyMobileCallingDevice() ? 'Mobile keeps your normal device call flow.' : 'Desktop browser setup required.')}</div>
-                        <span class="panel-subtitle">Google Voice calling on the web is a desktop browser flow. Mobile still follows your device's normal calling setup.</span>
-                    </label>
+                <div class="crm-settings-quick-stats crm-settings-quick-stats-compact">
+                    <div class="crm-settings-quick-stat">
+                        <span>Lead inventory</span>
+                        <strong>${leadCount.toLocaleString()}</strong>
+                    </div>
+                    <div class="crm-settings-quick-stat">
+                        <span>Member inventory</span>
+                        <strong>${memberCount.toLocaleString()}</strong>
+                    </div>
                 </div>
 
-                <div class="settings-actions crm-settings-action-row">
-                    <button class="crm-button-secondary" type="submit"><i class="fa-solid fa-phone-volume"></i> Save calling preference</button>
-                    <a class="crm-button-ghost" href="${GOOGLE_VOICE_SETUP_URL}" target="_blank" rel="noreferrer">
-                        <i class="fa-solid fa-arrow-up-right-from-square"></i> Google Voice setup
-                    </a>
+                <div class="settings-actions crm-settings-action-row crm-settings-inline-actions">
+                    ${canExport ? '<button class="crm-button-secondary" data-action="export-clients"><i class="fa-solid fa-file-export"></i> Export CSV</button>' : ''}
                 </div>
-            </form>
+                <div class="crm-settings-support-note">${canExport ? 'Exports mirror the current CRM workspace so your team can work from the latest snapshot.' : 'Export access is reserved for admin sessions.'}</div>
+            </section>
 
-            <div class="crm-settings-support-note">Every phone action also includes Copy number. When Google Voice is your default, the fallback button opens the system call handler for that one call.</div>
-        </section>
+            <section class="crm-settings-card crm-settings-card-compact">
+                <div class="crm-settings-card-head">
+                    <div class="crm-settings-card-title">
+                        <span class="crm-settings-card-icon"><i class="fa-solid fa-globe"></i></span>
+                        <div><h2>Time zone automation</h2></div>
+                    </div>
+                </div>
+
+                <div class="crm-settings-quick-stats crm-settings-quick-stats-compact">
+                    <div class="crm-settings-quick-stat">
+                        <span>Lead inventory</span>
+                        <strong>${leadCount.toLocaleString()}</strong>
+                    </div>
+                    <div class="crm-settings-quick-stat">
+                        <span>Mode</span>
+                        <strong>Auto + manual</strong>
+                    </div>
+                </div>
+
+                <div class="settings-actions crm-settings-action-row crm-settings-inline-actions">
+                    ${canManageSettings ? '<button class="crm-button-secondary" data-action="backfill-time-zones"><i class="fa-solid fa-rotate"></i> Backfill time zones</button>' : ''}
+                </div>
+                <div class="crm-settings-support-note">${canManageSettings ? 'Manual overrides stay untouched. Non-overridden leads are normalized to the shared CRM time zone labels.' : 'Only admin users can run the time zone backfill.'}</div>
+            </section>
+
+            <section class="crm-settings-card crm-settings-card-compact crm-settings-card-danger crm-settings-card-full">
+                <div class="crm-settings-card-head">
+                    <div class="crm-settings-card-title">
+                        <span class="crm-settings-card-icon"><i class="fa-solid fa-triangle-exclamation"></i></span>
+                        <div><h2>Danger zone</h2></div>
+                    </div>
+                </div>
+
+                <div class="settings-actions crm-settings-action-row crm-settings-inline-actions">
+                    ${canManageSettings ? `
+                        <button class="crm-button-danger" data-action="open-clear-confirm">
+                            <i class="fa-solid fa-trash"></i> Clear all data
+                        </button>
+                    ` : ''}
+                </div>
+                <div class="crm-settings-support-note">${canManageSettings ? 'You will need to type CLEAR in the confirmation step before the reset can proceed.' : 'Only admin users can reset the workspace.'}</div>
+            </section>
+        </div>
     `;
 }
 
+function renderSettingsStageContent(sectionId, context = {}) {
+    if (sectionId === 'calling') {
+        return renderCallPreferenceSettingsCard();
+    }
+
+    if (sectionId === 'personal_mailbox') {
+        return renderPersonalMailboxSettingsCard();
+    }
+
+    if (sectionId === 'support_mailbox') {
+        return renderSupportMailboxSettingsCard();
+    }
+
+    if (sectionId === 'workspace_tools') {
+        return renderWorkspaceToolsSettingsSection(context);
+    }
+
+    return renderSettingsAccountSection(context);
+}
 function renderLeadEmailHistoryCard(lead) {
     const emailHistory = getLeadEmailHistory(lead);
     const canSendEmail = canSendEmailForLead(lead);
@@ -5766,7 +7054,7 @@ function renderLeadEmailHistoryCard(lead) {
                                     <div class="history-title">${escapeHtml(entry.subject || 'No subject')}</div>
                                     <div class="panel-subtitle">${escapeHtml(entry.senderDisplayName || entry.senderName || 'CRM user')} · ${escapeHtml(entry.toEmail || lead.email || 'No recipient')}</div>
                                 </div>
-                                <span class="summary-chip ${escapeHtml(entry.status || 'sent')}">${escapeHtml(titleCase(entry.status || 'sent'))}</span>
+                                <span class="summary-chip ${escapeHtml(entry.status || 'sent')}">${escapeHtml(titleCase(entry.displayStatus || entry.status || 'sent'))}</span>
                             </div>
                             <div class="note-history-copy">${escapeHtml(truncate(entry.bodyText || '', 220) || 'No message body.')}</div>
                             <div class="crm-email-history-meta">
@@ -5814,7 +7102,7 @@ function renderEmailComposeDrawer() {
                     <div>Connect your mailbox in Settings before sending CRM email.</div>
                 </div>
                 <div class="drawer-actions">
-                    <button class="crm-button-secondary" type="button" data-action="jump-to-view" data-view="settings">
+                    <button class="crm-button-secondary" type="button" data-action="jump-to-view" data-view="settings" data-settings-section="personal_mailbox" data-mailbox-kind="personal">
                         <i class="fa-solid fa-gear"></i> Open Settings
                     </button>
                     <button class="crm-button-ghost" type="button" data-action="close-drawer">Close</button>
@@ -5874,6 +7162,7 @@ function renderEmailComposeDrawer() {
                                 maxlength="10000"
                                 required
                             >${escapeHtml(draft.bodyText || '')}</textarea>
+                            <span class="panel-subtitle">Your saved signature is added automatically when the email sends.</span>
                         </label>
                     </div>
                     <div class="drawer-actions">
@@ -5891,144 +7180,61 @@ function renderSettingsPanel() {
     const memberCount = getWorkspaceDisplayCount('members', { ignoreSearch: true, ignoreFilters: true });
     const canManageSettings = hasPermission(state.session, PERMISSIONS.MANAGE_SETTINGS);
     const canExport = hasPermission(state.session, PERMISSIONS.EXPORT_LEADS);
-    const totalRecords = leadCount + memberCount;
+    const settingsSections = getSettingsSectionDefinitions(leadCount, memberCount);
+    const selectedSection = getValidSettingsSection(state.selectedSettingsSection);
+    state.selectedSettingsSection = selectedSection;
+    const activeSection = settingsSections.find((section) => section.id === selectedSection) || settingsSections[0];
 
     return `
         <div class="settings-grid crm-settings-page">
-            <section class="crm-settings-hero">
-                <div class="crm-settings-hero-inner">
-                    <span class="crm-settings-hero-label"><i class="fa-solid fa-gears"></i> Workspace settings</span>
-                    <h1>Account and <em>workspace controls</em></h1>
-                    <p class="crm-settings-hero-desc">
-                        Manage session access, exports, and workspace maintenance from one polished control page.
-                    </p>
-                    <div class="crm-settings-hero-chips">
-                        <span class="crm-settings-chip"><i class="fa-solid fa-user"></i> ${escapeHtml(state.session.name)}</span>
-                        <span class="crm-settings-chip"><i class="fa-solid fa-shield-halved"></i> ${escapeHtml(getRoleLabel(state.session.role))} access</span>
-                        <span class="crm-settings-chip"><i class="fa-solid fa-database"></i> ${totalRecords.toLocaleString()} workspace records</span>
-                        <span class="crm-settings-chip ${canManageSettings ? 'is-active' : ''}">
-                            <i class="fa-solid ${canManageSettings ? 'fa-check-circle' : 'fa-lock'}"></i>
-                            ${canManageSettings ? 'Admin maintenance enabled' : 'Sales workspace session'}
-                        </span>
-                    </div>
-                </div>
-            </section>
+            <div class="crm-settings-shell">
+                <aside class="crm-settings-rail">
+                    <nav class="crm-settings-nav-card" aria-label="Settings sections">
+                        ${settingsSections.map((section) => {
+                            const isActive = section.id === selectedSection;
+                            return `
+                                <button
+                                    class="crm-settings-nav-button ${isActive ? 'is-active' : ''}"
+                                    type="button"
+                                    data-action="select-settings-section"
+                                    data-settings-section="${escapeHtml(section.id)}"
+                                >
+                                    <span class="crm-settings-nav-button-copy">
+                                        <strong>${escapeHtml(section.label)}</strong>
+                                    </span>
+                                </button>
+                            `;
+                        }).join('')}
+                    </nav>
+                </aside>
 
-            <div class="crm-settings-main">
-                <section class="crm-settings-card crm-settings-card-wide">
-                    <div class="crm-settings-card-head">
-                        <div class="crm-settings-card-title">
-                            <span class="crm-settings-card-icon"><i class="fa-solid fa-user-shield"></i></span>
-                            <div>
-                                <h2>Session & access</h2>
-                                <p>Review the signed-in CRM account and end the session when needed.</p>
-                            </div>
-                        </div>
-                    </div>
+                <section class="crm-settings-main">
+                    <section class="crm-settings-mobile-nav" aria-label="Settings section selector">
+                        <label class="crm-settings-mobile-nav-label" for="crm-settings-section-select">Section</label>
+                        <select
+                            id="crm-settings-section-select"
+                            class="crm-select crm-settings-section-select"
+                            data-settings-section-select
+                            aria-label="Choose settings section"
+                        >
+                            ${settingsSections.map((section) => `
+                                <option value="${escapeHtml(section.id)}" ${section.id === selectedSection ? 'selected' : ''}>${escapeHtml(section.label)}</option>
+                            `).join('')}
+                        </select>
+                    </section>
 
-                    <div class="crm-settings-field-grid">
-                        <label class="crm-settings-field">
-                            <span class="form-label">Signed in as</span>
-                            <div class="crm-settings-field-value">${escapeHtml(state.session.name)}</div>
-                        </label>
-                        <label class="crm-settings-field">
-                            <span class="form-label">Email</span>
-                            <div class="crm-settings-field-value">${escapeHtml(state.session.email || 'Not available')}</div>
-                        </label>
-                        <label class="crm-settings-field">
-                            <span class="form-label">Access level</span>
-                            <div class="crm-settings-field-value">${escapeHtml(getRoleLabel(state.session.role))}</div>
-                        </label>
-                        <label class="crm-settings-field">
-                            <span class="form-label">Workspace inventory</span>
-                            <div class="crm-settings-field-value">${leadCount.toLocaleString()} leads and ${memberCount.toLocaleString()} members</div>
-                        </label>
-                    </div>
+                    <section class="crm-settings-stage-header">
+                        <h2>${escapeHtml(activeSection?.label || 'Settings')}</h2>
+                    </section>
 
-                    <div class="settings-actions crm-settings-action-row">
-                        <button class="crm-button" data-action="logout"><i class="fa-solid fa-right-from-bracket"></i> Logout</button>
+                    <div class="crm-settings-stage-body">
+                        ${renderSettingsStageContent(selectedSection, {
+                            leadCount,
+                            memberCount,
+                            canManageSettings,
+                            canExport
+                        })}
                     </div>
-                </section>
-
-                ${renderCallingPreferenceSettingsCard()}
-                ${renderPersonalMailboxSettingsCard()}
-                ${renderSupportMailboxSettingsCard()}
-
-                <section class="crm-settings-card">
-                    <div class="crm-settings-card-head">
-                        <div class="crm-settings-card-title">
-                            <span class="crm-settings-card-icon"><i class="fa-solid fa-file-export"></i></span>
-                            <div>
-                                <h2>Exports</h2>
-                                <p>Download the CRM workspace in a clean CSV format whenever export access is available.</p>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="crm-settings-quick-stats">
-                        <div class="crm-settings-quick-stat">
-                            <span>Lead inventory</span>
-                            <strong>${leadCount.toLocaleString()}</strong>
-                        </div>
-                        <div class="crm-settings-quick-stat">
-                            <span>Member inventory</span>
-                            <strong>${memberCount.toLocaleString()}</strong>
-                        </div>
-                    </div>
-
-                    <div class="settings-actions crm-settings-action-row">
-                        ${canExport ? '<button class="crm-button-secondary" data-action="export-clients"><i class="fa-solid fa-file-export"></i> Export CSV</button>' : ''}
-                    </div>
-                    <div class="crm-settings-support-note">${canExport ? 'Exports mirror the current CRM workspace so your team can work from the latest snapshot.' : 'Export access is reserved for admin sessions.'}</div>
-                </section>
-
-                <section class="crm-settings-card">
-                    <div class="crm-settings-card-head">
-                        <div class="crm-settings-card-title">
-                            <span class="crm-settings-card-icon"><i class="fa-solid fa-globe"></i></span>
-                            <div>
-                                <h2>Time zone automation</h2>
-                                <p>Normalize and backfill lead time zones from the shared U.S. area-code lookup.</p>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="crm-settings-quick-stats">
-                        <div class="crm-settings-quick-stat">
-                            <span>Lead inventory</span>
-                            <strong>${leadCount.toLocaleString()}</strong>
-                        </div>
-                        <div class="crm-settings-quick-stat">
-                            <span>Mode</span>
-                            <strong>Auto + manual</strong>
-                        </div>
-                    </div>
-
-                    <div class="settings-actions crm-settings-action-row">
-                        ${canManageSettings ? '<button class="crm-button-secondary" data-action="backfill-time-zones"><i class="fa-solid fa-rotate"></i> Backfill time zones</button>' : ''}
-                    </div>
-                    <div class="crm-settings-support-note">${canManageSettings ? 'Manual overrides stay untouched. Non-overridden leads are normalized to the shared CRM time zone labels.' : 'Only admin users can run the time zone backfill.'}</div>
-                </section>
-
-                <section class="crm-settings-card crm-settings-card-danger crm-settings-card-full">
-                    <div class="crm-settings-card-head">
-                        <div class="crm-settings-card-title">
-                            <span class="crm-settings-card-icon"><i class="fa-solid fa-triangle-exclamation"></i></span>
-                            <div>
-                                <h2>Danger zone</h2>
-                                <p>Clear CRM records and import history from this workspace.</p>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="settings-actions crm-settings-action-row">
-                        ${canManageSettings ? `
-                            <button class="crm-button-danger" data-action="open-clear-confirm">
-                                <i class="fa-solid fa-trash"></i> Clear all data
-                            </button>
-                        ` : ''}
-                    </div>
-                    <div class="crm-settings-support-note">${canManageSettings ? 'You will need to type CLEAR in the confirmation step before the reset can proceed.' : 'Only admin users can reset the workspace.'}</div>
                 </section>
             </div>
         </div>
@@ -8243,6 +9449,8 @@ function resetAuthenticatedCrmState() {
     state.dispositionDefinitions = [];
     state.users = [];
     state.mailboxSenders = [];
+    state.mailboxSignatureDrafts = createDefaultMailboxSignatureDraftState();
+    Object.assign(state, createDefaultSettingsUiState());
     state.savedFilters = [];
     state.importHistory = [];
     state.workspaceSummary = createEmptyWorkspaceSummary();
@@ -8284,6 +9492,71 @@ function flashNotice(message, kind = 'success') {
         state.notice = null;
         render();
     }, 4200);
+}
+
+function findInlineFeedbackContainer(targetOrKey) {
+    if (!targetOrKey) {
+        return null;
+    }
+
+    if (typeof targetOrKey === 'string') {
+        const normalizedKey = normalizeWhitespace(targetOrKey);
+
+        if (!normalizedKey) {
+            return null;
+        }
+
+        return Array.from(document.querySelectorAll('[data-inline-feedback-container]'))
+            .find((node) => node.dataset.inlineFeedbackContainer === normalizedKey) || null;
+    }
+
+    if (typeof targetOrKey.closest === 'function') {
+        return targetOrKey.closest('[data-inline-feedback-container]');
+    }
+
+    return null;
+}
+
+function showInlineActionFeedback(targetOrKey, message, kind = 'success', { duration = 2800 } = {}) {
+    const container = findInlineFeedbackContainer(targetOrKey);
+    const normalizedMessage = normalizeWhitespace(message);
+
+    if (!container || !normalizedMessage) {
+        return false;
+    }
+
+    const feedbackKey = container.dataset.inlineFeedbackContainer || normalizedMessage;
+    let feedbackNode = container.querySelector('[data-inline-feedback-message]');
+
+    if (!feedbackNode) {
+        feedbackNode = document.createElement('span');
+        feedbackNode.dataset.inlineFeedbackMessage = 'true';
+        container.appendChild(feedbackNode);
+    }
+
+    feedbackNode.className = `crm-inline-feedback crm-inline-feedback-${kind === 'error' ? 'error' : 'success'}`;
+    feedbackNode.textContent = normalizedMessage;
+    feedbackNode.setAttribute('role', 'status');
+    feedbackNode.setAttribute('aria-live', kind === 'error' ? 'assertive' : 'polite');
+
+    clearTimeout(inlineFeedbackTimers.get(feedbackKey));
+    inlineFeedbackTimers.set(feedbackKey, setTimeout(() => {
+        if (feedbackNode?.isConnected) {
+            feedbackNode.remove();
+        }
+
+        inlineFeedbackTimers.delete(feedbackKey);
+    }, duration));
+
+    return true;
+}
+
+function queueInlineActionFeedback(targetOrKey, message, kind = 'success', options = {}) {
+    window.requestAnimationFrame(() => {
+        if (!showInlineActionFeedback(targetOrKey, message, kind, options)) {
+            flashNotice(message, kind);
+        }
+    });
 }
 
 function refreshWorkspaceChrome() {
@@ -8332,6 +9605,60 @@ document.addEventListener('click', async (event) => {
     if (event.target.matches('.crm-search')) {
         state.activeSearchSurface = getSearchSurfaceFromElement(event.target);
         state.activeSearchCaret = event.target.selectionStart ?? event.target.value.length;
+    }
+
+    const signatureTabButton = event.target.closest('[data-signature-tab-button]');
+    if (signatureTabButton) {
+        const form = signatureTabButton.closest('form');
+        const nextTab = signatureTabButton.dataset.signatureTab;
+
+        if (form) {
+            setSignatureEditorActiveTab(form, nextTab);
+
+            if (nextTab === 'template') {
+                setSignatureEditorMode(form, 'template', { activateTab: false });
+            } else if (nextTab === 'html') {
+                setSignatureEditorMode(form, 'html_override', { activateTab: false });
+            } else {
+                updateSignatureEditorPreview(form, {
+                    preservePlainText: normalizeSignatureModeValue(form.querySelector('[data-signature-mode-input]')?.value) === 'plain_text'
+                });
+            }
+        }
+
+        return;
+    }
+
+    const signatureGroupButton = event.target.closest('[data-signature-group-button]');
+    if (signatureGroupButton) {
+        setSignatureEditorActiveSubpanel(signatureGroupButton.closest('form'), signatureGroupButton.dataset.signatureGroup);
+        return;
+    }
+
+    const signaturePreviewToggle = event.target.closest('[data-signature-preview-toggle]');
+    if (signaturePreviewToggle) {
+        const form = signaturePreviewToggle.closest('form');
+        const templateShell = form?.querySelector('[data-signature-template-shell]');
+        const isCurrentlyVisible = templateShell ? !templateShell.classList.contains('is-preview-hidden-mobile') : state.showSignaturePreview;
+        setSignaturePreviewVisibility(form, !isCurrentlyVisible);
+        return;
+    }
+
+    const setPlainTextButton = event.target.closest('[data-signature-set-mode]');
+    if (setPlainTextButton) {
+        const form = setPlainTextButton.closest('form');
+
+        if (form) {
+            setSignatureEditorMode(form, setPlainTextButton.dataset.signatureSetMode);
+        }
+
+        return;
+    }
+
+    const clearSignatureAssetButton = event.target.closest('[data-signature-clear-asset]');
+    if (clearSignatureAssetButton) {
+        clearSignatureAsset(clearSignatureAssetButton.closest('form'), clearSignatureAssetButton.dataset.signatureClearAsset);
+        return;
     }
 
     const actionEl = event.target.closest('[data-action]');
@@ -8484,6 +9811,24 @@ document.addEventListener('click', async (event) => {
         return;
     }
 
+    if (action === 'select-settings-section') {
+        state.selectedSettingsSection = getValidSettingsSection(actionEl.dataset.settingsSection);
+        renderPanels();
+        return;
+    }
+
+    if (action === 'toggle-mailbox-editor') {
+        const mailboxKind = normalizeMailboxKind(actionEl.dataset.mailboxKind);
+        state.expandedMailboxEditorKind = state.expandedMailboxEditorKind === mailboxKind ? '' : mailboxKind;
+
+        if (state.expandedMailboxEditorKind) {
+            state.selectedSettingsSection = mailboxKind === 'support' ? 'support_mailbox' : 'personal_mailbox';
+        }
+
+        renderPanels();
+        return;
+    }
+
     if (action === 'set-view' || action === 'jump-to-view') {
         const targetView = actionEl.dataset.view;
 
@@ -8505,6 +9850,14 @@ document.addEventListener('click', async (event) => {
         if (targetView === 'email' && !hasPermission(state.session, PERMISSIONS.SEND_EMAIL)) {
             flashNotice('Email access is not enabled for this CRM session.', 'error');
             return;
+        }
+
+        if (targetView === 'settings') {
+            state.selectedSettingsSection = getValidSettingsSection(actionEl.dataset.settingsSection || state.selectedSettingsSection);
+
+            if (actionEl.dataset.mailboxKind) {
+                state.expandedMailboxEditorKind = normalizeMailboxKind(actionEl.dataset.mailboxKind);
+            }
         }
 
         if (action === 'jump-to-view' && state.drawerMode) {
@@ -8926,6 +10279,21 @@ document.addEventListener('click', async (event) => {
         return;
     }
 
+    if (action === 'use-system-default-call') {
+        try {
+            const phoneValue = normalizeWhitespace(actionEl.dataset.phone);
+            const copyResult = await copyTextToClipboard(phoneValue, { promptLabel: 'Copy this phone number for your system phone app:' });
+            flashNotice(
+                copyResult === 'prompt'
+                    ? 'Open your system phone app and place the call using the number shown.'
+                    : 'Phone number copied. Open your system phone app to place this call.',
+                'success'
+            );
+        } catch (error) {
+            flashNotice(error.message || 'Unable to prepare that system-default call.', 'error');
+        }
+        return;
+    }
     if (action === 'sync-email-mailbox') {
         await syncActiveEmailMailbox();
         return;
@@ -9444,6 +10812,7 @@ document.addEventListener('change', (event) => {
 });
 
 document.addEventListener('submit', async (event) => {
+    const formElement = event.target;
     const formId = typeof event.target?.getAttribute === 'function'
         ? event.target.getAttribute('id')
         : event.target?.id;
@@ -9500,12 +10869,14 @@ document.addEventListener('submit', async (event) => {
         event.preventDefault();
 
         try {
-            const formData = new FormData(event.target);
+            const formData = new FormData(formElement);
             await dataService.saveCallPreference(formData.get('callPreference'));
-            flashNotice('Calling preference saved.', 'success');
             await refreshData();
+            queueInlineActionFeedback(formId, 'Saved.');
         } catch (error) {
-            flashNotice(error.message || 'Unable to save your calling preference.', 'error');
+            if (!showInlineActionFeedback(formId, error.message || 'Unable to save your calling preference.', 'error')) {
+                flashNotice(error.message || 'Unable to save your calling preference.', 'error');
+            }
         }
         return;
     }
@@ -9514,16 +10885,24 @@ document.addEventListener('submit', async (event) => {
         event.preventDefault();
 
         try {
-            const formData = new FormData(event.target);
+            const formData = new FormData(formElement);
+            const signatureDraft = collectSignatureDraftFromForm(formElement);
             await dataService.savePersonalMailboxConnection({
                 senderName: formData.get('senderName'),
+                signatureMode: signatureDraft.signatureMode,
+                signatureTemplate: signatureDraft.signatureTemplate,
+                signatureHtmlOverride: signatureDraft.signatureHtmlOverride,
+                signatureText: signatureDraft.signatureText,
                 smtpUsername: formData.get('smtpUsername'),
                 smtpPassword: formData.get('smtpPassword')
             });
-            flashNotice('Your mailbox connection is ready for CRM email.', 'success');
+            setMailboxSignatureDraft('personal', null);
             await refreshData();
+            queueInlineActionFeedback(formId, 'Mailbox updated.');
         } catch (error) {
-            flashNotice(error.message || 'Unable to save your mailbox connection.', 'error');
+            if (!showInlineActionFeedback(formId, error.message || 'Unable to save your mailbox connection.', 'error')) {
+                flashNotice(error.message || 'Unable to save your mailbox connection.', 'error');
+            }
         }
         return;
     }
@@ -9532,17 +10911,25 @@ document.addEventListener('submit', async (event) => {
         event.preventDefault();
 
         try {
-            const formData = new FormData(event.target);
+            const formData = new FormData(formElement);
+            const signatureDraft = collectSignatureDraftFromForm(formElement);
             await dataService.saveSupportMailboxConnection({
                 senderEmail: formData.get('senderEmail'),
                 senderName: formData.get('senderName'),
+                signatureMode: signatureDraft.signatureMode,
+                signatureTemplate: signatureDraft.signatureTemplate,
+                signatureHtmlOverride: signatureDraft.signatureHtmlOverride,
+                signatureText: signatureDraft.signatureText,
                 smtpUsername: formData.get('smtpUsername'),
                 smtpPassword: formData.get('smtpPassword')
             });
-            flashNotice('The support mailbox is ready for CRM email.', 'success');
+            setMailboxSignatureDraft('support', null);
             await refreshData();
+            queueInlineActionFeedback(formId, 'Support mailbox updated.');
         } catch (error) {
-            flashNotice(error.message || 'Unable to save the support mailbox.', 'error');
+            if (!showInlineActionFeedback(formId, error.message || 'Unable to save the support mailbox.', 'error')) {
+                flashNotice(error.message || 'Unable to save the support mailbox.', 'error');
+            }
         }
         return;
     }
@@ -9858,6 +11245,27 @@ document.addEventListener('change', (event) => {
 });
 
 document.addEventListener('input', (event) => {
+    if (event.target.closest?.('.crm-signature-editor')) {
+        const form = event.target.closest('form');
+        const isPlainTextEdit = event.target.matches('[data-signature-plain-textarea]')
+            && normalizeSignatureModeValue(form?.querySelector('[data-signature-mode-input]')?.value) === 'plain_text';
+
+        if (form && event.target.closest('[data-signature-panel="template"]')) {
+            const currentMode = normalizeSignatureModeValue(form.querySelector('[data-signature-mode-input]')?.value);
+
+            if (currentMode !== 'template') {
+                form.querySelector('[data-signature-mode-input]').value = 'template';
+            }
+        }
+
+        if (form && event.target.closest('[data-signature-panel="html"]') && event.target.name === 'signatureHtmlOverride') {
+            form.querySelector('[data-signature-mode-input]').value = 'html_override';
+        }
+
+        updateSignatureEditorPreview(form, { preservePlainText: isPlainTextEdit });
+        return;
+    }
+
     if (event.target.closest?.('#email-compose-form')) {
         syncEmailComposerDraft(event.target.closest('form'));
         return;
@@ -10051,6 +11459,31 @@ document.addEventListener('paste', (event) => {
 });
 
 document.addEventListener('change', async (event) => {
+    if (event.target.matches('[data-signature-upload]')) {
+        try {
+            await handleSignatureAssetUpload(event.target);
+        } catch (error) {
+            const mailboxKind = normalizeWhitespace(event.target.dataset.mailboxKind).toLowerCase() === 'support' ? 'support' : 'personal';
+            const assetKind = normalizeWhitespace(event.target.dataset.signatureUpload).toLowerCase() === 'banner' ? 'banner' : 'headshot';
+
+            if (!showInlineActionFeedback(
+                getSignatureAssetFeedbackKey(mailboxKind, assetKind),
+                error.message || 'Unable to upload that signature image.',
+                'error',
+                { duration: 3600 }
+            )) {
+                flashNotice(error.message || 'Unable to upload that signature image.', 'error');
+            }
+        }
+        return;
+    }
+
+    if (event.target.matches('select[data-settings-section-select]')) {
+        state.selectedSettingsSection = getValidSettingsSection(event.target.value);
+        renderPanels();
+        return;
+    }
+
     if (event.target.closest?.('#email-compose-form')) {
         syncEmailComposerDraft(event.target.closest('form'));
         return;

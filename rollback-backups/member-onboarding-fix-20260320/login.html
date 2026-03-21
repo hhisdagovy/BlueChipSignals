@@ -628,87 +628,23 @@
     <script type="module">
         import { 
             auth,
+            db,
             signInWithEmailAndPassword,
             signInWithPopup,
             GoogleAuthProvider,
-            signOut,
             setPersistence,
             browserLocalPersistence,
             browserSessionPersistence,
+            doc,
+            getDoc,
+            setDoc,
             sendPasswordResetEmail
         } from './assets/js/firebase-config.js';
-        import {
-            ACCOUNT_ISSUE_REASON,
-            getLoginMessageFromReason,
-            loadUserProfile
-        } from './assets/js/firebase-user-profile.js';
 
         // Form submission with Firebase Authentication
         const loginForm = document.getElementById('loginForm');
         const errorMessage = document.getElementById('errorMessage');
         const successMessage = document.getElementById('successMessage');
-
-        function hideMessages() {
-            errorMessage.style.display = 'none';
-            successMessage.style.display = 'none';
-        }
-
-        function showError(message) {
-            errorMessage.textContent = message;
-            errorMessage.style.display = 'block';
-        }
-
-        function showSuccess(message) {
-            successMessage.textContent = message;
-            successMessage.style.display = 'block';
-        }
-
-        function clearStoredLoginState() {
-            localStorage.removeItem('bluechip_logged_in');
-            localStorage.removeItem('bluechip_user_email');
-            sessionStorage.removeItem('bluechip_logged_in');
-            sessionStorage.removeItem('bluechip_user_email');
-        }
-
-        function persistLoginState(user, rememberMe) {
-            clearStoredLoginState();
-            const storage = rememberMe ? localStorage : sessionStorage;
-            storage.setItem('bluechip_logged_in', 'true');
-            storage.setItem('bluechip_user_email', user.email || '');
-        }
-
-        async function resolveLoginOutcome(user) {
-            const profileResult = await loadUserProfile(user.uid, { requireEntitlements: true });
-
-            if (profileResult.status === 'missing_profile' || profileResult.status === 'account_issue') {
-                if (profileResult.profile?.missingFields?.length) {
-                    console.warn('Login blocked because membership data is incomplete:', profileResult.profile.missingFields);
-                }
-                await signOut(auth);
-                clearStoredLoginState();
-                return {
-                    status: ACCOUNT_ISSUE_REASON,
-                    destination: null,
-                    successMessage: '',
-                    errorMessage: getLoginMessageFromReason(ACCOUNT_ISSUE_REASON)
-                };
-            }
-
-            return {
-                status: 'ok',
-                destination: profileResult.profile.setupCompleted ? 'dashboard.html' : 'welcome-setup.html',
-                successMessage: profileResult.profile.setupCompleted
-                    ? 'Welcome back! Redirecting...'
-                    : 'Account found. Redirecting to setup...',
-                errorMessage: ''
-            };
-        }
-
-        const loginReason = new URLSearchParams(window.location.search).get('reason');
-        const loginReasonMessage = getLoginMessageFromReason(loginReason);
-        if (loginReasonMessage) {
-            showError(loginReasonMessage);
-        }
 
         loginForm.addEventListener('submit', async (e) => {
             e.preventDefault();
@@ -718,7 +654,8 @@
             const rememberMe = document.getElementById('remember').checked;
 
             // Hide any previous messages
-            hideMessages();
+            errorMessage.style.display = 'none';
+            successMessage.style.display = 'none';
 
             try {
                 // Set persistence based on "Remember Me" checkbox
@@ -729,18 +666,22 @@
                 const userCredential = await signInWithEmailAndPassword(auth, email, password);
                 const user = userCredential.user;
 
-                const loginOutcome = await resolveLoginOutcome(user);
-                if (loginOutcome.status !== 'ok') {
-                    showError(loginOutcome.errorMessage);
-                    return;
+                // Store user info for backward compatibility
+                if (rememberMe) {
+                    localStorage.setItem('bluechip_logged_in', 'true');
+                    localStorage.setItem('bluechip_user_email', user.email);
+                } else {
+                    sessionStorage.setItem('bluechip_logged_in', 'true');
+                    sessionStorage.setItem('bluechip_user_email', user.email);
                 }
 
-                persistLoginState(user, rememberMe);
-                showSuccess(loginOutcome.successMessage);
+                // Show success message
+                successMessage.textContent = 'Login successful! Redirecting...';
+                successMessage.style.display = 'block';
 
                 // Redirect to dashboard
                 setTimeout(() => {
-                    window.location.href = loginOutcome.destination;
+                    window.location.href = 'dashboard.html';
                 }, 1500);
 
             } catch (error) {
@@ -759,7 +700,8 @@
                     errorMsg = 'Invalid email or password. Please check your credentials.';
                 }
 
-                showError(errorMsg);
+                errorMessage.textContent = errorMsg;
+                errorMessage.style.display = 'block';
                 console.error('Login error:', error);
             }
         });
@@ -770,24 +712,51 @@
             const provider = new GoogleAuthProvider();
             
             // Hide any previous messages
-            hideMessages();
+            errorMessage.style.display = 'none';
+            successMessage.style.display = 'none';
 
             try {
                 // Sign in with Google popup
                 const result = await signInWithPopup(auth, provider);
                 const user = result.user;
 
-                const loginOutcome = await resolveLoginOutcome(user);
-                if (loginOutcome.status !== 'ok') {
-                    showError(loginOutcome.errorMessage);
+                // Check if user exists in Firestore
+                const userRef = doc(db, 'users', user.uid);
+                const userSnap = await getDoc(userRef);
+
+                if (!userSnap.exists()) {
+                    // User does not exist in the system - deny access
+                    await auth.signOut(); // Sign them out immediately
+                    
+                    // Clear any stored login info
+                    localStorage.removeItem('bluechip_logged_in');
+                    localStorage.removeItem('bluechip_user_email');
+                    sessionStorage.removeItem('bluechip_logged_in');
+                    sessionStorage.removeItem('bluechip_user_email');
+                    
+                    // Show error message
+                    errorMessage.textContent = 'No account found. Please contact support to get access.';
+                    errorMessage.style.display = 'block';
+                    console.log('User not found in system:', user.email);
                     return;
                 }
 
-                persistLoginState(user, true);
-                showSuccess(loginOutcome.successMessage);
+                // User exists - store login info
+                localStorage.setItem('bluechip_logged_in', 'true');
+                localStorage.setItem('bluechip_user_email', user.email);
+
+                // Check if profile is complete
+                const userData = userSnap.data();
+                
+                successMessage.textContent = 'Welcome back! Redirecting...';
+                successMessage.style.display = 'block';
 
                 setTimeout(() => {
-                    window.location.href = loginOutcome.destination;
+                    if (userData.profileComplete === false) {
+                        window.location.href = 'welcome-setup.html';
+                    } else {
+                        window.location.href = 'dashboard.html';
+                    }
                 }, 1500);
 
             } catch (error) {
@@ -802,7 +771,8 @@
                     errorMsg = 'Sign-in cancelled. Please try again.';
                 }
 
-                showError(errorMsg);
+                errorMessage.textContent = errorMsg;
+                errorMessage.style.display = 'block';
                 console.error('Google Sign-In error:', error);
             }
         });

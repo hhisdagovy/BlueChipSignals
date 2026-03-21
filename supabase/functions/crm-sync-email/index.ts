@@ -95,6 +95,7 @@ Deno.serve(async (request) => {
     }
 
     const mailbox = await loadMailboxSenderByIdWithSecret(supabase, profile, mailboxId)
+    await pruneOrphanedEmailThreads(supabase, mailbox.id)
     const syncStateByFolder = await getMailboxSyncStateByFolder(supabase, mailbox.id, folders)
     const backendResult = await syncMailboxViaImap({
       mailbox,
@@ -166,7 +167,7 @@ Deno.serve(async (request) => {
           unread_count: message.direction === 'incoming' && !message.isRead ? 1 : 0,
           is_starred: message.isStarred === true,
           last_message_direction: message.direction,
-          last_message_status: normalizeWhitespace(message.status) || (message.direction === 'incoming' ? 'received' : 'sent')
+          last_message_status: normalizeWhitespace(message.status) || 'sent'
         })
       }
 
@@ -189,7 +190,7 @@ Deno.serve(async (request) => {
         body_html: String(message.bodyHtml ?? ''),
         provider: 'imap',
         provider_message_id: providerMessageId,
-        status: normalizeWhitespace(message.status) || (message.direction === 'incoming' ? 'received' : 'sent'),
+        status: normalizeWhitespace(message.status) || 'sent',
         error_message: null,
         direction: message.direction === 'incoming' ? 'incoming' : 'outgoing',
         folder: normalizeWhitespace(message.folder).toUpperCase() || 'INBOX',
@@ -219,15 +220,7 @@ Deno.serve(async (request) => {
     }
 
     if (preparedRows.length) {
-      const { error } = await supabase
-        .from('email_messages')
-        .upsert(preparedRows, {
-          onConflict: 'sender_mailbox_id,provider,provider_message_id'
-        })
-
-      if (error) {
-        throw new Error(error.message || 'Unable to store synced email messages in Supabase.')
-      }
+      await persistSyncedEmailMessages(supabase, preparedRows, existingProviderIds)
 
       for (const threadId of affectedThreadIds) {
         await refreshEmailThreadSummary(supabase, threadId)
@@ -458,7 +451,7 @@ async function mapFetchedImapMessage({
     folder,
     actualFolder,
     direction,
-    status: direction === 'outgoing' ? 'sent' : 'received',
+    status: 'sent',
     subject: normalizeWhitespace(parsedEmail?.subject) || 'No subject',
     snippet: buildEmailSnippet(bodyText || bodyHtml),
     bodyText,
@@ -873,6 +866,109 @@ async function fetchExistingProviderIds(
   return set
 }
 
+async function persistSyncedEmailMessages(
+  supabase: SupabaseAdminClient,
+  rows: Array<Record<string, unknown>>,
+  existingProviderIds: Set<string>
+) {
+  const insertRows = rows.filter((row) => !existingProviderIds.has(String(row.provider_message_id)))
+  const updateRows = rows.filter((row) => existingProviderIds.has(String(row.provider_message_id)))
+
+  if (insertRows.length) {
+    const { error } = await supabase
+      .from('email_messages')
+      .insert(insertRows)
+
+    if (error) {
+      throw new Error(error.message || 'Unable to store synced email messages in Supabase.')
+    }
+  }
+
+  for (const row of updateRows) {
+    const { error } = await supabase
+      .from('email_messages')
+      .update({
+        thread_id: row.thread_id,
+        lead_id: row.lead_id,
+        from_email: row.from_email,
+        from_name: row.from_name,
+        to_email: row.to_email,
+        to_emails: row.to_emails,
+        subject: row.subject,
+        body_text: row.body_text,
+        body_html: row.body_html,
+        status: row.status,
+        error_message: row.error_message,
+        direction: row.direction,
+        folder: row.folder,
+        is_read: row.is_read,
+        is_starred: row.is_starred,
+        received_at: row.received_at,
+        message_id_header: row.message_id_header,
+        in_reply_to: row.in_reply_to,
+        references_header: row.references_header,
+        snippet: row.snippet,
+        participants: row.participants,
+        source: row.source,
+        sent_at: row.sent_at
+      })
+      .eq('sender_mailbox_id', String(row.sender_mailbox_id))
+      .eq('provider', String(row.provider))
+      .eq('provider_message_id', String(row.provider_message_id))
+
+    if (error) {
+      throw new Error(error.message || 'Unable to update synced email messages in Supabase.')
+    }
+  }
+}
+
+async function pruneOrphanedEmailThreads(
+  supabase: SupabaseAdminClient,
+  mailboxId: string
+) {
+  const [{ data: threadRows, error: threadError }, { data: messageRows, error: messageError }] = await Promise.all([
+    supabase
+      .from('email_threads')
+      .select('id')
+      .eq('mailbox_sender_id', mailboxId),
+    supabase
+      .from('email_messages')
+      .select('thread_id')
+      .eq('sender_mailbox_id', mailboxId)
+      .not('thread_id', 'is', null)
+  ])
+
+  if (threadError) {
+    throw new Error(threadError.message || 'Unable to load the current email conversations.')
+  }
+
+  if (messageError) {
+    throw new Error(messageError.message || 'Unable to load the existing email messages.')
+  }
+
+  const activeThreadIds = new Set(
+    (messageRows ?? [])
+      .map((row) => normalizeWhitespace(row.thread_id))
+      .filter(Boolean)
+  )
+  const orphanThreadIds = (threadRows ?? [])
+    .map((row) => normalizeWhitespace(row.id))
+    .filter((threadId) => threadId && !activeThreadIds.has(threadId))
+
+  for (let index = 0; index < orphanThreadIds.length; index += 100) {
+    const batch = orphanThreadIds.slice(index, index + 100)
+    const { error } = await supabase
+      .from('email_threads')
+      .delete()
+      .in('id', batch)
+      .eq('mailbox_sender_id', mailboxId)
+
+    if (error) {
+      throw new Error(error.message || 'Unable to clean up duplicate email conversations.')
+    }
+  }
+}
+
 async function fetchExistingThreadIdsByMessageIds(
   supabase: SupabaseAdminClient,
   mailboxId: string,
@@ -1082,7 +1178,7 @@ async function refreshEmailThreadSummary(
       unread_count: unreadCount,
       is_starred: isStarred,
       last_message_direction: normalizeWhitespace(latestMessage.direction) || 'incoming',
-      last_message_status: normalizeWhitespace(latestMessage.status) || 'received'
+      last_message_status: normalizeWhitespace(latestMessage.status) || 'sent'
     })
     .eq('id', threadId)
 

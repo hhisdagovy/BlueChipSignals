@@ -1505,19 +1505,37 @@
         import {
             auth, db,
             onAuthStateChanged, signOut,
-            doc, getDoc, getDocs, setDoc, updateDoc, collection, query,
-            functions, httpsCallable
+            doc, getDoc, getDocs, setDoc, updateDoc, collection, query
         } from './assets/js/firebase-config.js';
 
+        import { initializeApp, getApps } from
+            'https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js';
         import {
-            addDoc, deleteDoc, orderBy, serverTimestamp
+            getAuth,
+            createUserWithEmailAndPassword,
+            signOut as secondarySignOut
+        } from 'https://www.gstatic.com/firebasejs/11.0.2/firebase-auth.js';
+        import {
+            addDoc, deleteDoc, orderBy, serverTimestamp,
+            getFirestore,
+            doc as secDoc,
+            setDoc as secSetDoc
         } from 'https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js';
+
+        /* ── Firebase config (needed for secondary app) ── */
+        const firebaseConfig = {
+            apiKey:            '%%FIREBASE_API%%',
+            authDomain:        'blue-chip-signals-log-ins.firebaseapp.com',
+            projectId:         'blue-chip-signals-log-ins',
+            storageBucket:     'blue-chip-signals-log-ins.firebasestorage.app',
+            messagingSenderId: '706921883505',
+            appId:             '1:706921883505:web:230d622a5c0d2e341378d0'
+        };
 
         /* ── State ── */
         let allUsers        = [];
         let currentFilter   = 'all';
         let pendingDeleteId = null;
-        const createUserForAdminCallable = httpsCallable(functions, 'createUserForAdmin');
 
         /* ── Auth / admin guard ── */
         onAuthStateChanged(auth, async (user) => {
@@ -1788,7 +1806,7 @@
         });
 
         /* ─────────────────────────────────────────────
-           ADD USER (callable Cloud Function)
+           ADD USER (secondary Firebase app)
         ───────────────────────────────────────────── */
         document.getElementById('addPlan').addEventListener('change', () => {
             syncTickerVisibility('addPlan', 'addTickerField');
@@ -1817,17 +1835,34 @@
             }
 
             try {
-                await createUserForAdminCallable({
+                /* Use a secondary app instance so the admin stays logged in */
+                const existing     = getApps().find(a => a.name === 'adminCreate');
+                const secondaryApp = existing || initializeApp(firebaseConfig, 'adminCreate');
+                const secAuth      = getAuth(secondaryApp);
+
+                const cred   = await createUserWithEmailAndPassword(secAuth, email, password);
+                const newUid = cred.user.uid;
+
+                /* Write Firestore profile BEFORE signing out the secondary app.
+                   The new user is currently authenticated on secAuth, so
+                   request.auth.uid === newUid - Firestore security rules pass. */
+                const secDb = getFirestore(secondaryApp);
+                await secSetDoc(secDoc(secDb, 'users', newUid), {
                     email,
-                    password,
                     firstName,
-                    lastName,
                     displayName:        lastName ? `${firstName} ${lastName}` : firstName,
                     plan,
                     allowedTicker:      ticker,
                     subscriptionStatus: status,
-                    role:               'user'
+                    role:               'user',
+                    signInMethod:       'email',
+                    setupCompleted:     false,
+                    profileComplete:    false,
+                    joinedDate:         new Date().toISOString(),
+                    createdAt:          new Date().toISOString()
                 });
+
+                await secondarySignOut(secAuth);
 
                 showMsg('addMsg', `User ${email} created successfully!`, 'success');
                 document.getElementById('addUserForm').reset();

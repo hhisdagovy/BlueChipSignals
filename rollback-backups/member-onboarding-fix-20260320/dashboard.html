@@ -2311,40 +2311,28 @@
 
     <!-- Firebase Authentication + Portfolio Stats -->
     <script type="module">
-        import { auth, db, onAuthStateChanged, signOut, doc, getDoc } from './assets/js/firebase-config.js';
-        import { checkPageMaintenance, redirectToAccountIssue } from './assets/js/firebase-auth-check.js';
-        import { loadAndEvaluateUserProfile } from './assets/js/firebase-user-profile.js';
+        import { auth, db, onAuthStateChanged, signOut, doc, getDoc, setDoc } from './assets/js/firebase-config.js';
+        import { checkPageMaintenance } from './assets/js/firebase-auth-check.js';
 
         /* Expose db so backend-signals.js (non-module) can use Firestore directly */
         window._bcsDb = db;
 
-        async function getUserProfile(userId) {
+        async function getUserProfile(userId, userEmail) {
             try {
-                const profileResult = await loadAndEvaluateUserProfile(userId, {
-                    requireSetup: true,
-                    requireEntitlements: true
-                });
+                const userDocRef = doc(db, 'users', userId);
+                const userDoc = await getDoc(userDocRef);
 
-                if (profileResult.status === 'ok') {
-                    return profileResult.profile;
-                }
-
-                if (profileResult.status === 'setup_incomplete') {
+                if (userDoc.exists()) {
+                    const userData = userDoc.data();
+                    if (!userData.setupCompleted) {
+                        window.location.href = 'welcome-setup.html';
+                        return null;
+                    }
+                    return userData;
+                } else {
                     window.location.href = 'welcome-setup.html';
                     return null;
                 }
-
-                if (profileResult.status === 'inactive' || profileResult.status === 'plan_mismatch') {
-                    window.location.href = 'upgrade.html';
-                    return null;
-                }
-
-                if (profileResult.profile?.missingFields?.length) {
-                    console.warn('Dashboard blocked because membership data is incomplete:', profileResult.profile.missingFields);
-                }
-
-                await redirectToAccountIssue('login.html');
-                return null;
             } catch (error) {
                 console.error('Error loading user profile:', error);
                 return null;
@@ -2357,7 +2345,6 @@
             const subBadge           = subscriptionStatus ? subscriptionStatus.closest('.sub-badge') : null;
 
             if (userData) {
-                const isAdmin = userData.isAdmin || (userData.role || '').toLowerCase() === 'admin';
                 const firstName = userData.firstName || userData.displayName || 'there';
                 welcomeMessage.textContent = `Welcome back, ${firstName}!`;
 
@@ -2368,7 +2355,7 @@
                 /* Admin nav flag -  set synchronously for future page loads,
                    then fire event so nav-component.js can inject the link
                    into the already-rendered nav without a page refresh. */
-                if (isAdmin) {
+                if ((userData.role || '').toLowerCase() === 'admin') {
                     localStorage.setItem('bluechip_is_admin', '1');
                     window.dispatchEvent(new Event('adminConfirmed'));
                 } else {
@@ -2376,10 +2363,7 @@
                 }
 
                 const plan = (userData.plan || '').toLowerCase();
-                if (isAdmin) {
-                    subscriptionStatus.textContent = 'Admin Access';
-                    if (window.BCSSignals) window.BCSSignals.init({ tickerFilter: null });
-                } else if (plan === 'single') {
+                if (plan === 'single') {
                     const ticker = (userData.allowedTicker || '').toUpperCase();
                     subscriptionStatus.textContent = `Single Channel · ${ticker}`;
                     if (subBadge) subBadge.classList.add('single-plan');
@@ -2395,13 +2379,14 @@
                     /* Full access -  show all signals */
                     if (window.BCSSignals) window.BCSSignals.init({ tickerFilter: null });
                 } else {
-                    subscriptionStatus.textContent = 'Membership review needed';
-                    if (window.BCSSignals) window.BCSSignals.init({ tickerFilter: '__NO_ACCESS__' });
+                    /* Legacy users without plan field -  full access */
+                    subscriptionStatus.textContent = userData.subscriptionStatus || 'Premium Active';
+                    if (window.BCSSignals) window.BCSSignals.init({ tickerFilter: null });
                 }
 
                 /* Quick-stat: Plan Status */
                 const qstatStatus = document.getElementById('qstatStatus');
-                const rawStatus   = userData.subscriptionStatus || (isAdmin ? 'Admin Access' : 'Membership review needed');
+                const rawStatus   = userData.subscriptionStatus || 'Active';
                 if (qstatStatus) {
                     qstatStatus.textContent = rawStatus;
                     const isActive = rawStatus.toLowerCase().includes('active');
@@ -2703,7 +2688,7 @@
                 return;
             }
 
-            const userData = await getUserProfile(user.uid);
+            const userData = await getUserProfile(user.uid, user.email);
             if (!userData) return; /* getUserProfile already redirected */
 
             /* ── Demo account shortcut ── */
@@ -2724,11 +2709,16 @@
                 return;
             }
 
-            const isAdmin = userData.isAdmin || (userData.role || '').toLowerCase() === 'admin';
+            const isAdmin = (userData.role || '').toLowerCase() === 'admin';
 
             /* ── Early gates: maintenance + inactive subscription ──
                Both checks run BEFORE updateDashboard so nothing flashes. */
             if (await checkPageMaintenance('dashboard', 'maintenance.html', isAdmin)) return;
+
+            if (!isAdmin && (userData.subscriptionStatus || '').toLowerCase() === 'inactive') {
+                window.location.href = 'upgrade.html';
+                return;
+            }
 
             /* ── Render dashboard ── */
             updateDashboard(userData);

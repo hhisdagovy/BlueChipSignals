@@ -3,8 +3,12 @@ import {
   encryptSecret,
   handleOptionsRequest,
   jsonResponse,
+  normalizeSignatureMode,
+  normalizeSignatureTemplate,
   normalizeWhitespace,
   requireAuthenticatedProfile,
+  resolveSignatureTextForStorage,
+  sanitizeSignatureHtml,
   verifyMailboxConnection
 } from '../_shared/crm-email.ts'
 
@@ -32,6 +36,16 @@ Deno.serve(async (request) => {
       ? normalizeWhitespace(payload.senderEmail).toLowerCase()
       : profile.email
     const senderName = normalizeWhitespace(payload.senderName) || profile.fullName
+    const signatureMode = normalizeSignatureMode(payload.signatureMode)
+    const signatureTemplate = normalizeSignatureTemplate(payload.signatureTemplate)
+    const signatureHtmlOverride = sanitizeSignatureHtml(payload.signatureHtmlOverride)
+    const signatureText = resolveSignatureTextForStorage({
+      senderName,
+      signatureMode,
+      signatureTemplate,
+      signatureHtmlOverride,
+      signatureText: String(payload.signatureText ?? '')
+    })
     const smtpUsername = normalizeWhitespace(payload.smtpUsername || senderEmail).toLowerCase()
     const imapInboxFolder = normalizeWhitespace(payload.imapInboxFolder) || 'INBOX'
     const imapSentFolder = normalizeWhitespace(payload.imapSentFolder) || 'Sent'
@@ -50,7 +64,7 @@ Deno.serve(async (request) => {
 
     let senderQuery = supabase
       .from('mailbox_senders')
-      .select('id, kind, owner_user_id, sender_email, sender_name, imap_inbox_folder, imap_sent_folder')
+      .select('id, kind, owner_user_id, sender_email, sender_name, signature_mode, signature_template, signature_html_override, signature_text, imap_inbox_folder, imap_sent_folder')
 
     if (kind === 'support') {
       senderQuery = senderQuery.eq('kind', 'support').limit(1)
@@ -94,6 +108,10 @@ Deno.serve(async (request) => {
       ownerUserId: kind === 'personal' ? profile.id : null,
       senderEmail,
       senderName,
+      signatureMode,
+      signatureTemplate,
+      signatureHtmlOverride,
+      signatureText,
       imapInboxFolder: normalizeWhitespace(existingSender?.imap_inbox_folder) || imapInboxFolder,
       imapSentFolder: normalizeWhitespace(existingSender?.imap_sent_folder) || imapSentFolder,
       smtpUsername,
@@ -110,6 +128,10 @@ Deno.serve(async (request) => {
         .update({
           sender_email: senderEmail,
           sender_name: senderName,
+          signature_mode: signatureMode,
+          signature_template: signatureTemplate,
+          signature_html_override: signatureHtmlOverride || null,
+          signature_text: signatureText.trim() || null,
           imap_inbox_folder: imapInboxFolder,
           imap_sent_folder: imapSentFolder,
           is_active: true,
@@ -130,6 +152,10 @@ Deno.serve(async (request) => {
           owner_user_id: kind === 'personal' ? profile.id : null,
           sender_email: senderEmail,
           sender_name: senderName,
+          signature_mode: signatureMode,
+          signature_template: signatureTemplate,
+          signature_html_override: signatureHtmlOverride || null,
+          signature_text: signatureText.trim() || null,
           imap_inbox_folder: imapInboxFolder,
           imap_sent_folder: imapSentFolder,
           is_active: true,
@@ -174,6 +200,10 @@ Deno.serve(async (request) => {
         ownerUserId: kind === 'personal' ? profile.id : null,
         senderEmail,
         senderName,
+        signatureMode,
+        signatureTemplate,
+        signatureHtmlOverride,
+        signatureText,
         isActive: true,
         lastVerifiedAt: now
       }

@@ -717,13 +717,11 @@
             auth, db,
             onAuthStateChanged, signOut,
             updatePassword, reauthenticateWithCredential, EmailAuthProvider,
-            doc, updateDoc
+            doc, getDoc, updateDoc
         } from './assets/js/firebase-config.js';
         import { checkPageMaintenance } from './assets/js/firebase-auth-check.js';
-        import { SUPPORT_EMAIL, getAccountIssueMessage, loadUserProfile } from './assets/js/firebase-user-profile.js';
 
         let currentUser = null;
-        let canSaveProfile = true;
 
         /* ---- Real Firebase logout ---- */
         window.logout = async function () {
@@ -756,37 +754,28 @@
 
         /* ---- Populate page from Firestore ---- */
         function populatePage(userData, user) {
-            const hasAccountIssue = Boolean(userData && userData.hasEntitlementIssue);
-            const isAdmin = Boolean(userData && (userData.isAdmin || (userData.role || '').toLowerCase() === 'admin'));
-
             /* Profile fields */
-            document.getElementById('firstName').value = userData?.firstName || '';
-            document.getElementById('lastName').value  = userData?.lastName  || '';
-            document.getElementById('email').value     = user.email || userData?.email || '';
-            document.getElementById('phone').value     = userData?.phone || '';
+            document.getElementById('firstName').value = userData.firstName || '';
+            document.getElementById('lastName').value  = userData.lastName  || '';
+            document.getElementById('email').value     = user.email || userData.email || '';
+            document.getElementById('phone').value     = userData.phone || '';
 
             /* Hero greeting */
             const heroDesc = document.getElementById('heroDesc');
-            if (heroDesc && hasAccountIssue) {
-                heroDesc.textContent = `We need to review your membership details. Please contact support at ${SUPPORT_EMAIL}.`;
-            } else if (heroDesc && userData?.firstName) {
+            if (heroDesc && userData.firstName) {
                 heroDesc.textContent = 'Welcome back, ' + userData.firstName + '. Manage your profile, security, and subscription.';
             }
 
             /* Plan -  derive display text from structured fields */
-            const plan           = (userData?.plan || '').toLowerCase();
-            const allowedTicker  = (userData?.allowedTicker || '').toUpperCase();
+            const plan           = (userData.plan || '').toLowerCase();
+            const allowedTicker  = (userData.allowedTicker || '').toUpperCase();
             let planText;
-            if (hasAccountIssue) {
-                planText = 'Membership details unavailable';
-            } else if (isAdmin) {
-                planText = 'Admin Access';
-            } else if (plan === 'bundle') {
+            if (plan === 'bundle') {
                 planText = 'Full Bundle -  All 5 Channels';
             } else if (plan === 'single' && allowedTicker) {
                 planText = 'Single Channel · ' + allowedTicker;
             } else {
-                planText = userData?.subscriptionStatus || 'Membership details unavailable';
+                planText = userData.subscriptionStatus || 'Premium Active';
             }
             const subPlanEl = document.getElementById('subPlan');
             if (subPlanEl) subPlanEl.textContent = planText;
@@ -794,32 +783,30 @@
             if (heroPlanEl) heroPlanEl.textContent = planText;
 
             /* Status -  use subscriptionStatus field; default to Active */
-            const status = hasAccountIssue
-                ? 'Needs review'
-                : (userData?.subscriptionStatus || (isAdmin ? 'Admin Access' : 'Active'));
-            const isActive = !hasAccountIssue && status.toLowerCase().includes('active');
+            const status   = userData.subscriptionStatus || 'Active';
+            const isActive = status.toLowerCase().includes('active');
             const statusPill   = document.getElementById('statusPill');
             const statusText   = document.getElementById('statusText');
             const heroChip     = document.getElementById('heroStatusChip');
             const heroChipText = document.getElementById('heroStatusText');
-            const statusLabel  = hasAccountIssue ? 'Needs review' : (isActive ? 'Active' : status);
-            const statusIcon   = hasAccountIssue ? 'fa-triangle-exclamation' : (isActive ? 'fa-check-circle' : 'fa-times-circle');
+            const statusLabel  = isActive ? 'Active' : status;
+            const statusIcon   = isActive ? 'fa-check-circle' : 'fa-times-circle';
             if (statusText)   statusText.textContent = statusLabel;
             if (heroChipText) heroChipText.textContent = statusLabel;
             if (statusPill) {
                 const icon = statusPill.querySelector('i');
                 if (icon) { icon.className = 'fas ' + statusIcon; }
-                statusPill.classList.toggle('status-inactive', hasAccountIssue || !isActive);
+                statusPill.classList.toggle('status-inactive', !isActive);
             }
             if (heroChip) {
                 const icon = heroChip.querySelector('i');
                 if (icon) { icon.className = 'fas ' + statusIcon; }
-                heroChip.classList.toggle('status-inactive', hasAccountIssue || !isActive);
+                heroChip.classList.toggle('status-inactive', !isActive);
             }
 
             /* Member Since -  prefer joinedDate (set by welcome-setup), fall back to createdAt */
             let sinceText = '-';
-            const rawDate = userData?.joinedDate || userData?.createdAt;
+            const rawDate = userData.joinedDate || userData.createdAt;
             if (rawDate) {
                 try {
                     const d = rawDate.toDate ? rawDate.toDate() : new Date(rawDate);
@@ -844,28 +831,14 @@
             if (!user) { window.location.href = 'login.html'; return; }
             currentUser = user;
             try {
-                const profileResult = await loadUserProfile(user.uid, { requireEntitlements: true });
-                const userData = profileResult.profile || { hasEntitlementIssue: true };
-                const isAdmin = userData && (userData.isAdmin || (userData.role || '').toLowerCase() === 'admin');
+                const snap = await getDoc(doc(db, 'users', user.uid));
+                const userData = snap.exists() ? snap.data() : null;
+                const isAdmin = userData && (userData.role || '').toLowerCase() === 'admin';
                 if (await checkPageMaintenance('account', 'maintenance.html', isAdmin)) return;
-
-                if (profileResult.status === 'missing_profile') {
-                    canSaveProfile = false;
-                    populatePage({ hasEntitlementIssue: true }, user);
-                    showAlert('profileError', getAccountIssueMessage());
-                    return;
-                }
-
-                canSaveProfile = true;
-                populatePage(userData, user);
-
-                if (profileResult.status === 'account_issue') {
-                    if (profileResult.profile?.missingFields?.length) {
-                        console.warn('Account page loaded with incomplete membership data:', profileResult.profile.missingFields);
-                    }
-                    showAlert('profileError', getAccountIssueMessage());
+                if (snap.exists()) {
+                    populatePage(userData, user);
                 } else {
-                    hideAlert('profileError');
+                    document.getElementById('email').value = user.email || '';
                 }
             } catch (err) {
                 console.error('Error loading profile:', err);
@@ -883,11 +856,6 @@
             const firstName = document.getElementById('firstName').value.trim();
             const lastName  = document.getElementById('lastName').value.trim();
             const phone     = document.getElementById('phone').value.trim();
-
-            if (!canSaveProfile) {
-                showAlert('profileError', getAccountIssueMessage());
-                return;
-            }
 
             if (!firstName || !lastName) {
                 showAlert('profileError', 'First name and last name are required.');

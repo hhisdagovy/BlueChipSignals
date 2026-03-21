@@ -439,7 +439,6 @@ def demo_accounts():
                         {
                             'isDemo':             True,
                             'setupCompleted':     True,
-                            'profileComplete':    True,
                             'plan':               'bundle',
                             'subscriptionStatus': 'Active',
                         },

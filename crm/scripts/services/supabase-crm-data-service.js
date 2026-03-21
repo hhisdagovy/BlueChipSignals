@@ -94,6 +94,10 @@ const MAILBOX_SENDER_SELECT_COLUMNS = [
   'owner_user_id',
   'sender_email',
   'sender_name',
+  'signature_mode',
+  'signature_template',
+  'signature_html_override',
+  'signature_text',
   'imap_inbox_folder',
   'imap_sent_folder',
   'is_active',
@@ -874,6 +878,7 @@ export class SupabaseCrmDataService extends CrmDataService {
 
   async listAvailableMailboxSenders() {
     const supabase = await getSupabase()
+    const config = await getSupabaseConfig()
     const { data, error } = await supabase
       .from('mailbox_senders')
       .select(MAILBOX_SENDER_SELECT_COLUMNS)
@@ -884,7 +889,7 @@ export class SupabaseCrmDataService extends CrmDataService {
       return []
     }
 
-    return (data ?? []).map(mapMailboxSenderRow).filter((sender) => sender.id)
+    return (data ?? []).map((row) => mapMailboxSenderRow(row, { storageBaseUrl: config.url })).filter((sender) => sender.id)
   }
 
   async listEmailMailboxes() {
@@ -1106,9 +1111,14 @@ export class SupabaseCrmDataService extends CrmDataService {
   }
 
   async savePersonalMailboxConnection(payload = {}) {
+    const config = await getSupabaseConfig()
     const { data, error } = await this.invokeAuthenticatedFunction('crm-save-mailbox', {
       kind: 'personal',
       senderName: normalizeWhitespace(payload.senderName),
+      signatureMode: normalizeMailboxSignatureMode(payload.signatureMode),
+      signatureTemplate: normalizeMailboxSignatureTemplate(payload.signatureTemplate),
+      signatureHtmlOverride: String(payload.signatureHtmlOverride ?? ''),
+      signatureText: String(payload.signatureText ?? ''),
       smtpUsername: normalizeWhitespace(payload.smtpUsername),
       smtpPassword: String(payload.smtpPassword ?? '')
     })
@@ -1121,14 +1131,19 @@ export class SupabaseCrmDataService extends CrmDataService {
       throw new Error(data.error)
     }
 
-    return mapMailboxSenderRow(data?.sender || {})
+    return mapMailboxSenderRow(data?.sender || {}, { storageBaseUrl: config.url })
   }
 
   async saveSupportMailboxConnection(payload = {}) {
+    const config = await getSupabaseConfig()
     const { data, error } = await this.invokeAuthenticatedFunction('crm-save-mailbox', {
       kind: 'support',
       senderEmail: normalizeWhitespace(payload.senderEmail).toLowerCase(),
       senderName: normalizeWhitespace(payload.senderName),
+      signatureMode: normalizeMailboxSignatureMode(payload.signatureMode),
+      signatureTemplate: normalizeMailboxSignatureTemplate(payload.signatureTemplate),
+      signatureHtmlOverride: String(payload.signatureHtmlOverride ?? ''),
+      signatureText: String(payload.signatureText ?? ''),
       smtpUsername: normalizeWhitespace(payload.smtpUsername),
       smtpPassword: String(payload.smtpPassword ?? '')
     })
@@ -1141,7 +1156,76 @@ export class SupabaseCrmDataService extends CrmDataService {
       throw new Error(data.error)
     }
 
-    return mapMailboxSenderRow(data?.sender || {})
+    return mapMailboxSenderRow(data?.sender || {}, { storageBaseUrl: config.url })
+  }
+
+  async saveCallPreference(callPreference) {
+    const { data, error } = await this.invokeAuthenticatedFunction('crm-save-profile-preferences', {
+      callPreference: normalizeCallPreference(callPreference)
+    })
+
+    if (error) {
+      throw new Error(await describeFunctionInvokeError(error, 'Unable to save your calling preference.'))
+    }
+
+    if (data?.error) {
+      throw new Error(data.error)
+    }
+
+    return {
+      callPreference: normalizeCallPreference(data?.profile?.callPreference ?? data?.profile?.call_preference ?? callPreference)
+    }
+  }
+
+  async uploadSignatureHeadshot(mailboxSenderId, file, options = {}) {
+    return this.uploadSignatureAsset(mailboxSenderId, 'headshot', file, options)
+  }
+
+  async uploadSignatureBanner(mailboxSenderId, file, options = {}) {
+    return this.uploadSignatureAsset(mailboxSenderId, 'banner', file, options)
+  }
+
+  async uploadSignatureAsset(mailboxSenderId, assetKind, file, options = {}) {
+    const normalizedAssetKind = normalizeWhitespace(assetKind).toLowerCase() === 'banner' ? 'banner' : 'headshot'
+    const supabase = await getSupabase()
+    const config = await getSupabaseConfig()
+    const resolvedFile = file instanceof File ? file : null
+
+    if (!resolvedFile) {
+      throw new Error('Choose an image file before uploading.')
+    }
+
+    if (!/^image\/(png|jpeg|webp|gif)$/i.test(String(resolvedFile.type || ''))) {
+      throw new Error('Upload a PNG, JPG, GIF, or WebP image.')
+    }
+
+    const normalizedMailboxId = normalizeWhitespace(mailboxSenderId)
+    const path = buildSignatureAssetStoragePath({
+      mailboxSenderId: normalizedMailboxId,
+      senderKind: options.senderKind,
+      ownerUserId: options.ownerUserId,
+      senderEmail: options.senderEmail,
+      assetKind: normalizedAssetKind,
+      fileName: resolvedFile.name
+    })
+
+    const { error } = await supabase
+      .storage
+      .from('email-signatures')
+      .upload(path, resolvedFile, {
+        upsert: true,
+        contentType: resolvedFile.type || undefined,
+        cacheControl: '3600'
+      })
+
+    if (error) {
+      throw new Error(error.message || 'Unable to upload the signature image.')
+    }
+
+    return {
+      path,
+      publicUrl: getSignatureAssetPublicUrl(path, config.url)
+    }
   }
 
   async saveCallPreference(callPreference) {
@@ -2678,13 +2762,23 @@ async function describeFunctionInvokeError(error, fallbackMessage) {
   return normalizeWhitespace(error?.message) || fallbackMessage
 }
 
-function mapMailboxSenderRow(row) {
+function mapMailboxSenderRow(row, { storageBaseUrl = '' } = {}) {
+  const signatureTemplate = normalizeMailboxSignatureTemplate(row.signature_template ?? row.signatureTemplate)
+
   return {
     id: String(row.id ?? '').trim(),
     kind: normalizeWhitespace(row.kind).toLowerCase() === 'support' ? 'support' : 'personal',
     ownerUserId: normalizeWhitespace(row.owner_user_id ?? row.ownerUserId) || '',
     senderEmail: normalizeWhitespace(row.sender_email ?? row.senderEmail).toLowerCase(),
     senderName: normalizeWhitespace(row.sender_name ?? row.senderName),
+    signatureMode: normalizeMailboxSignatureMode(row.signature_mode ?? row.signatureMode),
+    signatureTemplate: {
+      ...signatureTemplate,
+      headshotUrl: getSignatureAssetPublicUrl(signatureTemplate.headshotPath, storageBaseUrl),
+      ctaImageUrl: getSignatureAssetPublicUrl(signatureTemplate.ctaImagePath, storageBaseUrl)
+    },
+    signatureHtmlOverride: String(row.signature_html_override ?? row.signatureHtmlOverride ?? '').trim(),
+    signatureText: String(row.signature_text ?? row.signatureText ?? '').replace(/\r\n/g, '\n').replace(/\r/g, '\n').trim(),
     imapInboxFolder: normalizeWhitespace(row.imap_inbox_folder ?? row.imapInboxFolder) || 'INBOX',
     imapSentFolder: normalizeWhitespace(row.imap_sent_folder ?? row.imapSentFolder) || 'Sent',
     isActive: row.is_active !== false && row.isActive !== false,
@@ -2694,6 +2788,153 @@ function mapMailboxSenderRow(row) {
   }
 }
 
+function normalizeMailboxSignatureMode(value) {
+  const normalized = normalizeWhitespace(value).toLowerCase()
+
+  if (normalized === 'template') {
+    return 'template'
+  }
+
+  if (normalized === 'html_override') {
+    return 'html_override'
+  }
+
+  return 'plain_text'
+}
+
+function normalizeMailboxSignatureTemplate(value) {
+  const template = value && typeof value === 'object' && !Array.isArray(value)
+    ? value
+    : {}
+  const socialLinks = Array.isArray(template.socialLinks)
+    ? template.socialLinks
+    : (Array.isArray(template.social_links) ? template.social_links : [])
+
+  return {
+    displayName: normalizeWhitespace(template.displayName ?? template.display_name),
+    jobTitle: normalizeWhitespace(template.jobTitle ?? template.job_title),
+    phone: normalizeWhitespace(template.phone),
+    email: normalizeWhitespace(template.email).toLowerCase(),
+    websiteUrl: normalizeSignatureHttpUrl(template.websiteUrl ?? template.website_url),
+    headshotPath: normalizeSignatureAssetPath(template.headshotPath ?? template.headshot_path),
+    socialLinks: normalizeMailboxSignatureSocialLinks(socialLinks),
+    ctaImagePath: normalizeSignatureAssetPath(template.ctaImagePath ?? template.cta_image_path),
+    ctaHeadline: normalizeWhitespace(template.ctaHeadline ?? template.cta_headline),
+    ctaSubtext: normalizeWhitespace(template.ctaSubtext ?? template.cta_subtext),
+    ctaUrl: normalizeSignatureHttpUrl(template.ctaUrl ?? template.cta_url),
+    disclaimerText: String(template.disclaimerText ?? template.disclaimer_text ?? '').replace(/\r\n/g, '\n').replace(/\r/g, '\n').trim()
+  }
+}
+
+function normalizeSignatureHttpUrl(value) {
+  const normalized = normalizeWhitespace(value)
+
+  if (!normalized) {
+    return ''
+  }
+
+  const withProtocol = /^[a-z][a-z0-9+.-]*:\/\//i.test(normalized)
+    ? normalized
+    : `https://${normalized.replace(/^\/+/, '')}`
+
+  try {
+    const url = new URL(withProtocol)
+    return url.protocol === 'https:' || url.protocol === 'http:'
+      ? url.toString()
+      : ''
+  } catch (_error) {
+    return ''
+  }
+}
+
+function normalizeMailboxSignatureSocialLinks(value) {
+  if (!Array.isArray(value)) {
+    return []
+  }
+
+  return value
+    .map((entry) => {
+      const item = entry && typeof entry === 'object' && !Array.isArray(entry)
+        ? entry
+        : {}
+
+      return {
+        network: normalizeWhitespace(item.network).toLowerCase(),
+        url: normalizeWhitespace(item.url),
+        label: normalizeWhitespace(item.label)
+      }
+    })
+    .filter((entry) => entry.network && entry.url)
+    .slice(0, 4)
+}
+
+function normalizeSignatureAssetPath(value) {
+  return String(value ?? '')
+    .trim()
+    .replace(/^\/+/, '')
+    .replace(/\.\.+/g, '')
+}
+
+function buildSignatureAssetStoragePath({
+  mailboxSenderId = '',
+  senderKind = 'personal',
+  ownerUserId = '',
+  senderEmail = '',
+  assetKind = 'headshot',
+  fileName = ''
+} = {}) {
+  const normalizedMailboxSenderId = normalizeWhitespace(mailboxSenderId)
+  const normalizedKind = normalizeWhitespace(senderKind).toLowerCase() === 'support' ? 'support' : 'personal'
+  const normalizedOwnerUserId = normalizeWhitespace(ownerUserId) || 'unknown-user'
+  const normalizedSenderEmail = normalizeWhitespace(senderEmail).toLowerCase().replace(/[^a-z0-9@._-]+/g, '')
+  const fileExtension = inferSignatureAssetExtension(fileName)
+  const scope = normalizedMailboxSenderId
+    ? `sender-${normalizedMailboxSenderId}`
+    : (normalizedKind === 'support'
+      ? 'support-shared'
+      : `${normalizedOwnerUserId}-${normalizedSenderEmail || 'mailbox'}`)
+
+  return `${normalizedKind}/${scope}/${assetKind}.${fileExtension}`
+}
+
+function inferSignatureAssetExtension(fileName = '') {
+  const normalizedName = String(fileName ?? '').trim().toLowerCase()
+
+  if (normalizedName.endsWith('.png')) {
+    return 'png'
+  }
+
+  if (normalizedName.endsWith('.webp')) {
+    return 'webp'
+  }
+
+  if (normalizedName.endsWith('.gif')) {
+    return 'gif'
+  }
+
+  return 'jpg'
+}
+
+function getSignatureAssetPublicUrl(path = '', baseUrl = '') {
+  const normalizedPath = normalizeSignatureAssetPath(path)
+
+  if (!normalizedPath) {
+    return ''
+  }
+
+  const encodedPath = normalizedPath
+    .split('/')
+    .map((segment) => encodeURIComponent(segment))
+    .join('/')
+  const normalizedBaseUrl = normalizeWhitespace(baseUrl)
+
+  if (!normalizedBaseUrl) {
+    return ''
+  }
+
+  return `${normalizedBaseUrl.replace(/\/$/, '')}/storage/v1/object/public/email-signatures/${encodedPath}`
+}
+
 function mapEmailMessageRow(row, { usersById = new Map(), mailboxSendersById = new Map() } = {}) {
   const senderMailboxId = normalizeWhitespace(row.sender_mailbox_id ?? row.senderMailboxId)
   const createdByUserId = normalizeWhitespace(row.created_by_user_id ?? row.createdByUserId)
@@ -2701,6 +2942,8 @@ function mapEmailMessageRow(row, { usersById = new Map(), mailboxSendersById = n
   const toEmails = normalizeEmailAddressList(row.to_emails ?? row.toEmails)
   const participants = normalizeEmailParticipants(row.participants)
   const toEmail = normalizeWhitespace(row.to_email ?? row.toEmail).toLowerCase() || toEmails[0] || ''
+  const status = normalizeWhitespace(row.status) || 'failed'
+  const direction = normalizeWhitespace(row.direction) || 'outgoing'
 
   return {
     id: String(row.id ?? '').trim(),
@@ -2720,9 +2963,10 @@ function mapEmailMessageRow(row, { usersById = new Map(), mailboxSendersById = n
     bodyHtml: String(row.body_html ?? row.bodyHtml ?? ''),
     provider: normalizeWhitespace(row.provider) || 'smtp',
     providerMessageId: normalizeWhitespace(row.provider_message_id ?? row.providerMessageId),
-    status: normalizeWhitespace(row.status) || 'failed',
+    status,
+    displayStatus: direction === 'incoming' ? 'received' : status,
     errorMessage: normalizeWhitespace(row.error_message ?? row.errorMessage),
-    direction: normalizeWhitespace(row.direction) || 'outgoing',
+    direction,
     folder: normalizeWhitespace(row.folder) || 'Sent',
     isRead: row.is_read !== false && row.isRead !== false,
     isStarred: row.is_starred === true || row.isStarred === true,
@@ -2741,6 +2985,8 @@ function mapEmailMessageRow(row, { usersById = new Map(), mailboxSendersById = n
 
 function mapEmailThreadRow(row) {
   const participants = normalizeEmailParticipants(row.participants)
+  const lastMessageDirection = normalizeWhitespace(row.last_message_direction ?? row.lastMessageDirection) || 'outgoing'
+  const lastMessageStatus = normalizeWhitespace(row.last_message_status ?? row.lastMessageStatus) || 'sent'
 
   return {
     id: String(row.id ?? '').trim(),
@@ -2756,8 +3002,9 @@ function mapEmailThreadRow(row) {
     latestMessageAt: row.latest_message_at ?? row.latestMessageAt ?? '',
     unreadCount: Math.max(0, Number(row.unread_count ?? row.unreadCount) || 0),
     isStarred: row.is_starred === true || row.isStarred === true,
-    lastMessageDirection: normalizeWhitespace(row.last_message_direction ?? row.lastMessageDirection) || 'outgoing',
-    lastMessageStatus: normalizeWhitespace(row.last_message_status ?? row.lastMessageStatus) || 'sent',
+    lastMessageDirection,
+    lastMessageStatus,
+    lastMessageDisplayStatus: lastMessageDirection === 'incoming' ? 'received' : lastMessageStatus,
     createdAt: row.created_at ?? row.createdAt ?? '',
     updatedAt: row.updated_at ?? row.updatedAt ?? ''
   }

@@ -6,9 +6,84 @@ service cloud.firestore {
     function isSignedIn() {
       return request.auth != null;
     }
+    function isSelf(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
     function isAdmin() {
       return isSignedIn() &&
         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
+    }
+    function changedKeysAreAllowedForSelfProfile() {
+      return request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+        'firstName',
+        'lastName',
+        'displayName',
+        'phone',
+        'tradingExperience',
+        'primaryInterest',
+        'termsAccepted',
+        'termsAcceptedDate',
+        'lastLogin',
+        'joinedDate',
+        'setupCompleted',
+        'profileComplete'
+      ]);
+    }
+    function changedProfileFieldsHaveValidTypes() {
+      return (
+        (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['firstName']) ||
+          (request.resource.data.keys().hasAll(['firstName']) && request.resource.data.firstName is string)) &&
+        (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['lastName']) ||
+          (request.resource.data.keys().hasAll(['lastName']) && request.resource.data.lastName is string)) &&
+        (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['displayName']) ||
+          (request.resource.data.keys().hasAll(['displayName']) && request.resource.data.displayName is string)) &&
+        (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['phone']) ||
+          (request.resource.data.keys().hasAll(['phone']) && request.resource.data.phone is string)) &&
+        (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['tradingExperience']) ||
+          (request.resource.data.keys().hasAll(['tradingExperience']) && request.resource.data.tradingExperience is string)) &&
+        (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['primaryInterest']) ||
+          (request.resource.data.keys().hasAll(['primaryInterest']) && request.resource.data.primaryInterest is string)) &&
+        (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['termsAcceptedDate']) ||
+          (request.resource.data.keys().hasAll(['termsAcceptedDate']) && request.resource.data.termsAcceptedDate is string)) &&
+        (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['lastLogin']) ||
+          (request.resource.data.keys().hasAll(['lastLogin']) && request.resource.data.lastLogin is string)) &&
+        (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['joinedDate']) ||
+          (request.resource.data.keys().hasAll(['joinedDate']) && request.resource.data.joinedDate is string))
+      );
+    }
+    function joinedDateIsImmutableAfterSet() {
+      return !request.resource.data.diff(resource.data).affectedKeys().hasAny(['joinedDate']) ||
+        !resource.data.keys().hasAny(['joinedDate']) ||
+        request.resource.data.joinedDate == resource.data.joinedDate;
+    }
+    function termsAcceptanceIsValid() {
+      return !request.resource.data.diff(resource.data).affectedKeys().hasAny(['termsAccepted']) ||
+        (request.resource.data.keys().hasAll(['termsAccepted']) &&
+          request.resource.data.termsAccepted is bool &&
+          request.resource.data.termsAccepted == true);
+    }
+    function setupFlagsAreValid() {
+      return !request.resource.data.diff(resource.data).affectedKeys().hasAny(['setupCompleted', 'profileComplete']) ||
+        (
+          request.resource.data.keys().hasAll(['setupCompleted', 'profileComplete']) &&
+          request.resource.data.setupCompleted is bool &&
+          request.resource.data.profileComplete is bool &&
+          request.resource.data.setupCompleted == request.resource.data.profileComplete &&
+          (!(resource.data.keys().hasAny(['setupCompleted']) && resource.data.setupCompleted == true) ||
+            request.resource.data.setupCompleted == true) &&
+          (!(resource.data.keys().hasAny(['profileComplete']) && resource.data.profileComplete == true) ||
+            request.resource.data.profileComplete == true) &&
+          (!(request.resource.data.setupCompleted == true) ||
+            (request.resource.data.keys().hasAll(['termsAccepted']) && request.resource.data.termsAccepted == true))
+        );
+    }
+    function isSafeSelfUserUpdate(userId) {
+      return isSelf(userId) &&
+        changedKeysAreAllowedForSelfProfile() &&
+        changedProfileFieldsHaveValidTypes() &&
+        joinedDateIsImmutableAfterSet() &&
+        termsAcceptanceIsValid() &&
+        setupFlagsAreValid();
     }
 
     // ── Public read collections ─────────────────────────────────────────────
@@ -52,8 +127,9 @@ service cloud.firestore {
 
     // users: each user can read/write their own doc; admins can read all
     match /users/{userId} {
-      allow read:  if isSignedIn() && (request.auth.uid == userId || isAdmin());
-      allow write: if isSignedIn() && (request.auth.uid == userId || isAdmin());
+      allow read: if isSignedIn() && (request.auth.uid == userId || isAdmin());
+      allow create, delete: if isAdmin();
+      allow update: if isAdmin() || isSafeSelfUserUpdate(userId);
     }
 
     // ── Catch-all: deny everything else ────────────────────────────────────

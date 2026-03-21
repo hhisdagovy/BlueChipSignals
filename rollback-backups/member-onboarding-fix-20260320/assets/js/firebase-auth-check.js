@@ -1,11 +1,6 @@
 // Firebase Authentication Check -  Blue Chip Signals
 // Centralised auth utilities used by all protected pages.
 import { auth, db, onAuthStateChanged, signOut, doc, getDoc } from './firebase-config.js';
-import {
-    ACCOUNT_ISSUE_REASON,
-    buildAuthStatusUrl,
-    loadAndEvaluateUserProfile
-} from './firebase-user-profile.js';
 
 /**
  * Derive a stable page ID from the current pathname.
@@ -93,10 +88,6 @@ export async function performFirebaseLogout(loginPath) {
     }
 }
 
-export async function redirectToAccountIssue(loginPath) {
-    await performFirebaseLogout(buildAuthStatusUrl(loginPath || 'login.html', ACCOUNT_ISSUE_REASON));
-}
-
 /**
  * Landing-page guard: redirect already-logged-in users away from public pages.
  * Call on index.html (and any other marketing page) so returning users go
@@ -135,10 +126,6 @@ export function redirectIfLoggedIn(destination) {
 export function requirePlan(planType, ticker, loginPath, upgradePath, pageId) {
     const _login   = () => { window.location.href = loginPath   || '../../login'; };
     const _upgrade = () => { window.location.href = upgradePath || '../../upgrade'; };
-    const _welcome = () => {
-        const basePath = (loginPath || '../../login').replace(/[^/]+$/, '');
-        window.location.href = basePath + 'welcome-setup.html';
-    };
 
     const _pageId = pageId != null ? pageId : getPageId();
     const _maintenancePath = (loginPath || '../../login').replace(/[^/]+$/, '') + 'maintenance.html';
@@ -146,47 +133,38 @@ export function requirePlan(planType, ticker, loginPath, upgradePath, pageId) {
     const _check = async (user) => {
         if (!user) { _login(); return; }
 
-        /* ── 1. Load canonical user profile (critical - failure blocks access) ── */
-        let accessResult;
+        /* ── 1. Load user profile (critical -  failure redirects to login) ── */
+        let userData;
         try {
-            accessResult = await loadAndEvaluateUserProfile(user.uid, {
-                requireSetup: true,
-                planType,
-                ticker
-            });
+            const userSnap = await getDoc(doc(db, 'users', user.uid));
+            if (!userSnap.exists()) { _login(); return; }
+            userData = userSnap.data();
         } catch (err) {
             console.error('requirePlan user fetch error:', err);
             _login(); return;
         }
 
-        if (accessResult.status === 'missing_profile' || accessResult.status === 'account_issue') {
-            if (accessResult.profile?.missingFields?.length) {
-                console.warn('requirePlan entitlement issue:', accessResult.profile.missingFields);
-            }
-            await redirectToAccountIssue(loginPath || '../../login');
-            return;
-        }
-
-        if (accessResult.status === 'setup_incomplete') {
-            _welcome();
-            return;
-        }
-
-        if (accessResult.status === 'inactive') {
-            _upgrade();
-            return;
-        }
-
-        if (accessResult.status === 'plan_mismatch') {
-            _upgrade();
-            return;
-        }
-
-        const userData = accessResult.profile;
-        const isAdmin = userData.isAdmin;
+        const { plan, allowedTicker, subscriptionStatus, role } = userData;
+        const isAdmin = (role || '').toLowerCase() === 'admin';
 
         /* ── 2. Site-wide and per-page maintenance (non-critical -  failure is silently skipped) ── */
         if (await checkPageMaintenance(_pageId, _maintenancePath, isAdmin)) return;
+
+        /* ── 3. Subscription status ── */
+        if (!isAdmin && (subscriptionStatus || '').toLowerCase() === 'inactive') {
+            _upgrade(); return;
+        }
+
+        /* ── 4. Plan check ── */
+        if (planType === 'bundle') {
+            if (plan !== 'bundle') _upgrade();
+        } else {
+            const t       = (ticker        || '').toUpperCase();
+            const allowed = (allowedTicker || '').toUpperCase();
+            if (plan !== 'bundle' && !(plan === 'single' && allowed === t)) {
+                _upgrade();
+            }
+        }
     };
 
     onAuthStateChanged(auth, (user) => { _check(user); });

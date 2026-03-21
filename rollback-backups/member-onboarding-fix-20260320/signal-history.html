@@ -471,10 +471,9 @@
     <script src="assets/js/demo-data.js"></script>
     <script type="module">
         import {
-            auth, db, onAuthStateChanged
+            auth, db, onAuthStateChanged, doc, getDoc
         } from './assets/js/firebase-config.js';
-        import { checkPageMaintenance, redirectToAccountIssue } from './assets/js/firebase-auth-check.js';
-        import { loadAndEvaluateUserProfile } from './assets/js/firebase-user-profile.js';
+        import { checkPageMaintenance } from './assets/js/firebase-auth-check.js';
         import {
             collection, query, where, orderBy, limit, startAfter, getDocs
         } from 'https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js';
@@ -786,28 +785,11 @@
 
             let userData;
             try {
-                const accessResult = await loadAndEvaluateUserProfile(user.uid, {
-                    requireSetup: true,
-                    planType: 'bundle'
-                });
-
-                if (accessResult.status === 'setup_incomplete') {
+                const snap = await getDoc(doc(db, 'users', user.uid));
+                if (!snap.exists() || !snap.data().setupCompleted) {
                     window.location.href = 'welcome-setup.html'; return;
                 }
-
-                if (accessResult.status === 'inactive' || accessResult.status === 'plan_mismatch') {
-                    window.location.href = 'upgrade.html'; return;
-                }
-
-                if (accessResult.status === 'missing_profile' || accessResult.status === 'account_issue') {
-                    if (accessResult.profile?.missingFields?.length) {
-                        console.warn('Signal history blocked because membership data is incomplete:', accessResult.profile.missingFields);
-                    }
-                    await redirectToAccountIssue('login.html');
-                    return;
-                }
-
-                userData = accessResult.profile;
+                userData = snap.data();
             } catch (e) {
                 console.error('[BCS History] Firestore error', e);
                 return;
@@ -825,16 +807,41 @@
                 return;
             }
 
+            if ((userData.subscriptionStatus || '').toLowerCase() === 'inactive') {
+                window.location.href = 'upgrade.html'; return;
+            }
+
             const plan    = (userData.plan || '').toLowerCase();
-            const isAdmin = userData.isAdmin || (userData.role || '').toLowerCase() === 'admin';
+            const isAdmin = (userData.role || '').toLowerCase() === 'admin';
             _userPlan     = plan;
 
             /* Maintenance check (site-wide + per-page) */
             if (await checkPageMaintenance('signal-history', 'maintenance.html', isAdmin)) return;
 
+            /* Bundle-only gate — single-channel users are redirected to upgrade */
+            if (plan !== 'bundle' && !isAdmin) {
+                window.location.href = 'upgrade.html'; return;
+            }
+
             const badgeEl = document.getElementById('hist-plan-badge');
-            _allowedTicker = null;
-            if (badgeEl) badgeEl.textContent = isAdmin ? 'Admin' : 'Full Bundle';
+
+            if (plan === 'single' && !isAdmin) {
+                _allowedTicker = (userData.allowedTicker || '').toUpperCase();
+
+                /* Hide ticker filter (already locked to one channel) */
+                const tickerGroup   = document.getElementById('hist-ticker-group');
+                const tickerDivider = document.getElementById('hist-ticker-divider');
+                if (tickerGroup)   tickerGroup.style.display   = 'none';
+                if (tickerDivider) tickerDivider.style.display = 'none';
+
+                if (badgeEl) {
+                    badgeEl.textContent = 'Single Channel · ' + _allowedTicker;
+                    badgeEl.classList.add('single');
+                }
+            } else {
+                _allowedTicker = null;
+                if (badgeEl) badgeEl.textContent = isAdmin ? 'Admin' : 'Full Bundle';
+            }
 
             wireFilters();
             fetchPage(true);

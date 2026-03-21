@@ -1130,8 +1130,7 @@
 
     <script type="module">
         import { auth, db, onAuthStateChanged, doc, getDoc, setDoc, updateDoc } from './assets/js/firebase-config.js';
-        import { checkPageMaintenance, redirectToAccountIssue } from './assets/js/firebase-auth-check.js';
-        import { loadAndEvaluateUserProfile } from './assets/js/firebase-user-profile.js';
+        import { checkPageMaintenance } from './assets/js/firebase-auth-check.js';
 
         // Trading Journal Application
         let trades = [];
@@ -1933,33 +1932,9 @@
                 return;
             }
             try {
-                const accessResult = await loadAndEvaluateUserProfile(user.uid, {
-                    requireSetup: true,
-                    planType: 'bundle'
-                });
-
-                if (accessResult.status === 'setup_incomplete') {
-                    window.location.href = 'welcome-setup.html';
-                    return;
-                }
-
-                if (accessResult.status === 'inactive' || accessResult.status === 'plan_mismatch') {
-                    window.location.href = 'upgrade.html';
-                    return;
-                }
-
-                if (accessResult.status === 'missing_profile' || accessResult.status === 'account_issue') {
-                    if (accessResult.profile?.missingFields?.length) {
-                        console.warn('Trading journal blocked because membership data is incomplete:', accessResult.profile.missingFields);
-                    }
-                    await redirectToAccountIssue('login.html');
-                    return;
-                }
-
-                const userData = accessResult.profile;
-
+                const snap = await getDoc(doc(db, 'users', user.uid));
                 /* ── Demo account shortcut ── */
-                if (userData.isDemo) {
+                if (snap.exists() && snap.data().isDemo) {
                     trades = window.BCS_DEMO.TRADES.slice();
                     renderTradesList();
                     updateStats();
@@ -1967,8 +1942,12 @@
                     window.BCS_DEMO.injectBanner();
                     return;
                 }
-
-                const isAdmin = userData.isAdmin || (userData.role || '').toLowerCase() === 'admin';
+                if (!snap.exists() || snap.data().plan !== 'bundle') {
+                    window.location.href = 'upgrade.html';
+                    return;
+                }
+                const userData = snap.data();
+                const isAdmin = (userData.role || '').toLowerCase() === 'admin';
                 if (await checkPageMaintenance('trading-journal', 'maintenance.html', isAdmin)) return;
             } catch (e) {
                 console.error('Plan check error:', e);

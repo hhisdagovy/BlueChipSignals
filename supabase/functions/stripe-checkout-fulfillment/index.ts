@@ -170,11 +170,38 @@ async function markProvisioningFailed({
   }
 }
 
-async function findAuthUserIdByEmail(
-  supabase: ReturnType<typeof getSupabaseAdminClient>,
-  email: string,
-) {
-  const normalizedEmail = normalizeEmail(email);
+function deriveProductKeyWithFallback({
+  metadata,
+  lineItems
+}: {
+  metadata: Record<string, unknown>
+  lineItems: Array<Record<string, any>>
+}) {
+  const fromMetadata = deriveProductKey({ metadata, lineItems })
+
+  if (fromMetadata) {
+    return { productKey: fromMetadata, source: 'metadata' }
+  }
+
+  const singlePriceId = String(Deno.env.get('STRIPE_PRICE_SINGLE_CHANNEL') ?? '').trim()
+  const bundlePriceId = String(Deno.env.get('STRIPE_PRICE_FULL_BUNDLE') ?? '').trim()
+  const sessionPriceIds = lineItems
+    .map((item) => String(item?.price?.id ?? '').trim())
+    .filter(Boolean)
+
+  if (singlePriceId && sessionPriceIds.includes(singlePriceId)) {
+    return { productKey: PRODUCT_KEYS.SINGLE_CHANNEL, source: 'price_id_fallback' }
+  }
+
+  if (bundlePriceId && sessionPriceIds.includes(bundlePriceId)) {
+    return { productKey: PRODUCT_KEYS.FULL_BUNDLE, source: 'price_id_fallback' }
+  }
+
+  return { productKey: '', source: 'unknown' }
+}
+
+async function findAuthUserIdByEmail(supabase: ReturnType<typeof getSupabaseAdminClient>, email: string) {
+  const normalizedEmail = normalizeEmail(email)
 
   if (!normalizedEmail) {
     return null;
@@ -390,62 +417,69 @@ Deno.serve(async (request) => {
       productKey: productKey || null,
     });
 
-    // Edit the product metadata lookup in _shared/stripe.ts if Stripe price/product metadata changes.
-    const requestedTicker = normalizeTicker(
-      metadata.ticker ??
-        metadata.allowed_ticker ??
-        metadata.allowedTicker ??
-        metadata.single_channel_ticker ??
-        lineItems[0]?.price?.metadata?.ticker ??
-        lineItems[0]?.price?.product?.metadata?.ticker,
-    );
-    const customerEmail = normalizeEmail(
-      session.customer_details?.email ?? session.customer_email ?? "",
-    );
-    const customerName = String(
-      session.customer_details?.name ?? session.customer?.name ?? "",
-    ).trim();
-    const userId = await findAuthUserIdByEmail(supabase, customerEmail);
-    const now = new Date().toISOString();
-
-    if (!customerEmail) {
-      throw new Error("Customer email is required for fulfillment.");
-    }
+    const metadata = session.metadata ?? {}
+    const lineItems = session.line_items?.data ?? []
+    const { productKey, source: productSource } = deriveProductKeyWithFallback({ metadata, lineItems })
 
     if (!productKey) {
-      console.warn("stripe-checkout-fulfillment missing product mapping", {
-        stripeEventId,
-        checkoutSessionId: session.id,
-        productSource,
-        lineItemPriceIds: lineItems
-          .map((item) => String(item?.price?.id ?? "").trim())
-          .filter(Boolean),
-      });
+      const now = new Date().toISOString()
+      await supabase.from('bcs_orders').upsert({
+        checkout_session_id: session.id,
+        stripe_event_id: stripeEventId,
+        payment_intent_id: typeof session.payment_intent === 'string' ? session.payment_intent : session.payment_intent?.id ?? null,
+        stripe_customer_id: typeof session.customer === 'string' ? session.customer : session.customer?.id ?? null,
+        customer_email: normalizeEmail(session.customer_details?.email ?? session.customer_email ?? ''),
+        customer_name: String(session.customer_details?.name ?? session.customer?.name ?? '').trim() || null,
+        fulfillment_status: ENTITLEMENT_STATUS.PROVISIONING_FAILED,
+        provisioning_error: 'unknown_product_key',
+        stripe_metadata: {
+          metadata,
+          lineItems: lineItems.map((item) => ({
+            priceId: item?.price?.id ?? null,
+            description: item?.description ?? null
+          }))
+        },
+        updated_at: now
+      }, { onConflict: 'checkout_session_id' })
 
-      await markProvisioningFailed({
-        supabase,
-        stripeEventId,
-        session,
-        userId,
-        customerEmail,
-        customerName,
-        eventType: event.type,
-        metadata,
-        lineItems,
-        errorCode: "unknown_product_key",
-        now,
-      });
+      await supabase.from('bcs_provisioning_events').insert({
+        stripe_event_id: stripeEventId,
+        checkout_session_id: session.id,
+        event_type: event.type,
+        status: ENTITLEMENT_STATUS.PROVISIONING_FAILED,
+        payload: {
+          error: 'unknown_product_key',
+          metadata,
+          lineItems: lineItems.map((item) => ({
+            priceId: item?.price?.id ?? null,
+            description: item?.description ?? null
+          }))
+        }
+      })
 
       return jsonResponse({
         received: true,
-        status: "provisioning_failed_unknown_product",
-      });
+        status: 'provisioning_failed_unknown_product',
+        stripeEventId
+      })
     }
 
-    const entitlement = mapEntitlements({
-      productKey,
-      ticker: requestedTicker,
-    });
+    console.log('stripe-checkout-fulfillment product derived', { stripeEventId, productKey, productSource })
+
+    // Edit the product metadata lookup in _shared/stripe.ts if Stripe price/product metadata changes.
+    const requestedTicker = normalizeTicker(
+      metadata.ticker
+      ?? metadata.allowed_ticker
+      ?? metadata.allowedTicker
+      ?? metadata.single_channel_ticker
+      ?? lineItems[0]?.price?.metadata?.ticker
+      ?? lineItems[0]?.price?.product?.metadata?.ticker
+    )
+    const entitlement = mapEntitlements({ productKey, ticker: requestedTicker })
+    const customerEmail = normalizeEmail(session.customer_details?.email ?? session.customer_email ?? '')
+    const customerName = String(session.customer_details?.name ?? session.customer?.name ?? '').trim()
+    const userId = await findAuthUserIdByEmail(supabase, customerEmail)
+    const now = new Date().toISOString()
 
     if (!entitlement.plan || !entitlement.fulfillmentStatus || !productKey) {
       console.warn("stripe-checkout-fulfillment invalid entitlement payload", {
@@ -488,6 +522,7 @@ Deno.serve(async (request) => {
           : (session.customer?.id ?? null),
       user_id: userId,
       email: customerEmail,
+      customer_email: customerEmail,
       customer_name: customerName || null,
       product_key: productKey,
       plan_key: entitlement.plan,
@@ -506,21 +541,21 @@ Deno.serve(async (request) => {
       email: customerEmail,
       product_key: productKey,
       plan_key: entitlement.plan,
+      plan: entitlement.plan,
       allowed_ticker: entitlement.allowedTicker || null,
       allowed_tickers: entitlement.allowedTickers,
       fulfillment_status: entitlement.fulfillmentStatus,
+      entitlement_status: entitlement.fulfillmentStatus,
       checkout_session_id: session.id,
       updated_at: now,
     };
 
     const accessRow = {
       user_id: userId,
-      email: customerEmail,
-      product_key: productKey,
-      allowed_tickers: entitlement.allowedTickers,
-      fulfillment_status: entitlement.fulfillmentStatus,
-      updated_at: now,
-    };
+      entitlement_status: entitlement.fulfillmentStatus,
+      telegram_channels: entitlement.allowedTickers,
+      updated_at: now
+    }
 
     const { error: orderError } = await supabase
       .from("bcs_orders")
@@ -540,40 +575,31 @@ Deno.serve(async (request) => {
       );
     }
 
-    console.log("stripe-checkout-fulfillment entitlement upserted", {
-      stripeEventId,
-      checkoutSessionId: session.id,
-      productKey,
-      planKey: entitlement.plan,
-      fulfillmentStatus: entitlement.fulfillmentStatus,
-    });
+    if (userId) {
+      const { error: accessError } = await supabase
+        .from('bcs_channel_access')
+        .upsert(accessRow, { onConflict: 'user_id' })
 
-    const { error: accessError } = await supabase
-      .from("bcs_channel_access")
-      .upsert(accessRow, { onConflict: userId ? "user_id" : "email" });
-
-    if (accessError) {
-      throw new Error(
-        accessError.message || "Unable to upsert bcs_channel_access.",
-      );
+      if (accessError) {
+        throw new Error(accessError.message || 'Unable to upsert bcs_channel_access.')
+      }
     }
 
     const eventRow = {
       stripe_event_id: stripeEventId,
       checkout_session_id: session.id,
       user_id: userId,
-      email: customerEmail,
       event_type: event.type,
       status: entitlement.fulfillmentStatus,
       payload: {
+        customerEmail,
         customerName,
         productKey,
         requestedTicker,
         allowedTickers: entitlement.allowedTickers,
-        pendingChannelSelection: entitlement.pendingChannelSelection,
-      },
-      processed_at: now,
-    };
+        pendingChannelSelection: entitlement.pendingChannelSelection
+      }
+    }
 
     const { error: provisioningError } = await supabase
       .from("bcs_provisioning_events")

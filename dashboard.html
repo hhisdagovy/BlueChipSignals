@@ -2601,6 +2601,14 @@
         /** Avoid dashboard ↔ welcome loop when JWT lags behind Auth DB after setup. */
         function shouldSendToWelcomeSetup(state) {
             if (!state) return true;
+            const entStatus = String(state.entitlementStatus || '').toLowerCase();
+            const needsTicker =
+                state.pendingTickerSelection ||
+                entStatus === 'pending_channel_selection' ||
+                (String(state.plan || '').toLowerCase() === 'single' &&
+                    !(state.allowedTicker || '').trim() &&
+                    !(Array.isArray(state.allowedTickers) && state.allowedTickers.length));
+            if (needsTicker) return true;
             if (isSetupFlagDone(state)) return false;
             const profile = state.profile || {};
             if (profile.firstName && profile.lastName) return false;

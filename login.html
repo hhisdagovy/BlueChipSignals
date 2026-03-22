@@ -677,7 +677,7 @@
             let entitlement = null;
             const byUser = await supabase
                 .from('bcs_entitlements')
-                .select('entitlement_status, plan, user_id, email')
+                .select('entitlement_status, plan, user_id, email, allowed_ticker, allowed_tickers')
                 .eq('user_id', authUser.id)
                 .maybeSingle();
 
@@ -686,7 +686,7 @@
             } else if (normalizedEmail) {
                 const byEmail = await supabase
                     .from('bcs_entitlements')
-                    .select('entitlement_status, plan, user_id, email')
+                    .select('entitlement_status, plan, user_id, email, allowed_ticker, allowed_tickers')
                     .eq('email', normalizedEmail)
                     .maybeSingle();
 
@@ -700,7 +700,19 @@
             }
 
             const status = String(entitlement.entitlement_status || '').toLowerCase();
-            if (status === 'pending_channel_selection' || !setupCompleted) {
+            const plan = String(entitlement.plan || entitlement.plan_key || '').toLowerCase();
+            const allowed = String(entitlement.allowed_ticker || '').trim();
+            const list = Array.isArray(entitlement.allowed_tickers)
+                ? entitlement.allowed_tickers.filter(Boolean)
+                : [];
+            const singleNeedsChannel =
+                plan === 'single' && !allowed && list.length === 0;
+
+            if (
+                status === 'pending_channel_selection' ||
+                singleNeedsChannel ||
+                !setupCompleted
+            ) {
                 return 'welcome-setup.html';
             }
 

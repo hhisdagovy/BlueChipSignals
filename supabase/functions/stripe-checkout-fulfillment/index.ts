@@ -542,7 +542,7 @@ Deno.serve(async (request) => {
     console.log('stripe-checkout-fulfillment product derived', { stripeEventId, productKey, productSource })
 
     // Edit the product metadata lookup in _shared/stripe.ts if Stripe price/product metadata changes.
-    const requestedTicker = normalizeTicker(
+    const requestedTickerFromStripe = normalizeTicker(
       metadata.ticker
       ?? metadata.allowed_ticker
       ?? metadata.allowedTicker
@@ -550,7 +550,12 @@ Deno.serve(async (request) => {
       ?? lineItems[0]?.price?.metadata?.ticker
       ?? lineItems[0]?.price?.product?.metadata?.ticker
     )
-    const entitlement = mapEntitlements({ productKey, ticker: requestedTicker })
+    // Single-channel: always require ticker on welcome-setup (ignore Stripe metadata).
+    // Otherwise a default ticker on the Price/Product activates access before the user chooses.
+    const tickerForEntitlement = productKey === PRODUCT_KEYS.SINGLE_CHANNEL
+      ? ""
+      : requestedTickerFromStripe;
+    const entitlement = mapEntitlements({ productKey, ticker: tickerForEntitlement })
     const customerEmail = normalizeEmail(session.customer_details?.email ?? session.customer_email ?? '')
     const customerName = String(session.customer_details?.name ?? session.customer?.name ?? '').trim()
     const userId = await ensureAuthUserForPurchase({
@@ -605,7 +610,7 @@ Deno.serve(async (request) => {
       customer_name: customerName || null,
       product_key: productKey,
       plan_key: entitlement.plan,
-      requested_ticker: requestedTicker || null,
+      requested_ticker: requestedTickerFromStripe || null,
       allowed_tickers: entitlement.allowedTickers,
       amount_total: session.amount_total ?? 0,
       currency: session.currency ?? "usd",
@@ -674,7 +679,7 @@ Deno.serve(async (request) => {
         customerEmail,
         customerName,
         productKey,
-        requestedTicker,
+        requestedTickerFromStripe,
         allowedTickers: entitlement.allowedTickers,
         pendingChannelSelection: entitlement.pendingChannelSelection
       }

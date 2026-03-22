@@ -243,6 +243,7 @@ async function updateSingleChannelSelection(
     allowed_ticker: ticker,
     allowed_tickers: allowedTickers,
     entitlement_status: ENTITLEMENT_STATUS.ACTIVE,
+    fulfillment_status: ENTITLEMENT_STATUS.ACTIVE,
     plan: "single",
     plan_key: "single",
     updated_at: now,
@@ -266,6 +267,7 @@ async function updateSingleChannelSelection(
       allowed_ticker: ticker,
       allowed_tickers: allowedTickers,
       entitlement_status: ENTITLEMENT_STATUS.ACTIVE,
+      fulfillment_status: ENTITLEMENT_STATUS.ACTIVE,
       updated_at: now,
     };
     const { error } = await supabase.from("bcs_entitlements").upsert(insertPayload, { onConflict: "user_id" });

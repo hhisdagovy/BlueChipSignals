@@ -2347,6 +2347,83 @@
     })();
     </script>
 
+    <!-- Hero meta: date, greeting, US equity session (NYSE regular hours, ET) -->
+    <script>
+    (function () {
+        var TZ = 'America/New_York';
+
+        function nyWeekdayAndMinutes(d) {
+            var wd = new Intl.DateTimeFormat('en-US', { timeZone: TZ, weekday: 'short' }).format(d);
+            var parts = new Intl.DateTimeFormat('en-US', {
+                timeZone: TZ,
+                hour: '2-digit',
+                minute: '2-digit',
+                hour12: false
+            }).formatToParts(d);
+            var H = 0, M = 0;
+            for (var i = 0; i < parts.length; i++) {
+                if (parts[i].type === 'hour') H = parseInt(parts[i].value, 10);
+                if (parts[i].type === 'minute') M = parseInt(parts[i].value, 10);
+            }
+            return { wd: wd, mins: H * 60 + M };
+        }
+
+        function nyseSessionLabel(d) {
+            var x = nyWeekdayAndMinutes(d);
+            var weekend = x.wd === 'Sat' || x.wd === 'Sun';
+            var openM = 9 * 60 + 30;
+            var closeM = 16 * 60;
+            if (weekend) return { open: false, label: 'Markets closed · Weekend' };
+            if (x.mins < openM) return { open: false, label: 'Pre-market · Opens 9:30 AM ET' };
+            if (x.mins >= closeM) return { open: false, label: 'After hours · NYSE closed' };
+            return { open: true, label: 'US market open · NYSE' };
+        }
+
+        function paintHeroMeta() {
+            var now = new Date();
+            var dashDate = document.getElementById('dashDate');
+            var marketLabel = document.getElementById('marketLabel');
+            var marketDot = document.getElementById('marketDot');
+            var greetingText = document.getElementById('greetingText');
+            var greetingIcon = document.getElementById('greetingIcon');
+
+            if (dashDate) {
+                dashDate.textContent = now.toLocaleDateString('en-US', {
+                    weekday: 'short',
+                    month: 'short',
+                    day: 'numeric',
+                    year: 'numeric'
+                });
+            }
+
+            var h = now.getHours();
+            if (greetingText) {
+                if (h < 12) greetingText.textContent = 'Good Morning';
+                else if (h < 17) greetingText.textContent = 'Good Afternoon';
+                else greetingText.textContent = 'Good Evening';
+            }
+            if (greetingIcon) {
+                greetingIcon.className = (h >= 6 && h < 18) ? 'fas fa-sun' : 'fas fa-moon';
+            }
+
+            var sess = nyseSessionLabel(now);
+            if (marketLabel) {
+                marketLabel.textContent = sess.label;
+                marketLabel.style.color = sess.open ? 'rgba(180, 220, 180, 0.85)' : 'rgba(255,255,255,0.38)';
+            }
+            if (marketDot) {
+                marketDot.classList.remove('open', 'closed');
+                marketDot.classList.add(sess.open ? 'open' : 'closed');
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', function () {
+            paintHeroMeta();
+            setInterval(paintHeroMeta, 60 * 1000);
+        });
+    })();
+    </script>
+
     <!-- Member dashboard auth/state -->
     <script type="module">
         import { getSupabase } from './src/lib/supabase-browser.js';

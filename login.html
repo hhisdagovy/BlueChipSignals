@@ -671,6 +671,8 @@
 
         async function resolveLoginDestination(supabase, authUser) {
             const normalizedEmail = String(authUser?.email || '').trim().toLowerCase();
+            const metadata = authUser?.user_metadata || {};
+            const setupCompleted = metadata.setup_completed === true;
 
             let entitlement = null;
             const byUser = await supabase
@@ -693,8 +695,12 @@
                 }
             }
 
-            const status = String(entitlement?.entitlement_status || '').toLowerCase();
-            if (status === 'pending_channel_selection') {
+            if (!entitlement) {
+                return 'welcome-setup.html';
+            }
+
+            const status = String(entitlement.entitlement_status || '').toLowerCase();
+            if (status === 'pending_channel_selection' || !setupCompleted) {
                 return 'welcome-setup.html';
             }
 

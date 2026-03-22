@@ -356,20 +356,15 @@
     <script src="assets/js/footer-component.js"></script>
 
     <script type="module">
-        import { auth, functions, httpsCallable, onAuthStateChanged } from './assets/js/firebase-config.js';
-        import { checkPageMaintenance } from './assets/js/firebase-auth-check.js';
-        import {
-            getAccountIssueMessage,
-            loadUserProfile,
-            updateUserOnboardingProfile
-        } from './assets/js/firebase-user-profile.js';
+        import { getSupabase } from './src/lib/supabase-browser.js';
 
         const setupForm = document.getElementById('setupForm');
         const submitBtn = document.getElementById('submitBtn');
         const errorMessage = document.getElementById('errorMessage');
         const successMessage = document.getElementById('successMessage');
-        let currentProfile = null;
-        const selectSingleChannelTicker = httpsCallable(functions, 'selectSingleChannelTicker');
+        let supabase = null;
+        let currentState = null;
+        let sessionToken = '';
 
         function setSetupBlocked(message) {
             errorMessage.textContent = message;
@@ -378,77 +373,64 @@
             submitBtn.disabled = true;
         }
 
-        function syncPendingTickerSelection(profile) {
+        function syncPendingTickerSelection(state) {
             const tickerGroup = document.getElementById('tickerSelectionGroup');
             const tickerSelect = document.getElementById('singleChannelTicker');
-            const needsTicker = profile && profile.plan === 'single' && profile.pendingChannelSelection;
+            const needsTicker = Boolean(state?.pendingTickerSelection);
 
             tickerGroup.style.display = needsTicker ? 'block' : 'none';
             tickerSelect.required = needsTicker;
-            tickerSelect.value = profile?.allowedTicker || '';
+            tickerSelect.value = state?.allowedTicker || '';
         }
 
-        function fillExistingProfile(profile, user) {
-            document.getElementById('firstName').value = profile.firstName || '';
-            document.getElementById('lastName').value = profile.lastName || '';
-            document.getElementById('phone').value = profile.phone || '';
-            document.getElementById('experience').value = profile.tradingExperience || '';
-            document.getElementById('interests').value = profile.primaryInterest || '';
-
-            if (!profile.firstName && user.displayName) {
-                const [firstName = '', ...lastNameParts] = user.displayName.split(' ');
-                document.getElementById('firstName').value = firstName;
-                document.getElementById('lastName').value = lastNameParts.join(' ');
-            }
+        function fillExistingProfile(profile) {
+            document.getElementById('firstName').value = profile?.firstName || '';
+            document.getElementById('lastName').value = profile?.lastName || '';
+            document.getElementById('phone').value = profile?.phone || '';
+            document.getElementById('experience').value = profile?.tradingExperience || '';
+            document.getElementById('interests').value = profile?.primaryInterest || '';
         }
 
-        /* bfcache: when user hits Back after logout, redirect to login */
-        window.addEventListener('pageshow', (e) => {
-            if (e.persisted && !auth.currentUser) {
-                window.location.replace('login.html');
+        async function ensureSession() {
+            if (!supabase) {
+                supabase = await getSupabase();
             }
-        });
-
-        // Check if user is authenticated + maintenance
-        onAuthStateChanged(auth, async (user) => {
-            if (!user) {
+            const { data, error } = await supabase.auth.getSession();
+            if (error || !data?.session) {
                 window.location.href = 'login.html';
+                return null;
+            }
+            sessionToken = data.session.access_token;
+            return data.session;
+        }
+
+        async function invokeMemberFunction(action, payload = {}) {
+            await ensureSession();
+            if (!sessionToken) return null;
+            const { data, error } = await supabase.functions.invoke('member-onboarding', {
+                headers: { Authorization: `Bearer ${sessionToken}` },
+                body: { action, ...payload }
+            });
+            if (error) {
+                throw new Error(error.message || 'Unable to load membership data.');
+            }
+            return data;
+        }
+
+        function handleProfileState(state) {
+            currentState = state;
+            if (state.setupCompleted && !state.pendingTickerSelection) {
+                window.location.href = 'dashboard.html';
                 return;
             }
+            fillExistingProfile(state.profile || {});
+            syncPendingTickerSelection(state);
+        }
 
-            try {
-                const profileResult = await loadUserProfile(user.uid, { requireEntitlements: true });
-
-                if (profileResult.status === 'missing_profile' || profileResult.status === 'account_issue') {
-                    if (profileResult.profile?.missingFields?.length) {
-                        console.warn('Welcome setup blocked because membership data is incomplete:', profileResult.profile.missingFields);
-                    }
-                    setSetupBlocked(profileResult.message || getAccountIssueMessage());
-                    return;
-                }
-
-                const userData = profileResult.profile;
-                if (await checkPageMaintenance('welcome-setup', 'maintenance.html', userData.isAdmin)) return;
-
-                if (userData.setupCompleted) {
-                    window.location.href = 'dashboard.html';
-                    return;
-                }
-
-                currentProfile = userData;
-                fillExistingProfile(userData, user);
-                syncPendingTickerSelection(userData);
-            } catch (error) {
-                console.error('Unable to load setup profile:', error);
-                setSetupBlocked(getAccountIssueMessage());
-            }
-        });
-
-        // Format phone number as user types
         document.getElementById('phone').addEventListener('input', (e) => {
             let value = e.target.value.replace(/\D/g, '');
             if (value.length > 10) value = value.slice(0, 10);
-            
+
             if (value.length >= 6) {
                 e.target.value = `(${value.slice(0,3)}) ${value.slice(3,6)}-${value.slice(6)}`;
             } else if (value.length >= 3) {
@@ -458,23 +440,13 @@
             }
         });
 
-        // Handle form submission
         setupForm.addEventListener('submit', async (e) => {
             e.preventDefault();
-
-            const user = auth.currentUser;
-            if (!user) {
-                errorMessage.textContent = 'Please log in to continue.';
-                errorMessage.style.display = 'block';
+            if (!currentState) {
+                setSetupBlocked('Unable to load your membership. Please refresh.');
                 return;
             }
 
-            if (!currentProfile) {
-                setSetupBlocked(getAccountIssueMessage());
-                return;
-            }
-
-            // Get form values
             const firstName = document.getElementById('firstName').value.trim();
             const lastName = document.getElementById('lastName').value.trim();
             const phone = document.getElementById('phone').value.trim();
@@ -482,72 +454,68 @@
             const interests = document.getElementById('interests').value;
             const selectedTicker = document.getElementById('singleChannelTicker').value;
 
-            // Validate required fields
             if (!firstName || !lastName) {
                 errorMessage.textContent = 'Please fill in all required fields.';
                 errorMessage.style.display = 'block';
                 return;
             }
 
-            if (currentProfile.plan === 'single' && currentProfile.pendingChannelSelection && !selectedTicker) {
+            if (currentState.pendingTickerSelection && !selectedTicker) {
                 errorMessage.textContent = 'Please choose your signal channel before continuing.';
                 errorMessage.style.display = 'block';
                 return;
             }
 
-            const termsChecked = document.getElementById('termsCheckbox').checked;
-            if (!termsChecked) {
+            if (!document.getElementById('termsCheckbox').checked) {
                 errorMessage.textContent = 'You must agree to the Terms & Conditions to continue.';
                 errorMessage.style.display = 'block';
                 return;
             }
 
-            // Disable submit button
             submitBtn.disabled = true;
             submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
             errorMessage.style.display = 'none';
 
             try {
-                if (currentProfile.plan === 'single' && currentProfile.pendingChannelSelection) {
-                    await selectSingleChannelTicker({ ticker: selectedTicker });
-                }
-
-                const onboardingResult = await updateUserOnboardingProfile(user.uid, {
-                    firstName: firstName,
-                    lastName: lastName,
-                    displayName: `${firstName} ${lastName}`,
-                    phone: phone || '',
-                    tradingExperience: experience || 'Not specified',
-                    primaryInterest: interests || 'Not specified',
-                    termsAccepted: true,
-                    termsAcceptedDate: new Date().toISOString()
+                const updatedState = await invokeMemberFunction('complete_setup', {
+                    profile: {
+                        firstName,
+                        lastName,
+                        phone,
+                        tradingExperience: experience || 'Not specified',
+                        primaryInterest: interests || 'Not specified'
+                    },
+                    selectedTicker: currentState.pendingTickerSelection ? selectedTicker : undefined
                 });
 
-                if (onboardingResult.status !== 'ok') {
-                    if (onboardingResult.profile?.missingFields?.length) {
-                        console.warn('Welcome setup save blocked because membership data is incomplete:', onboardingResult.profile.missingFields);
-                    }
-                    throw new Error(onboardingResult.message || getAccountIssueMessage());
-                }
-
-                // Show success message
+                currentState = updatedState;
                 successMessage.textContent = 'Setup complete! Redirecting to dashboard...';
                 successMessage.style.display = 'block';
-                currentProfile = onboardingResult.profile;
-
-                // Redirect to dashboard after 1.5 seconds
                 setTimeout(() => {
                     window.location.href = 'dashboard.html';
-                }, 1500);
-
+                }, 1200);
             } catch (error) {
                 console.error('Error saving user profile:', error);
-                errorMessage.textContent = error.message || getAccountIssueMessage();
+                errorMessage.textContent = error.message || 'Unable to save your profile.';
                 errorMessage.style.display = 'block';
                 submitBtn.disabled = false;
                 submitBtn.innerHTML = '<i class="fas fa-check-circle"></i> Complete Setup';
             }
         });
+
+        (async function init() {
+            try {
+                const state = await invokeMemberFunction('fetch_state');
+                if (!state) {
+                    setSetupBlocked('Unable to load your membership. Please log in again.');
+                    return;
+                }
+                handleProfileState(state);
+            } catch (error) {
+                console.error('Unable to load setup profile:', error);
+                setSetupBlocked(error.message || 'Unable to load your membership. Please contact support.');
+            }
+        })();
     </script>
 </body>
 </html>

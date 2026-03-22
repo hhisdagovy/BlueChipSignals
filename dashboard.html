@@ -2309,30 +2309,41 @@
     })();
     </script>
 
-    <!-- Firebase Authentication + Portfolio Stats -->
+    <!-- Member dashboard auth/state -->
     <script type="module">
-        import { auth, db, functions, httpsCallable, onAuthStateChanged, signOut, doc, getDoc } from './assets/js/firebase-config.js';
-        import { checkPageMaintenance, redirectToAccountIssue } from './assets/js/firebase-auth-check.js';
-        import { loadAndEvaluateUserProfile } from './assets/js/firebase-user-profile.js';
+        import { getSupabase } from './src/lib/supabase-browser.js';
 
-        /* Expose db so backend-signals.js (non-module) can use Firestore directly */
-        window._bcsDb = db;
-        const getDashboardAccessState = httpsCallable(functions, 'getDashboardAccessState');
+        let supabase = null;
+        let sessionToken = '';
+        let memberState = null;
 
-
-        async function loadDashboardAccessState() {
-            try {
-                const result = await getDashboardAccessState({});
-                return result.data || {};
-            } catch (error) {
-                console.error('Error loading dashboard access state:', error);
-                return { entitlementStatus: 'unavailable', telegramChannels: [], allowedTickers: [] };
+        async function ensureSession() {
+            if (!supabase) supabase = await getSupabase();
+            const { data, error } = await supabase.auth.getSession();
+            if (error || !data?.session) {
+                window.location.href = 'login.html';
+                return null;
             }
+            sessionToken = data.session.access_token;
+            return data.session;
         }
 
-        function renderTelegramAccess(accessState = {}) {
-            const channelMap = new Map((accessState.telegramChannels || []).map((channel) => [channel.ticker, channel]));
-            const isPending = accessState.pendingChannelSelection || accessState.entitlementStatus === 'pending_channel_selection';
+        async function invokeMember(action, payload = {}) {
+            await ensureSession();
+            if (!sessionToken) return null;
+            const { data, error } = await supabase.functions.invoke('member-onboarding', {
+                headers: { Authorization: `Bearer ${sessionToken}` },
+                body: { action, ...payload }
+            });
+            if (error) {
+                throw new Error(error.message || 'Unable to load membership state.');
+            }
+            return data;
+        }
+
+        function renderTelegramAccess(state = {}) {
+            const channelMap = new Map((state.telegramChannels || []).map((channel) => [channel.ticker, channel]));
+            const isPending = state.pendingTickerSelection || state.entitlementStatus === 'pending_channel_selection';
 
             document.querySelectorAll('[data-telegram-button]').forEach((button) => {
                 const ticker = button.dataset.ticker || '';
@@ -2355,118 +2366,62 @@
             });
         }
 
-        async function getUserProfile(userId) {
-            try {
-                const profileResult = await loadAndEvaluateUserProfile(userId, {
-                    requireSetup: true,
-                    requireEntitlements: true
-                });
-
-                if (profileResult.status === 'ok' || profileResult.status === 'pending_channel_selection') {
-                    return profileResult.profile;
-                }
-
-                if (profileResult.status === 'setup_incomplete') {
-                    window.location.href = 'welcome-setup.html';
-                    return null;
-                }
-
-                if (profileResult.status === 'inactive' || profileResult.status === 'plan_mismatch') {
-                    window.location.href = 'upgrade.html';
-                    return null;
-                }
-
-                if (profileResult.profile?.missingFields?.length) {
-                    console.warn('Dashboard blocked because membership data is incomplete:', profileResult.profile.missingFields);
-                }
-
-                await redirectToAccountIssue('login.html');
-                return null;
-            } catch (error) {
-                console.error('Error loading user profile:', error);
-                return null;
-            }
-        }
-
-        function updateDashboard(userData, accessState = {}) {
-            const welcomeMessage     = document.getElementById('welcomeMessage');
+        function updateDashboard(state) {
+            const profile = state.profile || {};
+            const plan = state.plan || '';
+            const welcomeMessage = document.getElementById('welcomeMessage');
             const subscriptionStatus = document.getElementById('subscriptionStatus');
-            const subBadge           = subscriptionStatus ? subscriptionStatus.closest('.sub-badge') : null;
+            const subBadge = subscriptionStatus ? subscriptionStatus.closest('.sub-badge') : null;
+            const firstName = profile.firstName || 'there';
 
-            if (userData) {
-                const isAdmin = userData.isAdmin || (userData.role || '').toLowerCase() === 'admin';
-                const firstName = userData.firstName || userData.displayName || 'there';
-                welcomeMessage.textContent = `Welcome back, ${firstName}!`;
+            if (welcomeMessage) welcomeMessage.textContent = `Welcome back, ${firstName}!`;
+            const avatarEl = document.getElementById('dashAvatar');
+            if (avatarEl) avatarEl.textContent = firstName.charAt(0).toUpperCase();
 
-                /* Avatar initial */
-                const avatarEl = document.getElementById('dashAvatar');
-                if (avatarEl) avatarEl.textContent = firstName.charAt(0).toUpperCase();
-
-                /* Admin nav flag -  set synchronously for future page loads,
-                   then fire event so nav-component.js can inject the link
-                   into the already-rendered nav without a page refresh. */
-                if (isAdmin) {
-                    localStorage.setItem('bluechip_is_admin', '1');
-                    window.dispatchEvent(new Event('adminConfirmed'));
-                } else {
-                    localStorage.removeItem('bluechip_is_admin');
-                }
-
-                const plan = (userData.plan || '').toLowerCase();
-                if (isAdmin) {
-                    subscriptionStatus.textContent = 'Admin Access';
-                    if (window.BCSSignals) window.BCSSignals.init({ tickerFilter: null });
-                } else if (plan === 'single') {
-                    const ticker = (userData.allowedTicker || '').toUpperCase();
-                    if (accessState.pendingChannelSelection || !ticker) {
-                        subscriptionStatus.textContent = 'Single Channel · Pending selection';
-                        if (window.BCSSignals) window.BCSSignals.init({ tickerFilter: '__NO_ACCESS__' });
-                    } else {
-                        subscriptionStatus.textContent = `Single Channel · ${ticker}`;
-                        if (window.BCSSignals) window.BCSSignals.init({ tickerFilter: ticker });
-                    }
-                    if (subBadge) subBadge.classList.add('single-plan');
-                    applyPlanRestrictions(ticker, accessState);
-
-                    const qstatChannels = document.getElementById('qstatChannels');
-                    if (qstatChannels) qstatChannels.textContent = accessState.pendingChannelSelection || !ticker ? '0 Active · Pending selection' : `1 Active · ${ticker}`;
-                } else if (plan === 'bundle') {
-                    subscriptionStatus.textContent = 'Full Bundle';
-                    /* Full access -  show all signals */
-                    if (window.BCSSignals) window.BCSSignals.init({ tickerFilter: null });
-                } else {
-                    subscriptionStatus.textContent = 'Membership review needed';
+            if (plan === 'bundle') {
+                subscriptionStatus.textContent = 'Full Bundle';
+                if (window.BCSSignals) window.BCSSignals.init({ tickerFilter: null });
+            } else if (plan === 'single') {
+                const ticker = (state.allowedTicker || '').toUpperCase();
+                if (state.pendingTickerSelection || !ticker) {
+                    subscriptionStatus.textContent = 'Single Channel · Pending selection';
                     if (window.BCSSignals) window.BCSSignals.init({ tickerFilter: '__NO_ACCESS__' });
+                } else {
+                    subscriptionStatus.textContent = `Single Channel · ${ticker}`;
+                    if (window.BCSSignals) window.BCSSignals.init({ tickerFilter: ticker });
+                    applyPlanRestrictions(ticker, state);
                 }
+                if (subBadge) subBadge.classList.add('single-plan');
+            } else {
+                subscriptionStatus.textContent = 'Membership review needed';
+                if (window.BCSSignals) window.BCSSignals.init({ tickerFilter: '__NO_ACCESS__' });
+            }
 
-                /* Quick-stat: Plan Status */
-                const qstatStatus = document.getElementById('qstatStatus');
-                const rawStatus   = userData.subscriptionStatus || (isAdmin ? 'Admin Access' : 'Membership review needed');
-                if (qstatStatus) {
-                    qstatStatus.textContent = rawStatus;
-                    const isActive = rawStatus.toLowerCase().includes('active');
-                    qstatStatus.style.color = isActive ? 'var(--success-green)' : 'rgba(255,100,100,0.8)';
-                }
+            const qstatStatus = document.getElementById('qstatStatus');
+            if (qstatStatus) {
+                const rawStatus = plan === 'bundle' ? 'Premium Active' : (state.entitlementStatus || 'Pending review');
+                qstatStatus.textContent = rawStatus;
+                qstatStatus.style.color = rawStatus.toLowerCase().includes('active') ? 'var(--success-green)' : 'rgba(255,100,100,0.8)';
+            }
 
-                /* Quick-stat: Member Since */
-                const qstatSince = document.getElementById('qstatSince');
-                if (qstatSince) {
-                    const rawDate = userData.joinedDate || userData.createdAt;
-                    if (rawDate) {
-                        try {
-                            const d = rawDate.toDate ? rawDate.toDate() : new Date(rawDate);
-                            qstatSince.textContent = d.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
-                        } catch (_) { qstatSince.textContent = '-'; }
+            const qstatSince = document.getElementById('qstatSince');
+            if (qstatSince) {
+                const rawDate = profile.joinedDate || profile.createdAt;
+                if (rawDate) {
+                    try {
+                        const d = new Date(rawDate);
+                        qstatSince.textContent = d.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+                    } catch (_) {
+                        qstatSince.textContent = '-';
                     }
                 }
-
-                renderTelegramAccess(accessState);
-                renderPortfolioStats(userData.trades || [], userData.tradePlans || []);
             }
+
+            renderTelegramAccess(state);
+            renderPortfolioStats([], []);
         }
 
-        function applyPlanRestrictions(allowedTicker, accessState = {}) {
-            /* Update the Latest Signals heading to show the user's ticker */
+        function applyPlanRestrictions(allowedTicker, state = {}) {
             const sigHeading = document.querySelector('.signals-section-title');
             if (sigHeading) {
                 const countBadge = sigHeading.querySelector('#latest-signals-count');
@@ -2474,406 +2429,64 @@
                 if (countBadge) sigHeading.appendChild(countBadge);
             }
 
-            /* Lock stock rows that aren't the user's ticker */
             document.querySelectorAll('.stock-row[data-ticker]').forEach(row => {
                 if (row.dataset.ticker !== allowedTicker) {
                     row.classList.add('row-locked');
                 }
             });
 
-            if (accessState.pendingChannelSelection) {
+            if (state.pendingTickerSelection) {
                 const stocksCard = document.querySelector('.card-stocks');
                 if (stocksCard && !stocksCard.querySelector('[data-pending-selection-note]')) {
                     stocksCard.insertAdjacentHTML('afterbegin', `<div class="info-note" data-pending-selection-note style="margin-bottom:1rem;"><i class="fas fa-hourglass-half"></i> Your payment was received. Choose your single-channel ticker in <a href="welcome-setup.html" style="color:var(--primary-gold);text-decoration:underline;">welcome setup</a> to unlock Telegram access.</div>`);
                 }
             }
-
-            /* Gate the tool links (Journal + Planner) */
-            const toolLinks = document.getElementById('stats-tool-links');
-            if (toolLinks) {
-                toolLinks.style.position = 'relative';
-                toolLinks.insertAdjacentHTML('beforeend', `<div class="bundle-gate-overlay">
-                    <i class="fas fa-lock"></i>
-                    <span>Full Bundle required</span>
-                    <a href="upgrade">Upgrade &rarr;</a>
-                </div>`);
-            }
-
-            /* Gate the Trading Activity Heatmap */
-            const heatmapCard = document.getElementById('heatmap-card');
-            if (heatmapCard) {
-                heatmapCard.style.position = 'relative';
-                heatmapCard.insertAdjacentHTML('beforeend', `<div class="bundle-gate-overlay">
-                    <i class="fas fa-lock"></i>
-                    <span>Trading Activity -  Full Bundle only</span>
-                    <a href="upgrade">Upgrade &rarr;</a>
-                </div>`);
-            }
         }
 
-        /* ── Portfolio Stats renderer ── */
         function renderPortfolioStats(trades, plans) {
-
-            /* --- Stats computation --- */
-            const closed       = trades.filter(t => t.status === 'Closed');
-            const totalPnL     = closed.reduce((s, t) => s + (t.pnl || 0), 0);
-            const wins         = closed.filter(t => (t.pnl || 0) > 0).length;
-            const winRate      = closed.length > 0 ? (wins / closed.length * 100) : null;
-            const openCount    = trades.filter(t => t.status === 'Open').length;
-
-            /* --- P/L tile --- */
-            const pnlEl  = document.getElementById('stats-pnl-val');
+            const pnlEl = document.getElementById('stats-pnl-val');
             const pnlSub = document.getElementById('stats-pnl-sub');
-            if (pnlEl) {
-                if (trades.length === 0) {
-                    pnlEl.textContent = '-';
-                } else {
-                    const sign = totalPnL >= 0 ? '+' : '';
-                    pnlEl.textContent = sign + '$' + Math.abs(totalPnL).toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 2 });
-                    pnlEl.classList.toggle('pnl-pos', totalPnL > 0);
-                    pnlEl.classList.toggle('pnl-neg', totalPnL < 0);
-                }
-                if (pnlSub) pnlSub.textContent = closed.length + ' closed trade' + (closed.length !== 1 ? 's' : '');
-            }
-
-            /* --- Win rate tile --- */
-            const wrEl  = document.getElementById('stats-wr-val');
+            if (pnlEl) pnlEl.textContent = '-';
+            if (pnlSub) pnlSub.textContent = '0 closed trades';
+            const wrEl = document.getElementById('stats-wr-val');
             const wrSub = document.getElementById('stats-wr-sub');
-            if (wrEl) {
-                wrEl.textContent = winRate !== null ? Math.round(winRate) + '%' : '-';
-                if (wrSub) wrSub.textContent = wins + ' wins / ' + closed.length + ' closed';
-            }
-
-            /* --- Total trades tile --- */
-            const tvEl  = document.getElementById('stats-trades-val');
-            const tvSub = document.getElementById('stats-trades-sub');
-            if (tvEl) {
-                tvEl.textContent = trades.length || '0';
-                if (tvSub) tvSub.textContent = trades.length === 1 ? '1 trade logged' : trades.length + ' trades logged';
-            }
-
-            /* --- Open positions tile --- */
-            const opEl = document.getElementById('stats-open-val');
-            if (opEl) opEl.textContent = openCount;
-
-            /* --- Heatmap --- */
-            renderHeatmap(trades);
-
-            /* --- Active / Watching plans --- */
-            const active       = plans.filter(p => p.status === 'Watching' || p.status === 'Active');
-            const countBadge   = document.getElementById('stats-plans-count');
-            const listEl       = document.getElementById('stats-plans-list');
-
-            if (countBadge) countBadge.textContent = active.length;
-
-            if (listEl) {
-                if (active.length === 0) {
-                    listEl.innerHTML = '<div class="stats-empty">No active plans -  <a href="trade-planner" style="color:var(--primary-gold);text-decoration:none;">add one</a></div>';
-                } else {
-                    const MAX  = 4;
-                    const show = active.slice(0, MAX);
-                    const more = active.length - MAX;
-
-                    listEl.innerHTML = show.map(function (p) {
-                        const dirClass  = p.direction === 'Long' ? 'long' : 'short';
-                        const dirIcon   = p.direction === 'Long' ? '↑' : '↓';
-                        const rrLabel   = p.rr ? p.rr.toFixed(1) + 'R' : '-';
-                        const statusCls = p.status === 'Active' ? 'active' : 'watching';
-                        const meta      = p.tradeType === 'Option'
-                            ? (p.optionType || '') + ' $' + (p.strikePrice || '-')
-                            : '$' + (p.entryPrice || '-') + ' → $' + (p.targetPrice || '-');
-
-                        return '<div class="stats-plan-row">' +
-                            '<span class="stats-plan-ticker">' + (p.ticker || '-') + '</span>' +
-                            '<span class="stats-plan-dir ' + dirClass + '">' + dirIcon + ' ' + p.direction + '</span>' +
-                            '<span class="stats-plan-meta">' + meta + '</span>' +
-                            '<span class="stats-plan-rr">' + rrLabel + '</span>' +
-                            '<span class="stats-plan-status ' + statusCls + '">' + p.status + '</span>' +
-                        '</div>';
-                    }).join('');
-
-                    if (more > 0) {
-                        listEl.innerHTML += '<div style="padding:0.4rem 0 0;text-align:right;">' +
-                            '<a href="trade-planner" class="stats-more-link">+' + more + ' more &rarr;</a></div>';
-                    }
-                }
-            }
+            if (wrEl) wrEl.textContent = '-';
+            if (wrSub) wrSub.textContent = '0 wins / 0 closed';
+            const tradesVal = document.getElementById('stats-trades-val');
+            if (tradesVal) tradesVal.textContent = trades.length || '0';
+            const openVal = document.getElementById('stats-open-val');
+            if (openVal) openVal.textContent = '0';
+            const plansCount = document.getElementById('stats-plans-count');
+            if (plansCount) plansCount.textContent = plans.length || '0';
         }
 
-        /* ── Trading Activity Heatmap ── */
-        function renderHeatmap(trades) {
-            const heatmapEl       = document.getElementById('trading-heatmap');
-            const yearBadge       = document.getElementById('heatmap-year');
-            const tradingDaysEl   = document.getElementById('heatmap-trading-days');
-            const mostActiveEl    = document.getElementById('heatmap-most-active-day');
-            const longestEl       = document.getElementById('heatmap-longest-streak');
-            const currentEl       = document.getElementById('heatmap-current-streak');
-            if (!heatmapEl) return;
-
-            const now  = new Date();
-            const year = now.getFullYear();
-            if (yearBadge) yearBadge.textContent = year;
-
-            /* Build date → count map for this year */
-            const counts = {};
-            trades.forEach(function (t) {
-                if (!t.date) return;
-                const d = new Date(t.date);
-                if (d.getFullYear() !== year) return;
-                const key = d.toISOString().slice(0, 10);
-                counts[key] = (counts[key] || 0) + 1;
-            });
-
-            /* Grid: Monday-aligned, start of first week containing Jan 1 */
-            const jan1    = new Date(year, 0, 1);
-            const jan1Day = jan1.getDay(); // 0=Sun
-            const startOffset = (jan1Day === 0) ? 6 : jan1Day - 1;
-            const gridStart   = new Date(jan1);
-            gridStart.setDate(gridStart.getDate() - startOffset);
-
-            /* End: Sunday of last week containing Dec 31 */
-            const dec31    = new Date(year, 11, 31);
-            const dec31Day = dec31.getDay();
-            const endOffset = (dec31Day === 0) ? 0 : 7 - dec31Day;
-            const gridEnd   = new Date(dec31);
-            gridEnd.setDate(gridEnd.getDate() + endOffset);
-
-            const weeks = Math.round((gridEnd - gridStart) / (7 * 86400000));
-
-            /* Month label positions */
-            const monthNames = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-            let prevMonth = -1;
-            let monthLabSVG = '';
-
-            /* SVG dimensions */
-            const cs   = 11;   // cell size
-            const gap  = 2.5;  // gap
-            const step = cs + gap;
-            const lpad = 22;   // left for M/W/F labels
-            const tpad = 18;   // top for month labels
-            const svgW = lpad + weeks * step;
-            const svgH = tpad + 7 * step;
-
-            /* Color helper */
-            function cellColor(count, inYear, future) {
-                if (!inYear) return 'rgba(0,0,0,0)';
-                if (future)  return 'rgba(255,255,255,0.04)';
-                if (!count)  return 'rgba(255,255,255,0.06)';
-                if (count === 1) return 'rgba(201,176,55,0.28)';
-                if (count <= 3)  return 'rgba(201,176,55,0.56)';
-                if (count <= 5)  return 'rgba(201,176,55,0.78)';
-                return 'rgba(201,176,55,0.96)';
-            }
-
-            /* Day labels */
-            const dayLabSVG = ['M','','W','','F','',''].map(function (lbl, row) {
-                if (!lbl) return '';
-                return '<text x="' + (lpad - 4) + '" y="' + (tpad + row * step + cs / 2 + 3.5) + '" text-anchor="end" fill="rgba(255,255,255,0.32)" font-size="8.5" font-family="Inter,sans-serif">' + lbl + '</text>';
-            }).join('');
-
-            /* Cells */
-            let cellsSVG = '';
-            for (let w = 0; w < weeks; w++) {
-                const weekStart = new Date(gridStart);
-                weekStart.setDate(weekStart.getDate() + w * 7);
-
-                /* Month label when month changes */
-                const wMonth = weekStart.getMonth();
-                if (wMonth !== prevMonth && weekStart.getFullYear() === year) {
-                    monthLabSVG += '<text x="' + (lpad + w * step) + '" y="12" fill="rgba(255,255,255,0.42)" font-size="9" font-family="Inter,sans-serif">' + monthNames[wMonth] + '</text>';
-                    prevMonth = wMonth;
-                }
-
-                for (let d = 0; d < 7; d++) {
-                    const date   = new Date(gridStart);
-                    date.setDate(date.getDate() + w * 7 + d);
-                    const inYear = date.getFullYear() === year;
-                    const future = date > now;
-                    const key    = date.toISOString().slice(0, 10);
-                    const count  = counts[key] || 0;
-                    const fill   = cellColor(count, inYear, future);
-                    const x      = lpad + w * step;
-                    const y      = tpad + d * step;
-                    const tip    = inYear && !future ? key + ': ' + count + ' trade' + (count !== 1 ? 's' : '') : '';
-                    cellsSVG += '<rect x="' + x + '" y="' + y + '" width="' + cs + '" height="' + cs + '" rx="2.5" fill="' + fill + '" class="heat-cell"><title>' + tip + '</title></rect>';
-                }
-            }
-
-            heatmapEl.innerHTML = '<svg viewBox="0 0 ' + svgW + ' ' + svgH + '" style="width:100%;overflow:visible;">' + monthLabSVG + dayLabSVG + cellsSVG + '</svg>';
-
-            /* ---- Stats ---- */
-            const tradeDays = Object.keys(counts).length;
-
-            /* Most active day */
-            let maxCount = 0, maxDay = '';
-            Object.entries(counts).forEach(function (e) {
-                if (e[1] > maxCount) { maxCount = e[1]; maxDay = e[0]; }
-            });
-
-            /* Build sorted list of days in year up to today */
-            const allDays = [];
-            for (var d = new Date(jan1); d <= now && d.getFullYear() === year; d.setDate(d.getDate() + 1)) {
-                allDays.push(d.toISOString().slice(0, 10));
-            }
-
-            /* Longest streak */
-            let longest = 0, run = 0;
-            allDays.forEach(function (k) {
-                if (counts[k]) { run++; longest = Math.max(longest, run); }
-                else run = 0;
-            });
-
-            /* Current streak (count backwards from today) */
-            let curStreak = 0;
-            for (var i = allDays.length - 1; i >= 0; i--) {
-                if (counts[allDays[i]]) curStreak++;
-                else break;
-            }
-
-            if (tradingDaysEl) tradingDaysEl.textContent = tradeDays || '0';
-
-            if (mostActiveEl) {
-                if (maxDay) {
-                    const dt = new Date(maxDay + 'T12:00:00');
-                    mostActiveEl.textContent = dt.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-                } else {
-                    mostActiveEl.textContent = '-';
-                }
-            }
-
-            if (longestEl) longestEl.textContent = longest > 0 ? longest + 'd' : '-';
-            if (currentEl) currentEl.textContent = curStreak > 0 ? curStreak + 'd' : '-';
-        }
-
-        onAuthStateChanged(auth, async (user) => {
-            if (!user) {
-                window.location.href = 'login.html';
-                return;
-            }
-
-            const userData = await getUserProfile(user.uid);
-            if (!userData) return; /* getUserProfile already redirected */
-
-            /* ── Demo account shortcut ── */
-            if (userData.isDemo) {
-                /* Attach trades + plans so renderPortfolioStats has data */
-                const demoUserData = Object.assign({}, window.BCS_DEMO.USER, {
-                    trades:     window.BCS_DEMO.TRADES,
-                    tradePlans: window.BCS_DEMO.PLANS
-                });
-                /* Signal the signals widget to use demo data instead of fetching */
-                window._BCS_DEMO_SIGNALS = window.BCS_DEMO.SIGNALS;
-                updateDashboard(demoUserData);
-                injectAnnouncementBanner(
-                    'You\'re viewing a demo. Actual results vary per user. ' +
-                    '<a href="pricing" style="color:inherit;font-weight:800;text-decoration:underline;">Get Access &rarr;</a>',
-                    'info'
-                );
-                return;
-            }
-
-            const isAdmin = userData.isAdmin || (userData.role || '').toLowerCase() === 'admin';
-
-            /* ── Early gates: maintenance + inactive subscription ──
-               Both checks run BEFORE updateDashboard so nothing flashes. */
-            if (await checkPageMaintenance('dashboard', 'maintenance.html', isAdmin)) return;
-
-            /* ── Render dashboard ── */
-            updateDashboard(userData);
-
-            /* ── Announcement banner (additive -  shown after render) ── */
+        async function initDashboard() {
             try {
-                const siteSnap = await getDoc(doc(db, 'settings', 'site'));
-                if (siteSnap.exists()) {
-                    const s = siteSnap.data();
-                    if (s.announcementActive && s.announcementText) {
-                        injectAnnouncementBanner(s.announcementText, s.announcementType || 'info');
-                    }
-                }
-            } catch (e) { console.warn('announcement fetch:', e); }
+                const state = await invokeMember('fetch_state');
+                if (!state) return;
+                memberState = state;
 
-            /* ── Signal channel status ── */
-            try {
-                const sigSnap = await getDoc(doc(db, 'settings', 'signals'));
-                if (sigSnap.exists()) {
-                    const signals = sigSnap.data();
-                    document.querySelectorAll('.stock-row[data-ticker]').forEach(row => {
-                        const ticker = row.dataset.ticker;
-                        if (signals[ticker] === false) {
-                            row.classList.add('row-offline');
-                            const info = row.querySelector('.stock-info');
-                            if (info) {
-                                info.insertAdjacentHTML('beforeend',
-                                    '<span class="offline-badge" style="margin-left:0.6rem;">' +
-                                    '<i class="fas fa-circle-xmark"></i> Offline</span>');
-                            }
-                        }
-                    });
+                if (!state.setupCompleted) {
+                    window.location.href = 'welcome-setup.html';
+                    return;
                 }
-            } catch (e) { console.warn('signals fetch:', e); }
-        });
 
-        function injectAnnouncementBanner(text, type) {
-            const palette = {
-                info:    { bg: 'rgba(33,150,243,0.1)',  border: 'rgba(33,150,243,0.25)',  color: '#64b5f6', icon: 'fa-circle-info' },
-                warning: { bg: 'rgba(255,152,0,0.1)',   border: 'rgba(255,152,0,0.25)',   color: '#ffb74d', icon: 'fa-triangle-exclamation' },
-                success: { bg: 'rgba(46,125,50,0.1)',   border: 'rgba(76,175,80,0.25)',   color: '#81c784', icon: 'fa-circle-check' },
-            };
-            const c = palette[type] || palette.info;
-            const banner = document.createElement('div');
-            banner.id = 'announcement-banner';
-            banner.style.cssText = `background:${c.bg};border:1px solid ${c.border};color:${c.color};`;
-            banner.innerHTML =
-                `<i class="fas ${c.icon}" style="flex-shrink:0;"></i>` +
-                `<span>${text}</span>` +
-                `<button class="ann-close" onclick="this.parentElement.remove()" title="Dismiss">` +
-                `<i class="fas fa-xmark"></i></button>`;
-            const main = document.querySelector('.main-content');
-            if (main) main.insertBefore(banner, main.firstChild);
+                updateDashboard(state);
+            } catch (error) {
+                console.error('Unable to load dashboard:', error);
+                const banner = document.createElement('div');
+                banner.className = 'info-note';
+                banner.style.marginTop = '1rem';
+                banner.innerHTML = `<i class="fas fa-circle-exclamation"></i> ${error.message || 'Unable to load your membership. Please refresh.'}`;
+                const main = document.querySelector('.main-content');
+                if (main) main.insertBefore(banner, main.firstChild);
+            }
         }
-
-        /* ── Hero: greeting, date, market status ── */
-        (function initHeroMeta() {
-            const hour = new Date().getHours();
-            const greetingText = document.getElementById('greetingText');
-            const greetingIcon = document.getElementById('greetingIcon');
-            if (greetingText && greetingIcon) {
-                if (hour < 12) {
-                    greetingText.textContent = 'Good Morning';
-                    greetingIcon.className   = 'fas fa-sun';
-                } else if (hour < 17) {
-                    greetingText.textContent = 'Good Afternoon';
-                    greetingIcon.className   = 'fas fa-cloud-sun';
-                } else {
-                    greetingText.textContent = 'Good Evening';
-                    greetingIcon.className   = 'fas fa-moon';
-                }
-            }
-
-            const dashDate = document.getElementById('dashDate');
-            if (dashDate) {
-                dashDate.textContent = new Date().toLocaleDateString('en-US', {
-                    weekday: 'short', month: 'long', day: 'numeric', year: 'numeric'
-                });
-            }
-
-            /* NYSE hours: Mon–Fri 9:30 AM – 4:00 PM ET */
-            const marketDot   = document.getElementById('marketDot');
-            const marketLabel = document.getElementById('marketLabel');
-            if (marketDot && marketLabel) {
-                const etNow   = new Date(new Date().toLocaleString('en-US', { timeZone: 'America/New_York' }));
-                const etDay   = etNow.getDay();
-                const etMins  = etNow.getHours() * 60 + etNow.getMinutes();
-                const isOpen  = etDay >= 1 && etDay <= 5 && etMins >= 570 && etMins < 960;
-                marketDot.className      = 'market-dot ' + (isOpen ? 'open' : 'closed');
-                marketLabel.textContent  = isOpen ? 'Market Open' : 'Market Closed';
-                marketLabel.style.color  = isOpen ? 'var(--success-green)' : 'rgba(255,255,255,0.38)';
-            }
-        })();
 
         window.logout = async function () {
             try {
-                await signOut(auth);
+                await ensureSession();
+                await supabase.auth.signOut();
                 localStorage.removeItem('bluechip_logged_in');
                 localStorage.removeItem('bluechip_user_email');
                 sessionStorage.removeItem('bluechip_logged_in');
@@ -2885,12 +2498,13 @@
             }
         };
 
-        /* bfcache: when user hits Back after logout, redirect to login immediately */
-        window.addEventListener('pageshow', (e) => {
-            if (e.persisted && !auth.currentUser) {
-                window.location.replace('login.html');
+        window.addEventListener('pageshow', async (e) => {
+            if (e.persisted) {
+                await ensureSession();
             }
         });
+
+        initDashboard();
     </script>
 </body>
 </html>

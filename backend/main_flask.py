@@ -5,12 +5,17 @@ Simple and reliable backend for managing trading signals
 
 from flask import Flask, request, jsonify, render_template_string, redirect, session, make_response
 from flask_cors import CORS
-from datetime import datetime
+from datetime import datetime, timezone, timedelta
 import sqlite3
 import json
 import re
 import os
 from functools import wraps
+
+UUID_RE = re.compile(
+    r'^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$',
+    re.IGNORECASE,
+)
 
 import firebase_admin
 from firebase_admin import credentials, firestore as fs_admin
@@ -36,6 +41,24 @@ try:
         print('[BCS] FIREBASE_SERVICE_ACCOUNT_JSON not set -  Firestore writes disabled.')
 except Exception as _e:
     print(f'[BCS] Firebase Admin SDK init failed: {_e}')
+
+# ── Supabase service role — public.bcs_signals (replaces Firestore for history) ──
+_supabase = None
+try:
+    _sb_url = os.environ.get('SUPABASE_URL', '').strip()
+    _sb_key = os.environ.get('SUPABASE_SERVICE_ROLE_KEY', '').strip()
+    if _sb_url and _sb_key:
+        from supabase import create_client
+
+        _supabase = create_client(_sb_url, _sb_key)
+        print('[BCS] Supabase client initialised — signals sync to public.bcs_signals.')
+    else:
+        print(
+            '[BCS] SUPABASE_URL / SUPABASE_SERVICE_ROLE_KEY not set — '
+            'Telegram/API still write SQLite; set env vars so member history uses bcs_signals.'
+        )
+except Exception as _e:
+    print(f'[BCS] Supabase init failed: {_e}')
 
 # Initialize database
 def init_db():
@@ -64,9 +87,33 @@ def init_db():
 init_db()
 
 
+def _mirror_signal_to_supabase(sqlite_id, stock, price, vwap, mfi, contract_type,
+                               strike_price, premium, expiration, volume):
+    """Insert into public.bcs_signals (service role bypasses RLS)."""
+    if not _supabase:
+        return
+    try:
+        payload = {
+            'stock': stock,
+            'contract_type': contract_type,
+            'price': float(price) if price is not None else None,
+            'premium': float(premium) if premium is not None else None,
+            'strike': float(strike_price) if strike_price is not None else None,
+            'expiration': str(expiration) if expiration else None,
+            'vwap': float(vwap) if vwap is not None else None,
+            'mfi': float(mfi) if mfi is not None else None,
+            'volume': int(volume or 0),
+            'timestamp': datetime.now(timezone.utc).isoformat(),
+            'external_id': f'railway-sqlite:{sqlite_id}',
+        }
+        _supabase.table('bcs_signals').insert(payload).execute()
+    except Exception as _e:
+        print(f'[BCS] Supabase mirror failed (non-fatal): {_e}')
+
+
 def insert_signal(stock, price, vwap, mfi, contract_type, strike_price, premium, expiration, volume=0):
     """
-    Write one signal to SQLite (always) and Firestore (if SDK is initialised).
+    Write one signal to SQLite (always) and mirror to Supabase bcs_signals when configured.
     Returns the new SQLite row id.
     """
     conn = sqlite3.connect('signals.db')
@@ -81,23 +128,10 @@ def insert_signal(stock, price, vwap, mfi, contract_type, strike_price, premium,
     signal_id = c.lastrowid
     conn.close()
 
-    # Mirror to Firestore for the historical signals page
-    if _firestore_client:
-        try:
-            _firestore_client.collection('signals').add({
-                'stock':        stock,
-                'price':        price,
-                'vwap':         vwap,
-                'mfi':          mfi,
-                'contractType': contract_type,
-                'strike':       strike_price,
-                'premium':      premium,
-                'expiration':   expiration,
-                'volume':       volume,
-                'timestamp':    fs_admin.SERVER_TIMESTAMP,
-            })
-        except Exception as _fe:
-            print(f'[BCS] Firestore write failed (non-fatal): {_fe}')
+    _mirror_signal_to_supabase(
+        signal_id, stock, price, vwap, mfi, contract_type,
+        strike_price, premium, expiration, volume,
+    )
 
     return signal_id
 
@@ -155,22 +189,61 @@ def create_signal():
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
+def _signals_json_from_supabase_rows(rows):
+    out = []
+    for row in rows or []:
+        ts = row.get('timestamp')
+        if hasattr(ts, 'isoformat'):
+            ts_str = ts.isoformat()
+        else:
+            ts_str = str(ts) if ts else ''
+        out.append({
+            'id': row.get('id'),
+            'stock': row.get('stock'),
+            'price': row.get('price'),
+            'vwap': row.get('vwap'),
+            'mfi': row.get('mfi'),
+            'contract': {
+                'type': row.get('contract_type'),
+                'strike': row.get('strike'),
+                'premium': row.get('premium'),
+                'expiration': row.get('expiration'),
+                'volume': row.get('volume') or 0,
+            },
+            'timestamp': ts_str,
+        })
+    return out
+
+
 @app.route('/api/signals/latest')
 def get_latest_signals():
     limit = request.args.get('limit', 50, type=int)
-    
+
+    if _supabase:
+        try:
+            res = (
+                _supabase.table('bcs_signals')
+                .select('*')
+                .order('timestamp', desc=True)
+                .limit(limit)
+                .execute()
+            )
+            return jsonify({'signals': _signals_json_from_supabase_rows(res.data)})
+        except Exception as e:
+            print(f'[BCS] Supabase /api/signals/latest failed, falling back to SQLite: {e}')
+
     conn = sqlite3.connect('signals.db')
     c = conn.cursor()
-    
+
     c.execute('''
-        SELECT id, stock, price, vwap, mfi, 
+        SELECT id, stock, price, vwap, mfi,
                contract_type, strike_price, premium, expiration, volume,
                timestamp
-        FROM signals 
-        ORDER BY timestamp DESC 
+        FROM signals
+        ORDER BY timestamp DESC
         LIMIT ?
     ''', (limit,))
-    
+
     signals = []
     for row in c.fetchall():
         signals.append({
@@ -188,35 +261,57 @@ def get_latest_signals():
             },
             'timestamp': row[10]
         })
-    
+
     conn.close()
     return jsonify({'signals': signals})
 
-@app.route('/api/signals/<int:signal_id>', methods=['DELETE'])
+@app.route('/api/signals/<signal_id>', methods=['DELETE'])
 def delete_signal(signal_id):
     try:
+        sid = str(signal_id)
+        if _supabase and UUID_RE.match(sid):
+            _supabase.table('bcs_signals').delete().eq('id', sid).execute()
+            return jsonify({'success': True, 'deleted_id': sid})
+
+        try:
+            iid = int(sid)
+        except ValueError:
+            return jsonify({'error': 'Invalid signal id'}), 400
+
         conn = sqlite3.connect('signals.db')
         c = conn.cursor()
-        c.execute('DELETE FROM signals WHERE id = ?', (signal_id,))
+        c.execute('DELETE FROM signals WHERE id = ?', (iid,))
         deleted = c.rowcount
         conn.commit()
         conn.close()
         if deleted == 0:
             return jsonify({'error': 'Signal not found'}), 404
-        return jsonify({'success': True, 'deleted_id': signal_id})
+        return jsonify({'success': True, 'deleted_id': iid})
     except Exception as e:
         return jsonify({'error': str(e)}), 500
+
 
 @app.route('/api/signals/all', methods=['DELETE'])
 def delete_all_signals():
     try:
+        deleted = 0
+        if _supabase:
+            res = (
+                _supabase.table('bcs_signals')
+                .delete()
+                .gte('timestamp', '1970-01-01T00:00:00+00:00')
+                .execute()
+            )
+            # Supabase returns minimal body; count approximate
+            deleted = getattr(res, 'count', None) or 'all'
+
         conn = sqlite3.connect('signals.db')
         c = conn.cursor()
         c.execute('DELETE FROM signals')
-        deleted = c.rowcount
+        sqlite_deleted = c.rowcount
         conn.commit()
         conn.close()
-        return jsonify({'success': True, 'deleted_count': deleted})
+        return jsonify({'success': True, 'deleted_count': sqlite_deleted, 'supabase_cleared': bool(_supabase)})
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
@@ -344,42 +439,54 @@ def admin_logout():
 @admin_required
 def admin_dashboard():
     recent_signals = []
-    total_signals  = 0
-    signals_today  = 0
+    total_signals = 0
+    signals_today = 0
 
-    if _firestore_client:
+    if _supabase:
         try:
-            from datetime import datetime, timezone
-            docs = _firestore_client.collection('signals') \
-                       .order_by('timestamp', direction='DESCENDING') \
-                       .limit(20) \
-                       .stream()
-            today_str = datetime.now(timezone.utc).strftime('%Y-%m-%d')
-            for d in docs:
-                data = d.to_dict()
-                ts = data.get('timestamp')
-                if hasattr(ts, 'isoformat'):
+            start_day = datetime.now(timezone.utc).replace(
+                hour=0, minute=0, second=0, microsecond=0
+            ).isoformat()
+            day_res = (
+                _supabase.table('bcs_signals')
+                .select('id')
+                .gte('timestamp', start_day)
+                .execute()
+            )
+            signals_today = len(day_res.data or [])
+
+            cnt_res = _supabase.table('bcs_signals').select('*', count='exact').execute()
+            total_signals = getattr(cnt_res, 'count', None) or 0
+
+            res = (
+                _supabase.table('bcs_signals')
+                .select('*')
+                .order('timestamp', desc=True)
+                .limit(20)
+                .execute()
+            )
+            for row in res.data or []:
+                ts = row.get('timestamp')
+                if hasattr(ts, 'strftime'):
                     ts_str = ts.strftime('%Y-%m-%d %H:%M')
-                    if ts_str.startswith(today_str):
-                        signals_today += 1
                 else:
                     ts_str = str(ts)[:16] if ts else '-'
                 recent_signals.append({
-                    'doc_id':        d.id,
-                    'stock':         data.get('stock', ''),
-                    'price':         data.get('price', 0),
-                    'vwap':          data.get('vwap', 0),
-                    'mfi':           data.get('mfi', 0),
-                    'contract_type': data.get('contractType', ''),
-                    'strike':        data.get('strike', 0),
-                    'premium':       data.get('premium', 0),
-                    'timestamp':     ts_str,
+                    'doc_id': str(row.get('id')),
+                    'sqlite_id': None,
+                    'stock': row.get('stock', ''),
+                    'price': row.get('price') or 0,
+                    'vwap': row.get('vwap') or 0,
+                    'mfi': row.get('mfi') or 0,
+                    'contract_type': row.get('contract_type', ''),
+                    'strike': row.get('strike') or 0,
+                    'premium': row.get('premium') or 0,
+                    'timestamp': ts_str,
                 })
-            total_signals = len(recent_signals)
-        except Exception:
-            pass
+        except Exception as e:
+            print(f'[BCS] admin dashboard Supabase: {e}')
 
-    # Fall back to SQLite if Firestore returned nothing
+    # Fall back to SQLite if Supabase unavailable or empty
     if not recent_signals:
         try:
             conn = sqlite3.connect('signals.db')
@@ -582,110 +689,118 @@ def edit_signal(signal_id):
 def manage_signals():
     signals = []
     error = None
-    if _firestore_client:
+    if _supabase:
         try:
-            docs = _firestore_client.collection('signals') \
-                       .order_by('timestamp', direction='DESCENDING') \
-                       .limit(100) \
-                       .stream()
-            for d in docs:
-                data = d.to_dict()
-                ts = data.get('timestamp')
-                if hasattr(ts, 'isoformat'):
+            res = (
+                _supabase.table('bcs_signals')
+                .select('*')
+                .order('timestamp', desc=True)
+                .limit(100)
+                .execute()
+            )
+            for row in res.data or []:
+                ts = row.get('timestamp')
+                if hasattr(ts, 'strftime'):
                     ts_str = ts.strftime('%Y-%m-%d %H:%M')
                 elif ts:
                     ts_str = str(ts)[:16]
                 else:
                     ts_str = '-'
                 signals.append({
-                    'doc_id':       d.id,
-                    'stock':        data.get('stock', ''),
-                    'price':        data.get('price', 0),
-                    'contract_type': data.get('contractType', ''),
-                    'strike':       data.get('strike', 0),
-                    'premium':      data.get('premium', 0),
-                    'expiration':   data.get('expiration', ''),
-                    'timestamp':    ts_str,
+                    'doc_id': str(row.get('id')),
+                    'stock': row.get('stock', ''),
+                    'price': row.get('price') or 0,
+                    'contract_type': row.get('contract_type', ''),
+                    'strike': row.get('strike') or 0,
+                    'premium': row.get('premium') or 0,
+                    'expiration': row.get('expiration', ''),
+                    'timestamp': ts_str,
                 })
         except Exception as e:
             error = str(e)
     else:
-        error = 'Firestore is not configured.'
+        error = 'Supabase is not configured (SUPABASE_URL + SUPABASE_SERVICE_ROLE_KEY).'
     return render_template_string(MANAGE_SIGNALS_HTML, signals=signals, error=error)
 
 
-@app.route('/admin/manage-signals/<doc_id>/edit', methods=['GET', 'POST'])
+@app.route('/admin/manage-signals/<uuid:doc_id>/edit', methods=['GET', 'POST'])
 @admin_required
-def edit_firestore_signal(doc_id):
-    if not _firestore_client:
-        return 'Firestore not configured', 500
+def edit_supabase_signal(doc_id):
+    if not _supabase:
+        return 'Supabase not configured', 500
 
-    ref = _firestore_client.collection('signals').document(doc_id)
-
-    from datetime import datetime, timezone, timedelta
+    sid = str(doc_id)
     EST = timezone(timedelta(hours=-5))
 
     if request.method == 'POST':
         ts_raw = request.form.get('signal_timestamp', '')
         try:
-            # Parse as EST, convert to UTC for storage
-            new_ts = datetime.strptime(ts_raw, '%Y-%m-%dT%H:%M') \
-                             .replace(tzinfo=EST) \
-                             .astimezone(timezone.utc)
+            new_ts = datetime.strptime(ts_raw, '%Y-%m-%dT%H:%M').replace(
+                tzinfo=EST
+            ).astimezone(timezone.utc)
         except ValueError:
             new_ts = None
         update_data = {
-            'stock':        request.form['stock'].upper(),
-            'price':        float(request.form['price']),
-            'vwap':         float(request.form['vwap']),
-            'mfi':          float(request.form['mfi']),
-            'contractType': request.form['contract_type'],
-            'strike':       float(request.form['strike']),
-            'premium':      float(request.form['premium']),
-            'expiration':   request.form['expiration'],
-            'volume':       int(request.form.get('volume', 0)),
+            'stock': request.form['stock'].upper(),
+            'price': float(request.form['price']),
+            'vwap': float(request.form['vwap']),
+            'mfi': float(request.form['mfi']),
+            'contract_type': request.form['contract_type'],
+            'strike': float(request.form['strike']),
+            'premium': float(request.form['premium']),
+            'expiration': request.form['expiration'],
+            'volume': int(request.form.get('volume', 0)),
         }
         if new_ts:
-            update_data['timestamp'] = new_ts
-        ref.update(update_data)
+            update_data['timestamp'] = new_ts.isoformat()
+        _supabase.table('bcs_signals').update(update_data).eq('id', sid).execute()
         return redirect('/admin/manage-signals')
 
-    doc = ref.get()
-    if not doc.exists:
+    res = _supabase.table('bcs_signals').select('*').eq('id', sid).execute()
+    rows = res.data or []
+    if not rows:
         return 'Signal not found', 404
-    data = doc.to_dict()
+    data = rows[0]
     ts = data.get('timestamp')
-    if hasattr(ts, 'astimezone'):
-        # Convert UTC → EST for display
+    if isinstance(ts, str):
+        try:
+            ts_p = datetime.fromisoformat(ts.replace('Z', '+00:00'))
+            ts_local = ts_p.astimezone(EST).strftime('%Y-%m-%dT%H:%M')
+        except ValueError:
+            ts_local = ts[:16].replace(' ', 'T') if ts else ''
+    elif hasattr(ts, 'astimezone'):
         ts_local = ts.astimezone(EST).strftime('%Y-%m-%dT%H:%M')
     elif ts:
         ts_local = str(ts)[:16].replace(' ', 'T')
     else:
         ts_local = ''
     signal = {
-        'doc_id':           doc_id,
-        'stock':            data.get('stock', ''),
-        'price':            data.get('price', 0),
-        'vwap':             data.get('vwap', 0),
-        'mfi':              data.get('mfi', 0),
-        'contract_type':    data.get('contractType', 'Call'),
-        'strike_price':     data.get('strike', 0),
-        'premium':          data.get('premium', 0),
-        'expiration':       data.get('expiration', ''),
-        'volume':           data.get('volume', 0),
-        'timestamp_local':  ts_local,
+        'id': sid,
+        'stock': data.get('stock', ''),
+        'price': data.get('price', 0),
+        'vwap': data.get('vwap', 0),
+        'mfi': data.get('mfi', 0),
+        'contract_type': data.get('contract_type', 'Call'),
+        'strike_price': data.get('strike', 0),
+        'premium': data.get('premium', 0),
+        'expiration': data.get('expiration', ''),
+        'volume': data.get('volume', 0),
+        'timestamp_local': ts_local,
     }
-    return render_template_string(EDIT_SIGNAL_HTML, signal=signal,
-                                  form_action='/admin/manage-signals/' + doc_id + '/edit')
+    return render_template_string(
+        EDIT_SIGNAL_HTML,
+        signal=signal,
+        form_action='/admin/manage-signals/' + sid + '/edit',
+    )
 
 
-@app.route('/admin/manage-signals/<doc_id>/delete', methods=['POST'])
+@app.route('/admin/manage-signals/<uuid:doc_id>/delete', methods=['POST'])
 @admin_required
-def delete_firestore_signal(doc_id):
-    if not _firestore_client:
-        return jsonify({'error': 'Firestore not configured'}), 500
+def delete_supabase_signal(doc_id):
+    if not _supabase:
+        return jsonify({'error': 'Supabase not configured'}), 500
     try:
-        _firestore_client.collection('signals').document(doc_id).delete()
+        _supabase.table('bcs_signals').delete().eq('id', str(doc_id)).execute()
         return redirect('/admin/manage-signals')
     except Exception as e:
         return str(e), 500
@@ -1274,7 +1389,7 @@ MANAGE_SIGNALS_HTML = '''
 </head>
 <body>
     <div class="header">
-        <h1>Manage Signals (Firestore)</h1>
+        <h1>Manage Signals (Supabase)</h1>
         <a href="/admin" class="btn back-btn">← Back to Dashboard</a>
     </div>
     {% if error %}
@@ -1314,7 +1429,7 @@ MANAGE_SIGNALS_HTML = '''
                     </td>
                 </tr>
                 {% else %}
-                <tr><td colspan="8" class="empty">No signals found in Firestore.</td></tr>
+                <tr><td colspan="8" class="empty">No signals in bcs_signals (check Railway env + Supabase).</td></tr>
                 {% endfor %}
             </tbody>
         </table>

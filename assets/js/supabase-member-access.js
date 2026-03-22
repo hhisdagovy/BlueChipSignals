@@ -2,8 +2,8 @@
  * Evaluate member access from member-onboarding `fetch_state` payload
  * (same shape as dashboard member state).
  */
-import { parseFunctionsHttpError } from '../src/lib/parse-functions-http-error.js';
-import { unwrapMemberPayload } from '../src/lib/member-state-unwrap.js';
+import { parseFunctionsHttpError } from '/src/lib/parse-functions-http-error.js';
+import { unwrapMemberPayload } from '/src/lib/member-state-unwrap.js';
 
 export async function fetchMemberState(supabase) {
     const { data: sess } = await supabase.auth.getSession();

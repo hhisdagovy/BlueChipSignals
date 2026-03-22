@@ -2,8 +2,8 @@
  * Sets `bluechip_is_admin` + dispatches `adminConfirmed` for internal nav (ADMIN link).
  * Loaded dynamically from nav-component.js so History / Journal / Planner / Account get the link without visiting dashboard first.
  */
-import { getSupabase } from '../src/lib/supabase-browser.js';
-import { isStaffUser } from './supabase-member-access.js';
+import { getSupabase } from '/src/lib/supabase-browser.js';
+import { isStaffUser } from '/assets/js/supabase-member-access.js';
 
 export async function syncStaffAdminNav() {
     try {

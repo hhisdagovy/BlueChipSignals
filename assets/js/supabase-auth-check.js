@@ -1,10 +1,11 @@
 // Member-site auth helpers (Supabase)
-import { getSupabase } from '../src/lib/supabase-browser.js';
+// Root-absolute URLs so imports work from any page URL (trailing slashes, rewrites).
+import { getSupabase } from '/src/lib/supabase-browser.js';
 import {
     fetchMemberState,
     evaluateMemberStateAccess,
     isStaffUser
-} from './supabase-member-access.js';
+} from '/assets/js/supabase-member-access.js';
 
 export const ACCOUNT_ISSUE_REASON = 'account_issue';
 
@@ -208,4 +209,4 @@ export async function loadAndEvaluateUserProfileSupabase(uid, options) {
     return evaluateMemberStateAccess(state, options);
 }
 
-export { isStaffUser, fetchMemberState, evaluateMemberStateAccess } from './supabase-member-access.js';
+export { isStaffUser, fetchMemberState, evaluateMemberStateAccess } from '/assets/js/supabase-member-access.js';

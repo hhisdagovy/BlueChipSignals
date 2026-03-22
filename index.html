@@ -1700,9 +1700,9 @@
         setTimeout(optimizeStripeButtons, 5000);
     </script>
 
-    <!-- Firebase Authentication -->
+    <!-- Supabase: redirect if already signed in -->
     <script type="module">
-        import { redirectIfLoggedIn, updateAuthButton } from './assets/js/supabase-auth-check.js';
+        import { redirectIfLoggedIn, updateAuthButton } from '/assets/js/supabase-auth-check.js';
         redirectIfLoggedIn('dashboard.html');
         updateAuthButton('login.html');
     </script>

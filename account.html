@@ -903,7 +903,7 @@
                 await ensureSession();
                 if (!sessionUser) return;
 
-                const { checkPageMaintenance } = await import('./assets/js/supabase-auth-check.js');
+                const { checkPageMaintenance } = await import('/assets/js/supabase-auth-check.js');
                 if (await checkPageMaintenance('account', 'maintenance.html', false)) return;
 
                 const state = await invokeMember('fetch_state');

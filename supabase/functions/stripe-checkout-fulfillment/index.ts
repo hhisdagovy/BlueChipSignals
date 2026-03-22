@@ -236,6 +236,63 @@ async function findAuthUserIdByEmail(supabase: ReturnType<typeof getSupabaseAdmi
   }
 }
 
+async function ensureAuthUserForPurchase({
+  supabase,
+  email,
+  customerName,
+}: {
+  supabase: ReturnType<typeof getSupabaseAdminClient>;
+  email: string;
+  customerName: string;
+}) {
+  const normalizedEmail = normalizeEmail(email);
+
+  if (!normalizedEmail) {
+    throw new Error("Customer email is required to create a member account.");
+  }
+
+  const existingUserId = await findAuthUserIdByEmail(supabase, normalizedEmail);
+
+  if (existingUserId) {
+    return existingUserId;
+  }
+
+  const fallbackPassword = crypto.randomUUID();
+  const { data, error } = await supabase.auth.admin.createUser({
+    email: normalizedEmail,
+    email_confirm: true,
+    password: fallbackPassword,
+    user_metadata: {
+      source: "stripe_checkout",
+      full_name: String(customerName || "").trim() || null,
+    },
+  });
+
+  if (error) {
+    const message = String(error.message || "").toLowerCase();
+
+    if (
+      message.includes("already") ||
+      message.includes("exists") ||
+      message.includes("registered")
+    ) {
+      const retryUserId = await findAuthUserIdByEmail(supabase, normalizedEmail);
+
+      if (retryUserId) {
+        return retryUserId;
+      }
+    }
+
+    throw new Error(error.message || "Unable to create Supabase auth user.");
+  }
+
+  if (!data?.user?.id) {
+    throw new Error("Supabase auth user creation returned no user id.");
+  }
+
+  return data.user.id;
+}
+
 async function sendFulfillmentEmail({
   toEmail,
   purchasedPlan,
@@ -458,7 +515,11 @@ Deno.serve(async (request) => {
     const entitlement = mapEntitlements({ productKey, ticker: requestedTicker })
     const customerEmail = normalizeEmail(session.customer_details?.email ?? session.customer_email ?? '')
     const customerName = String(session.customer_details?.name ?? session.customer?.name ?? '').trim()
-    const userId = await findAuthUserIdByEmail(supabase, customerEmail)
+    const userId = await ensureAuthUserForPurchase({
+      supabase,
+      email: customerEmail,
+      customerName,
+    })
     const now = new Date().toISOString()
 
     if (!entitlement.plan || !entitlement.fulfillmentStatus || !productKey) {

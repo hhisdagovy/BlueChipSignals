@@ -20,6 +20,8 @@
     var _activeTicker    = 'ALL';  // user-selected filter pill
     var _activeDirection = 'ALL';  // 'ALL' | 'CALL' | 'PUT'
     var _supabaseClient  = null;   // set via BCSSignals.init({ supabase })
+    /** @type {Record<string, boolean>|null|undefined} null/undefined = all channels on */
+    var _channelEnabled  = null;
 
     /* ── Carousel state ── */
     var _carouselIndex   = 0;
@@ -229,6 +231,12 @@
             signals = signals.slice(0, 9);
         }
 
+        if (_channelEnabled && typeof _channelEnabled === 'object') {
+            signals = signals.filter(function (s) {
+                return _channelEnabled[s.stock] !== false;
+            });
+        }
+
         if (badge) badge.textContent = signals.length;
 
         if (signals.length === 0) {
@@ -370,6 +378,22 @@
         };
     }
 
+    async function refreshChannelTogglesFromSupabase() {
+        if (!_supabaseClient) return;
+        try {
+            var res = await _supabaseClient
+                .from('bcs_site_documents')
+                .select('data')
+                .eq('id', 'signals')
+                .maybeSingle();
+            if (!res.error && res.data && res.data.data && typeof res.data.data === 'object') {
+                _channelEnabled = res.data.data;
+            }
+        } catch (e) {
+            console.warn('[BCS] channel toggles fetch failed:', e);
+        }
+    }
+
     async function pullSupabaseSignals() {
         if (!_supabaseClient) {
             _runREST();
@@ -428,6 +452,13 @@
             _activeTicker    = 'ALL';
             _activeDirection = 'ALL';
             _supabaseClient  = options && options.supabase ? options.supabase : null;
+            if (options && Object.prototype.hasOwnProperty.call(options, 'channelEnabled')) {
+                _channelEnabled = options.channelEnabled && typeof options.channelEnabled === 'object'
+                    ? options.channelEnabled
+                    : null;
+            } else {
+                _channelEnabled = null;
+            }
 
             /* Demo mode: render mock signals, skip network fetch */
             if (window._BCS_DEMO_SIGNALS) {
@@ -441,7 +472,12 @@
             }
 
             if (_supabaseClient) {
-                listenSupabase();
+                var startListen = function () { listenSupabase(); };
+                if (_channelEnabled && typeof _channelEnabled === 'object') {
+                    startListen();
+                } else {
+                    refreshChannelTogglesFromSupabase().then(startListen).catch(startListen);
+                }
             } else {
                 _runREST();
             }

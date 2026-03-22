@@ -86,7 +86,8 @@ create table if not exists public.bcs_faq_items (
   category text not null default 'general',
   question text not null,
   answer text not null,
-  created_at timestamptz not null default now()
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
 );
 
 create index if not exists bcs_faq_items_cat_order_idx
@@ -114,7 +115,8 @@ create table if not exists public.bcs_roadmap_milestones (
   label text not null,
   status text not null default 'planned',
   features jsonb not null default '[]'::jsonb,
-  created_at timestamptz not null default now()
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
 );
 
 create index if not exists bcs_roadmap_milestones_order_idx

@@ -1676,7 +1676,7 @@
 
         /* ── Announcement banner ── */
         #announcement-banner {
-            display: flex;
+            display: none;
             align-items: center;
             gap: 0.65rem;
             padding: 0.75rem 1.1rem;
@@ -1685,6 +1685,34 @@
             font-weight: 500;
             margin-bottom: 1.25rem;
             animation: fadeInDown 0.35s ease;
+            border: 1px solid transparent;
+        }
+
+        #announcement-banner.ann-visible {
+            display: flex;
+        }
+
+        #announcement-banner.ann-info {
+            background: rgba(59, 130, 246, 0.12);
+            border-color: rgba(96, 165, 250, 0.35);
+            color: #bfdbfe;
+        }
+
+        #announcement-banner.ann-warning {
+            background: rgba(245, 158, 11, 0.12);
+            border-color: rgba(251, 191, 36, 0.35);
+            color: #fde68a;
+        }
+
+        #announcement-banner.ann-success {
+            background: rgba(34, 197, 94, 0.12);
+            border-color: rgba(74, 222, 128, 0.35);
+            color: #bbf7d0;
+        }
+
+        #announcement-banner .ann-icon {
+            flex-shrink: 0;
+            opacity: 0.85;
         }
 
         #announcement-banner .ann-close {
@@ -1724,7 +1752,11 @@
             padding: 0.22rem 0.55rem;
         }
 
-        .stock-row.row-offline .tg-btn,
+        .stock-row.row-offline .tg-btn {
+            opacity: 1;
+            pointer-events: none;
+        }
+
         .stock-row.row-offline .signals-link {
             opacity: 0.25;
             pointer-events: none;
@@ -1738,6 +1770,12 @@
 
     <!-- Main Content -->
     <div class="main-content">
+
+        <div id="announcement-banner" role="status" aria-live="polite">
+            <i class="fas fa-bullhorn ann-icon" aria-hidden="true"></i>
+            <span id="announcement-banner-text"></span>
+            <button type="button" class="ann-close" id="announcement-banner-close" aria-label="Dismiss announcement">&times;</button>
+        </div>
 
         <!-- Dashboard Hero -->
         <div class="dash-hero">
@@ -2383,23 +2421,26 @@
             const avatarEl = document.getElementById('dashAvatar');
             if (avatarEl) avatarEl.textContent = firstName.charAt(0).toUpperCase();
 
+            const chMap = typeof window.__bcsSignalsChannelMap !== 'undefined' ? window.__bcsSignalsChannelMap : null;
             if (plan === 'bundle') {
+                if (subBadge) subBadge.classList.remove('single-plan');
                 subscriptionStatus.textContent = 'Full Bundle';
-                if (window.BCSSignals) window.BCSSignals.init({ supabase, tickerFilter: null });
+                if (window.BCSSignals) window.BCSSignals.init({ supabase, tickerFilter: null, channelEnabled: chMap });
             } else if (plan === 'single') {
+                if (subBadge) subBadge.classList.add('single-plan');
                 const ticker = (state.allowedTicker || '').toUpperCase();
                 if (state.pendingTickerSelection || !ticker) {
                     subscriptionStatus.textContent = 'Single Channel · Pending selection';
-                    if (window.BCSSignals) window.BCSSignals.init({ supabase, tickerFilter: '__NO_ACCESS__' });
+                    if (window.BCSSignals) window.BCSSignals.init({ supabase, tickerFilter: '__NO_ACCESS__', channelEnabled: chMap });
                 } else {
                     subscriptionStatus.textContent = `Single Channel · ${ticker}`;
-                    if (window.BCSSignals) window.BCSSignals.init({ supabase, tickerFilter: ticker });
+                    if (window.BCSSignals) window.BCSSignals.init({ supabase, tickerFilter: ticker, channelEnabled: chMap });
                     applyPlanRestrictions(ticker, state);
                 }
-                if (subBadge) subBadge.classList.add('single-plan');
             } else {
+                if (subBadge) subBadge.classList.remove('single-plan');
                 subscriptionStatus.textContent = 'Membership review needed';
-                if (window.BCSSignals) window.BCSSignals.init({ supabase, tickerFilter: '__NO_ACCESS__' });
+                if (window.BCSSignals) window.BCSSignals.init({ supabase, tickerFilter: '__NO_ACCESS__', channelEnabled: chMap });
             }
 
             const qstatStatus = document.getElementById('qstatStatus');
@@ -2492,10 +2533,84 @@
             return true;
         }
 
+        function applyAnnouncementBanner(siteData) {
+            const el = document.getElementById('announcement-banner');
+            const textEl = document.getElementById('announcement-banner-text');
+            if (!el || !textEl) return;
+            el.classList.remove('ann-visible', 'ann-info', 'ann-warning', 'ann-success');
+            const text = String(siteData?.announcementText || '').trim();
+            if (!siteData?.announcementActive || !text) {
+                el.style.display = 'none';
+                return;
+            }
+            const dismissed = sessionStorage.getItem('bcs_ann_dismissed');
+            if (dismissed && dismissed === text) {
+                el.style.display = 'none';
+                return;
+            }
+            const typeRaw = String(siteData.announcementType || 'info').toLowerCase();
+            const typeClass = typeRaw === 'warning' || typeRaw === 'success' ? typeRaw : 'info';
+            el.classList.add('ann-visible', 'ann-' + typeClass);
+            el.style.display = 'flex';
+            textEl.textContent = text;
+        }
+
+        function applyChannelAvailability(signalsMap) {
+            const tickers = ['SPY', 'TSLA', 'META', 'AAPL', 'NVDA', 'AMZN'];
+            let activeCount = 0;
+            tickers.forEach((t) => {
+                const on = !signalsMap || typeof signalsMap !== 'object' || signalsMap[t] !== false;
+                if (on) activeCount++;
+                const row = document.querySelector(`.stock-row[data-ticker="${t}"]`);
+                if (!row) return;
+                const btn = row.querySelector('[data-telegram-button]');
+                if (!on) {
+                    row.classList.add('row-offline');
+                    if (btn) {
+                        btn.disabled = true;
+                        btn.classList.add('row-locked');
+                        btn.innerHTML = '<span class="offline-badge"><i class="fas fa-plug-circle-xmark"></i> Offline</span>';
+                        btn.onclick = null;
+                    }
+                } else {
+                    row.classList.remove('row-offline');
+                }
+            });
+            const q = document.getElementById('qstatChannels');
+            if (q) q.textContent = `${activeCount} Active`;
+        }
+
+        document.getElementById('announcement-banner-close')?.addEventListener('click', () => {
+            const textEl = document.getElementById('announcement-banner-text');
+            const t = textEl ? String(textEl.textContent || '').trim() : '';
+            if (t) sessionStorage.setItem('bcs_ann_dismissed', t);
+            const el = document.getElementById('announcement-banner');
+            if (el) {
+                el.classList.remove('ann-visible', 'ann-info', 'ann-warning', 'ann-success');
+                el.style.display = 'none';
+            }
+        });
+
         async function initDashboard() {
             try {
                 await ensureSession();
                 if (!supabase) return;
+
+                window.__bcsSignalsChannelMap = null;
+                try {
+                    const [siteRes, sigRes] = await Promise.all([
+                        supabase.from('bcs_site_documents').select('data').eq('id', 'site').maybeSingle(),
+                        supabase.from('bcs_site_documents').select('data').eq('id', 'signals').maybeSingle(),
+                    ]);
+                    if (!siteRes.error && siteRes.data?.data) {
+                        applyAnnouncementBanner(siteRes.data.data);
+                    }
+                    if (!sigRes.error) {
+                        window.__bcsSignalsChannelMap = sigRes.data?.data || null;
+                    }
+                } catch (e) {
+                    console.warn('Site documents fetch:', e);
+                }
 
                 try {
                     const staff = await isStaffUser(supabase);
@@ -2519,6 +2634,11 @@
                 }
 
                 updateDashboard(state);
+                try {
+                    applyChannelAvailability(window.__bcsSignalsChannelMap);
+                } catch (e) {
+                    console.warn('applyChannelAvailability:', e);
+                }
             } catch (error) {
                 console.error('Unable to load dashboard:', error);
                 const banner = document.createElement('div');

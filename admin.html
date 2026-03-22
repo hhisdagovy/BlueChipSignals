@@ -1074,6 +1074,7 @@
                                 <option value="META">META - Meta Platforms</option>
                                 <option value="AAPL">AAPL - Apple</option>
                                 <option value="NVDA">NVDA - NVIDIA</option>
+                                <option value="AMZN">AMZN - Amazon</option>
                             </select>
                         </div>
                         <div class="form-field">
@@ -1088,7 +1089,7 @@
                                 <i class="fas fa-user-plus"></i> Create User
                             </button>
                             <span class="form-hint" style="margin-top:0.5rem;">
-                                A Firebase Auth account and full Firestore profile will be created. The user can log in immediately and change their password from the Account page.
+                                Creates a <strong>Supabase Auth</strong> user plus <code>bcs_entitlements</code> (and channel access when active). Deploy the <code>admin-create-member</code> Edge Function and run the latest DB migrations. Users can change password from the Account page.
                             </span>
                         </div>
                     </div>
@@ -1504,6 +1505,7 @@
     <script type="module">
         import { getSupabase } from './src/lib/supabase-browser.js';
         import { isStaffUser } from '/assets/js/supabase-auth-check.js';
+        import { parseFunctionsHttpError } from '/src/lib/parse-functions-http-error.js';
 
         let supabase = null;
 
@@ -1844,20 +1846,45 @@
             }
 
             try {
-                void email;
-                void password;
-                void firstName;
-                void lastName;
-                void plan;
-                void ticker;
-                void status;
+                await ensureSupabase();
+                const { data: sess } = await supabase.auth.getSession();
+                if (!sess?.session?.access_token) {
+                    showMsg('addMsg', 'Your session expired. Refresh and sign in again.', 'error');
+                    return;
+                }
+                const entStatus = status.toLowerCase().includes('active') ? 'Premium Active' : 'Inactive';
+                const { data, error } = await supabase.functions.invoke('admin-create-member', {
+                    headers: { Authorization: `Bearer ${sess.session.access_token}` },
+                    body: {
+                        email,
+                        password,
+                        firstName,
+                        lastName,
+                        plan,
+                        ticker: plan === 'single' ? ticker : undefined,
+                        subscriptionStatus: entStatus
+                    }
+                });
+                if (error) {
+                    const detail = await parseFunctionsHttpError(error);
+                    throw new Error(detail || error.message || 'Edge function error');
+                }
+                const payload = data && typeof data === 'object' ? data : {};
+                if (payload.error) {
+                    throw new Error(payload.error);
+                }
+                showMsg('addMsg', payload.message || 'User created successfully.', 'success');
+                document.getElementById('addUserForm').reset();
+                loadUsers();
+            } catch (err) {
                 showMsg(
                     'addMsg',
-                    'Use Supabase Dashboard → Authentication to invite users, then add a bcs_entitlements row (or use Stripe checkout). Browser signup would risk replacing your staff session.',
+                    'Error: ' + (err.message || String(err)) +
+                        (String(err.message || '').includes('Failed to fetch') || String(err.message || '').includes('404')
+                            ? ' — Deploy `supabase/functions/admin-create-member` and set verify_jwt false (see config.toml).'
+                            : ''),
                     'error'
                 );
-            } catch (err) {
-                showMsg('addMsg', 'Error: ' + err.message, 'error');
             } finally {
                 btn.disabled = false;
                 btn.innerHTML = '<i class="fas fa-user-plus"></i> Create User';

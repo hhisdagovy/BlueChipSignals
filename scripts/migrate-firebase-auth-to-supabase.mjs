@@ -60,7 +60,8 @@ async function getAllSupabaseUsersByEmail() {
 }
 
 function randomPassword() {
-  return `${crypto.randomUUID()}-${crypto.randomUUID()}`
+  // Keep under bcrypt's 72-byte limit for GoTrue compatibility.
+  return crypto.randomUUID().replace(/-/g, '')
 }
 
 async function main() {

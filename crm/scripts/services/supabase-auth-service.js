@@ -247,6 +247,9 @@ export class SupabaseAuthService {
       return null
     }
 
+    const supabase = await getSupabase()
+    await assertNotMemberPortalUser(supabase, authSession.user)
+
     const profile = await this.fetchProfile(authSession.user.id)
 
     if (profile.isActive === false) {
@@ -299,6 +302,8 @@ export class SupabaseAuthService {
     if (!data) {
       throw new Error(`Signed in successfully, but no readable CRM profile row matched auth user id ${normalizedUserId}.`)
     }
+
+    assertRawCrmStaffRole(data.role)
 
     return mapProfileRow(data)
   }
@@ -519,17 +524,101 @@ function mapAuthUser(user) {
   }
 }
 
+/** Only these DB values may use the employee CRM (case-insensitive). */
+const CRM_STAFF_ROLES_RAW = new Set(['admin', 'sales', 'senior_rep', 'support'])
+
+function normalizeRawStaffRole(role) {
+  return String(role ?? '')
+    .trim()
+    .toLowerCase()
+    .replace(/-/g, '_')
+}
+
+function assertRawCrmStaffRole(role) {
+  const r = normalizeRawStaffRole(role)
+  if (!r) {
+    throw new Error(
+      'This account has no employee CRM role. Members should sign in on the main Blue Chip Signals site, not the /crm link. If you are staff, an admin must set your profiles.role to admin, sales, senior_rep, or support in Supabase.'
+    )
+  }
+  if (!CRM_STAFF_ROLES_RAW.has(r)) {
+    throw new Error(
+      'This profile role cannot access the employee CRM. Use the main member login, or ask an admin to assign a valid staff role.'
+    )
+  }
+}
+
+/**
+ * Block purchaser/member identities from the staff CRM even if profiles.role was mis-set to admin.
+ */
+async function assertNotMemberPortalUser(supabase, authUser) {
+  if (!authUser) {
+    return
+  }
+
+  const meta = authUser.user_metadata || {}
+  const source = String(meta.source || '').trim().toLowerCase()
+  if (source === 'stripe_checkout') {
+    throw new Error(
+      'Member / checkout accounts cannot use the employee CRM. Use the main Blue Chip Signals login, not the staff workspace link.'
+    )
+  }
+
+  const uid = String(authUser.id ?? '').trim()
+  const email = String(authUser.email ?? '')
+    .trim()
+    .toLowerCase()
+
+  if (uid) {
+    const { data: byUser, error: errUser } = await supabase
+      .from('bcs_entitlements')
+      .select('id')
+      .eq('user_id', uid)
+      .maybeSingle()
+
+    if (errUser) {
+      console.warn('[CRM auth] bcs_entitlements by user_id:', errUser.message)
+    } else if (byUser) {
+      throw new Error(
+        'Your account has an active member subscription. Sign in through the main site — the employee CRM is for staff only.'
+      )
+    }
+  }
+
+  if (email) {
+    const { data: byEmail, error: errEmail } = await supabase
+      .from('bcs_entitlements')
+      .select('id')
+      .eq('email', email)
+      .maybeSingle()
+
+    if (errEmail) {
+      console.warn('[CRM auth] bcs_entitlements by email:', errEmail.message)
+    } else if (byEmail) {
+      throw new Error(
+        'Your account has an active member subscription. Sign in through the main site — the employee CRM is for staff only.'
+      )
+    }
+  }
+}
+
 function normalizeProfileRole(role) {
-  if (role === 'admin') {
+  const r = normalizeRawStaffRole(role)
+
+  if (r === 'admin') {
     return 'admin'
   }
 
-  if (role === 'support') {
+  if (r === 'support') {
     return 'support'
   }
 
-  if (role === 'senior_rep') {
+  if (r === 'senior_rep') {
     return 'senior'
+  }
+
+  if (r === 'sales') {
+    return 'sales'
   }
 
   return 'sales'

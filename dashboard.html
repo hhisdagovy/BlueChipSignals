@@ -2464,23 +2464,35 @@
             if (plansCount) plansCount.textContent = plans.length || '0';
         }
 
+        const POST_SETUP_GRACE_MS = 5 * 60 * 1000;
+
+        function isSetupFlagDone(state) {
+            const v = state?.setupCompleted;
+            return v === true || v === 'true' || v === 1 || v === '1';
+        }
+
+        /** Avoid dashboard ↔ welcome loop when JWT lags behind Auth DB after setup. */
+        function shouldSendToWelcomeSetup(state) {
+            if (!state) return true;
+            if (isSetupFlagDone(state)) return false;
+            const profile = state.profile || {};
+            if (profile.firstName && profile.lastName) return false;
+            const raw = sessionStorage.getItem('bcs_post_setup');
+            const t = raw ? Number(raw) : 0;
+            if (t && !Number.isNaN(t) && Date.now() - t < POST_SETUP_GRACE_MS) return false;
+            return true;
+        }
+
         async function initDashboard() {
             try {
                 await ensureSession();
                 if (!supabase) return;
-                await supabase.auth.refreshSession();
 
-                let state = await invokeMember('fetch_state');
+                const state = await invokeMember('fetch_state');
                 if (!state) return;
                 memberState = state;
 
-                if (!state.setupCompleted) {
-                    await supabase.auth.refreshSession();
-                    state = await invokeMember('fetch_state');
-                    if (state) memberState = state;
-                }
-
-                if (!state || !state.setupCompleted) {
+                if (shouldSendToWelcomeSetup(state)) {
                     window.location.href = 'welcome-setup.html';
                     return;
                 }
@@ -2505,6 +2517,7 @@
                 localStorage.removeItem('bluechip_user_email');
                 sessionStorage.removeItem('bluechip_logged_in');
                 sessionStorage.removeItem('bluechip_user_email');
+                sessionStorage.removeItem('bcs_post_setup');
                 window.location.replace('login.html');
             } catch (error) {
                 console.error('Logout error:', error);

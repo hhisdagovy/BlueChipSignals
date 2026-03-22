@@ -421,10 +421,27 @@
             return unwrapMemberPayload(data);
         }
 
+        function showReadyForDashboardMessage() {
+            try {
+                sessionStorage.setItem('bcs_post_setup', String(Date.now()));
+            } catch (_e) {
+                /* ignore */
+            }
+            setupForm.style.display = 'none';
+            const info = document.querySelector('.welcome-container .info-note');
+            if (info) info.style.display = 'none';
+            successMessage.innerHTML =
+                '<p><strong>You\'re all set.</strong> Open your dashboard when you\'re ready.</p>' +
+                '<p style="margin-top:1rem;"><a href="dashboard.html" class="submit-btn" style="display:inline-flex;align-items:center;gap:0.5rem;text-decoration:none;">' +
+                '<i class="fas fa-arrow-right"></i> Continue to dashboard</a></p>';
+            successMessage.style.display = 'block';
+        }
+
         function handleProfileState(state) {
             currentState = state;
+            // Do not auto-redirect — that fought the dashboard guard and caused redirect loops.
             if (state.setupCompleted && !state.pendingTickerSelection) {
-                window.location.href = 'dashboard.html';
+                showReadyForDashboardMessage();
                 return;
             }
             fillExistingProfile(state.profile || {});
@@ -493,9 +510,13 @@
                 });
 
                 currentState = updatedState;
+                try {
+                    sessionStorage.setItem('bcs_post_setup', String(Date.now()));
+                } catch (_e) {
+                    /* ignore quota */
+                }
                 successMessage.textContent = 'Setup complete! Redirecting to dashboard...';
                 successMessage.style.display = 'block';
-                // Refresh session so JWT user_metadata matches DB (dashboard fetch_state).
                 const { error: refreshError } = await supabase.auth.refreshSession();
                 if (refreshError) {
                     console.warn('Session refresh after setup:', refreshError);

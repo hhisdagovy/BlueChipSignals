@@ -52,6 +52,10 @@ function normalizeTicker(value: string) {
   return SUPPORTED_TICKERS.includes(ticker) ? ticker : "";
 }
 
+function normalizeEmail(value: string) {
+  return String(value || "").trim().toLowerCase();
+}
+
 async function fetchUserFromAdminWithRetries(
   supabaseAdmin: ReturnType<typeof getSupabaseAdmin>,
   userId: string,
@@ -112,14 +116,62 @@ async function loadEntitlementState(
     return entitlement;
   }
 
-  if (email) {
+  const normalizedEmail = normalizeEmail(email);
+  if (normalizedEmail) {
     const { data: byEmail } = await supabase
       .from("bcs_entitlements")
       .select("*")
-      .eq("email", email)
+      .ilike("email", normalizedEmail)
       .maybeSingle();
 
-    return byEmail || null;
+    if (!byEmail) {
+      return null;
+    }
+
+    if (byEmail.user_id == null || String(byEmail.user_id) === String(userId)) {
+      return byEmail;
+    }
+
+    /* Row belongs to a user_id that no longer exists in Auth (e.g. Firebase UID after migration). Re-link to this session's user. */
+    const staleId = String(byEmail.user_id || "").trim();
+    const otherStillInAuth = staleId
+      ? await fetchUserFromAdminWithRetries(supabase, staleId)
+      : null;
+    if (otherStillInAuth) {
+      return null;
+    }
+
+    const now = new Date().toISOString();
+    const { error: upErr } = await supabase
+      .from("bcs_entitlements")
+      .update({
+        user_id: userId,
+        email: normalizedEmail,
+        updated_at: now,
+      })
+      .eq("id", byEmail.id);
+    if (upErr) {
+      console.warn("member-onboarding: relink entitlement failed", upErr.message);
+      return null;
+    }
+
+    const tickers = Array.isArray(byEmail.allowed_tickers) && byEmail.allowed_tickers.length
+      ? byEmail.allowed_tickers
+      : DEFAULT_BUNDLE_TICKERS;
+    const { error: caErr } = await supabase.from("bcs_channel_access").upsert(
+      {
+        user_id: userId,
+        entitlement_status: String(byEmail.entitlement_status || ENTITLEMENT_STATUS.ACTIVE),
+        telegram_channels: tickers,
+        updated_at: now,
+      },
+      { onConflict: "user_id" },
+    );
+    if (caErr) {
+      console.warn("member-onboarding: relink channel_access failed", caErr.message);
+    }
+
+    return { ...byEmail, user_id: userId, email: normalizedEmail };
   }
 
   return null;

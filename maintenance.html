@@ -321,7 +321,7 @@
     </div>
 
     <script type="module">
-        import { db, doc, getDoc } from './assets/js/firebase-config.js';
+        import { getSupabase } from './src/lib/supabase-browser.js';
 
         document.getElementById('maintenanceYear').textContent = new Date().getFullYear();
 
@@ -330,9 +330,14 @@
 
         async function checkAndRedirect() {
             try {
-                const snap = await getDoc(doc(db, 'settings', 'site'));
-                if (!snap.exists()) return;
-                const data = snap.data();
+                const supabase = await getSupabase();
+                const { data: row, error } = await supabase
+                    .from('bcs_site_documents')
+                    .select('data')
+                    .eq('id', 'site')
+                    .maybeSingle();
+                if (error || !row?.data) return;
+                const data = row.data;
                 const pages = data.maintenancePages || {};
 
                 if (!messageSet) {

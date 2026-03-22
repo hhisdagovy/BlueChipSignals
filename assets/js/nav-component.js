@@ -249,4 +249,20 @@
         navLinks.insertBefore(adminLi, logoutLi);
     });
 
+    /* Supabase staff check → ADMIN link on every internal (and logged-in public) page */
+    if (type === 'internal' || (type === 'public' && isUserLoggedIn())) {
+        setTimeout(function () {
+            try {
+                var href = new URL(base + 'assets/js/staff-nav-bootstrap.mjs', window.location.href).href;
+                import(href).then(function (m) {
+                    if (typeof m.syncStaffAdminNav === 'function') return m.syncStaffAdminNav();
+                }).catch(function (e) {
+                    console.warn('Staff nav bootstrap failed', e);
+                });
+            } catch (e) {
+                console.warn('Staff nav bootstrap failed', e);
+            }
+        }, 0);
+    }
+
 })();

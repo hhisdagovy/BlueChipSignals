@@ -92,7 +92,7 @@
 <body>
     <div class="card">
         <h1>🔍 Check Your User ID</h1>
-        <p>This page will show your Firebase User ID (UID) so you can make yourself an admin.</p>
+        <p>This page shows your <strong>Supabase</strong> user id (same as <code>auth.users.id</code>) so you can add it to <code>bcs_site_staff</code> for the member-site admin panel (not CRM <code>profiles</code>).</p>
         
         <div id="loading" class="loading">
             <p>Loading your user information...</p>
@@ -105,7 +105,7 @@
                     <span class="value" id="userEmail">-</span>
                 </div>
                 <div class="info-row">
-                    <span class="label">User ID (UID):</span>
+                    <span class="label">Supabase user id:</span>
                     <span>
                         <span class="value" id="userUid">-</span>
                         <button class="copy-btn" onclick="copyUid()">📋 Copy UID</button>
@@ -125,32 +125,22 @@
                 </div>
                 
                 <div class="step">
-                    <strong>Step 2:</strong> Go to <a href="https://console.firebase.google.com/u/0/project/blue-chip-signals-log-ins/firestore" target="_blank" style="color: #b3a17d;">Firebase Console → Firestore</a>
+                    <strong>Step 2:</strong> Open <a href="https://supabase.com/dashboard" target="_blank" style="color: #b3a17d;">Supabase Dashboard</a> → <strong>SQL Editor</strong> (use the <strong>service role</strong> / default project connection).
                 </div>
                 
                 <div class="step">
-                    <strong>Step 3:</strong> Click on the <code style="background: #0f1419; padding: 0.25rem 0.5rem; border-radius: 4px;">users</code> collection
+                    <strong>Step 3:</strong> Run (paste your id from above):
+                    <pre style="background:#0f1419;padding:1rem;border-radius:8px;overflow:auto;font-size:0.85rem;margin-top:0.5rem;">insert into public.bcs_site_staff (user_id, note)
+values ('PASTE-YOUR-UUID-HERE', 'member site admin')
+on conflict (user_id) do nothing;</pre>
                 </div>
                 
                 <div class="step">
-                    <strong>Step 4:</strong> Find and click on your user document (paste your UID in the search)
+                    <strong>Step 4:</strong> This is <strong>not</strong> the CRM <code style="background:#0f1419;padding:0.2rem 0.45rem;border-radius:4px;">profiles</code> table. CRM logins stay separate; only users in <code style="background:#0f1419;padding:0.2rem 0.45rem;border-radius:4px;">bcs_site_staff</code> can open <a href="admin.html" style="color: #b3a17d;">admin.html</a>.
                 </div>
                 
                 <div class="step">
-                    <strong>Step 5:</strong> Click "Add field" button:
-                    <ul style="margin-top: 0.5rem; color: #ccc;">
-                        <li>Field name: <code style="background: #0f1419; padding: 0.25rem 0.5rem; border-radius: 4px;">role</code></li>
-                        <li>Field type: <strong>string</strong></li>
-                        <li>Field value: <code style="background: #0f1419; padding: 0.25rem 0.5rem; border-radius: 4px;">admin</code></li>
-                    </ul>
-                </div>
-                
-                <div class="step">
-                    <strong>Step 6:</strong> Click "Update" to save
-                </div>
-                
-                <div class="step">
-                    <strong>Step 7:</strong> Return to <a href="admin" style="color: #b3a17d;">/admin</a> and refresh the page
+                    <strong>Step 5:</strong> Sign out and sign in on the site, then open <a href="admin.html" style="color: #b3a17d;">admin.html</a>.
                 </div>
             </div>
         </div>
@@ -162,27 +152,34 @@
     </div>
 
     <script type="module">
-        import { auth, onAuthStateChanged } from './assets/js/firebase-config.js';
+        import { getSupabase } from './src/lib/supabase-browser.js';
 
-        onAuthStateChanged(auth, (user) => {
+        (async function () {
             const loading = document.getElementById('loading');
             const userInfo = document.getElementById('userInfo');
             const error = document.getElementById('error');
 
-            loading.style.display = 'none';
+            try {
+                const supabase = await getSupabase();
+                const { data } = await supabase.auth.getSession();
+                const user = data?.session?.user;
+                loading.style.display = 'none';
 
-            if (user) {
-                // Show user information
-                document.getElementById('userEmail').textContent = user.email || 'N/A';
-                document.getElementById('userUid').textContent = user.uid;
-                document.getElementById('userName').textContent = user.displayName || 'Not set';
-                
-                userInfo.style.display = 'block';
-            } else {
-                // Not logged in
+                if (user) {
+                    document.getElementById('userEmail').textContent = user.email || 'N/A';
+                    document.getElementById('userUid').textContent = user.id;
+                    const meta = user.user_metadata || {};
+                    document.getElementById('userName').textContent =
+                        meta.full_name || [meta.first_name, meta.last_name].filter(Boolean).join(' ') || 'Not set';
+                    userInfo.style.display = 'block';
+                } else {
+                    error.style.display = 'block';
+                }
+            } catch (e) {
+                loading.style.display = 'none';
                 error.style.display = 'block';
             }
-        });
+        })();
 
         // Copy UID to clipboard
         window.copyUid = function() {

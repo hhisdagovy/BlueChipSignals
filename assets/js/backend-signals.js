@@ -19,6 +19,7 @@
     var _allSignals      = [];     // cached last fetch result
     var _activeTicker    = 'ALL';  // user-selected filter pill
     var _activeDirection = 'ALL';  // 'ALL' | 'CALL' | 'PUT'
+    var _supabaseClient  = null;   // set via BCSSignals.init({ supabase })
 
     /* ── Carousel state ── */
     var _carouselIndex   = 0;
@@ -315,6 +316,32 @@
         });
     }
 
+    function normalizeSupabaseRow(row, id) {
+        var ts = row.timestamp;
+        if (ts && typeof ts === 'string') {
+            ts = ts.replace('T', ' ').slice(0, 19);
+        } else if (ts && typeof ts.toISOString === 'function') {
+            ts = ts.toISOString().replace('T', ' ').slice(0, 19);
+        } else {
+            ts = new Date().toISOString().replace('T', ' ').slice(0, 19);
+        }
+        return {
+            id: id || row.id,
+            stock: row.stock,
+            price: row.price,
+            vwap: row.vwap,
+            mfi: row.mfi,
+            timestamp: ts,
+            contract: {
+                type: row.contract_type,
+                strike: row.strike,
+                premium: row.premium,
+                expiration: row.expiration,
+                volume: row.volume || 0
+            }
+        };
+    }
+
     /* ── Normalize flat Firestore/demo signal → nested contract shape for buildCard ── */
     function normalizeFirestoreDoc(data, id) {
         /* Convert Firestore Timestamp object to "YYYY-MM-DD HH:MM:SS" string */
@@ -343,35 +370,40 @@
         };
     }
 
-    /* ── Firestore real-time listener ── */
-    function listenFirestore() {
-        var db = window._bcsDb;
-        if (!db) {
-            /* No db available -  fall back to REST API polling */
+    async function pullSupabaseSignals() {
+        if (!_supabaseClient) {
             _runREST();
             return;
         }
-
-        import('https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js')
-            .then(function (fs) {
-                var constraints = [fs.orderBy('timestamp', 'desc'), fs.limit(_limit)];
-                if (_tickerFilter) constraints.unshift(fs.where('stock', '==', _tickerFilter));
-                var q = fs.query(fs.collection(db, 'signals'), ...constraints);
-
-                fs.onSnapshot(q, function (snap) {
-                    _allSignals = snap.docs.map(function (d) {
-                        return normalizeFirestoreDoc(d.data(), d.id);
-                    });
-                    renderSignals(_allSignals);
-                }, function (err) {
-                    console.warn('[BCS] Firestore snapshot error:', err);
-                    renderSignals(null);
-                });
-            })
-            .catch(function (e) {
-                console.warn('[BCS] Could not load Firestore SDK, falling back to REST:', e);
+        try {
+            var q = _supabaseClient
+                .from('bcs_signals')
+                .select('*')
+                .order('timestamp', { ascending: false })
+                .limit(_limit);
+            if (_tickerFilter && _tickerFilter !== '__NO_ACCESS__') {
+                q = q.eq('stock', _tickerFilter);
+            }
+            var result = await q;
+            if (result.error) {
+                console.warn('[BCS] Supabase signals error:', result.error);
                 _runREST();
+                return;
+            }
+            _allSignals = (result.data || []).map(function (row) {
+                return normalizeSupabaseRow(row, row.id);
             });
+            renderSignals(_allSignals);
+        } catch (e) {
+            console.warn('[BCS] Supabase signals fetch failed:', e);
+            _runREST();
+        }
+    }
+
+    function listenSupabase() {
+        pullSupabaseSignals();
+        if (_interval) clearInterval(_interval);
+        _interval = setInterval(pullSupabaseSignals, 30000);
     }
 
     /* ── REST polling fallback ── */
@@ -395,9 +427,9 @@
             _limit           = _tickerFilter ? 30 : 50;
             _activeTicker    = 'ALL';
             _activeDirection = 'ALL';
+            _supabaseClient  = options && options.supabase ? options.supabase : null;
 
-
-            /* Demo mode: render mock signals, skip Firestore fetch */
+            /* Demo mode: render mock signals, skip network fetch */
             if (window._BCS_DEMO_SIGNALS) {
                 var demoSignals = window._BCS_DEMO_SIGNALS.map(function (s) {
                     return normalizeFirestoreDoc(s, s.id);
@@ -408,7 +440,11 @@
                 return;
             }
 
-            listenFirestore();
+            if (_supabaseClient) {
+                listenSupabase();
+            } else {
+                _runREST();
+            }
         },
 
         /* Re-filter the cached signals without a new fetch */

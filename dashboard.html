@@ -2314,6 +2314,7 @@
         import { getSupabase } from './src/lib/supabase-browser.js';
         import { parseFunctionsHttpError } from './src/lib/parse-functions-http-error.js';
         import { unwrapMemberPayload } from './src/lib/member-state-unwrap.js';
+        import { isStaffUser } from './assets/js/supabase-member-access.js';
 
         let supabase = null;
         let sessionToken = '';
@@ -2384,21 +2385,21 @@
 
             if (plan === 'bundle') {
                 subscriptionStatus.textContent = 'Full Bundle';
-                if (window.BCSSignals) window.BCSSignals.init({ tickerFilter: null });
+                if (window.BCSSignals) window.BCSSignals.init({ supabase, tickerFilter: null });
             } else if (plan === 'single') {
                 const ticker = (state.allowedTicker || '').toUpperCase();
                 if (state.pendingTickerSelection || !ticker) {
                     subscriptionStatus.textContent = 'Single Channel · Pending selection';
-                    if (window.BCSSignals) window.BCSSignals.init({ tickerFilter: '__NO_ACCESS__' });
+                    if (window.BCSSignals) window.BCSSignals.init({ supabase, tickerFilter: '__NO_ACCESS__' });
                 } else {
                     subscriptionStatus.textContent = `Single Channel · ${ticker}`;
-                    if (window.BCSSignals) window.BCSSignals.init({ tickerFilter: ticker });
+                    if (window.BCSSignals) window.BCSSignals.init({ supabase, tickerFilter: ticker });
                     applyPlanRestrictions(ticker, state);
                 }
                 if (subBadge) subBadge.classList.add('single-plan');
             } else {
                 subscriptionStatus.textContent = 'Membership review needed';
-                if (window.BCSSignals) window.BCSSignals.init({ tickerFilter: '__NO_ACCESS__' });
+                if (window.BCSSignals) window.BCSSignals.init({ supabase, tickerFilter: '__NO_ACCESS__' });
             }
 
             const qstatStatus = document.getElementById('qstatStatus');
@@ -2410,7 +2411,13 @@
 
             const qstatSince = document.getElementById('qstatSince');
             if (qstatSince) {
-                const rawDate = profile.joinedDate || profile.createdAt;
+                const entRow = state.entitlement || {};
+                const rawDate =
+                    entRow.created_at ||
+                    entRow.updated_at ||
+                    profile.joinedDate ||
+                    profile.createdAt ||
+                    null;
                 if (rawDate) {
                     try {
                         const d = new Date(rawDate);
@@ -2418,6 +2425,8 @@
                     } catch (_) {
                         qstatSince.textContent = '-';
                     }
+                } else {
+                    qstatSince.textContent = '-';
                 }
             }
 
@@ -2487,6 +2496,18 @@
             try {
                 await ensureSession();
                 if (!supabase) return;
+
+                try {
+                    const staff = await isStaffUser(supabase);
+                    if (staff) {
+                        localStorage.setItem('bluechip_is_admin', '1');
+                        window.dispatchEvent(new Event('adminConfirmed'));
+                    } else {
+                        localStorage.removeItem('bluechip_is_admin');
+                    }
+                } catch (_) {
+                    localStorage.removeItem('bluechip_is_admin');
+                }
 
                 const state = await invokeMember('fetch_state');
                 if (!state) return;

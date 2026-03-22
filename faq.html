@@ -646,10 +646,9 @@
 
     </script>
 
-    <!-- Firestore FAQ loader (shows Firestore content when admin has seeded; otherwise uses hardcoded) -->
+    <!-- Supabase FAQ loader (replaces Firestore faq_items) -->
     <script type="module">
-        import { db, collection, query, getDocs } from './assets/js/firebase-config.js';
-        import { orderBy } from 'https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js';
+        import { getSupabase } from './src/lib/supabase-browser.js';
 
         const CATEGORY_TITLES = { general: 'General', signals: 'Signals', subscription: 'Subscription', technical: 'Getting Started' };
 
@@ -678,22 +677,24 @@
                 </div>`;
         }
 
-        async function loadFaqFromFirestore() {
+        async function loadFaqFromSupabase() {
             const hardcoded = document.getElementById('faq-hardcoded');
-            const firestoreEl = document.getElementById('faq-firestore-content');
-            if (!hardcoded || !firestoreEl) return;
+            const remoteEl = document.getElementById('faq-firestore-content');
+            if (!hardcoded || !remoteEl) return;
 
             try {
-                const q = query(collection(db, 'faq_items'), orderBy('order', 'asc'));
-                const snap = await getDocs(q);
-                if (snap.empty) return;
+                const supabase = await getSupabase();
+                const { data: rows, error } = await supabase
+                    .from('bcs_faq_items')
+                    .select('category, question, answer, sort_order')
+                    .order('sort_order', { ascending: true });
+                if (error || !rows?.length) return;
 
                 const byCat = {};
-                snap.docs.forEach(d => {
-                    const data = d.data();
-                    const c = data.category || 'general';
+                rows.forEach((row) => {
+                    const c = row.category || 'general';
                     if (!byCat[c]) byCat[c] = [];
-                    byCat[c].push(data);
+                    byCat[c].push(row);
                 });
 
                 const catOrder = ['general', 'signals', 'subscription', 'technical'];
@@ -708,12 +709,11 @@
                     </div>`;
                 });
 
-                firestoreEl.innerHTML = html;
+                remoteEl.innerHTML = html;
                 hardcoded.style.display = 'none';
-                firestoreEl.style.display = '';
+                remoteEl.style.display = '';
 
-                /* Trigger reveal animation on new elements */
-                const revealEls = firestoreEl.querySelectorAll('.reveal');
+                const revealEls = remoteEl.querySelectorAll('.reveal');
                 if (revealEls.length && window.IntersectionObserver) {
                     const obs = new IntersectionObserver(function(entries) {
                         entries.forEach(function(entry) {
@@ -726,11 +726,11 @@
                     revealEls.forEach(function(el) { obs.observe(el); });
                 }
             } catch (e) {
-                console.warn('[BCS FAQ] Could not load from Firestore:', e);
+                console.warn('[BCS FAQ] Could not load from Supabase:', e);
             }
         }
 
-        loadFaqFromFirestore();
+        loadFaqFromSupabase();
     </script>
 </body>
 </html>

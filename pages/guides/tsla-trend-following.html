@@ -530,7 +530,7 @@
     <script src="../../assets/js/footer-component.js"></script>
 
     <script type="module">
-        import { requirePlan } from '../../assets/js/firebase-auth-check.js';
+        import { requirePlan } from '../../assets/js/supabase-auth-check.js';
         import { renderTrendAnalyzer } from '../../assets/js/tsla-trend.js';
         requirePlan('ticker', 'TSLA', '../../login.html', '../../upgrade.html');
         renderTrendAnalyzer('ta-container');

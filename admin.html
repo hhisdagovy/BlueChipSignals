@@ -1502,49 +1502,50 @@
     </div>
 
     <script type="module">
-        import {
-            auth, db,
-            onAuthStateChanged, signOut,
-            doc, getDoc, getDocs, setDoc, updateDoc, collection, query,
-            functions, httpsCallable
-        } from './assets/js/firebase-config.js';
+        import { getSupabase } from './src/lib/supabase-browser.js';
+        import { isStaffUser } from './assets/js/supabase-auth-check.js';
 
-        import {
-            addDoc, deleteDoc, orderBy, serverTimestamp
-        } from 'https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js';
+        let supabase = null;
 
         /* ── State ── */
         let allUsers        = [];
         let currentFilter   = 'all';
         let pendingDeleteId = null;
-        const createUserForAdminCallable = httpsCallable(functions, 'createUserForAdmin');
 
-        /* ── Auth / admin guard ── */
-        onAuthStateChanged(auth, async (user) => {
-            if (!user) { window.location.href = 'login.html'; return; }
-            try {
-                const snap = await getDoc(doc(db, 'users', user.uid));
-                if (!snap.exists() || (snap.data().role || '').toLowerCase() !== 'admin') {
-                    alert('Access denied. Admin privileges required.');
-                    await signOut(auth);
-                    window.location.href = 'login.html';
-                    return;
-                }
-            } catch (e) {
-                console.error(e);
+        async function ensureSupabase() {
+            if (!supabase) supabase = await getSupabase();
+            return supabase;
+        }
+
+        async function guardAdmin() {
+            await ensureSupabase();
+            const { data: sess } = await supabase.auth.getSession();
+            if (!sess?.session) {
                 window.location.href = 'login.html';
-                return;
+                return false;
             }
+            const ok = await isStaffUser(supabase);
+            if (!ok) {
+                alert('Access denied. Your user must be in public.bcs_site_staff (see check-admin.html).');
+                await supabase.auth.signOut();
+                window.location.href = 'login.html';
+                return false;
+            }
+            return true;
+        }
+
+        (async function initAdmin() {
+            if (!(await guardAdmin())) return;
             loadUsers();
             loadAllSettings();
             loadRoadmapMilestones();
             loadFAQItems();
-        });
+        })();
 
-        /* ── Logout ── */
         window.logout = async function () {
             try {
-                await signOut(auth);
+                await ensureSupabase();
+                await supabase.auth.signOut();
                 localStorage.removeItem('bluechip_logged_in');
                 localStorage.removeItem('bluechip_user_email');
                 localStorage.removeItem('bluechip_is_admin');
@@ -1554,11 +1555,11 @@
             } catch (e) { console.error(e); }
         };
 
-        /* bfcache: when user hits Back after logout, redirect to login */
-        window.addEventListener('pageshow', (e) => {
-            if (e.persisted && !auth.currentUser) {
-                window.location.replace('login.html');
-            }
+        window.addEventListener('pageshow', async (e) => {
+            if (!e.persisted) return;
+            await ensureSupabase();
+            const { data } = await supabase.auth.getSession();
+            if (!data?.session) window.location.replace('login.html');
         });
 
         /* ── Tabs ── */
@@ -1577,9 +1578,19 @@
         async function loadUsers() {
             setTableState('loading');
             try {
-                const snap = await getDocs(collection(db, 'users'));
-                allUsers = [];
-                snap.forEach(d => allUsers.push({ id: d.id, ...d.data() }));
+                await ensureSupabase();
+                const { data: rows, error } = await supabase.from('bcs_entitlements').select('*');
+                if (error) throw error;
+                allUsers = (rows || []).map((r) => ({
+                    id: r.user_id || r.id,
+                    email: r.email || '',
+                    firstName: (r.email || '').split('@')[0] || '-',
+                    displayName: (r.email || '').split('@')[0] || '-',
+                    plan: r.plan || r.plan_key || '',
+                    allowedTicker: r.allowed_ticker || '',
+                    subscriptionStatus: r.entitlement_status || r.fulfillment_status || 'active',
+                    role: 'user'
+                }));
                 computeStats();
                 renderTable();
             } catch (e) {
@@ -1732,6 +1743,7 @@
             const ticker = plan === 'single' ? document.getElementById('editTicker').value.toUpperCase() : '';
 
             try {
+                await ensureSupabase();
                 const updates = {
                     firstName:          document.getElementById('editFirstName').value.trim(),
                     plan,
@@ -1739,9 +1751,22 @@
                     subscriptionStatus: document.getElementById('editStatus').value,
                     role:               document.getElementById('editRole').value
                 };
-                await updateDoc(doc(db, 'users', uid), updates);
+                const statusRaw = String(document.getElementById('editStatus').value || '').toLowerCase();
+                const entStatus = statusRaw.includes('active') ? 'active' : statusRaw.includes('pend') ? 'pending_channel_selection' : 'inactive';
+                const { error } = await supabase
+                    .from('bcs_entitlements')
+                    .update({
+                        plan,
+                        plan_key: plan,
+                        allowed_ticker: ticker || null,
+                        allowed_tickers: ticker ? [ticker] : [],
+                        entitlement_status: entStatus,
+                        fulfillment_status: entStatus,
+                        updated_at: new Date().toISOString()
+                    })
+                    .eq('user_id', uid);
+                if (error) throw error;
 
-                /* Update local cache */
                 const idx = allUsers.findIndex(x => x.id === uid);
                 if (idx !== -1) Object.assign(allUsers[idx], updates);
 
@@ -1763,7 +1788,7 @@
         window.confirmDelete = function (userId, email) {
             pendingDeleteId = userId;
             document.getElementById('confirmBody').textContent =
-                'This will permanently delete ' + email + "'s Firestore profile.";
+                'This will remove ' + email + "'s entitlement row in Supabase (Auth user is not deleted).";
             document.getElementById('confirmOverlay').classList.add('open');
         };
 
@@ -1778,7 +1803,9 @@
             pendingDeleteId = null;
             document.getElementById('confirmOverlay').classList.remove('open');
             try {
-                await deleteDoc(doc(db, 'users', uid));
+                await ensureSupabase();
+                const { error } = await supabase.from('bcs_entitlements').delete().eq('user_id', uid);
+                if (error) throw error;
                 allUsers = allUsers.filter(u => u.id !== uid);
                 computeStats();
                 renderTable();
@@ -1817,22 +1844,18 @@
             }
 
             try {
-                await createUserForAdminCallable({
-                    email,
-                    password,
-                    firstName,
-                    lastName,
-                    displayName:        lastName ? `${firstName} ${lastName}` : firstName,
-                    plan,
-                    allowedTicker:      ticker,
-                    subscriptionStatus: status,
-                    role:               'user'
-                });
-
-                showMsg('addMsg', `User ${email} created successfully!`, 'success');
-                document.getElementById('addUserForm').reset();
-                document.getElementById('addTickerField').style.display = 'none';
-                await loadUsers();
+                void email;
+                void password;
+                void firstName;
+                void lastName;
+                void plan;
+                void ticker;
+                void status;
+                showMsg(
+                    'addMsg',
+                    'Use Supabase Dashboard → Authentication to invite users, then add a bcs_entitlements row (or use Stripe checkout). Browser signup would risk replacing your staff session.',
+                    'error'
+                );
             } catch (err) {
                 showMsg('addMsg', 'Error: ' + err.message, 'error');
             } finally {
@@ -1944,12 +1967,21 @@
 
         async function loadAllSettings() {
             try {
+                await ensureSupabase();
                 renderMaintenancePagesList();
-                const siteSnap = await getDoc(doc(db, 'settings', 'site'));
-                if (siteSnap.exists()) populateSiteSettings(siteSnap.data());
+                const { data: siteRow } = await supabase
+                    .from('bcs_site_documents')
+                    .select('data')
+                    .eq('id', 'site')
+                    .maybeSingle();
+                if (siteRow?.data) populateSiteSettings(siteRow.data);
 
-                const sigSnap = await getDoc(doc(db, 'settings', 'signals'));
-                if (sigSnap.exists()) populateChannels(sigSnap.data());
+                const { data: sigRow } = await supabase
+                    .from('bcs_site_documents')
+                    .select('data')
+                    .eq('id', 'signals')
+                    .maybeSingle();
+                if (sigRow?.data) populateChannels(sigRow.data);
             } catch (e) {
                 console.error('loadAllSettings:', e);
             }
@@ -1996,14 +2028,20 @@
                         maintenancePages[pageId] = { enabled: el.checked };
                         if (msg) maintenancePages[pageId].message = msg;
                     });
-                    await setDoc(doc(db, 'settings', 'site'), {
-                    announcementActive: document.getElementById('announcementActive').checked,
-                    announcementText:   document.getElementById('announcementText').value.trim(),
-                    announcementType:   document.getElementById('announcementType').value,
-                    maintenanceMode:    document.getElementById('maintenanceMode').checked,
-                    maintenanceMessage: document.getElementById('maintenanceMessage').value.trim(),
-                    maintenancePages,
-                });
+                    await ensureSupabase();
+                    const sitePayload = {
+                        announcementActive: document.getElementById('announcementActive').checked,
+                        announcementText: document.getElementById('announcementText').value.trim(),
+                        announcementType: document.getElementById('announcementType').value,
+                        maintenanceMode: document.getElementById('maintenanceMode').checked,
+                        maintenanceMessage: document.getElementById('maintenanceMessage').value.trim(),
+                        maintenancePages
+                    };
+                    const { error: siteErr } = await supabase.from('bcs_site_documents').upsert(
+                        { id: 'site', data: sitePayload, updated_at: new Date().toISOString() },
+                        { onConflict: 'id' }
+                    );
+                    if (siteErr) throw siteErr;
                 showMsg('settingsMsg', 'Site settings saved successfully.', 'success');
             } catch (e) {
                 console.error('Save settings error:', e);
@@ -2027,7 +2065,12 @@
                     document.querySelectorAll('.channel-toggle').forEach(t => {
                         data[t.dataset.channel] = t.checked;
                     });
-                    await setDoc(doc(db, 'settings', 'signals'), data);
+                    await ensureSupabase();
+                    const { error: sigErr } = await supabase.from('bcs_site_documents').upsert(
+                        { id: 'signals', data, updated_at: new Date().toISOString() },
+                        { onConflict: 'id' }
+                    );
+                    if (sigErr) throw sigErr;
                     showMsg('channelsMsg', 'Channel settings saved successfully.', 'success');
                 } catch (e) {
                     console.error('Save channels error:', e);
@@ -2072,14 +2115,25 @@
             const seedCard = document.getElementById('rm-seed-card');
             if (!listEl) return;
             try {
-                const q    = query(collection(db, 'roadmap_milestones'), orderBy('order', 'asc'));
-                const snap = await getDocs(q);
+                await ensureSupabase();
+                const { data: rows, error } = await supabase
+                    .from('bcs_roadmap_milestones')
+                    .select('id, label, status, features, sort_order')
+                    .order('sort_order', { ascending: true });
+                if (error) throw error;
 
-                _rmMilestones = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+                _rmMilestones = (rows || []).map((r) => ({
+                    id: r.id,
+                    label: r.label,
+                    status: r.status,
+                    features: r.features || [],
+                    order: r.sort_order
+                }));
 
-                if (seedCard) seedCard.style.display = snap.empty ? 'block' : 'none';
+                const empty = !_rmMilestones.length;
+                if (seedCard) seedCard.style.display = empty ? 'block' : 'none';
 
-                if (snap.empty) {
+                if (empty) {
                     listEl.innerHTML = '<p style="color:rgba(255,255,255,0.35);font-size:0.85rem;">No milestones yet - click "Initialize Defaults" above to seed from the hardcoded roadmap.</p>';
                     return;
                 }
@@ -2266,18 +2320,31 @@
             });
 
             try {
+                await ensureSupabase();
                 if (editId) {
-                    await updateDoc(doc(db, 'roadmap_milestones', editId), { label, status, features });
+                    const { error } = await supabase
+                        .from('bcs_roadmap_milestones')
+                        .update({
+                            label,
+                            status,
+                            features,
+                            updated_at: new Date().toISOString()
+                        })
+                        .eq('id', editId);
+                    if (error) throw error;
                     showMsg('roadmapMsg', `"${label}" updated.`, 'success');
                     loadRoadmapMilestones();
                     setTimeout(() => closeRoadmapModal(), 600);
                 } else {
-                    const nextOrder = _rmMilestones.length > 0
-                        ? Math.max(..._rmMilestones.map(m => m.order ?? 0)) + 1
-                        : 0;
-                    await addDoc(collection(db, 'roadmap_milestones'), {
-                        label, status, features, order: nextOrder, createdAt: serverTimestamp()
+                    const nextOrder =
+                        _rmMilestones.length > 0 ? Math.max(..._rmMilestones.map((m) => m.order ?? 0)) + 1 : 0;
+                    const { error } = await supabase.from('bcs_roadmap_milestones').insert({
+                        label,
+                        status,
+                        features,
+                        sort_order: nextOrder
                     });
+                    if (error) throw error;
                     showMsg('roadmapMsg', `"${label}" added.`, 'success');
                     loadRoadmapMilestones();
                     setTimeout(() => closeRoadmapModal(), 600);
@@ -2304,9 +2371,10 @@
             const bOrder = b.order ?? swapIdx;
 
             try {
+                await ensureSupabase();
                 await Promise.all([
-                    updateDoc(doc(db, 'roadmap_milestones', a.id), { order: bOrder }),
-                    updateDoc(doc(db, 'roadmap_milestones', b.id), { order: aOrder })
+                    supabase.from('bcs_roadmap_milestones').update({ sort_order: bOrder }).eq('id', a.id),
+                    supabase.from('bcs_roadmap_milestones').update({ sort_order: aOrder }).eq('id', b.id)
                 ]);
                 loadRoadmapMilestones();
             } catch (e) {
@@ -2318,7 +2386,9 @@
         window.deleteMilestone = async function(id) {
             if (!confirm('Delete this milestone from the roadmap?')) return;
             try {
-                await deleteDoc(doc(db, 'roadmap_milestones', id));
+                await ensureSupabase();
+                const { error } = await supabase.from('bcs_roadmap_milestones').delete().eq('id', id);
+                if (error) throw error;
                 loadRoadmapMilestones();
             } catch (e) {
                 alert('Error: ' + e.message);
@@ -2327,7 +2397,7 @@
 
         /* ── Seed default milestones ── */
         document.getElementById('seedDefaultsBtn').addEventListener('click', async () => {
-            if (!confirm('This will add the 7 default milestones to Firestore. Continue?')) return;
+            if (!confirm('This will add the 7 default milestones to Supabase. Continue?')) return;
             const btn = document.getElementById('seedDefaultsBtn');
             btn.disabled = true;
             btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Seeding…';
@@ -2373,12 +2443,19 @@
             ];
 
             try {
-                await Promise.all(defaults.map(m =>
-                    addDoc(collection(db, 'roadmap_milestones'), { ...m, createdAt: serverTimestamp() })
-                ));
+                await ensureSupabase();
+                const inserts = defaults.map((m) => ({
+                    label: m.label,
+                    status: m.status,
+                    features: m.features,
+                    sort_order: m.order
+                }));
+                const { error } = await supabase.from('bcs_roadmap_milestones').insert(inserts);
+                if (error) throw error;
                 loadRoadmapMilestones();
             } catch (e) {
                 alert('Seed failed: ' + e.message);
+            } finally {
                 btn.disabled = false;
                 btn.innerHTML = '<i class="fas fa-seedling"></i> Initialize Defaults';
             }
@@ -2402,14 +2479,25 @@
             const seedCard = document.getElementById('faq-seed-card');
             if (!listEl) return;
             try {
-                const q    = query(collection(db, 'faq_items'), orderBy('order', 'asc'));
-                const snap = await getDocs(q);
+                await ensureSupabase();
+                const { data: rows, error } = await supabase
+                    .from('bcs_faq_items')
+                    .select('id, category, question, answer, sort_order')
+                    .order('sort_order', { ascending: true });
+                if (error) throw error;
 
-                _faqItems = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+                _faqItems = (rows || []).map((r) => ({
+                    id: r.id,
+                    category: r.category,
+                    question: r.question,
+                    answer: r.answer,
+                    order: r.sort_order
+                }));
 
-                if (seedCard) seedCard.style.display = snap.empty ? 'block' : 'none';
+                const empty = !_faqItems.length;
+                if (seedCard) seedCard.style.display = empty ? 'block' : 'none';
 
-                if (snap.empty) {
+                if (empty) {
                     listEl.innerHTML = '<p style="color:rgba(255,255,255,0.35);font-size:0.85rem;">No FAQ items yet - click "Initialize Defaults" above to seed from the current faq.html content.</p>';
                     return;
                 }
@@ -2507,19 +2595,26 @@
             const category = document.getElementById('faq-category').value;
 
             try {
+                await ensureSupabase();
                 if (editId) {
-                    await updateDoc(doc(db, 'faq_items', editId), { question, answer, category });
+                    const { error } = await supabase
+                        .from('bcs_faq_items')
+                        .update({ question, answer, category })
+                        .eq('id', editId);
+                    if (error) throw error;
                     showMsg('faqMsg', 'FAQ item updated.', 'success');
                     loadFAQItems();
                     setTimeout(() => closeFAQModal(), 600);
                 } else {
-                    const catItems = _faqItems.filter(i => (i.category || 'general') === category);
-                    const nextOrder = _faqItems.length > 0
-                        ? Math.max(..._faqItems.map(i => i.order ?? 0)) + 1
-                        : 0;
-                    await addDoc(collection(db, 'faq_items'), {
-                        question, answer, category, order: nextOrder, createdAt: serverTimestamp()
+                    const nextOrder =
+                        _faqItems.length > 0 ? Math.max(..._faqItems.map((i) => i.order ?? 0)) + 1 : 0;
+                    const { error } = await supabase.from('bcs_faq_items').insert({
+                        question,
+                        answer,
+                        category,
+                        sort_order: nextOrder
                     });
+                    if (error) throw error;
                     showMsg('faqMsg', 'FAQ item added.', 'success');
                     loadFAQItems();
                     setTimeout(() => closeFAQModal(), 600);
@@ -2546,9 +2641,10 @@
             const bOrder = b.order ?? swapIdx;
 
             try {
+                await ensureSupabase();
                 await Promise.all([
-                    updateDoc(doc(db, 'faq_items', a.id), { order: bOrder }),
-                    updateDoc(doc(db, 'faq_items', b.id), { order: aOrder })
+                    supabase.from('bcs_faq_items').update({ sort_order: bOrder }).eq('id', a.id),
+                    supabase.from('bcs_faq_items').update({ sort_order: aOrder }).eq('id', b.id)
                 ]);
                 loadFAQItems();
             } catch (e) {
@@ -2559,7 +2655,9 @@
         window.deleteFAQItem = async function(id) {
             if (!confirm('Delete this FAQ item?')) return;
             try {
-                await deleteDoc(doc(db, 'faq_items', id));
+                await ensureSupabase();
+                const { error } = await supabase.from('bcs_faq_items').delete().eq('id', id);
+                if (error) throw error;
                 loadFAQItems();
             } catch (e) {
                 alert('Error: ' + e.message);
@@ -2567,7 +2665,7 @@
         };
 
         document.getElementById('faqSeedDefaultsBtn').addEventListener('click', async () => {
-            if (!confirm('This will add the 12 default FAQ items to Firestore. Continue?')) return;
+            if (!confirm('This will add the 12 default FAQ items to Supabase. Continue?')) return;
             const btn = document.getElementById('faqSeedDefaultsBtn');
             btn.disabled = true;
             btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Seeding…';
@@ -2588,15 +2686,21 @@
             ];
 
             try {
-                await Promise.all(defaults.map(item =>
-                    addDoc(collection(db, 'faq_items'), { ...item, createdAt: serverTimestamp() })
-                ));
+                await ensureSupabase();
+                const inserts = defaults.map((item) => ({
+                    category: item.category,
+                    question: item.question,
+                    answer: item.answer,
+                    sort_order: item.order
+                }));
+                const { error } = await supabase.from('bcs_faq_items').insert(inserts);
+                if (error) throw error;
                 loadFAQItems();
-                btn.innerHTML = '<i class="fas fa-seedling"></i> Initialize Defaults';
             } catch (e) {
                 alert('Seed failed: ' + e.message);
             } finally {
                 btn.disabled = false;
+                btn.innerHTML = '<i class="fas fa-seedling"></i> Initialize Defaults';
             }
         });
     </script>

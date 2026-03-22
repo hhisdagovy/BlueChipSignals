@@ -461,6 +461,10 @@
     </style>
 </head>
 <body>
+    <script>
+        /* Legacy Firebase session could leave this flag set; member nav would show ADMIN incorrectly. */
+        try { localStorage.removeItem('bluechip_is_admin'); } catch (_e) {}
+    </script>
     <div id="nav-placeholder" data-nav-type="internal"></div>
     <script src="assets/js/nav-component.js"></script>
 
@@ -710,33 +714,61 @@
     </script>
 
     <!-- ================================================================
-         MODULE: Firebase auth + Firestore logic (all original logic preserved)
+         MODULE: Supabase session + member-onboarding (same source as dashboard)
     ================================================================ -->
     <script type="module">
-        import {
-            auth, db,
-            onAuthStateChanged, signOut,
-            updatePassword, reauthenticateWithCredential, EmailAuthProvider,
-            doc, updateDoc
-        } from './assets/js/firebase-config.js';
-        import { checkPageMaintenance } from './assets/js/firebase-auth-check.js';
-        import { SUPPORT_EMAIL, getAccountIssueMessage, loadUserProfile } from './assets/js/firebase-user-profile.js';
+        import { getSupabase } from './src/lib/supabase-browser.js';
+        import { parseFunctionsHttpError } from './src/lib/parse-functions-http-error.js';
+        import { unwrapMemberPayload } from './src/lib/member-state-unwrap.js';
 
-        let currentUser = null;
+        const SUPPORT_EMAIL = 'support@bluechipsignals.online';
+        const ACCOUNT_ISSUE_MESSAGE =
+            `We couldn't verify your membership details. Please contact support at ${SUPPORT_EMAIL}.`;
+
+        let supabase = null;
+        let sessionUser = null;
+        let memberState = null;
         let canSaveProfile = true;
 
-        /* ---- Real Firebase logout ---- */
+        async function ensureSession() {
+            if (!supabase) supabase = await getSupabase();
+            const { data, error } = await supabase.auth.getSession();
+            if (error || !data?.session) {
+                window.location.href = 'login.html';
+                return null;
+            }
+            sessionUser = data.session.user;
+            return data.session;
+        }
+
+        async function invokeMember(action, payload = {}) {
+            const session = await ensureSession();
+            if (!session) return null;
+            const { data, error } = await supabase.functions.invoke('member-onboarding', {
+                headers: { Authorization: `Bearer ${session.access_token}` },
+                body: { action, ...payload }
+            });
+            if (error) {
+                const detail = await parseFunctionsHttpError(error);
+                throw new Error(detail || 'Unable to load membership state.');
+            }
+            return unwrapMemberPayload(data);
+        }
+
         window.logout = async function () {
-            try { await signOut(auth); } catch (_) {}
+            try {
+                await ensureSession();
+                await supabase.auth.signOut();
+            } catch (_) {}
             localStorage.removeItem('bluechip_logged_in');
             localStorage.removeItem('bluechip_user_email');
             localStorage.removeItem('bluechip_is_admin');
             sessionStorage.removeItem('bluechip_logged_in');
             sessionStorage.removeItem('bluechip_user_email');
+            sessionStorage.removeItem('bcs_post_setup');
             window.location.replace('login.html');
         };
 
-        /* ---- Alert helpers ---- */
         function showAlert(id, msg) {
             const el = document.getElementById(id);
             if (!el) return;
@@ -754,138 +786,160 @@
             setTimeout(() => hideAlert(id), ms);
         }
 
-        /* ---- Populate page from Firestore ---- */
-        function populatePage(userData, user) {
-            const hasAccountIssue = Boolean(userData && userData.hasEntitlementIssue);
-            const isAdmin = Boolean(userData && (userData.isAdmin || (userData.role || '').toLowerCase() === 'admin'));
+        function formatMemberDate(raw) {
+            if (!raw) return '-';
+            try {
+                const d = new Date(raw);
+                if (Number.isNaN(d.getTime())) return '-';
+                return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+            } catch (_) {
+                return '-';
+            }
+        }
 
-            /* Profile fields */
-            document.getElementById('firstName').value = userData?.firstName || '';
-            document.getElementById('lastName').value  = userData?.lastName  || '';
-            document.getElementById('email').value     = user.email || userData?.email || '';
-            document.getElementById('phone').value     = userData?.phone || '';
+        /**
+         * Populate UI from member-onboarding state (aligned with dashboard.html).
+         */
+        function populatePage(state, authUser) {
+            const profile = state?.profile || {};
+            const plan = String(state?.plan || '').toLowerCase();
+            const allowedTicker = String(state?.allowedTicker || '').toUpperCase();
+            const entitlementStatus = String(state?.entitlementStatus || '').toLowerCase();
+            const ent = state?.entitlement || {};
+            const hasEntitlement = Boolean(ent && Object.keys(ent).length);
+            const pendingSingle =
+                plan === 'single' &&
+                (state?.pendingTickerSelection || entitlementStatus === 'pending_channel_selection');
 
-            /* Hero greeting */
+            const hasAccountIssue = !hasEntitlement || (!plan && !pendingSingle);
+
+            document.getElementById('firstName').value = profile.firstName || '';
+            document.getElementById('lastName').value = profile.lastName || '';
+            document.getElementById('email').value = authUser?.email || profile.email || '';
+            document.getElementById('phone').value = profile.phone || '';
+
             const heroDesc = document.getElementById('heroDesc');
+            const greetName = profile.firstName || (authUser?.email ? authUser.email.split('@')[0] : '');
             if (heroDesc && hasAccountIssue) {
                 heroDesc.textContent = `We need to review your membership details. Please contact support at ${SUPPORT_EMAIL}.`;
-            } else if (heroDesc && userData?.firstName) {
-                heroDesc.textContent = 'Welcome back, ' + userData.firstName + '. Manage your profile, security, and subscription.';
+            } else if (heroDesc && greetName) {
+                heroDesc.textContent =
+                    'Welcome back, ' + greetName + '. Manage your profile, security, and subscription.';
             }
 
-            /* Plan -  derive display text from structured fields */
-            const plan           = (userData?.plan || '').toLowerCase();
-            const allowedTicker  = (userData?.allowedTicker || '').toUpperCase();
             let planText;
             if (hasAccountIssue) {
                 planText = 'Membership details unavailable';
-            } else if (isAdmin) {
-                planText = 'Admin Access';
             } else if (plan === 'bundle') {
-                planText = 'Full Bundle -  All 5 Channels';
+                planText = 'Full Bundle — All channels';
             } else if (plan === 'single' && allowedTicker) {
-                planText = 'Single Channel · ' + allowedTicker;
+                planText = 'Single channel · ' + allowedTicker;
+            } else if (plan === 'single' && pendingSingle) {
+                planText = 'Single channel · Pending selection';
             } else {
-                planText = userData?.subscriptionStatus || 'Membership details unavailable';
+                planText = 'Membership review needed';
             }
+
             const subPlanEl = document.getElementById('subPlan');
             if (subPlanEl) subPlanEl.textContent = planText;
             const heroPlanEl = document.getElementById('heroPlan');
             if (heroPlanEl) heroPlanEl.textContent = planText;
 
-            /* Status -  use subscriptionStatus field; default to Active */
-            const status = hasAccountIssue
-                ? 'Needs review'
-                : (userData?.subscriptionStatus || (isAdmin ? 'Admin Access' : 'Active'));
-            const isActive = !hasAccountIssue && status.toLowerCase().includes('active');
-            const statusPill   = document.getElementById('statusPill');
-            const statusText   = document.getElementById('statusText');
-            const heroChip     = document.getElementById('heroStatusChip');
+            const statusRaw = hasAccountIssue
+                ? 'needs review'
+                : plan === 'bundle'
+                  ? 'active'
+                  : entitlementStatus || 'pending review';
+            const isActive =
+                !hasAccountIssue &&
+                (statusRaw.includes('active') || (plan === 'bundle' && !statusRaw.includes('fail')));
+
+            const statusPill = document.getElementById('statusPill');
+            const statusText = document.getElementById('statusText');
+            const heroChip = document.getElementById('heroStatusChip');
             const heroChipText = document.getElementById('heroStatusText');
-            const statusLabel  = hasAccountIssue ? 'Needs review' : (isActive ? 'Active' : status);
-            const statusIcon   = hasAccountIssue ? 'fa-triangle-exclamation' : (isActive ? 'fa-check-circle' : 'fa-times-circle');
-            if (statusText)   statusText.textContent = statusLabel;
+            const statusLabel = hasAccountIssue ? 'Needs review' : isActive ? 'Active' : 'Pending review';
+            const statusIcon = hasAccountIssue ? 'fa-triangle-exclamation' : isActive ? 'fa-check-circle' : 'fa-hourglass-half';
+
+            if (statusText) statusText.textContent = statusLabel;
             if (heroChipText) heroChipText.textContent = statusLabel;
             if (statusPill) {
                 const icon = statusPill.querySelector('i');
-                if (icon) { icon.className = 'fas ' + statusIcon; }
+                if (icon) icon.className = 'fas ' + statusIcon;
                 statusPill.classList.toggle('status-inactive', hasAccountIssue || !isActive);
             }
             if (heroChip) {
                 const icon = heroChip.querySelector('i');
-                if (icon) { icon.className = 'fas ' + statusIcon; }
+                if (icon) icon.className = 'fas ' + statusIcon;
                 heroChip.classList.toggle('status-inactive', hasAccountIssue || !isActive);
             }
 
-            /* Member Since -  prefer joinedDate (set by welcome-setup), fall back to createdAt */
-            let sinceText = '-';
-            const rawDate = userData?.joinedDate || userData?.createdAt;
-            if (rawDate) {
-                try {
-                    const d = rawDate.toDate ? rawDate.toDate() : new Date(rawDate);
-                    sinceText = d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
-                } catch (_) {}
-            }
+            /* Prefer entitlement dates (real membership), not another user's row (email fallback bug fixed server-side). */
+            const rawSince =
+                ent?.created_at ||
+                ent?.updated_at ||
+                profile.joinedDate ||
+                profile.createdAt ||
+                authUser?.created_at ||
+                null;
+            const sinceText = formatMemberDate(rawSince);
             const memberSinceEl = document.getElementById('memberSince');
             if (memberSinceEl) memberSinceEl.textContent = sinceText;
             const heroSinceEl = document.getElementById('heroSince');
             if (heroSinceEl) heroSinceEl.textContent = sinceText;
+
+            return { hasAccountIssue };
         }
 
-        /* bfcache: when user hits Back after logout, redirect to login */
-        window.addEventListener('pageshow', (e) => {
-            if (e.persisted && !auth.currentUser) {
-                window.location.replace('login.html');
-            }
+        window.addEventListener('pageshow', async (e) => {
+            if (!e.persisted) return;
+            if (!supabase) supabase = await getSupabase();
+            const { data } = await supabase.auth.getSession();
+            if (!data?.session) window.location.replace('login.html');
         });
 
-        /* ---- Auth gate + data load ---- */
-        onAuthStateChanged(auth, async (user) => {
-            if (!user) { window.location.href = 'login.html'; return; }
-            currentUser = user;
+        async function initAccountPage() {
             try {
-                const profileResult = await loadUserProfile(user.uid, { requireEntitlements: true });
-                const userData = profileResult.profile || { hasEntitlementIssue: true };
-                const isAdmin = userData && (userData.isAdmin || (userData.role || '').toLowerCase() === 'admin');
-                if (await checkPageMaintenance('account', 'maintenance.html', isAdmin)) return;
+                await ensureSession();
+                if (!sessionUser) return;
 
-                if (profileResult.status === 'missing_profile') {
-                    canSaveProfile = false;
-                    populatePage({ hasEntitlementIssue: true }, user);
-                    showAlert('profileError', getAccountIssueMessage());
-                    return;
-                }
+                const { checkPageMaintenance } = await import('./assets/js/supabase-auth-check.js');
+                if (await checkPageMaintenance('account', 'maintenance.html', false)) return;
+
+                const state = await invokeMember('fetch_state');
+                if (!state) return;
+                memberState = state;
+
+                const { hasAccountIssue } = populatePage(state, sessionUser);
 
                 canSaveProfile = true;
-                populatePage(userData, user);
-
-                if (profileResult.status === 'account_issue') {
-                    if (profileResult.profile?.missingFields?.length) {
-                        console.warn('Account page loaded with incomplete membership data:', profileResult.profile.missingFields);
-                    }
-                    showAlert('profileError', getAccountIssueMessage());
+                if (hasAccountIssue) {
+                    showAlert('profileError', ACCOUNT_ISSUE_MESSAGE);
                 } else {
                     hideAlert('profileError');
                 }
             } catch (err) {
-                console.error('Error loading profile:', err);
+                console.error('Error loading account:', err);
+                showAlert('profileError', err.message || ACCOUNT_ISSUE_MESSAGE);
             }
-        });
+        }
 
-        /* ---- Profile form -  save to Firestore ---- */
+        initAccountPage();
+
         document.getElementById('profileForm').addEventListener('submit', async function (e) {
             e.preventDefault();
-            if (!currentUser) return;
+            await ensureSession();
+            if (!sessionUser) return;
 
             hideAlert('profileSuccess');
             hideAlert('profileError');
 
             const firstName = document.getElementById('firstName').value.trim();
-            const lastName  = document.getElementById('lastName').value.trim();
-            const phone     = document.getElementById('phone').value.trim();
+            const lastName = document.getElementById('lastName').value.trim();
+            const phone = document.getElementById('phone').value.trim();
 
             if (!canSaveProfile) {
-                showAlert('profileError', getAccountIssueMessage());
+                showAlert('profileError', ACCOUNT_ISSUE_MESSAGE);
                 return;
             }
 
@@ -899,56 +953,80 @@
             btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving…';
 
             try {
-                await updateDoc(doc(db, 'users', currentUser.uid), {
-                    firstName,
-                    lastName,
-                    displayName: `${firstName} ${lastName}`,
-                    phone: phone || ''
+                const { error } = await supabase.auth.updateUser({
+                    data: {
+                        first_name: firstName,
+                        last_name: lastName,
+                        phone: phone || ''
+                    }
                 });
+                if (error) throw error;
                 showAlert('profileSuccess');
                 autoHide('profileSuccess');
+                await initAccountPage();
             } catch (err) {
-                showAlert('profileError', 'Failed to save: ' + (err.message || err.code));
+                showAlert('profileError', 'Failed to save: ' + (err.message || 'Unknown error'));
             } finally {
                 btn.disabled = false;
                 btn.innerHTML = '<i class="fas fa-save"></i> Save Changes';
             }
         });
 
-        /* ---- Password form -  reauthenticate + update ---- */
         document.getElementById('passwordForm').addEventListener('submit', async function (e) {
             e.preventDefault();
-            if (!currentUser) return;
+            await ensureSession();
+            if (!sessionUser?.email) return;
 
             hideAlert('passwordSuccess');
             hideAlert('passwordError');
 
             const currentPwd = document.getElementById('currentPassword').value;
-            const newPwd     = document.getElementById('newPassword').value;
+            const newPwd = document.getElementById('newPassword').value;
             const confirmPwd = document.getElementById('confirmPassword').value;
 
-            if (!currentPwd) { showAlert('passwordError', 'Please enter your current password.'); return; }
-            if (newPwd.length < 8) { showAlert('passwordError', 'New password must be at least 8 characters.'); return; }
-            if (newPwd !== confirmPwd) { showAlert('passwordError', 'New passwords do not match.'); return; }
-            if (newPwd === currentPwd) { showAlert('passwordError', 'New password must be different from your current password.'); return; }
+            if (!currentPwd) {
+                showAlert('passwordError', 'Please enter your current password.');
+                return;
+            }
+            if (newPwd.length < 8) {
+                showAlert('passwordError', 'New password must be at least 8 characters.');
+                return;
+            }
+            if (newPwd !== confirmPwd) {
+                showAlert('passwordError', 'New passwords do not match.');
+                return;
+            }
+            if (newPwd === currentPwd) {
+                showAlert('passwordError', 'New password must be different from your current password.');
+                return;
+            }
 
             const btn = document.getElementById('passwordSaveBtn');
             btn.disabled = true;
             btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Updating…';
 
             try {
-                const credential = EmailAuthProvider.credential(currentUser.email, currentPwd);
-                await reauthenticateWithCredential(currentUser, credential);
-                await updatePassword(currentUser, newPwd);
+                const { error: verifyErr } = await supabase.auth.signInWithPassword({
+                    email: sessionUser.email,
+                    password: currentPwd
+                });
+                if (verifyErr) {
+                    showAlert('passwordError', 'Current password is incorrect.');
+                    return;
+                }
+
+                const { error: updErr } = await supabase.auth.updateUser({ password: newPwd });
+                if (updErr) throw updErr;
+
                 showAlert('passwordSuccess');
                 autoHide('passwordSuccess');
                 document.getElementById('passwordForm').reset();
             } catch (err) {
-                let msg = 'Something went wrong. Please try again.';
-                if (err.code === 'auth/wrong-password' || err.code === 'auth/invalid-credential') msg = 'Current password is incorrect.';
-                else if (err.code === 'auth/weak-password') msg = 'Password is too weak. Choose a stronger one.';
-                else if (err.code === 'auth/too-many-requests') msg = 'Too many attempts. Please wait a moment and try again.';
-                showAlert('passwordError', msg);
+                const msg = String(err?.message || '').toLowerCase();
+                let friendly = 'Something went wrong. Please try again.';
+                if (msg.includes('password') && msg.includes('weak')) friendly = 'Password is too weak. Choose a stronger one.';
+                else if (msg.includes('rate') || msg.includes('many')) friendly = 'Too many attempts. Please wait a moment and try again.';
+                showAlert('passwordError', friendly);
             } finally {
                 btn.disabled = false;
                 btn.innerHTML = '<i class="fas fa-key"></i> Change Password';

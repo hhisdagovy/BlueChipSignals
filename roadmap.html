@@ -1454,11 +1454,10 @@
     <div id="footer-placeholder" data-footer-type="standard-social"></div>
     <script src="assets/js/footer-component.js"></script>
 
-    <!-- Milestones from Firestore — replaces hardcoded set once admin seeds -->
+    <!-- Milestones from Supabase (bcs_roadmap_milestones) -->
     <script type="module">
-        import { auth, db, collection, getDocs, query, onAuthStateChanged } from './assets/js/firebase-config.js';
-        import { orderBy, getDoc, doc } from 'https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js';
-        import { checkPageMaintenance } from './assets/js/firebase-auth-check.js';
+        import { getSupabase } from './src/lib/supabase-browser.js';
+        import { checkPageMaintenance, isStaffUser } from './assets/js/supabase-auth-check.js';
 
         const STATUS_BADGE = {
             completed:  'Completed',
@@ -1548,9 +1547,14 @@
 
         async function loadSiteStats() {
             try {
-                const snap = await getDoc(doc(db, 'site_config', 'stats'));
-                if (!snap.exists()) return;
-                const data = snap.data();
+                const supabase = await getSupabase();
+                const { data: row, error } = await supabase
+                    .from('bcs_site_documents')
+                    .select('data')
+                    .eq('id', 'stats')
+                    .maybeSingle();
+                if (error || !row?.data) return;
+                const data = row.data;
                 if (data.signalChannels)    updateHeroStat('stat-signal-channels',    data.signalChannels);
                 if (data.educationalGuides) updateHeroStat('stat-educational-guides', data.educationalGuides);
             } catch (e) {
@@ -1558,12 +1562,19 @@
             }
         }
 
-        async function loadFirestoreMilestones() {
+        async function loadSupabaseMilestones() {
             try {
-                const q    = query(collection(db, 'roadmap_milestones'), orderBy('order', 'asc'));
-                const snap = await getDocs(q);
-                if (snap.empty) return;
-                const milestones = snap.docs.map(d => d.data());
+                const supabase = await getSupabase();
+                const { data: rows, error } = await supabase
+                    .from('bcs_roadmap_milestones')
+                    .select('id, label, status, features, sort_order')
+                    .order('sort_order', { ascending: true });
+                if (error || !rows?.length) return;
+                const milestones = rows.map((r) => ({
+                    label: r.label,
+                    status: r.status,
+                    features: r.features || []
+                }));
 
                 const hardcoded = document.getElementById('rm-hardcoded-milestones');
                 const container = document.getElementById('rm-firestore-milestones');
@@ -1626,18 +1637,20 @@
             }
         }
 
-        /* ── Per-page maintenance check (public page: resolve auth first for admin bypass) ── */
-        onAuthStateChanged(auth, async (user) => {
-            let isAdmin = false;
-            if (user) {
-                try {
-                    const snap = await getDoc(doc(db, 'users', user.uid));
-                    if (snap.exists()) isAdmin = (snap.data().role || '').toLowerCase() === 'admin';
-                } catch (_) {}
-            }
-            if (await checkPageMaintenance('roadmap', 'maintenance.html', isAdmin)) return;
-            loadFirestoreMilestones();
-            loadSiteStats();
+        async function initRoadmapRemote() {
+            const supabase = await getSupabase();
+            let staff = false;
+            try {
+                staff = await isStaffUser(supabase);
+            } catch (_) {}
+            if (await checkPageMaintenance('roadmap', 'maintenance.html', staff)) return;
+            await loadSupabaseMilestones();
+            await loadSiteStats();
+        }
+
+        initRoadmapRemote();
+        window.addEventListener('pageshow', (e) => {
+            if (e.persisted) initRoadmapRemote();
         });
     </script>
 
@@ -1667,7 +1680,7 @@
             requestAnimationFrame(step);
         }
 
-        /* Expose for the Firestore module script to re-trigger on dynamic updates */
+        /* Expose for the Supabase roadmap module to re-trigger on dynamic updates */
         window._bcsAnimateCounter = animateCounter;
 
         setTimeout(function () {

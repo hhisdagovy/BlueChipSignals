@@ -896,9 +896,14 @@
     <script src="assets/js/demo-data.js"></script>
 
     <script type="module">
-        import { auth, db, onAuthStateChanged, doc, getDoc, updateDoc } from './assets/js/firebase-config.js';
-        import { checkPageMaintenance, redirectToAccountIssue } from './assets/js/firebase-auth-check.js';
-        import { loadAndEvaluateUserProfile } from './assets/js/firebase-user-profile.js';
+        import { getSupabase } from './src/lib/supabase-browser.js';
+        import {
+            checkPageMaintenance,
+            redirectToAccountIssue,
+            fetchMemberState,
+            evaluateMemberStateAccess,
+            isStaffUser
+        } from './assets/js/supabase-auth-check.js';
 
         let plans = [];
         let editingPlanId = null;
@@ -1057,11 +1062,17 @@
             localStorage.setItem('bcs_trade_plans', JSON.stringify(plans));
             if (!currentUserId) return;
             try {
-                const userRef = doc(db, 'users', currentUserId);
-                await updateDoc(userRef, {
-                    tradePlans:        plans,
-                    tradePlansUpdated: new Date().toISOString()
-                });
+                const supabase = await getSupabase();
+                const { error } = await supabase.from('bcs_member_app_state').upsert(
+                    {
+                        user_id: currentUserId,
+                        trade_plans: plans,
+                        trade_plans_updated: new Date().toISOString(),
+                        updated_at: new Date().toISOString()
+                    },
+                    { onConflict: 'user_id' }
+                );
+                if (error) throw error;
             } catch (err) {
                 console.error('Error saving plans:', err);
             }
@@ -1070,11 +1081,15 @@
         async function loadPlans() {
             if (!currentUserId) return;
             try {
-                const userRef = doc(db, 'users', currentUserId);
-                const userDoc = await getDoc(userRef);
+                const supabase = await getSupabase();
+                const { data, error } = await supabase
+                    .from('bcs_member_app_state')
+                    .select('trade_plans')
+                    .eq('user_id', currentUserId)
+                    .maybeSingle();
 
-                if (userDoc.exists() && userDoc.data().tradePlans) {
-                    plans = userDoc.data().tradePlans;
+                if (!error && data?.trade_plans && Array.isArray(data.trade_plans) && data.trade_plans.length) {
+                    plans = data.trade_plans;
                 } else {
                     plans = JSON.parse(localStorage.getItem('bcs_trade_plans') || '[]');
                     if (plans.length > 0) await savePlans();
@@ -1309,7 +1324,8 @@
         /* ---- Auth ---- */
         window.logout = async function () {
             try {
-                await auth.signOut();
+                const supabase = await getSupabase();
+                await supabase.auth.signOut();
                 localStorage.removeItem('bluechip_logged_in');
                 localStorage.removeItem('bluechip_user_email');
                 localStorage.removeItem('bluechip_is_admin');
@@ -1321,19 +1337,45 @@
             }
         };
 
-        window.addEventListener('pageshow', (e) => {
-            if (e.persisted && !auth.currentUser) {
-                window.location.replace('login.html');
-            }
+        window.addEventListener('pageshow', async (e) => {
+            if (!e.persisted) return;
+            const supabase = await getSupabase();
+            const { data } = await supabase.auth.getSession();
+            if (!data?.session) window.location.replace('login.html');
         });
 
-        onAuthStateChanged(auth, async (user) => {
+        async function initTradePlanner() {
+            const supabase = await getSupabase();
+            const { data: sess } = await supabase.auth.getSession();
+            const user = sess?.session?.user;
             if (!user) {
                 window.location.href = 'login.html';
                 return;
             }
             try {
-                const accessResult = await loadAndEvaluateUserProfile(user.uid, {
+                let staff = false;
+                try {
+                    staff = await isStaffUser(supabase);
+                } catch (_) {}
+
+                if (user.user_metadata?.is_demo === true) {
+                    plans = window.BCS_DEMO.PLANS.slice();
+                    renderAllPlans();
+                    updateStats();
+                    window.BCS_DEMO.injectBanner();
+                    currentUserId = user.id;
+                    return;
+                }
+
+                if (staff) {
+                    if (await checkPageMaintenance('trade-planner', 'maintenance.html', true)) return;
+                    currentUserId = user.id;
+                    await loadPlans();
+                    return;
+                }
+
+                const { state } = await fetchMemberState(supabase);
+                const accessResult = evaluateMemberStateAccess(state, {
                     requireSetup: true,
                     planType: 'bundle'
                 });
@@ -1349,32 +1391,19 @@
                 }
 
                 if (accessResult.status === 'missing_profile' || accessResult.status === 'account_issue') {
-                    if (accessResult.profile?.missingFields?.length) {
-                        console.warn('Trade planner blocked because membership data is incomplete:', accessResult.profile.missingFields);
-                    }
                     await redirectToAccountIssue('login.html');
                     return;
                 }
 
-                const userData = accessResult.profile;
-
-                /* ── Demo account shortcut ── */
-                if (userData.isDemo) {
-                    plans = window.BCS_DEMO.PLANS.slice();
-                    renderAllPlans();
-                    updateStats();
-                    window.BCS_DEMO.injectBanner();
-                    return;
-                }
-
-                const isAdmin = userData.isAdmin || (userData.role || '').toLowerCase() === 'admin';
-                if (await checkPageMaintenance('trade-planner', 'maintenance.html', isAdmin)) return;
+                if (await checkPageMaintenance('trade-planner', 'maintenance.html', false)) return;
             } catch (e) {
                 console.error('Plan check error:', e);
             }
-            currentUserId = user.uid;
+            currentUserId = user.id;
             await loadPlans();
-        });
+        }
+
+        initTradePlanner();
     </script>
 </body>
 </html>

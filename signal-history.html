@@ -470,14 +470,14 @@
 
     <script src="assets/js/demo-data.js"></script>
     <script type="module">
+        import { getSupabase } from './src/lib/supabase-browser.js';
         import {
-            auth, db, onAuthStateChanged
-        } from './assets/js/firebase-config.js';
-        import { checkPageMaintenance, redirectToAccountIssue } from './assets/js/firebase-auth-check.js';
-        import { loadAndEvaluateUserProfile } from './assets/js/firebase-user-profile.js';
-        import {
-            collection, query, where, orderBy, limit, startAfter, getDocs
-        } from 'https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js';
+            checkPageMaintenance,
+            redirectToAccountIssue,
+            fetchMemberState,
+            evaluateMemberStateAccess,
+            isStaffUser
+        } from './assets/js/supabase-auth-check.js';
 
         const STOCK_STYLES = {
             SPY:  { bg: 'rgba(179,161,125,0.18)', color: '#c9b037' },
@@ -489,11 +489,12 @@
         };
 
         const PAGE_SIZE   = 50;
-        let _lastDoc      = null;
+        let _lastTsIso    = null;
         let _hasMore      = false;
         let _userPlan     = 'bundle';
         let _allowedTicker = null;
         let _demoMode     = false;
+        let _supabase     = null;
 
         /* Active filter state */
         let _filterTicker    = 'ALL';
@@ -501,32 +502,39 @@
         let _filterFrom      = null;
         let _filterTo        = null;
 
-        /* Sort state */
+        /* Sort state (server uses timestamp for pagination; other columns sort client-side on loaded rows) */
         let _sortCol = 'timestamp';
         let _sortDir = 'desc';
 
-        /* ── Build a Firestore query from current filter + sort ── */
-        function buildQuery(afterDoc) {
-            const col = collection(db, 'signals');
-            const constraints = [];
+        function mapDbRow(row) {
+            return {
+                id: row.id,
+                stock: row.stock,
+                contractType: row.contract_type,
+                price: row.price,
+                premium: row.premium,
+                strike: row.strike,
+                expiration: row.expiration,
+                timestamp: row.timestamp,
+                vwap: row.vwap,
+                mfi: row.mfi
+            };
+        }
 
-            /* Hard lock for single-channel users */
-            if (_allowedTicker) {
-                constraints.push(where('stock', '==', _allowedTicker));
-            } else if (_filterTicker !== 'ALL') {
-                constraints.push(where('stock', '==', _filterTicker));
-            }
-
-            if (_filterDirection !== 'ALL') {
-                constraints.push(where('contractType', '==',
-                    _filterDirection.charAt(0).toUpperCase() + _filterDirection.slice(1).toLowerCase()));
-            }
-
-            constraints.push(orderBy(_sortCol, _sortDir));
-            constraints.push(limit(PAGE_SIZE));
-            if (afterDoc) constraints.push(startAfter(afterDoc));
-
-            return query(col, ...constraints);
+        function sortSignalsClient(signals) {
+            const mul = _sortDir === 'desc' ? -1 : 1;
+            return signals.slice().sort((a, b) => {
+                const av = a[_sortCol];
+                const bv = b[_sortCol];
+                if (av == null && bv == null) return 0;
+                if (av == null) return 1;
+                if (bv == null) return -1;
+                if (typeof av === 'number' && typeof bv === 'number') return (av - bv) * mul * -1;
+                const ad = av instanceof Date ? av : new Date(av);
+                const bd = bv instanceof Date ? bv : new Date(bv);
+                if (!isNaN(ad) && !isNaN(bd)) return (ad - bd) * mul * -1;
+                return String(av).localeCompare(String(bv)) * mul * -1;
+            });
         }
 
         /* ── Fetch a page of signals ── */
@@ -556,7 +564,7 @@
             }
 
             if (reset) {
-                _lastDoc = null;
+                _lastTsIso = null;
                 document.getElementById('hist-tbody').innerHTML =
                     '<tr><td colspan="10" class="hist-state"><i class="fas fa-circle-notch fa-spin"></i> Loading…</td></tr>';
             }
@@ -565,32 +573,55 @@
             if (btn) btn.disabled = true;
 
             try {
-                const snap = await getDocs(buildQuery(reset ? null : _lastDoc));
-                const rows = snap.docs;
+                if (!_supabase) throw new Error('No Supabase client');
+                let q = _supabase
+                    .from('bcs_signals')
+                    .select('*')
+                    .order('timestamp', { ascending: false })
+                    .limit(PAGE_SIZE);
 
-                _hasMore = rows.length === PAGE_SIZE;
-                _lastDoc = rows.length ? rows[rows.length - 1] : _lastDoc;
+                if (_allowedTicker) q = q.eq('stock', _allowedTicker);
+                else if (_filterTicker !== 'ALL') q = q.eq('stock', _filterTicker);
 
-                const signals = rows.map(d => ({ id: d.id, ...d.data() }));
+                if (_filterDirection !== 'ALL') {
+                    const dir =
+                        _filterDirection.charAt(0).toUpperCase() +
+                        _filterDirection.slice(1).toLowerCase();
+                    q = q.eq('contract_type', dir);
+                }
 
-                /* Client-side date filtering (Firestore range queries require composite indexes) */
-                const filtered = signals.filter(s => {
+                if (!reset && _lastTsIso) {
+                    q = q.lt('timestamp', _lastTsIso);
+                }
+
+                const { data: rows, error } = await q;
+                if (error) throw error;
+
+                _hasMore = (rows || []).length === PAGE_SIZE;
+                if (rows && rows.length) {
+                    _lastTsIso = rows[rows.length - 1].timestamp;
+                }
+
+                let signals = (rows || []).map(mapDbRow);
+
+                const filtered = signals.filter((s) => {
                     if (!s.timestamp) return true;
-                    const ts = s.timestamp.toDate ? s.timestamp.toDate() : new Date(s.timestamp);
+                    const ts = new Date(s.timestamp);
                     if (_filterFrom && ts < _filterFrom) return false;
-                    if (_filterTo   && ts > _filterTo)   return false;
+                    if (_filterTo && ts > _filterTo) return false;
                     return true;
                 });
 
+                const sorted = _sortCol === 'timestamp' ? filtered : sortSignalsClient(filtered);
+
                 if (reset) {
-                    renderRows(filtered, true);
+                    renderRows(sorted, true);
                 } else {
-                    renderRows(filtered, false);
+                    renderRows(sorted, false);
                 }
 
                 document.getElementById('hist-load-more').style.display = _hasMore ? 'flex' : 'none';
                 if (btn) btn.disabled = false;
-
             } catch (err) {
                 console.error('[BCS History]', err);
                 document.getElementById('hist-tbody').innerHTML =
@@ -773,72 +804,92 @@
             });
         }
 
-        /* bfcache: when user hits Back after logout, redirect to login */
-        window.addEventListener('pageshow', (e) => {
-            if (e.persisted && !auth.currentUser) {
-                window.location.replace('login.html');
-            }
+        window.addEventListener('pageshow', async (e) => {
+            if (!e.persisted) return;
+            const sb = await getSupabase();
+            const { data } = await sb.auth.getSession();
+            if (!data?.session) window.location.replace('login.html');
         });
 
-        /* ── Auth gate ── */
-        onAuthStateChanged(auth, async (user) => {
-            if (!user) { window.location.href = 'login.html'; return; }
+        async function initSignalHistory() {
+            _supabase = await getSupabase();
+            const { data: sess } = await _supabase.auth.getSession();
+            const user = sess?.session?.user;
+            if (!user) {
+                window.location.href = 'login.html';
+                return;
+            }
 
-            let userData;
             try {
-                const accessResult = await loadAndEvaluateUserProfile(user.uid, {
+                let staff = false;
+                try {
+                    staff = await isStaffUser(_supabase);
+                } catch (_) {}
+
+                if (user.user_metadata?.is_demo === true) {
+                    _demoMode = true;
+                    _userPlan = 'bundle';
+                    const badgeEl = document.getElementById('hist-plan-badge');
+                    if (badgeEl) badgeEl.textContent = 'Demo';
+                    wireFilters();
+                    fetchPage(true);
+                    window.BCS_DEMO.injectBanner();
+                    return;
+                }
+
+                if (staff) {
+                    if (await checkPageMaintenance('signal-history', 'maintenance.html', true)) return;
+                    const badgeEl = document.getElementById('hist-plan-badge');
+                    _allowedTicker = null;
+                    _userPlan = 'bundle';
+                    if (badgeEl) badgeEl.textContent = 'Staff';
+                    wireFilters();
+                    fetchPage(true);
+                    return;
+                }
+
+                const { state } = await fetchMemberState(_supabase);
+                const accessResult = evaluateMemberStateAccess(state, {
                     requireSetup: true,
                     planType: 'bundle'
                 });
 
                 if (accessResult.status === 'setup_incomplete') {
-                    window.location.href = 'welcome-setup.html'; return;
+                    window.location.href = 'welcome-setup.html';
+                    return;
                 }
 
                 if (accessResult.status === 'inactive' || accessResult.status === 'plan_mismatch') {
-                    window.location.href = 'upgrade.html'; return;
+                    window.location.href = 'upgrade.html';
+                    return;
                 }
 
                 if (accessResult.status === 'missing_profile' || accessResult.status === 'account_issue') {
-                    if (accessResult.profile?.missingFields?.length) {
-                        console.warn('Signal history blocked because membership data is incomplete:', accessResult.profile.missingFields);
-                    }
                     await redirectToAccountIssue('login.html');
                     return;
                 }
 
-                userData = accessResult.profile;
-            } catch (e) {
-                console.error('[BCS History] Firestore error', e);
-                return;
-            }
+                if (await checkPageMaintenance('signal-history', 'maintenance.html', false)) return;
 
-            /* ── Demo account shortcut ── */
-            if (userData.isDemo) {
-                _demoMode  = true;
-                _userPlan  = 'bundle';
+                const plan = (accessResult.profile?.plan || '').toLowerCase();
+                _userPlan = plan;
                 const badgeEl = document.getElementById('hist-plan-badge');
-                if (badgeEl) badgeEl.textContent = 'Demo';
+                _allowedTicker = null;
+                if (plan === 'single' && accessResult.profile?.allowedTicker) {
+                    _allowedTicker = accessResult.profile.allowedTicker.toUpperCase();
+                    if (badgeEl) badgeEl.textContent = 'Single · ' + _allowedTicker;
+                } else if (badgeEl) {
+                    badgeEl.textContent = 'Full Bundle';
+                }
+
                 wireFilters();
                 fetchPage(true);
-                window.BCS_DEMO.injectBanner();
-                return;
+            } catch (e) {
+                console.error('[BCS History] init error', e);
             }
+        }
 
-            const plan    = (userData.plan || '').toLowerCase();
-            const isAdmin = userData.isAdmin || (userData.role || '').toLowerCase() === 'admin';
-            _userPlan     = plan;
-
-            /* Maintenance check (site-wide + per-page) */
-            if (await checkPageMaintenance('signal-history', 'maintenance.html', isAdmin)) return;
-
-            const badgeEl = document.getElementById('hist-plan-badge');
-            _allowedTicker = null;
-            if (badgeEl) badgeEl.textContent = isAdmin ? 'Admin' : 'Full Bundle';
-
-            wireFilters();
-            fetchPage(true);
-        });
+        initSignalHistory();
     </script>
 </body>
 </html>

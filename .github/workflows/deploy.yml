@@ -35,17 +35,12 @@ jobs:
       # ─────────────────────────────────────────────────────────────
       - name: Inject API secrets
         env:
-          FIREBASE_API:                 ${{ secrets.FIREBASE_API }}
           POLYGON_API_KEY:              ${{ secrets.POLYGON_API_KEY }}
           ALPHA_VANTAGE_KEY:            ${{ secrets.ALPHA_VANTAGE_KEY }}
           BLS_API_KEY:                  ${{ secrets.BLS_API_KEY }}
           VITE_SUPABASE_URL:            ${{ secrets.VITE_SUPABASE_URL }}
           VITE_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.VITE_SUPABASE_PUBLISHABLE_KEY }}
         run: |
-          # Firebase API key -  firebase-config.js and admin.html
-          sed -i "s|%%FIREBASE_API%%|${FIREBASE_API}|g"           assets/js/firebase-config.js
-          sed -i "s|%%FIREBASE_API%%|${FIREBASE_API}|g"           admin.html
-
           # Polygon API key -  central config + files that inline it directly
           sed -i "s|%%POLYGON_API_KEY%%|${POLYGON_API_KEY}|g"     assets/js/config.js
           sed -i "s|%%POLYGON_API_KEY%%|${POLYGON_API_KEY}|g"     assets/js/trend-strength.js

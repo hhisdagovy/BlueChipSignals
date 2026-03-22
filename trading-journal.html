@@ -1129,9 +1129,14 @@
     <script src="assets/js/demo-data.js"></script>
 
     <script type="module">
-        import { auth, db, onAuthStateChanged, doc, getDoc, setDoc, updateDoc } from './assets/js/firebase-config.js';
-        import { checkPageMaintenance, redirectToAccountIssue } from './assets/js/firebase-auth-check.js';
-        import { loadAndEvaluateUserProfile } from './assets/js/firebase-user-profile.js';
+        import { getSupabase } from './src/lib/supabase-browser.js';
+        import {
+            checkPageMaintenance,
+            redirectToAccountIssue,
+            fetchMemberState,
+            evaluateMemberStateAccess,
+            isStaffUser
+        } from './assets/js/supabase-auth-check.js';
 
         // Trading Journal Application
         let trades = [];
@@ -1306,33 +1311,41 @@
             renderCharts();
         });
 
-        // Save trades to Firestore
         async function saveTrades() {
             if (!currentUserId) {
                 console.error('No user logged in');
                 return;
             }
             try {
-                const userTradesRef = doc(db, 'users', currentUserId);
-                await updateDoc(userTradesRef, {
-                    trades: trades,
-                    lastUpdated: new Date().toISOString()
-                });
+                const supabase = await getSupabase();
+                const { error } = await supabase.from('bcs_member_app_state').upsert(
+                    {
+                        user_id: currentUserId,
+                        journal_trades: trades,
+                        journal_last_updated: new Date().toISOString(),
+                        updated_at: new Date().toISOString()
+                    },
+                    { onConflict: 'user_id' }
+                );
+                if (error) throw error;
             } catch (error) {
                 console.error('Error saving trades:', error);
                 localStorage.setItem('bluechip_trades', JSON.stringify(trades));
             }
         }
 
-        // Load trades from Firestore
         async function loadTrades() {
             if (!currentUserId) return;
             try {
-                const userTradesRef = doc(db, 'users', currentUserId);
-                const userDoc = await getDoc(userTradesRef);
+                const supabase = await getSupabase();
+                const { data, error } = await supabase
+                    .from('bcs_member_app_state')
+                    .select('journal_trades')
+                    .eq('user_id', currentUserId)
+                    .maybeSingle();
 
-                if (userDoc.exists() && userDoc.data().trades) {
-                    trades = userDoc.data().trades;
+                if (!error && data?.journal_trades && Array.isArray(data.journal_trades) && data.journal_trades.length) {
+                    trades = data.journal_trades;
                 } else {
                     trades = [];
                     const localTrades = JSON.parse(localStorage.getItem('bluechip_trades') || '[]');
@@ -1904,10 +1917,10 @@
             if (btnEl) btnEl.classList.add('active');
         };
 
-        // Logout
         window.logout = async function() {
             try {
-                await auth.signOut();
+                const supabase = await getSupabase();
+                await supabase.auth.signOut();
                 localStorage.removeItem('bluechip_logged_in');
                 localStorage.removeItem('bluechip_user_email');
                 localStorage.removeItem('bluechip_is_admin');
@@ -1919,21 +1932,48 @@
             }
         };
 
-        // bfcache: when user hits Back after logout, redirect to login
-        window.addEventListener('pageshow', (e) => {
-            if (e.persisted && !auth.currentUser) {
-                window.location.replace('login.html');
-            }
+        window.addEventListener('pageshow', async (e) => {
+            if (!e.persisted) return;
+            const supabase = await getSupabase();
+            const { data } = await supabase.auth.getSession();
+            if (!data?.session) window.location.replace('login.html');
         });
 
-        // Auth + plan check
-        onAuthStateChanged(auth, async (user) => {
+        async function initTradingJournal() {
+            const supabase = await getSupabase();
+            const { data: sess } = await supabase.auth.getSession();
+            const user = sess?.session?.user;
             if (!user) {
                 window.location.href = 'login.html';
                 return;
             }
             try {
-                const accessResult = await loadAndEvaluateUserProfile(user.uid, {
+                let staff = false;
+                try {
+                    staff = await isStaffUser(supabase);
+                } catch (_) {}
+
+                if (user.user_metadata?.is_demo === true) {
+                    trades = window.BCS_DEMO.TRADES.slice();
+                    renderTradesList();
+                    updateStats();
+                    renderCharts();
+                    window.BCS_DEMO.injectBanner();
+                    currentUserId = user.id;
+                    updateAuthButton();
+                    return;
+                }
+
+                if (staff) {
+                    if (await checkPageMaintenance('trading-journal', 'maintenance.html', true)) return;
+                    currentUserId = user.id;
+                    await loadTrades();
+                    updateAuthButton();
+                    return;
+                }
+
+                const { state } = await fetchMemberState(supabase);
+                const accessResult = evaluateMemberStateAccess(state, {
                     requireSetup: true,
                     planType: 'bundle'
                 });
@@ -1949,34 +1989,20 @@
                 }
 
                 if (accessResult.status === 'missing_profile' || accessResult.status === 'account_issue') {
-                    if (accessResult.profile?.missingFields?.length) {
-                        console.warn('Trading journal blocked because membership data is incomplete:', accessResult.profile.missingFields);
-                    }
                     await redirectToAccountIssue('login.html');
                     return;
                 }
 
-                const userData = accessResult.profile;
-
-                /* ── Demo account shortcut ── */
-                if (userData.isDemo) {
-                    trades = window.BCS_DEMO.TRADES.slice();
-                    renderTradesList();
-                    updateStats();
-                    renderCharts();
-                    window.BCS_DEMO.injectBanner();
-                    return;
-                }
-
-                const isAdmin = userData.isAdmin || (userData.role || '').toLowerCase() === 'admin';
-                if (await checkPageMaintenance('trading-journal', 'maintenance.html', isAdmin)) return;
+                if (await checkPageMaintenance('trading-journal', 'maintenance.html', false)) return;
             } catch (e) {
                 console.error('Plan check error:', e);
             }
-            currentUserId = user.uid;
+            currentUserId = user.id;
             await loadTrades();
             updateAuthButton();
-        });
+        }
+
+        initTradingJournal();
 
         function updateAuthButton() {
             const authButton = document.getElementById('authButton');

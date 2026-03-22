@@ -38,3 +38,6 @@ Thumbs.db
 
 # Logs
 *.log
+
+# Local npm (scripts/ has no package.json now; ignore if recreated)
+scripts/node_modules/

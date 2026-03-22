@@ -4,7 +4,7 @@
 - `pricing.html` sends buyers to static Stripe payment links, so the repo had no canonical server-side order creation or fulfillment trigger.
 - `functions/index.js` only supported manual admin account creation, which made post-payment provisioning a manual process.
 - `dashboard.html` embedded every Telegram invite link directly in page source and depended on frontend row locking for single-plan restrictions.
-- `assets/js/firebase-user-profile.js` treated `plan + allowedTicker` on the user document as the only entitlement source, so single-channel purchases without a known ticker could not be represented safely.
+- The legacy Firebase user profile treated `plan + allowedTicker` on the user document as the only entitlement source, so single-channel purchases without a known ticker could not be represented safely.
 - Because Telegram access was not derived from server-side entitlements, page source / DOM inspection exposed links that a non-entitled user should never receive.
 
 ## Canonical data model

@@ -725,6 +725,11 @@
                 }
 
                 persistLoginState(data.user.email, rememberMe);
+                /* Stale flag from legacy Firebase flows made the member nav show ADMIN. */
+                try {
+                    localStorage.removeItem('bluechip_is_admin');
+                } catch (_e) {}
+
                 const destination = await resolveLoginDestination(supabase, data.user);
                 showSuccess('Welcome back! Redirecting...');
 

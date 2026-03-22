@@ -216,12 +216,20 @@
         }
 
         /* Hard ticker lock for single-channel users */
+        if (_tickerFilter === '__NO_ACCESS__') {
+            container.style.height = '';
+            container.innerHTML = '<p class="sig-empty"><i class="fas fa-hourglass-half"></i> Choose your channel in <a href="welcome-setup.html" style="color:var(--primary-gold);text-decoration:underline;">welcome setup</a> to see live signals.</p>';
+            var footerNA = document.querySelector('.sig-carousel-footer');
+            if (footerNA) footerNA.style.display = 'none';
+            if (badge) badge.textContent = '0';
+            return;
+        }
         if (_tickerFilter) {
-            signals = signals.filter(function (s) { return s.stock === _tickerFilter; }).slice(0, 9);
+            signals = signals.filter(function (s) { return stockUpper(s.stock) === _tickerFilter; }).slice(0, 9);
         } else {
             /* Bundle: apply interactive filters */
             if (_activeTicker !== 'ALL') {
-                signals = signals.filter(function (s) { return s.stock === _activeTicker; });
+                signals = signals.filter(function (s) { return stockUpper(s.stock) === _activeTicker; });
             }
             if (_activeDirection !== 'ALL') {
                 signals = signals.filter(function (s) {
@@ -231,9 +239,12 @@
             signals = signals.slice(0, 9);
         }
 
-        if (_channelEnabled && typeof _channelEnabled === 'object') {
+        /* Site-wide channel toggles apply to bundle/home carousel. Single-channel subscribers
+           already paid for one ticker — always show that ticker's live alerts on the dashboard. */
+        var singlePaidTicker = _tickerFilter && _tickerFilter !== '__NO_ACCESS__';
+        if (_channelEnabled && typeof _channelEnabled === 'object' && !singlePaidTicker) {
             signals = signals.filter(function (s) {
-                return _channelEnabled[s.stock] !== false;
+                return _channelEnabled[stockUpper(s.stock)] !== false;
             });
         }
 
@@ -324,6 +335,10 @@
         });
     }
 
+    function stockUpper(s) {
+        return String(s == null ? '' : s).trim().toUpperCase();
+    }
+
     function normalizeSupabaseRow(row, id) {
         var ts = row.timestamp;
         if (ts && typeof ts === 'string') {
@@ -335,7 +350,7 @@
         }
         return {
             id: id || row.id,
-            stock: row.stock,
+            stock: stockUpper(row.stock),
             price: row.price,
             vwap: row.vwap,
             mfi: row.mfi,
@@ -363,7 +378,7 @@
         }
         return {
             id:        id || data.id,
-            stock:     data.stock,
+            stock:     stockUpper(data.stock),
             price:     data.price,
             vwap:      data.vwap,
             mfi:       data.mfi,
@@ -406,7 +421,8 @@
                 .order('timestamp', { ascending: false })
                 .limit(_limit);
             if (_tickerFilter && _tickerFilter !== '__NO_ACCESS__') {
-                q = q.eq('stock', _tickerFilter);
+                /* Case-insensitive match — DB may store META or Meta */
+                q = q.ilike('stock', _tickerFilter);
             }
             var result = await q;
             if (result.error) {

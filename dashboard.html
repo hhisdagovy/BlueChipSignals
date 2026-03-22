@@ -2487,6 +2487,10 @@
         }
 
         function updateDashboard(state) {
+            try {
+                const p = String(state?.plan || '').toLowerCase();
+                if (p) sessionStorage.setItem('bcs_nav_plan', p);
+            } catch (_) { /* ignore */ }
             const profile = state.profile || {};
             const plan = state.plan || '';
             const welcomeMessage = document.getElementById('welcomeMessage');

@@ -190,6 +190,13 @@
         var isAdmin = false;
         try { isAdmin = localStorage.getItem('bluechip_is_admin') === '1'; } catch (e) {}
 
+        var navPlan = '';
+        try { navPlan = String(sessionStorage.getItem('bcs_nav_plan') || '').toLowerCase(); } catch (e) {}
+        /* Full bundle (and staff) get History; single-channel plans use dashboard live feed only */
+        var historyLi = navPlan === 'single'
+            ? ''
+            : '<li><a href="' + base + 'signal-history">HISTORY</a></li>';
+
         var adminLink = isAdmin
             ? '<li><a href="' + base + 'admin" class="admin-nav-link" style="color:var(--primary-gold);font-weight:700;">' +
               '<i class="fas fa-shield-halved" style="font-size:0.8em;margin-right:0.3em;"></i>ADMIN</a></li>'
@@ -205,7 +212,7 @@
                 '<span class="bar"></span>' +
             '</button>' +
             '<ul class="nav-links">' +
-                '<li><a href="' + base + 'signal-history">HISTORY</a></li>' +
+                historyLi +
                 '<li><a href="' + base + 'trading-journal">JOURNAL</a></li>' +
                 '<li><a href="' + base + 'trade-planner">PLANNER</a></li>' +
                 '<li><a href="' + base + 'roadmap">ROADMAP</a></li>' +

@@ -859,6 +859,11 @@
                     return;
                 }
 
+                if (accessResult.status === 'pending_channel_selection') {
+                    window.location.href = 'welcome-setup.html';
+                    return;
+                }
+
                 if (accessResult.status === 'inactive' || accessResult.status === 'plan_mismatch') {
                     window.location.href = 'upgrade.html';
                     return;

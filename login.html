@@ -696,11 +696,15 @@
             }
 
             if (!entitlement) {
+                try { sessionStorage.removeItem('bcs_nav_plan'); } catch (_) {}
                 return 'welcome-setup.html';
             }
 
             const status = String(entitlement.entitlement_status || '').toLowerCase();
             const plan = String(entitlement.plan || entitlement.plan_key || '').toLowerCase();
+            try {
+                sessionStorage.setItem('bcs_nav_plan', plan || '');
+            } catch (_) {}
             const allowed = String(entitlement.allowed_ticker || '').trim();
             const list = Array.isArray(entitlement.allowed_tickers)
                 ? entitlement.allowed_tickers.filter(Boolean)

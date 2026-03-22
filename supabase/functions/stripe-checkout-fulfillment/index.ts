@@ -293,16 +293,46 @@ async function ensureAuthUserForPurchase({
   return data.user.id;
 }
 
+async function generateSetPasswordLink({
+  supabase,
+  email,
+}: {
+  supabase: ReturnType<typeof getSupabaseAdminClient>;
+  email: string;
+}) {
+  const normalizedEmail = normalizeEmail(email);
+
+  if (!normalizedEmail) {
+    return '';
+  }
+
+  const redirectTo = getOptionalEnv('APP_SET_PASSWORD_REDIRECT_URL') || requireEnv('APP_LOGIN_URL');
+
+  const { data, error } = await supabase.auth.admin.generateLink({
+    type: 'recovery',
+    email: normalizedEmail,
+    options: { redirectTo },
+  });
+
+  if (error) {
+    throw new Error(error.message || 'Unable to generate set-password link.');
+  }
+
+  return String(data?.properties?.action_link || '').trim();
+}
+
 async function sendFulfillmentEmail({
   toEmail,
   purchasedPlan,
   allowedTickers,
   pendingChannelSelection,
+  setPasswordLink,
 }: {
   toEmail: string;
   purchasedPlan: string;
   allowedTickers: string[];
   pendingChannelSelection: boolean;
+  setPasswordLink: string;
 }) {
   const normalizedEmail = normalizeEmail(toEmail);
 
@@ -319,12 +349,17 @@ async function sendFulfillmentEmail({
   const nextSteps = pendingChannelSelection
     ? "Reply to support or complete onboarding to choose your single ticker before access activates."
     : "Log in with the same email address you used at checkout to access your member area.";
+  const passwordLine = setPasswordLink
+    ? `Set password link: ${setPasswordLink}`
+    : 'Set password link: Use Forgot Password on the login page.';
+
   const text = [
     "Thanks for your Blue Chip Signals purchase.",
     "",
     `Purchased plan: ${purchasedPlan}`,
     `Allowed ticker(s): ${tickerSummary}`,
     `Login URL: ${loginUrl}`,
+    passwordLine,
     "",
     "Next steps:",
     nextSteps,
@@ -339,7 +374,10 @@ async function sendFulfillmentEmail({
     "<p>Thanks for your <strong>Blue Chip Signals</strong> purchase.</p>",
     `<p><strong>Purchased plan:</strong> ${purchasedPlan}<br />`,
     `<strong>Allowed ticker(s):</strong> ${tickerSummary}<br />`,
-    `<strong>Login URL:</strong> <a href="${loginUrl}">${loginUrl}</a></p>`,
+    `<strong>Login URL:</strong> <a href="${loginUrl}">${loginUrl}</a><br />`,
+    setPasswordLink
+      ? `<strong>Set password:</strong> <a href="${setPasswordLink}">${setPasswordLink}</a></p>`
+      : '<strong>Set password:</strong> Use Forgot Password on the login page.</p>',
     "<p><strong>Next steps:</strong><br />",
     `${nextSteps}<br />`,
     pendingChannelSelection
@@ -653,6 +691,11 @@ Deno.serve(async (request) => {
       );
     }
 
+    const setPasswordLink = await generateSetPasswordLink({
+      supabase,
+      email: customerEmail,
+    });
+
     await sendFulfillmentEmail({
       toEmail: customerEmail,
       purchasedPlan:
@@ -661,6 +704,7 @@ Deno.serve(async (request) => {
           : "Single Channel",
       allowedTickers: entitlement.allowedTickers,
       pendingChannelSelection: entitlement.pendingChannelSelection,
+      setPasswordLink,
     });
 
     return jsonResponse({

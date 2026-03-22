@@ -1270,7 +1270,7 @@
             <div class="admin-card" id="rm-seed-card" style="margin-bottom:1.5rem;display:none;">
                 <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:1rem;">
                     <div>
-                        <div style="font-weight:700;color:#fff;margin-bottom:0.3rem;">No milestones in Firestore yet</div>
+                        <div style="font-weight:700;color:#fff;margin-bottom:0.3rem;">No milestones in Supabase yet</div>
                         <div style="font-size:0.82rem;color:rgba(255,255,255,0.45);">Seed the 7 default milestones from the hardcoded roadmap to get started. You can edit them after.</div>
                     </div>
                     <button id="seedDefaultsBtn" class="form-submit-btn" style="max-width:220px;white-space:nowrap;">
@@ -1301,7 +1301,7 @@
             <div class="admin-card" id="faq-seed-card" style="margin-bottom:1.5rem;display:none;">
                 <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:1rem;">
                     <div>
-                        <div style="font-weight:700;color:#fff;margin-bottom:0.3rem;">No FAQ items in Firestore yet</div>
+                        <div style="font-weight:700;color:#fff;margin-bottom:0.3rem;">No FAQ items in Supabase yet</div>
                         <div style="font-size:0.82rem;color:rgba(255,255,255,0.45);">Seed the 12 default FAQ items from the current faq.html to get started. You can edit them after.</div>
                     </div>
                     <button id="faqSeedDefaultsBtn" class="form-submit-btn" style="max-width:220px;white-space:nowrap;">
@@ -1489,9 +1489,9 @@
         <div class="confirm-box">
             <i class="confirm-icon fas fa-triangle-exclamation"></i>
             <div class="confirm-title">Remove User?</div>
-            <div class="confirm-body" id="confirmBody">This will delete the user's Firestore profile.</div>
+            <div class="confirm-body" id="confirmBody">This will permanently remove this member from Supabase.</div>
             <div class="confirm-note">
-                Their Firebase Auth account will remain intact. To fully remove it, use the Firebase console directly.
+                Their Supabase Auth user and related member data (entitlements, channel access, etc.) will be deleted. This cannot be undone. Deploy the <code>admin-delete-member</code> Edge Function for full removal.
             </div>
             <div class="confirm-actions">
                 <button class="confirm-btn confirm-cancel" id="confirmCancel">Cancel</button>
@@ -1790,7 +1790,7 @@
         window.confirmDelete = function (userId, email) {
             pendingDeleteId = userId;
             document.getElementById('confirmBody').textContent =
-                'This will remove ' + email + "'s entitlement row in Supabase (Auth user is not deleted).";
+                'Permanently delete ' + email + '? This removes their Supabase Auth account and member data.';
             document.getElementById('confirmOverlay').classList.add('open');
         };
 
@@ -1806,18 +1806,39 @@
             document.getElementById('confirmOverlay').classList.remove('open');
             try {
                 await ensureSupabase();
-                const { error } = await supabase.from('bcs_entitlements').delete().eq('user_id', uid);
-                if (error) throw error;
+                const { data: sess } = await supabase.auth.getSession();
+                if (!sess?.session?.access_token) {
+                    alert('Your session expired. Sign in again.');
+                    return;
+                }
+                const { data, error } = await supabase.functions.invoke('admin-delete-member', {
+                    headers: { Authorization: `Bearer ${sess.session.access_token}` },
+                    body: { userId: uid }
+                });
+                if (error) {
+                    const detail = await parseFunctionsHttpError(error);
+                    throw new Error(detail || error.message || 'Edge function error');
+                }
+                const payload = data && typeof data === 'object' ? data : {};
+                if (payload.error) {
+                    throw new Error(payload.error);
+                }
                 allUsers = allUsers.filter(u => u.id !== uid);
                 computeStats();
                 renderTable();
             } catch (err) {
-                alert('Delete failed: ' + err.message);
+                const msg = err.message || String(err);
+                alert(
+                    'Delete failed: ' + msg +
+                    (msg.includes('Failed to fetch') || msg.includes('404')
+                        ? '\n\nDeploy: supabase functions deploy admin-delete-member'
+                        : '')
+                );
             }
         });
 
         /* ─────────────────────────────────────────────
-           ADD USER (callable Cloud Function)
+           ADD USER (Edge Function)
         ───────────────────────────────────────────── */
         document.getElementById('addPlan').addEventListener('change', () => {
             syncTickerVisibility('addPlan', 'addTickerField');

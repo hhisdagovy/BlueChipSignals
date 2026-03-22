@@ -162,6 +162,11 @@ verify_jwt = false
 [functions.stripe-checkout-fulfillment]
 verify_jwt = false
 
+# Browser invokes with supabase.functions.invoke(); OPTIONS preflight has no JWT.
+# Auth is validated inside the function via Bearer token + getUser().
+[functions.member-onboarding]
+verify_jwt = false
+
 [auth]
 enabled = true
 # The base URL of your website. Used as an allow-list for redirects and for constructing URLs used

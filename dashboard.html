@@ -2312,6 +2312,8 @@
     <!-- Member dashboard auth/state -->
     <script type="module">
         import { getSupabase } from './src/lib/supabase-browser.js';
+        import { parseFunctionsHttpError } from './src/lib/parse-functions-http-error.js';
+        import { unwrapMemberPayload } from './src/lib/member-state-unwrap.js';
 
         let supabase = null;
         let sessionToken = '';
@@ -2336,9 +2338,11 @@
                 body: { action, ...payload }
             });
             if (error) {
-                throw new Error(error.message || 'Unable to load membership state.');
+                const detail = await parseFunctionsHttpError(error);
+                console.error('member-onboarding invoke error:', error, detail);
+                throw new Error(detail || 'Unable to load membership state.');
             }
-            return data;
+            return unwrapMemberPayload(data);
         }
 
         function renderTelegramAccess(state = {}) {
@@ -2462,11 +2466,21 @@
 
         async function initDashboard() {
             try {
-                const state = await invokeMember('fetch_state');
+                await ensureSession();
+                if (!supabase) return;
+                await supabase.auth.refreshSession();
+
+                let state = await invokeMember('fetch_state');
                 if (!state) return;
                 memberState = state;
 
                 if (!state.setupCompleted) {
+                    await supabase.auth.refreshSession();
+                    state = await invokeMember('fetch_state');
+                    if (state) memberState = state;
+                }
+
+                if (!state || !state.setupCompleted) {
                     window.location.href = 'welcome-setup.html';
                     return;
                 }

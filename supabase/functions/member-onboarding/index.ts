@@ -1,4 +1,5 @@
 import { createClient } from "npm:@supabase/supabase-js@2.57.4";
+import { corsHeaders, mergeCors } from "../_shared/cors.ts";
 
 const ENTITLEMENT_STATUS = {
   ACTIVE: "active",
@@ -25,6 +26,16 @@ function getSupabaseAdmin() {
   );
 }
 
+/** Prefer anon key for getUser(JWT); service-role client can mis-validate user tokens on some setups. */
+function createJwtValidationClient(): ReturnType<typeof createClient> {
+  const url = requireEnv("SUPABASE_URL");
+  const anonKey = Deno.env.get("SUPABASE_ANON_KEY");
+  const key = (anonKey && anonKey.trim()) || requireEnv("SUPABASE_SERVICE_ROLE_KEY");
+  return createClient(url, key, {
+    auth: { autoRefreshToken: false, persistSession: false },
+  });
+}
+
 function getTelegramConfig() {
   return {
     SPY: Deno.env.get("TELEGRAM_INVITE_SPY") ?? "",
@@ -41,11 +52,48 @@ function normalizeTicker(value: string) {
   return SUPPORTED_TICKERS.includes(ticker) ? ticker : "";
 }
 
-async function getUserFromToken(supabase: ReturnType<typeof getSupabaseAdmin>, token: string) {
-  const { data, error } = await supabase.auth.getUser(token);
+async function fetchUserFromAdminWithRetries(
+  supabaseAdmin: ReturnType<typeof getSupabaseAdmin>,
+  userId: string,
+) {
+  const waitMs = [0, 150, 400];
+  for (let i = 0; i < waitMs.length; i++) {
+    if (waitMs[i] > 0) {
+      await new Promise((r) => setTimeout(r, waitMs[i]));
+    }
+    try {
+      const { data: adminData, error: adminError } = await supabaseAdmin.auth.admin.getUserById(userId);
+      if (!adminError && adminData?.user) {
+        return adminData.user;
+      }
+      console.warn(`member-onboarding: getUserById attempt ${i + 1}`, adminError?.message);
+    } catch (err) {
+      console.warn(`member-onboarding: getUserById threw attempt ${i + 1}`, err);
+    }
+  }
+  return null;
+}
+
+/**
+ * Validate JWT, then load user from Auth admin API so user_metadata is always
+ * current. auth.getUser(jwt) often reflects stale JWT claims right after
+ * admin.updateUserById — which caused dashboard to think setup is incomplete.
+ */
+async function getValidatedUserWithFreshMetadata(
+  supabaseAdmin: ReturnType<typeof getSupabaseAdmin>,
+  token: string,
+) {
+  const jwtClient = createJwtValidationClient();
+  const { data, error } = await jwtClient.auth.getUser(token);
   if (error || !data?.user) {
     throw new Error(error?.message || "Invalid or expired session.");
   }
+  const userId = data.user.id;
+  const fromAdmin = await fetchUserFromAdminWithRetries(supabaseAdmin, userId);
+  if (fromAdmin) {
+    return fromAdmin;
+  }
+  console.warn("member-onboarding: all admin.getUserById attempts failed; using JWT user (metadata may be stale)");
   return data.user;
 }
 
@@ -100,6 +148,10 @@ function buildTelegramChannels(allowedTickers: string[]) {
     .filter((channel) => Boolean(channel.inviteUrl));
 }
 
+function isTruthySetupCompleted(value: unknown): boolean {
+  return value === true || value === "true" || value === 1 || value === "1";
+}
+
 function mapProfileFromMetadata(metadata: Record<string, any> = {}) {
   return {
     firstName: String(metadata.first_name ?? metadata.firstName ?? "").trim(),
@@ -107,7 +159,7 @@ function mapProfileFromMetadata(metadata: Record<string, any> = {}) {
     phone: String(metadata.phone ?? "").trim(),
     tradingExperience: String(metadata.trading_experience ?? metadata.tradingExperience ?? "").trim(),
     primaryInterest: String(metadata.primary_interest ?? metadata.primaryInterest ?? "").trim(),
-    setupCompleted: metadata.setup_completed === true,
+    setupCompleted: isTruthySetupCompleted(metadata.setup_completed),
   };
 }
 
@@ -282,44 +334,37 @@ async function handleAction(
   return buildStateResponse({ authUser, entitlement, channelAccess });
 }
 
-Deno.serve(async (request) => {
-  try {
-    if (request.method === "OPTIONS") {
-      return new Response(null, {
-        status: 204,
-        headers: {
-          "Access-Control-Allow-Origin": "*",
-          "Access-Control-Allow-Headers": "content-type, authorization",
-        },
-      });
-    }
+function jsonResponse(body: unknown, status: number) {
+  return new Response(JSON.stringify(body), {
+    status,
+    headers: mergeCors({ "Content-Type": "application/json" }),
+  });
+}
 
+Deno.serve(async (request) => {
+  if (request.method === "OPTIONS") {
+    return new Response(null, { status: 204, headers: corsHeaders });
+  }
+
+  try {
     const authHeader = request.headers.get("authorization") || "";
     const token = authHeader.toLowerCase().startsWith("bearer ")
       ? authHeader.slice(7).trim()
       : "";
 
     if (!token) {
-      return new Response(JSON.stringify({ error: "Missing Authorization header." }), {
-        status: 401,
-        headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" },
-      });
+      return jsonResponse({ error: "Missing Authorization header." }, 401);
     }
 
     const body = request.method === "POST" ? await request.json().catch(() => ({})) : {};
     const supabase = getSupabaseAdmin();
-    const authUser = await getUserFromToken(supabase, token);
+    const authUser = await getValidatedUserWithFreshMetadata(supabase, token);
     const payload = await handleAction(supabase, authUser, body || {});
 
-    return new Response(JSON.stringify({ data: payload }), {
-      status: 200,
-      headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" },
-    });
+    return jsonResponse({ data: payload }, 200);
   } catch (error) {
     console.error("member-onboarding error", error);
-    return new Response(JSON.stringify({ error: String(error?.message || error || "Server error") }), {
-      status: 400,
-      headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" },
-    });
+    const message = error instanceof Error ? error.message : String(error || "Server error");
+    return jsonResponse({ error: message }, 400);
   }
 });

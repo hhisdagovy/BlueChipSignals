@@ -357,6 +357,8 @@
 
     <script type="module">
         import { getSupabase } from './src/lib/supabase-browser.js';
+        import { parseFunctionsHttpError } from './src/lib/parse-functions-http-error.js';
+        import { unwrapMemberPayload } from './src/lib/member-state-unwrap.js';
 
         const setupForm = document.getElementById('setupForm');
         const submitBtn = document.getElementById('submitBtn');
@@ -412,9 +414,11 @@
                 body: { action, ...payload }
             });
             if (error) {
-                throw new Error(error.message || 'Unable to load membership data.');
+                const detail = await parseFunctionsHttpError(error);
+                console.error('member-onboarding invoke error:', error, detail);
+                throw new Error(detail || 'Unable to load membership data.');
             }
-            return data;
+            return unwrapMemberPayload(data);
         }
 
         function handleProfileState(state) {
@@ -491,6 +495,11 @@
                 currentState = updatedState;
                 successMessage.textContent = 'Setup complete! Redirecting to dashboard...';
                 successMessage.style.display = 'block';
+                // Refresh session so JWT user_metadata matches DB (dashboard fetch_state).
+                const { error: refreshError } = await supabase.auth.refreshSession();
+                if (refreshError) {
+                    console.warn('Session refresh after setup:', refreshError);
+                }
                 setTimeout(() => {
                     window.location.href = 'dashboard.html';
                 }, 1200);

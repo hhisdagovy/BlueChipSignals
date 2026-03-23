@@ -519,6 +519,7 @@ ${loginCta}
 <p style="margin:0 0 4px 0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:13px;color:#A0A0A0;">Blue Chip Signals</p>
 <a href="https://bluechipsignals.online" style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:12px;color:#b3a17d;text-decoration:none;">bluechipsignals.online</a>
 <p style="margin:16px 0 0 0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:11px;color:#666;line-height:1.5;">This email confirms your purchase. Trading involves risk.<br />Past performance does not guarantee future results.</p>
+<p style="margin:12px 0 0 0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:11px;color:#666;line-height:1.5;">Stripe will continue sending its separate payment receipt email.</p>
 <p style="margin:8px 0 0 0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:11px;color:#666;">&copy; 2026 Blue Chip Signals. All rights reserved.</p>
 </td></tr>
 
@@ -603,6 +604,7 @@ function buildFulfillmentEmailText({
     "─────────────",
     "Blue Chip Signals | bluechipsignals.online",
     "Trading involves risk. Past performance does not guarantee future results.",
+    "Stripe will continue sending its separate payment receipt email.",
     "(c) 2026 Blue Chip Signals. All rights reserved.",
   ].join("\n");
 }

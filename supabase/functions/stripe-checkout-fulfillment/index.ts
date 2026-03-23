@@ -500,10 +500,6 @@ ${discountBlockHtml}
 <td style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:13px;color:#A0A0A0;padding:8px 0;vertical-align:top;width:90px;">Total Paid</td>
 <td style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:17px;color:#FFFFFF;padding:8px 0;text-align:right;vertical-align:top;font-weight:700;">${formatCents(pricingInfo.amountPaidCents)}</td>
 </tr>
-<tr><td colspan="2" style="font-size:1px;line-height:1px;">&nbsp;</td></tr>
-<tr>
-<td colspan="2" style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:12px;color:#A0A0A0;padding:4px 0 0 0;text-align:center;line-height:1.5;">Less than half the cost of a $10,000/yr annual membership</td>
-</tr>
 <tr><td colspan="2" style="border-bottom:1px solid #1a1f2e;font-size:1px;line-height:1px;padding-top:12px;">&nbsp;</td></tr>
 <tr>
 <td style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:13px;color:#A0A0A0;padding:8px 0;vertical-align:top;width:90px;">Tickers</td>
@@ -647,8 +643,6 @@ function buildFulfillmentEmailText({
   }
   orderSummaryLines.push(
     `Amount Paid: ${formatCents(pricingInfo.amountPaidCents)}`,
-    "",
-    "Less than half the cost of a $10,000/yr annual membership.",
     "",
     `Tickers: ${tickerSummary}`,
   );

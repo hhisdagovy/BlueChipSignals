@@ -549,10 +549,39 @@ function assertRawCrmStaffRole(role) {
 }
 
 /**
+ * Staff may use the same email / auth user as a paying member. If they have an active CRM
+ * profile with a valid staff role, allow CRM access despite bcs_entitlements / checkout metadata.
+ */
+async function isActiveCrmStaffUser(supabase, userId) {
+  const uid = String(userId ?? '').trim()
+  if (!uid) {
+    return false
+  }
+
+  const { data, error } = await supabase
+    .from('profiles')
+    .select('role, active')
+    .eq('id', uid)
+    .maybeSingle()
+
+  if (error || !data || data.active !== true) {
+    return false
+  }
+
+  const r = normalizeRawStaffRole(data.role)
+  return CRM_STAFF_ROLES_RAW.has(r)
+}
+
+/**
  * Block purchaser/member identities from the staff CRM even if profiles.role was mis-set to admin.
+ * Exception: real employees with an active staff profile (same account as their membership).
  */
 async function assertNotMemberPortalUser(supabase, authUser) {
   if (!authUser) {
+    return
+  }
+
+  if (await isActiveCrmStaffUser(supabase, authUser.id)) {
     return
   }
 

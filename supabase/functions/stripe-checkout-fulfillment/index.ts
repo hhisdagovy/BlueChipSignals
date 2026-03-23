@@ -55,6 +55,45 @@ function getOptionalEnv(name: string) {
   return String(Deno.env.get(name) ?? "").trim();
 }
 
+interface PricingInfo {
+  originalPriceCents: number;
+  amountPaidCents: number;
+  discountAmountCents: number;
+  couponName: string | null;
+  hasDiscount: boolean;
+}
+
+function formatCents(cents: number): string {
+  const dollars = Math.round(cents) / 100;
+  return "$" + dollars.toLocaleString("en-US", {
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0,
+  });
+}
+
+function extractPricingInfo(session: Stripe.Checkout.Session): PricingInfo {
+  const amountPaidCents = session.amount_total ?? 0;
+  const discountAmountCents = session.total_details?.amount_discount ?? 0;
+  const originalPriceCents = amountPaidCents + discountAmountCents;
+  const discounts = session.discounts ?? [];
+  let couponName: string | null = null;
+  const first = discounts[0];
+  if (first && typeof first === "object" && "coupon" in first) {
+    const c = (first as { coupon?: unknown }).coupon;
+    if (typeof c === "object" && c !== null && "name" in c) {
+      const n = String((c as { name?: string }).name ?? "").trim();
+      couponName = n || null;
+    }
+  }
+  return {
+    originalPriceCents,
+    amountPaidCents,
+    discountAmountCents,
+    couponName,
+    hasDiscount: discountAmountCents > 0,
+  };
+}
+
 function deriveProductKeyFromPriceId(lineItems: Array<Record<string, any>>) {
   const singleChannelPriceId = getOptionalEnv("STRIPE_PRICE_SINGLE_CHANNEL");
   const fullBundlePriceId = getOptionalEnv("STRIPE_PRICE_FULL_BUNDLE");
@@ -327,37 +366,50 @@ function buildFulfillmentEmailHtml({
   pendingChannelSelection,
   setPasswordLink,
   loginUrl,
+  pricingInfo,
 }: {
   purchasedPlan: string;
   allowedTickers: string[];
   pendingChannelSelection: boolean;
   setPasswordLink: string;
   loginUrl: string;
+  pricingInfo: PricingInfo;
 }): string {
   const isBundle = purchasedPlan.toLowerCase().includes("bundle");
   const planDisplayName = isBundle ? "Full Bundle" : "Single Channel";
-  const planPrice = isBundle ? "$4,995" : "$1,995";
   const tickerHtml = allowedTickers.length
     ? allowedTickers.map((t) =>
       `<span style="display:inline-block;padding:2px 10px;margin:2px;border:1px solid #b3a17d;color:#E2CFB5;font-size:13px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;letter-spacing:1px;">${t}</span>`
     ).join(" ")
     : '<span style="color:#b3a17d;font-style:italic;">Pending selection</span>';
 
+  const priceCellHtml = pricingInfo.hasDiscount
+    ? `<s style="color:#A0A0A0;font-size:13px;text-decoration:line-through;">${formatCents(pricingInfo.originalPriceCents)}</s> &nbsp;<strong>${formatCents(pricingInfo.amountPaidCents)}</strong>`
+    : `<strong>${formatCents(pricingInfo.amountPaidCents)}</strong>`;
+
+  const discountBlockHtml = pricingInfo.hasDiscount
+    ? `<tr><td colspan="2" style="border-bottom:1px solid #1a1f2e;font-size:1px;line-height:1px;">&nbsp;</td></tr>
+<tr>
+<td style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:13px;color:#A0A0A0;padding:8px 0;vertical-align:top;width:90px;">Discount</td>
+<td style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:14px;color:#4ade80;padding:8px 0;text-align:right;vertical-align:top;font-weight:600;">${pricingInfo.couponName ? pricingInfo.couponName + ": " : ""}-${formatCents(pricingInfo.discountAmountCents)}</td>
+</tr>`
+    : "";
+
   const passwordCta = setPasswordLink
     ? `<!--[if mso]>
-<v:roundrect xmlns:v="urn:schemas-microsoft-com:vml" href="${setPasswordLink}" style="height:44px;v-text-anchor:middle;width:220px;" arcsize="0%" fillcolor="#b3a17d" stroke="f">
-<center style="color:#080B0F;font-family:sans-serif;font-size:14px;font-weight:bold;">Set Your Password</center>
+<v:roundrect xmlns:v="urn:schemas-microsoft-com:vml" href="${setPasswordLink}" style="height:36px;v-text-anchor:middle;width:180px;" arcsize="10%" fillcolor="#b3a17d" stroke="f">
+<center style="color:#080B0F;font-family:sans-serif;font-size:13px;font-weight:bold;letter-spacing:0.5px;">Set Your Password</center>
 </v:roundrect>
 <![endif]-->
-<!--[if !mso]><!--><a href="${setPasswordLink}" style="background-color:#b3a17d;color:#080B0F;display:inline-block;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:14px;font-weight:bold;line-height:44px;text-align:center;text-decoration:none;width:220px;mso-hide:all;">Set Your Password</a><!--<![endif]-->`
-    : '<span style="color:#A0A0A0;font-size:14px;font-family:-apple-system,BlinkMacSystemFont,\'Segoe UI\',Roboto,Helvetica,Arial,sans-serif;">Use the <strong style="color:#FFFFFF;">Forgot Password</strong> link on the login page to set your password.</span>';
+<!--[if !mso]><!--><a href="${setPasswordLink}" style="background-color:#b3a17d;color:#080B0F;display:inline-block;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:13px;font-weight:700;letter-spacing:0.5px;line-height:36px;text-align:center;text-decoration:none;width:180px;border-radius:4px;mso-hide:all;">Set Your Password</a><!--<![endif]-->`
+    : '<span style="color:#A0A0A0;font-size:13px;font-family:-apple-system,BlinkMacSystemFont,\'Segoe UI\',Roboto,Helvetica,Arial,sans-serif;">Use the <strong style="color:#FFFFFF;">Forgot Password</strong> link on the login page to set your password.</span>';
 
   const loginCta = `<!--[if mso]>
-<v:roundrect xmlns:v="urn:schemas-microsoft-com:vml" href="${loginUrl}" style="height:44px;v-text-anchor:middle;width:220px;" arcsize="0%" fillcolor="none" strokecolor="#b3a17d" strokeweight="1px">
-<center style="color:#b3a17d;font-family:sans-serif;font-size:14px;font-weight:bold;">Log In to Dashboard</center>
+<v:roundrect xmlns:v="urn:schemas-microsoft-com:vml" href="${loginUrl}" style="height:36px;v-text-anchor:middle;width:180px;" arcsize="10%" fillcolor="none" strokecolor="#b3a17d" strokeweight="1px">
+<center style="color:#b3a17d;font-family:sans-serif;font-size:13px;font-weight:bold;letter-spacing:0.5px;">Log In to Dashboard</center>
 </v:roundrect>
 <![endif]-->
-<!--[if !mso]><!--><a href="${loginUrl}" style="background-color:transparent;border:1px solid #b3a17d;color:#b3a17d;display:inline-block;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:14px;font-weight:bold;line-height:42px;text-align:center;text-decoration:none;width:220px;mso-hide:all;">Log In to Dashboard</a><!--<![endif]-->`;
+<!--[if !mso]><!--><a href="${loginUrl}" style="background-color:transparent;border:1px solid #b3a17d;color:#b3a17d;display:inline-block;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:13px;font-weight:700;letter-spacing:0.5px;line-height:34px;text-align:center;text-decoration:none;width:180px;border-radius:4px;mso-hide:all;">Log In to Dashboard</a><!--<![endif]-->`;
 
   const step3Text = pendingChannelSelection
     ? "Select your ticker first from the member dashboard, then your Telegram channel access will be activated."
@@ -411,14 +463,14 @@ Your ticker selection is pending &mdash; log in to your dashboard to choose your
 </td></tr>
 
 <!-- HERO -->
-<tr><td style="background-color:#080B0F;padding:40px 24px 32px 24px;text-align:center;">
+<tr><td style="background-color:#080B0F;padding:32px 24px 24px 24px;text-align:center;">
 <table role="presentation" cellpadding="0" cellspacing="0" border="0" align="center"><tr><td style="width:40px;height:2px;background-color:#b3a17d;font-size:1px;line-height:1px;">&nbsp;</td></tr></table>
-<h1 style="margin:20px 0 8px 0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:26px;font-weight:600;color:#FFFFFF;letter-spacing:1px;line-height:1.3;mso-line-height-rule:exactly;">Welcome to Blue Chip Signals</h1>
-<p style="margin:0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:15px;color:#A0A0A0;line-height:1.5;">Your membership is confirmed.</p>
+<h1 style="margin:16px 0 6px 0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:24px;font-weight:600;color:#FFFFFF;letter-spacing:1px;line-height:1.3;mso-line-height-rule:exactly;">Welcome to Blue Chip Signals</h1>
+<p style="margin:0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:14px;color:#A0A0A0;line-height:1.5;">Your membership is confirmed.</p>
 </td></tr>
 
 <!-- ORDER SUMMARY CARD -->
-<tr><td style="background-color:#080B0F;padding:0 24px 32px 24px;">
+<tr><td style="background-color:#080B0F;padding:0 24px 24px 24px;">
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#0d1117;border:1px solid #1a1f2e;">
 
 <tr><td style="padding:24px 24px 12px 24px;">
@@ -429,31 +481,51 @@ Your ticker selection is pending &mdash; log in to your dashboard to choose your
 <tr><td style="padding:16px 24px 0 24px;">
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
 <tr>
-<td style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:13px;color:#A0A0A0;padding:8px 0;vertical-align:top;width:80px;">Plan</td>
-<td style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:15px;color:#FFFFFF;padding:8px 0;text-align:right;vertical-align:top;">${planDisplayName} &mdash; ${planPrice}</td>
+<td style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:13px;color:#A0A0A0;padding:8px 0;vertical-align:top;width:90px;">Plan</td>
+<td style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:15px;color:#FFFFFF;padding:8px 0;text-align:right;vertical-align:top;">${planDisplayName}</td>
 </tr>
 <tr><td colspan="2" style="border-bottom:1px solid #1a1f2e;font-size:1px;line-height:1px;">&nbsp;</td></tr>
 <tr>
-<td style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:13px;color:#A0A0A0;padding:8px 0;vertical-align:top;width:80px;">Tickers</td>
+<td style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:13px;color:#A0A0A0;padding:8px 0;vertical-align:top;width:90px;">Access</td>
+<td style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:14px;color:#FFFFFF;padding:8px 0;text-align:right;vertical-align:top;"><strong>Lifetime Access</strong> <span style="color:#A0A0A0;font-size:12px;">&mdash; no monthly or annual fees</span></td>
+</tr>
+<tr><td colspan="2" style="border-bottom:1px solid #1a1f2e;font-size:1px;line-height:1px;">&nbsp;</td></tr>
+<tr>
+<td style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:13px;color:#A0A0A0;padding:8px 0;vertical-align:top;width:90px;">Price</td>
+<td style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:15px;color:#FFFFFF;padding:8px 0;text-align:right;vertical-align:top;">${priceCellHtml}</td>
+</tr>
+${discountBlockHtml}
+<tr><td colspan="2" style="border-bottom:1px solid #1a1f2e;font-size:1px;line-height:1px;">&nbsp;</td></tr>
+<tr>
+<td style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:13px;color:#A0A0A0;padding:8px 0;vertical-align:top;width:90px;">Total Paid</td>
+<td style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:17px;color:#FFFFFF;padding:8px 0;text-align:right;vertical-align:top;font-weight:700;">${formatCents(pricingInfo.amountPaidCents)}</td>
+</tr>
+<tr><td colspan="2" style="font-size:1px;line-height:1px;">&nbsp;</td></tr>
+<tr>
+<td colspan="2" style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:12px;color:#A0A0A0;padding:4px 0 0 0;text-align:center;line-height:1.5;">Less than half the cost of a $10,000/yr annual membership</td>
+</tr>
+<tr><td colspan="2" style="border-bottom:1px solid #1a1f2e;font-size:1px;line-height:1px;padding-top:12px;">&nbsp;</td></tr>
+<tr>
+<td style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:13px;color:#A0A0A0;padding:8px 0;vertical-align:top;width:90px;">Tickers</td>
 <td style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:15px;color:#FFFFFF;padding:8px 0;text-align:right;vertical-align:top;">${tickerHtml}</td>
 </tr>
 </table>
 </td></tr>
 ${pendingNotice}
-<tr><td style="padding:16px;">&nbsp;</td></tr>
+<tr><td style="padding:12px;">&nbsp;</td></tr>
 
 </table>
 </td></tr>
 
 <!-- GETTING STARTED -->
-<tr><td style="background-color:#080B0F;padding:8px 24px 40px 24px;">
+<tr><td style="background-color:#080B0F;padding:8px 24px 32px 24px;">
 <p style="margin:0 0 24px 0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:11px;font-weight:700;color:#b3a17d;letter-spacing:2px;text-transform:uppercase;text-align:center;">Getting Started</p>
 
 <!-- Step 1 -->
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-bottom:24px;">
 <tr>
 <td style="width:36px;vertical-align:top;padding-top:2px;">
-<span style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:18px;font-weight:700;color:#b3a17d;">1.</span>
+<span style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:16px;font-weight:700;color:#b3a17d;">1.</span>
 </td>
 <td style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;">
 <p style="margin:0 0 12px 0;font-size:16px;font-weight:600;color:#FFFFFF;line-height:1.4;">Set Your Password</p>
@@ -466,7 +538,7 @@ ${passwordCta}
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-bottom:24px;">
 <tr>
 <td style="width:36px;vertical-align:top;padding-top:2px;">
-<span style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:18px;font-weight:700;color:#b3a17d;">2.</span>
+<span style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:16px;font-weight:700;color:#b3a17d;">2.</span>
 </td>
 <td style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;">
 <p style="margin:0 0 12px 0;font-size:16px;font-weight:600;color:#FFFFFF;line-height:1.4;">Log In to Your Dashboard</p>
@@ -479,7 +551,7 @@ ${loginCta}
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
 <tr>
 <td style="width:36px;vertical-align:top;padding-top:2px;">
-<span style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:18px;font-weight:700;color:#b3a17d;">3.</span>
+<span style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:16px;font-weight:700;color:#b3a17d;">3.</span>
 </td>
 <td style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;">
 <p style="margin:0 0 4px 0;font-size:16px;font-weight:600;color:#FFFFFF;line-height:1.4;">Join Your Telegram Channels</p>
@@ -491,7 +563,7 @@ ${loginCta}
 </td></tr>
 
 <!-- WHAT TO EXPECT CARD -->
-<tr><td style="background-color:#080B0F;padding:0 24px 32px 24px;">
+<tr><td style="background-color:#080B0F;padding:0 24px 24px 24px;">
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#0d1117;border:1px solid #1a1f2e;">
 <tr><td style="padding:24px 24px 12px 24px;">
 <p style="margin:0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:11px;font-weight:700;color:#b3a17d;letter-spacing:2px;text-transform:uppercase;">Your First Week</p>
@@ -507,15 +579,14 @@ ${loginCta}
 </td></tr>
 
 <!-- SUPPORT -->
-<tr><td style="background-color:#080B0F;padding:8px 24px 40px 24px;text-align:center;">
+<tr><td style="background-color:#080B0F;padding:8px 24px 32px 24px;text-align:center;">
 <p style="margin:0 0 4px 0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:18px;color:#FFFFFF;font-weight:600;">Need Help?</p>
 <p style="margin:0 0 12px 0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:14px;color:#A0A0A0;">Our team is here for you.</p>
 <a href="mailto:support@bluechipsignals.online" style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:14px;color:#b3a17d;text-decoration:none;">support@bluechipsignals.online</a>
-<p style="margin:8px 0 0 0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:12px;color:#666;">We typically respond within a few hours during market days.</p>
 </td></tr>
 
 <!-- FOOTER -->
-<tr><td style="background-color:#050810;border-top:1px solid #b3a17d;padding:24px;text-align:center;">
+<tr><td style="background-color:#050810;border-top:1px solid #b3a17d;padding:20px 24px;text-align:center;">
 <p style="margin:0 0 4px 0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:13px;color:#A0A0A0;">Blue Chip Signals</p>
 <a href="https://bluechipsignals.online" style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:12px;color:#b3a17d;text-decoration:none;">bluechipsignals.online</a>
 <p style="margin:16px 0 0 0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:11px;color:#666;line-height:1.5;">This email confirms your purchase. Trading involves risk.<br />Past performance does not guarantee future results.</p>
@@ -540,16 +611,17 @@ function buildFulfillmentEmailText({
   pendingChannelSelection,
   setPasswordLink,
   loginUrl,
+  pricingInfo,
 }: {
   purchasedPlan: string;
   allowedTickers: string[];
   pendingChannelSelection: boolean;
   setPasswordLink: string;
   loginUrl: string;
+  pricingInfo: PricingInfo;
 }): string {
   const isBundle = purchasedPlan.toLowerCase().includes("bundle");
   const planDisplayName = isBundle ? "Full Bundle" : "Single Channel";
-  const planPrice = isBundle ? "$4,995" : "$1,995";
   const tickerSummary = allowedTickers.length
     ? allowedTickers.join(" | ")
     : "Pending selection";
@@ -563,6 +635,24 @@ function buildFulfillmentEmailText({
     ? "\nNote: Your ticker selection is pending. Log in to choose your channel."
     : "";
 
+  const orderSummaryLines: string[] = [
+    `Plan: ${planDisplayName}`,
+    "Access: Lifetime Access — no monthly or annual fees",
+  ];
+  if (pricingInfo.hasDiscount) {
+    orderSummaryLines.push(
+      `Original Price: ${formatCents(pricingInfo.originalPriceCents)}`,
+      `Discount${pricingInfo.couponName ? ` (${pricingInfo.couponName})` : ""}: -${formatCents(pricingInfo.discountAmountCents)}`,
+    );
+  }
+  orderSummaryLines.push(
+    `Amount Paid: ${formatCents(pricingInfo.amountPaidCents)}`,
+    "",
+    "Less than half the cost of a $10,000/yr annual membership.",
+    "",
+    `Tickers: ${tickerSummary}`,
+  );
+
   return [
     "═══════════════════════════════════════",
     "  BLUE CHIP SIGNALS",
@@ -574,8 +664,7 @@ function buildFulfillmentEmailText({
     "",
     "ORDER SUMMARY",
     "─────────────",
-    `Plan: ${planDisplayName} (${planPrice})`,
-    `Tickers: ${tickerSummary}`,
+    ...orderSummaryLines,
     statusLine,
     "",
     "GETTING STARTED",
@@ -615,12 +704,14 @@ async function sendFulfillmentEmail({
   allowedTickers,
   pendingChannelSelection,
   setPasswordLink,
+  pricingInfo,
 }: {
   toEmail: string;
   purchasedPlan: string;
   allowedTickers: string[];
   pendingChannelSelection: boolean;
   setPasswordLink: string;
+  pricingInfo: PricingInfo;
 }) {
   const normalizedEmail = normalizeEmail(toEmail);
 
@@ -638,6 +729,7 @@ async function sendFulfillmentEmail({
     pendingChannelSelection,
     setPasswordLink,
     loginUrl,
+    pricingInfo,
   });
 
   const html = buildFulfillmentEmailHtml({
@@ -646,6 +738,7 @@ async function sendFulfillmentEmail({
     pendingChannelSelection,
     setPasswordLink,
     loginUrl,
+    pricingInfo,
   });
 
   const postmarkToken = Deno.env.get("POSTMARK_SERVER_TOKEN");
@@ -749,9 +842,16 @@ Deno.serve(async (request) => {
     const session = await stripe.checkout.sessions.retrieve(
       String(event.data.object.id),
       {
-        expand: ["line_items.data.price.product", "customer"],
+        expand: [
+          "line_items.data.price.product",
+          "customer",
+          "discounts",
+          "discounts.coupon",
+        ],
       },
     );
+
+    const pricingInfo = extractPricingInfo(session);
 
     const metadata = session.metadata ?? {}
     const lineItems = session.line_items?.data ?? []
@@ -971,6 +1071,7 @@ Deno.serve(async (request) => {
       allowedTickers: entitlement.allowedTickers,
       pendingChannelSelection: entitlement.pendingChannelSelection,
       setPasswordLink,
+      pricingInfo,
     });
 
     return jsonResponse({

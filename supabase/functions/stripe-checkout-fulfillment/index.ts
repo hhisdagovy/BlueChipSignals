@@ -321,6 +321,292 @@ async function generateSetPasswordLink({
   return String(data?.properties?.action_link || '').trim();
 }
 
+function buildFulfillmentEmailHtml({
+  purchasedPlan,
+  allowedTickers,
+  pendingChannelSelection,
+  setPasswordLink,
+  loginUrl,
+}: {
+  purchasedPlan: string;
+  allowedTickers: string[];
+  pendingChannelSelection: boolean;
+  setPasswordLink: string;
+  loginUrl: string;
+}): string {
+  const isBundle = purchasedPlan.toLowerCase().includes("bundle");
+  const planDisplayName = isBundle ? "Full Bundle" : "Single Channel";
+  const planPrice = isBundle ? "$4,995" : "$1,995";
+  const tickerHtml = allowedTickers.length
+    ? allowedTickers.map((t) =>
+      `<span style="display:inline-block;padding:2px 10px;margin:2px;border:1px solid #b3a17d;color:#E2CFB5;font-size:13px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;letter-spacing:1px;">${t}</span>`
+    ).join(" ")
+    : '<span style="color:#b3a17d;font-style:italic;">Pending selection</span>';
+
+  const passwordCta = setPasswordLink
+    ? `<!--[if mso]>
+<v:roundrect xmlns:v="urn:schemas-microsoft-com:vml" href="${setPasswordLink}" style="height:44px;v-text-anchor:middle;width:220px;" arcsize="0%" fillcolor="#b3a17d" stroke="f">
+<center style="color:#080B0F;font-family:sans-serif;font-size:14px;font-weight:bold;">Set Your Password</center>
+</v:roundrect>
+<![endif]-->
+<!--[if !mso]><!--><a href="${setPasswordLink}" style="background-color:#b3a17d;color:#080B0F;display:inline-block;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:14px;font-weight:bold;line-height:44px;text-align:center;text-decoration:none;width:220px;mso-hide:all;">Set Your Password</a><!--<![endif]-->`
+    : '<span style="color:#A0A0A0;font-size:14px;font-family:-apple-system,BlinkMacSystemFont,\'Segoe UI\',Roboto,Helvetica,Arial,sans-serif;">Use the <strong style="color:#FFFFFF;">Forgot Password</strong> link on the login page to set your password.</span>';
+
+  const loginCta = `<!--[if mso]>
+<v:roundrect xmlns:v="urn:schemas-microsoft-com:vml" href="${loginUrl}" style="height:44px;v-text-anchor:middle;width:220px;" arcsize="0%" fillcolor="none" strokecolor="#b3a17d" strokeweight="1px">
+<center style="color:#b3a17d;font-family:sans-serif;font-size:14px;font-weight:bold;">Log In to Dashboard</center>
+</v:roundrect>
+<![endif]-->
+<!--[if !mso]><!--><a href="${loginUrl}" style="background-color:transparent;border:1px solid #b3a17d;color:#b3a17d;display:inline-block;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:14px;font-weight:bold;line-height:42px;text-align:center;text-decoration:none;width:220px;mso-hide:all;">Log In to Dashboard</a><!--<![endif]-->`;
+
+  const step3Text = pendingChannelSelection
+    ? "Select your ticker first from the member dashboard, then your Telegram channel access will be activated."
+    : "Access your Telegram signal channels directly from the member dashboard.";
+
+  const pendingNotice = pendingChannelSelection
+    ? `<tr><td style="padding:16px 24px 0 24px;">
+<table width="100%" cellpadding="0" cellspacing="0" border="0"><tr><td style="border:1px solid #b3a17d;padding:12px 16px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:13px;color:#E2CFB5;line-height:1.5;">
+Your ticker selection is pending &mdash; log in to your dashboard to choose your channel and activate access.
+</td></tr></table>
+</td></tr>`
+    : "";
+
+  return `<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="color-scheme" content="light dark" />
+<meta name="supported-color-schemes" content="light dark" />
+<meta name="format-detection" content="telephone=no" />
+<title>Welcome to Blue Chip Signals</title>
+<!--[if gte mso 9]>
+<xml>
+<o:OfficeDocumentSettings>
+<o:AllowPNG/>
+<o:PixelsPerInch>96</o:PixelsPerInch>
+</o:OfficeDocumentSettings>
+</xml>
+<![endif]-->
+<!--[if !mso]><!-->
+<style>
+:root{color-scheme:light dark;}
+@media (prefers-color-scheme:dark){.email-body{background-color:#050810 !important;}}
+</style>
+<!--<![endif]-->
+</head>
+<body class="email-body" style="margin:0;padding:0;background-color:#050810;-webkit-text-size-adjust:100%;-ms-text-size-adjust:100%;">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#050810;">
+<tr><td align="center" style="padding:0;">
+
+<!--[if (gte mso 9)|(IE)]>
+<table role="presentation" width="600" cellpadding="0" cellspacing="0" border="0" align="center"><tr><td>
+<![endif]-->
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width:600px;margin:0 auto;">
+
+<!-- HEADER -->
+<tr><td style="background-color:#080B0F;padding:28px 0;text-align:center;border-bottom:1px solid #b3a17d;">
+<img src="https://bluechipsignals.online/assets/images/logo.png" alt="Blue Chip Signals" width="140" style="display:block;margin:0 auto;width:140px;height:auto;border:0;" />
+</td></tr>
+
+<!-- HERO -->
+<tr><td style="background-color:#080B0F;padding:40px 24px 32px 24px;text-align:center;">
+<table role="presentation" cellpadding="0" cellspacing="0" border="0" align="center"><tr><td style="width:40px;height:2px;background-color:#b3a17d;font-size:1px;line-height:1px;">&nbsp;</td></tr></table>
+<h1 style="margin:20px 0 8px 0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:26px;font-weight:600;color:#FFFFFF;letter-spacing:1px;line-height:1.3;mso-line-height-rule:exactly;">Welcome to Blue Chip Signals</h1>
+<p style="margin:0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:15px;color:#A0A0A0;line-height:1.5;">Your membership is confirmed.</p>
+</td></tr>
+
+<!-- ORDER SUMMARY CARD -->
+<tr><td style="background-color:#080B0F;padding:0 24px 32px 24px;">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#0d1117;border:1px solid #1a1f2e;">
+
+<tr><td style="padding:24px 24px 12px 24px;">
+<p style="margin:0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:11px;font-weight:700;color:#b3a17d;letter-spacing:2px;text-transform:uppercase;">Order Summary</p>
+</td></tr>
+<tr><td style="padding:0 24px;"><table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr><td style="height:1px;background-color:#b3a17d;font-size:1px;line-height:1px;opacity:0.4;">&nbsp;</td></tr></table></td></tr>
+
+<tr><td style="padding:16px 24px 0 24px;">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+<tr>
+<td style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:13px;color:#A0A0A0;padding:8px 0;vertical-align:top;width:80px;">Plan</td>
+<td style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:15px;color:#FFFFFF;padding:8px 0;text-align:right;vertical-align:top;">${planDisplayName} &mdash; ${planPrice}</td>
+</tr>
+<tr><td colspan="2" style="border-bottom:1px solid #1a1f2e;font-size:1px;line-height:1px;">&nbsp;</td></tr>
+<tr>
+<td style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:13px;color:#A0A0A0;padding:8px 0;vertical-align:top;width:80px;">Tickers</td>
+<td style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:15px;color:#FFFFFF;padding:8px 0;text-align:right;vertical-align:top;">${tickerHtml}</td>
+</tr>
+</table>
+</td></tr>
+${pendingNotice}
+<tr><td style="padding:16px;">&nbsp;</td></tr>
+
+</table>
+</td></tr>
+
+<!-- GETTING STARTED -->
+<tr><td style="background-color:#080B0F;padding:8px 24px 40px 24px;">
+<p style="margin:0 0 24px 0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:11px;font-weight:700;color:#b3a17d;letter-spacing:2px;text-transform:uppercase;text-align:center;">Getting Started</p>
+
+<!-- Step 1 -->
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-bottom:24px;">
+<tr>
+<td style="width:36px;vertical-align:top;padding-top:2px;">
+<span style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:18px;font-weight:700;color:#b3a17d;">1.</span>
+</td>
+<td style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;">
+<p style="margin:0 0 12px 0;font-size:16px;font-weight:600;color:#FFFFFF;line-height:1.4;">Set Your Password</p>
+${passwordCta}
+</td>
+</tr>
+</table>
+
+<!-- Step 2 -->
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-bottom:24px;">
+<tr>
+<td style="width:36px;vertical-align:top;padding-top:2px;">
+<span style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:18px;font-weight:700;color:#b3a17d;">2.</span>
+</td>
+<td style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;">
+<p style="margin:0 0 12px 0;font-size:16px;font-weight:600;color:#FFFFFF;line-height:1.4;">Log In to Your Dashboard</p>
+${loginCta}
+</td>
+</tr>
+</table>
+
+<!-- Step 3 -->
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+<tr>
+<td style="width:36px;vertical-align:top;padding-top:2px;">
+<span style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:18px;font-weight:700;color:#b3a17d;">3.</span>
+</td>
+<td style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;">
+<p style="margin:0 0 4px 0;font-size:16px;font-weight:600;color:#FFFFFF;line-height:1.4;">Join Your Telegram Channels</p>
+<p style="margin:0;font-size:14px;color:#A0A0A0;line-height:1.5;">${step3Text}</p>
+</td>
+</tr>
+</table>
+
+</td></tr>
+
+<!-- WHAT TO EXPECT CARD -->
+<tr><td style="background-color:#080B0F;padding:0 24px 32px 24px;">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#0d1117;border:1px solid #1a1f2e;">
+<tr><td style="padding:24px 24px 12px 24px;">
+<p style="margin:0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:11px;font-weight:700;color:#b3a17d;letter-spacing:2px;text-transform:uppercase;">Your First Week</p>
+</td></tr>
+<tr><td style="padding:0 24px;"><table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr><td style="height:1px;background-color:#b3a17d;font-size:1px;line-height:1px;opacity:0.4;">&nbsp;</td></tr></table></td></tr>
+<tr><td style="padding:16px 24px 24px 24px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:14px;color:#A0A0A0;line-height:1.8;">
+<span style="color:#b3a17d;">&#x2022;</span>&nbsp; 2&#x2013;4 algorithmic signals delivered daily via Telegram<br />
+<span style="color:#b3a17d;">&#x2022;</span>&nbsp; Each signal includes entry price, stop loss, and take profit levels<br />
+<span style="color:#b3a17d;">&#x2022;</span>&nbsp; Signals are generated during market hours (9:30 AM &#x2013; 4:00 PM ET)<br />
+<span style="color:#b3a17d;">&#x2022;</span>&nbsp; Real-time alerts so you never miss a move
+</td></tr>
+</table>
+</td></tr>
+
+<!-- SUPPORT -->
+<tr><td style="background-color:#080B0F;padding:8px 24px 40px 24px;text-align:center;">
+<p style="margin:0 0 4px 0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:18px;color:#FFFFFF;font-weight:600;">Need Help?</p>
+<p style="margin:0 0 12px 0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:14px;color:#A0A0A0;">Our team is here for you.</p>
+<a href="mailto:support@bluechipsignals.online" style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:14px;color:#b3a17d;text-decoration:none;">support@bluechipsignals.online</a>
+<p style="margin:8px 0 0 0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:12px;color:#666;">We typically respond within a few hours during market days.</p>
+</td></tr>
+
+<!-- FOOTER -->
+<tr><td style="background-color:#050810;border-top:1px solid #b3a17d;padding:24px;text-align:center;">
+<p style="margin:0 0 4px 0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:13px;color:#A0A0A0;">Blue Chip Signals</p>
+<a href="https://bluechipsignals.online" style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:12px;color:#b3a17d;text-decoration:none;">bluechipsignals.online</a>
+<p style="margin:16px 0 0 0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:11px;color:#666;line-height:1.5;">This email confirms your purchase. Trading involves risk.<br />Past performance does not guarantee future results.</p>
+<p style="margin:8px 0 0 0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:11px;color:#666;">&copy; 2026 Blue Chip Signals. All rights reserved.</p>
+</td></tr>
+
+</table>
+<!--[if (gte mso 9)|(IE)]>
+</td></tr></table>
+<![endif]-->
+
+</td></tr>
+</table>
+</body>
+</html>`;
+}
+
+function buildFulfillmentEmailText({
+  purchasedPlan,
+  allowedTickers,
+  pendingChannelSelection,
+  setPasswordLink,
+  loginUrl,
+}: {
+  purchasedPlan: string;
+  allowedTickers: string[];
+  pendingChannelSelection: boolean;
+  setPasswordLink: string;
+  loginUrl: string;
+}): string {
+  const isBundle = purchasedPlan.toLowerCase().includes("bundle");
+  const planDisplayName = isBundle ? "Full Bundle" : "Single Channel";
+  const planPrice = isBundle ? "$4,995" : "$1,995";
+  const tickerSummary = allowedTickers.length
+    ? allowedTickers.join(" | ")
+    : "Pending selection";
+  const passwordLine = setPasswordLink
+    ? `   Set password: ${setPasswordLink}`
+    : "   Use the Forgot Password link on the login page.";
+  const step3Text = pendingChannelSelection
+    ? "   Select your ticker first, then your channel access will be activated."
+    : "   Access your signal channels from the member dashboard.";
+  const statusLine = pendingChannelSelection
+    ? "\nNote: Your ticker selection is pending. Log in to choose your channel."
+    : "";
+
+  return [
+    "═══════════════════════════════════════",
+    "  BLUE CHIP SIGNALS",
+    "  Purchase Confirmation",
+    "═══════════════════════════════════════",
+    "",
+    "Welcome to Blue Chip Signals.",
+    "Your membership is confirmed.",
+    "",
+    "ORDER SUMMARY",
+    "─────────────",
+    `Plan: ${planDisplayName} (${planPrice})`,
+    `Tickers: ${tickerSummary}`,
+    statusLine,
+    "",
+    "GETTING STARTED",
+    "─────────────",
+    "1. Set Your Password",
+    passwordLine,
+    "",
+    "2. Log In to Your Dashboard",
+    `   ${loginUrl}`,
+    "",
+    "3. Join Your Telegram Channels",
+    step3Text,
+    "",
+    "WHAT TO EXPECT THIS WEEK",
+    "─────────────",
+    "- 2-4 algorithmic signals delivered daily via Telegram",
+    "- Each signal includes entry price, stop loss, and take profit levels",
+    "- Signals during market hours (9:30 AM - 4:00 PM ET)",
+    "- Real-time alerts so you never miss a move",
+    "",
+    "NEED HELP?",
+    "─────────────",
+    "Email: support@bluechipsignals.online",
+    "We typically respond within a few hours on market days.",
+    "",
+    "─────────────",
+    "Blue Chip Signals | bluechipsignals.online",
+    "Trading involves risk. Past performance does not guarantee future results.",
+    "(c) 2026 Blue Chip Signals. All rights reserved.",
+  ].join("\n");
+}
+
 async function sendFulfillmentEmail({
   toEmail,
   purchasedPlan,
@@ -342,50 +628,23 @@ async function sendFulfillmentEmail({
 
   const loginUrl = requireEnv("APP_LOGIN_URL");
   const fromEmail = requireEnv("FULFILLMENT_FROM_EMAIL");
-  const subject = "Your Blue Chip Signals access";
-  const tickerSummary = allowedTickers.length
-    ? allowedTickers.join(", ")
-    : "Ticker selection still required";
-  const nextSteps = pendingChannelSelection
-    ? "Reply to support or complete onboarding to choose your single ticker before access activates."
-    : "Log in with the same email address you used at checkout to access your member area.";
-  const passwordLine = setPasswordLink
-    ? `Set password link: ${setPasswordLink}`
-    : 'Set password link: Use Forgot Password on the login page.';
+  const subject = "Welcome to Blue Chip Signals";
 
-  const text = [
-    "Thanks for your Blue Chip Signals purchase.",
-    "",
-    `Purchased plan: ${purchasedPlan}`,
-    `Allowed ticker(s): ${tickerSummary}`,
-    `Login URL: ${loginUrl}`,
-    passwordLine,
-    "",
-    "Next steps:",
-    nextSteps,
-    pendingChannelSelection
-      ? "Your order is saved as pending_channel_selection until your ticker is chosen."
-      : "Your access is active now.",
-    "",
-    "Stripe will continue sending its separate payment receipt email.",
-  ].join("\n");
+  const text = buildFulfillmentEmailText({
+    purchasedPlan,
+    allowedTickers,
+    pendingChannelSelection,
+    setPasswordLink,
+    loginUrl,
+  });
 
-  const html = [
-    "<p>Thanks for your <strong>Blue Chip Signals</strong> purchase.</p>",
-    `<p><strong>Purchased plan:</strong> ${purchasedPlan}<br />`,
-    `<strong>Allowed ticker(s):</strong> ${tickerSummary}<br />`,
-    `<strong>Login URL:</strong> <a href="${loginUrl}">${loginUrl}</a><br />`,
-    setPasswordLink
-      ? `<strong>Set password:</strong> <a href="${setPasswordLink}">${setPasswordLink}</a></p>`
-      : '<strong>Set password:</strong> Use Forgot Password on the login page.</p>',
-    "<p><strong>Next steps:</strong><br />",
-    `${nextSteps}<br />`,
-    pendingChannelSelection
-      ? "Your order is saved as <code>pending_channel_selection</code> until your ticker is chosen."
-      : "Your access is active now.",
-    "</p>",
-    "<p>Stripe will continue sending its separate payment receipt email.</p>",
-  ].join("");
+  const html = buildFulfillmentEmailHtml({
+    purchasedPlan,
+    allowedTickers,
+    pendingChannelSelection,
+    setPasswordLink,
+    loginUrl,
+  });
 
   const postmarkToken = Deno.env.get("POSTMARK_SERVER_TOKEN");
   const resendApiKey = Deno.env.get("RESEND_API_KEY");

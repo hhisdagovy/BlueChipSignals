@@ -192,7 +192,7 @@
     }
 
     /* Internal nav -  used by account.html, trading-journal.html, trade-planner.html.
-       Logo click returns to dashboard. Links: Journal, Planner, Contact, FAQ + Logout.
+       Logged-in users: core app links only (no public marketing: Contact, FAQ, About).
        Admin link shown only when bluechip_is_admin flag is set in localStorage. */
     function internalNav() {
         var isAdmin = false;
@@ -224,17 +224,6 @@
                 '<li><a href="' + base + 'trading-journal">JOURNAL</a></li>' +
                 '<li><a href="' + base + 'trade-planner">PLANNER</a></li>' +
                 '<li><a href="' + base + 'roadmap">ROADMAP</a></li>' +
-                '<li><a href="' + base + 'contact">CONTACT</a></li>' +
-                '<li><a href="' + base + 'faq">FAQ</a></li>' +
-                '<li class="nav-about-item">' +
-                    '<a href="#" class="nav-about-trigger">ABOUT <span class="stocks-caret">&#9660;</span></a>' +
-                    '<ul class="nav-about-dropdown">' +
-                        '<li><a href="' + base + 'about">Our Story</a></li>' +
-                        '<li><a href="' + base + 'about/due-diligence">Due Diligence</a></li>' +
-                    '</ul>' +
-                '</li>' +
-                '<li class="nav-about-mobile-story"><a href="' + base + 'about">OUR STORY</a></li>' +
-                '<li class="nav-about-mobile-dd"><a href="' + base + 'about/due-diligence">DUE DILIGENCE</a></li>' +
                 adminLink +
                 '<li>' +
                     '<button class="logout-btn" onclick="logout()">' +

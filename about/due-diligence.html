@@ -227,6 +227,8 @@ h1 em {
 .card > * { position: relative; z-index: 1; }
 .card h3 { color: var(--primary-gold); margin-bottom: 0.5rem; font-size: 1rem; font-weight: 700; }
 .card p { margin-bottom: 0; font-size: 0.9rem; }
+.dd-overview-split .reveal { transform: none; }
+.dd-overview-split .dd-overview-cards { align-self: start; }
 
 /* ═══ GRIDS ═══ */
 .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; align-items: start; }
@@ -546,14 +548,18 @@ h1 em {
     <!-- TRUST -->
     <!-- METHODOLOGY -->
     <div class="dd-section" id="dd-methodology">
-      <div class="reveal"><span class="section-label">How We Track Outcomes</span><h2>Alert Methodology Framework</h2><div class="gold-rule"></div></div>
-      <div class="grid-2" style="margin-top: 1rem;">
+      <div class="reveal dd-overview-label-row">
+        <span class="section-label">How We Track Outcomes</span>
+      </div>
+      <div class="grid-2 dd-overview-split" style="margin-top: 1rem;">
         <div class="reveal">
+          <h2>Alert Methodology Framework</h2>
+          <div class="gold-rule"></div>
           <p style="color: var(--light-text);">Transparency about how we evaluate our own alerts is just as important as the alerts themselves. This section explains the framework we use to track outcomes, so you know what we measure and what we do not claim.</p>
           <p>Every alert is logged at the time of publication with a timestamp, entry price, and contract details. We track whether the suggested contract reached a predefined profit target or hit a loss threshold within the relevant timeframe.</p>
           <p>We do not retroactively edit alerts or selectively report winners. The log is cumulative. We track all published alerts, not a curated subset.</p>
         </div>
-        <div>
+        <div class="dd-overview-cards">
           <div class="card reveal" style="margin-bottom: 1.25rem;"><h3>What We Track</h3><p>Entry time, alert price, contract details, whether the position reached its target or stop level, and the timeframe in which the outcome occurred. All data is based on the published alert, not on hypothetical optimizations.</p></div>
           <div class="card reveal" style="margin-bottom: 1.25rem;"><h3>What We Do Not Claim</h3><p>We do not guarantee that members executed at the published price. Slippage, timing, and individual execution vary. Our tracking reflects the alert as published, not any individual member's results.</p></div>
           <div class="card reveal"><h3>Why This Matters</h3><p>A methodology framework holds us accountable to a consistent standard. If we share performance context in the future, this is the basis on which it will be measured. No cherry-picking, no hindsight adjustments.</p></div>
@@ -563,15 +569,19 @@ h1 em {
 
     <!-- TRUST -->
     <div class="dd-section" id="dd-trust">
-      <div class="reveal"><span class="section-label">Trust and Transparency</span><h2>An Honest Assessment of Where We Stand</h2><div class="gold-rule"></div></div>
-      <div class="grid-2" style="margin-top: 1rem;">
+      <div class="reveal dd-overview-label-row">
+        <span class="section-label">Trust and Transparency</span>
+      </div>
+      <div class="grid-2 dd-overview-split" style="margin-top: 1rem;">
         <div class="reveal">
+          <h2>An Honest Assessment of Where We Stand</h2>
+          <div class="gold-rule"></div>
           <p style="color: var(--light-text);">If you are evaluating Blue Chip Signals for the first time, you may not find a long trail of third-party reviews, press coverage, or years of documented history. We prefer to address this directly rather than obscure it.</p>
           <p>Blue Chip Signals is a developing brand built by a sole founder. Our public footprint is growing intentionally. We prioritize service quality over marketing volume.</p>
           <p>In the interim, we earn trust through the quality of our alerts, the consistency of our process, our willingness to take a demo call and answer questions directly, and our refusal to fabricate social proof.</p>
           <p style="color: var(--primary-gold); font-weight: 500;">We would rather have zero reviews than fake ones.</p>
         </div>
-        <div>
+        <div class="dd-overview-cards">
           <div class="card reveal" style="margin-bottom: 1.25rem;"><h3>What We Can Show You</h3><p>A live demo of the alert format, the strategy framework, the Telegram channel structure, and direct conversation with the founder.</p></div>
           <div class="card reveal" style="margin-bottom: 1.25rem;"><h3>What Is In Development</h3><p>Third-party review platform profiles, member testimonials with proper attribution, and performance methodology documentation.</p></div>
           <div class="card reveal"><h3>What We Will Not Do</h3><p>Fabricate testimonials, purchase reviews, inflate credentials, or make performance claims we cannot support with transparent methodology.</p></div>
@@ -597,14 +607,18 @@ h1 em {
 
     <!-- REFUND POLICY -->
     <div class="dd-section" id="dd-refund">
-      <div class="reveal"><span class="section-label">Refund Policy</span><h2>What Qualifies and What Does Not</h2><div class="gold-rule"></div></div>
-      <div class="grid-2" style="margin-top: 1rem;">
+      <div class="reveal dd-overview-label-row">
+        <span class="section-label">Refund Policy</span>
+      </div>
+      <div class="grid-2 dd-overview-split" style="margin-top: 1rem;">
         <div class="reveal">
+          <h2>What Qualifies and What Does Not</h2>
+          <div class="gold-rule"></div>
           <p style="color: var(--light-text);">Blue Chip Signals evaluates refund requests on a case-by-case basis. We want every member to feel confident in their subscription, and we handle disputes fairly and transparently.</p>
           <p>If you experience a verifiable service disruption (for example, you do not receive any alerts during your first week due to a backend or delivery issue on our end), that may constitute a justifiable reason for a refund. We take delivery reliability seriously, and technical failures that prevent you from receiving the product you paid for are treated accordingly.</p>
           <p>However, dissatisfaction with the content, frequency, or outcome of alerts does not constitute grounds for a refund. Trading results vary, and the service delivers information, not guaranteed outcomes. A signal you disagree with or a trade that does not go your way is not a service failure.</p>
         </div>
-        <div>
+        <div class="dd-overview-cards">
           <div class="card reveal" style="margin-bottom: 1.25rem;"><h3>May Qualify</h3><p>Backend delivery failures, extended service outages, inability to access the Telegram channel due to a technical issue on our end, or billing errors. Each situation is reviewed individually.</p></div>
           <div class="card reveal" style="margin-bottom: 1.25rem;"><h3>Does Not Qualify</h3><p>Dissatisfaction with alert frequency, disagreement with trade direction, losses on positions you chose to enter, or a change of mind about the subscription after receiving access.</p></div>
           <div class="card reveal"><h3>Full Policy</h3><p>For the complete refund and cancellation policy, including dispute procedures and applicable timeframes, please visit our <a href="https://bluechipsignals.online/legal" style="color: var(--primary-gold);">Legal Hub</a>.</p></div>

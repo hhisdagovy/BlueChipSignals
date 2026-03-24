@@ -1300,7 +1300,7 @@ export class SupabaseCrmDataService extends CrmDataService {
     return this.sendEmail(payload)
   }
 
-  async syncEmailMailbox({ mailboxId = '', folders = [] } = {}) {
+  async syncEmailMailbox({ mailboxId = '', folders = [], forceFullResync = false } = {}) {
     const normalizedMailboxId = normalizeWhitespace(mailboxId)
 
     if (!normalizedMailboxId) {
@@ -1313,7 +1313,8 @@ export class SupabaseCrmDataService extends CrmDataService {
 
     const { data, error } = await this.invokeAuthenticatedFunction('crm-sync-email', {
       mailboxId: normalizedMailboxId,
-      folders: normalizedFolders.length ? normalizedFolders : ['INBOX', 'SENT']
+      folders: normalizedFolders.length ? normalizedFolders : ['INBOX', 'SENT'],
+      forceFullResync: Boolean(forceFullResync)
     })
 
     if (error) {
@@ -1385,6 +1386,37 @@ export class SupabaseCrmDataService extends CrmDataService {
 
     if (error) {
       throw new Error(error.message || 'Unable to update the email thread star.')
+    }
+  }
+
+  async deleteEmailThread({ threadId = '', mailboxId = '' } = {}) {
+    const normalizedThreadId = normalizeWhitespace(threadId)
+    const normalizedMailboxId = normalizeWhitespace(mailboxId)
+
+    if (!normalizedThreadId) {
+      throw new Error('Choose a thread to delete.')
+    }
+
+    const supabase = await getSupabase()
+
+    const { error: messageError } = await supabase
+      .from('email_messages')
+      .delete()
+      .eq('thread_id', normalizedThreadId)
+      .eq('sender_mailbox_id', normalizedMailboxId)
+
+    if (messageError) {
+      throw new Error(messageError.message || 'Unable to delete the email messages.')
+    }
+
+    const { error: threadError } = await supabase
+      .from('email_threads')
+      .delete()
+      .eq('id', normalizedThreadId)
+      .eq('mailbox_sender_id', normalizedMailboxId)
+
+    if (threadError) {
+      throw new Error(threadError.message || 'Unable to delete the email thread.')
     }
   }
 
@@ -2974,7 +3006,9 @@ function mapEmailMessageRow(row, { usersById = new Map(), mailboxSendersById = n
     messageIdHeader: normalizeWhitespace(row.message_id_header ?? row.messageIdHeader),
     inReplyTo: normalizeWhitespace(row.in_reply_to ?? row.inReplyTo),
     referencesHeader: normalizeWhitespace(row.references_header ?? row.referencesHeader),
-    snippet: normalizeWhitespace(row.snippet) || String(row.body_text ?? row.bodyText ?? '').replace(/\s+/g, ' ').trim().slice(0, 220),
+    snippet: normalizeWhitespace(row.snippet)
+      || String(row.body_text ?? row.bodyText ?? '').replace(/\s+/g, ' ').trim().slice(0, 220)
+      || String(row.body_html ?? row.bodyHtml ?? '').replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 220),
     participants,
     source: normalizeWhitespace(row.source) || 'crm',
     sentAt: row.sent_at ?? row.sentAt ?? '',

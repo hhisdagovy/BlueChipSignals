@@ -143,6 +143,14 @@ Deno.serve(async (request) => {
       })
 
       providerMessageId = normalizeWhitespace(result?.messageId)
+
+      const rejectedList = Array.isArray((result as { rejected?: unknown })?.rejected)
+        ? ((result as { rejected: string[] }).rejected).map((addr) => normalizeWhitespace(addr)).filter(Boolean)
+        : []
+
+      if (rejectedList.length) {
+        transportErrorMessage = `Mail server rejected ${rejectedList.length === 1 ? 'this address' : 'these addresses'}: ${rejectedList.join(', ')}.`
+      }
     } catch (sendError) {
       transportErrorMessage = String(sendError instanceof Error ? sendError.message : sendError || 'Unable to send the email.')
     } finally {

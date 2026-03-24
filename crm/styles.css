@@ -5177,6 +5177,10 @@ button {
     width: min(640px, 100vw);
 }
 
+.crm-drawer.crm-drawer-email-compose {
+    width: min(560px, 100vw);
+}
+
 .drawer-surface {
     display: grid;
     gap: 1rem;
@@ -5985,6 +5989,45 @@ button {
 
 .crm-email-history-list {
     gap: 0.85rem;
+}
+
+.crm-email-history-list-single {
+    margin-top: 0.35rem;
+}
+
+.crm-email-history-pager {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    padding: 0.35rem 0 0.15rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    margin-bottom: 0.35rem;
+}
+
+.crm-email-history-pager-label {
+    font-size: 0.78rem;
+    color: var(--crm-text-muted);
+    letter-spacing: 0.04em;
+}
+
+.crm-email-history-pager-btn {
+    font-size: 0.82rem;
+    padding: 0.35rem 0.65rem;
+}
+
+.crm-email-history-pager-btn:disabled {
+    opacity: 0.35;
+    pointer-events: none;
+}
+
+.crm-email-history-body-scroll {
+    max-height: 14rem;
+    overflow: auto;
+    white-space: pre-wrap;
+    word-break: break-word;
+    margin-top: 0.5rem;
 }
 
 .crm-email-history-card {
@@ -7283,13 +7326,13 @@ button {
 
 .crm-email-page {
     display: grid;
-    gap: 1rem;
+    gap: 0.75rem;
 }
 
 .crm-email-shell {
     display: grid;
-    grid-template-columns: minmax(250px, 280px) minmax(320px, 0.95fr) minmax(420px, 1.2fr);
-    gap: 1rem;
+    grid-template-columns: minmax(220px, 260px) minmax(280px, 0.95fr) minmax(360px, 1.2fr);
+    gap: 0.75rem;
     align-items: start;
 }
 
@@ -7306,20 +7349,20 @@ button {
 .crm-email-empty-preview {
     background: rgba(10, 14, 22, 0.78);
     border: 1px solid rgba(201, 176, 55, 0.16);
-    border-radius: 24px;
-    box-shadow: 0 10px 32px rgba(0, 0, 0, 0.28);
+    border-radius: 14px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.24);
 }
 
 .crm-email-rail-card,
 .crm-email-list-pane,
 .crm-email-preview-card,
 .crm-email-compose-pane {
-    padding: 1.2rem;
+    padding: 0.9rem 1rem;
 }
 
 .crm-email-rail-card {
     display: grid;
-    gap: 1rem;
+    gap: 0.75rem;
     position: sticky;
     top: 94px;
 }
@@ -7327,7 +7370,9 @@ button {
 .crm-email-rail-header h1,
 .crm-email-list-toolbar h2,
 .crm-email-preview-head h2 {
-    margin: 0.4rem 0 0.45rem;
+    margin: 0.25rem 0 0.35rem;
+    font-size: clamp(1.05rem, 1.8vw, 1.3rem);
+    font-weight: 700;
 }
 
 .crm-email-rail-header p,
@@ -7336,7 +7381,8 @@ button {
 .crm-email-sync-copy {
     margin: 0;
     color: var(--crm-text-soft);
-    line-height: 1.6;
+    line-height: 1.5;
+    font-size: 0.84rem;
 }
 
 .crm-email-compose-button {
@@ -7345,20 +7391,21 @@ button {
 
 .crm-email-folder-list {
     display: grid;
-    gap: 0.45rem;
+    gap: 0.35rem;
 }
 
 .crm-email-folder-button {
     width: 100%;
     border: 1px solid rgba(255, 255, 255, 0.06);
-    border-radius: 16px;
+    border-radius: 10px;
     background: rgba(255, 255, 255, 0.035);
     color: var(--light-text);
-    padding: 0.85rem 0.95rem;
+    padding: 0.6rem 0.8rem;
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 0.75rem;
+    gap: 0.6rem;
+    font-size: 0.88rem;
     transition: border-color 0.2s ease, background 0.2s ease, transform 0.2s ease;
 }
 
@@ -7370,15 +7417,15 @@ button {
 
 .crm-email-folder-button strong,
 .crm-email-unread-pill {
-    min-width: 28px;
-    height: 28px;
+    min-width: 22px;
+    height: 22px;
     border-radius: 999px;
     background: rgba(201, 176, 55, 0.14);
     color: var(--primary-gold);
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    font-size: 0.78rem;
+    font-size: 0.72rem;
     font-weight: 700;
 }
 
@@ -7393,16 +7440,29 @@ button {
 
 .crm-email-sync-card {
     display: grid;
-    gap: 0.8rem;
-    padding: 0.95rem 1rem;
-    border-radius: 18px;
+    gap: 0.6rem;
+    padding: 0.7rem 0.85rem;
+    border-radius: 12px;
     border: 1px solid rgba(255, 255, 255, 0.08);
     background: rgba(255, 255, 255, 0.035);
 }
 
-.crm-email-sync-card .crm-button-secondary {
-    width: 100%;
+.crm-email-sync-actions {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+.crm-email-sync-actions .crm-button-secondary {
+    flex: 1;
+    min-width: 0;
     justify-content: center;
+}
+
+.crm-email-sync-actions .crm-email-full-resync {
+    flex: 0;
+    padding: 0.5rem 0.75rem;
+    font-size: 0.82rem;
 }
 
 .crm-email-sync-label {
@@ -7415,45 +7475,47 @@ button {
 
 .crm-email-list-pane,
 .crm-email-preview-pane {
-    min-height: 78vh;
+    min-height: min(68vh, 560px);
 }
 
 .crm-email-list-pane {
     display: grid;
     grid-template-rows: auto minmax(0, 1fr);
-    gap: 1rem;
+    gap: 0.75rem;
 }
 
 .crm-email-list-toolbar {
     display: flex;
     align-items: flex-start;
     justify-content: space-between;
-    gap: 1rem;
+    gap: 0.75rem;
 }
 
 .crm-email-search {
-    width: min(100%, 320px);
+    width: min(100%, 280px);
     position: relative;
 }
 
 .crm-email-search i {
     position: absolute;
-    left: 1rem;
+    left: 0.75rem;
     top: 50%;
     transform: translateY(-50%);
     color: var(--crm-text-muted);
     pointer-events: none;
+    font-size: 0.85rem;
 }
 
 .crm-email-search .crm-input {
-    padding-left: 2.8rem;
+    padding-left: 2.4rem;
+    font-size: 0.9rem;
 }
 
 .crm-email-thread-list {
     display: grid;
-    gap: 0.55rem;
+    gap: 0.4rem;
     align-content: start;
-    max-height: calc(78vh - 132px);
+    max-height: calc(min(68vh, 560px) - 110px);
     overflow: auto;
     padding-right: 0.1rem;
 }
@@ -7461,9 +7523,9 @@ button {
 .crm-email-thread-row {
     display: grid;
     grid-template-columns: auto minmax(0, 1fr);
-    gap: 0.7rem;
-    padding: 0.4rem;
-    border-radius: 18px;
+    gap: 0.5rem;
+    padding: 0.35rem 0.4rem;
+    border-radius: 12px;
     border: 1px solid transparent;
     background: rgba(255, 255, 255, 0.025);
     transition: border-color 0.2s ease, background 0.2s ease, transform 0.2s ease;
@@ -7480,16 +7542,29 @@ button {
     background: rgba(255, 255, 255, 0.045);
 }
 
+.crm-email-thread-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+}
+
 .crm-email-thread-star,
+.crm-email-thread-delete,
 .crm-email-thread-button {
     border: none;
     background: none;
     color: inherit;
 }
 
-.crm-email-thread-star {
-    width: 42px;
-    border-radius: 14px;
+.crm-email-thread-star,
+.crm-email-thread-delete {
+    width: 34px;
+    height: 34px;
+    border-radius: 10px;
+    font-size: 0.85rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
     color: rgba(255, 255, 255, 0.34);
     transition: color 0.2s ease, background 0.2s ease;
 }
@@ -7502,11 +7577,18 @@ button {
     outline: none;
 }
 
+.crm-email-thread-delete:hover,
+.crm-email-thread-delete:focus-visible {
+    color: var(--crm-danger);
+    background: rgba(241, 111, 111, 0.12);
+    outline: none;
+}
+
 .crm-email-thread-button {
     width: 100%;
     text-align: left;
     display: grid;
-    gap: 0.45rem;
+    gap: 0.35rem;
     min-width: 0;
 }
 
@@ -7529,7 +7611,7 @@ button {
 .crm-email-thread-topline span,
 .crm-email-thread-snippet {
     color: var(--crm-text-soft);
-    font-size: 0.82rem;
+    font-size: 0.78rem;
 }
 
 .crm-email-thread-snippet {
@@ -7546,42 +7628,48 @@ button {
 .crm-email-preview-card,
 .crm-email-compose-pane,
 .crm-email-empty-preview {
-    min-height: 78vh;
+    min-height: min(68vh, 560px);
 }
 
 .crm-email-preview-card,
 .crm-email-compose-pane {
     display: grid;
     align-content: start;
-    gap: 1rem;
+    gap: 0.75rem;
 }
 
 .crm-email-preview-head {
     display: flex;
     align-items: flex-start;
     justify-content: space-between;
-    gap: 1rem;
+    gap: 0.75rem;
 }
 
 .crm-email-preview-actions {
     display: flex;
     flex-wrap: wrap;
-    gap: 0.6rem;
+    gap: 0.5rem;
     justify-content: flex-end;
+}
+
+.crm-email-preview-actions .crm-email-delete:hover,
+.crm-email-preview-actions .crm-email-delete:focus-visible {
+    color: var(--crm-danger);
 }
 
 .crm-email-preview-meta {
     display: flex;
     flex-wrap: wrap;
-    gap: 0.55rem;
+    gap: 0.4rem;
 }
 
 .crm-email-message-stack {
     display: grid;
-    gap: 0.85rem;
-    max-height: calc(78vh - 210px);
+    gap: 0.65rem;
+    max-height: calc(min(68vh, 560px) - 180px);
     overflow: auto;
     padding-right: 0.15rem;
+    min-height: 0;
 }
 
 .crm-email-message-row {
@@ -7597,14 +7685,14 @@ button {
 }
 
 .crm-email-message-card {
-    border-radius: 20px;
+    border-radius: 12px;
     border: 1px solid rgba(255, 255, 255, 0.08);
     background: rgba(255, 255, 255, 0.03);
-    padding: 1rem;
+    padding: 0.75rem 0.9rem;
     display: grid;
-    gap: 0.9rem;
-    width: min(100%, 720px);
-    box-shadow: 0 12px 28px rgba(0, 0, 0, 0.2);
+    gap: 0.6rem;
+    width: min(100%, 580px);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
 }
 
 .crm-email-message-card.incoming {
@@ -7622,26 +7710,27 @@ button {
     display: flex;
     align-items: flex-start;
     justify-content: space-between;
-    gap: 1rem;
+    gap: 0.6rem;
 }
 
 .crm-email-message-person {
     display: flex;
     align-items: center;
-    gap: 0.8rem;
+    gap: 0.6rem;
 }
 
 .crm-email-message-avatar {
-    width: 40px;
-    height: 40px;
-    border-radius: 14px;
+    width: 32px;
+    height: 32px;
+    border-radius: 10px;
+    font-size: 0.8rem;
     display: inline-flex;
     align-items: center;
     justify-content: center;
     background: rgba(255, 255, 255, 0.08);
     border: 1px solid rgba(255, 255, 255, 0.08);
     color: var(--light-text);
-    font-weight: 800;
+    font-weight: 700;
     letter-spacing: 0.04em;
     flex-shrink: 0;
 }
@@ -7654,26 +7743,43 @@ button {
 
 .crm-email-message-head span {
     color: var(--crm-text-soft);
-    font-size: 0.82rem;
+    font-size: 0.78rem;
 }
 
 .crm-email-message-bubble {
     display: grid;
-    gap: 0.8rem;
-    padding: 0.15rem 0.1rem 0.05rem;
+    gap: 0.6rem;
+    padding: 0.1rem 0;
 }
 
 .crm-email-message-body {
     white-space: pre-wrap;
-    line-height: 1.7;
+    line-height: 1.6;
     color: var(--light-text);
+    font-size: 0.9rem;
+}
+
+.crm-email-message-body--html {
+    white-space: normal;
+    overflow-wrap: break-word;
+    word-break: break-word;
+}
+
+.crm-email-message-body--html img {
+    max-width: 100%;
+    height: auto;
+}
+
+.crm-email-message-body--html a {
+    color: var(--primary-gold);
+    text-decoration: underline;
 }
 
 .crm-email-message-quote {
     display: grid;
-    gap: 0.45rem;
-    padding: 0.8rem 0.9rem;
-    border-radius: 16px;
+    gap: 0.35rem;
+    padding: 0.6rem 0.75rem;
+    border-radius: 10px;
     border: 1px solid rgba(255, 255, 255, 0.06);
     background: rgba(255, 255, 255, 0.03);
 }
@@ -7684,7 +7790,7 @@ button {
 }
 
 .crm-email-message-quote-label {
-    font-size: 0.74rem;
+    font-size: 0.7rem;
     font-weight: 700;
     letter-spacing: 0.08em;
     text-transform: uppercase;
@@ -7693,28 +7799,29 @@ button {
 
 .crm-email-message-quote-copy {
     white-space: pre-wrap;
-    line-height: 1.6;
+    line-height: 1.55;
+    font-size: 0.85rem;
     color: var(--crm-text-soft);
 }
 
 .crm-email-empty-preview {
-    padding: 2.25rem;
+    padding: 1.5rem;
     text-align: center;
     display: grid;
     place-items: center;
-    gap: 0.85rem;
+    gap: 0.6rem;
 }
 
 .crm-email-empty-preview i {
-    width: 72px;
-    height: 72px;
-    border-radius: 22px;
+    width: 56px;
+    height: 56px;
+    border-radius: 16px;
     display: inline-flex;
     align-items: center;
     justify-content: center;
     background: rgba(201, 176, 55, 0.1);
     color: var(--primary-gold);
-    font-size: 1.5rem;
+    font-size: 1.25rem;
 }
 
 .crm-email-empty-preview h2 {

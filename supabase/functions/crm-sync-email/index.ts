@@ -71,7 +71,7 @@ type ParsedAddress = {
 }
 
 const DEFAULT_EMAIL_SYNC_MAX_MESSAGES = 200
-const MAX_EMAIL_SYNC_OVERLAP = 50
+const MAX_EMAIL_SYNC_OVERLAP = 200
 
 Deno.serve(async (request) => {
   const optionsResponse = handleOptionsRequest(request)
@@ -96,7 +96,10 @@ Deno.serve(async (request) => {
 
     const mailbox = await loadMailboxSenderByIdWithSecret(supabase, profile, mailboxId)
     await pruneOrphanedEmailThreads(supabase, mailbox.id)
-    const syncStateByFolder = await getMailboxSyncStateByFolder(supabase, mailbox.id, folders)
+    let syncStateByFolder = await getMailboxSyncStateByFolder(supabase, mailbox.id, folders)
+    if (payload.forceFullResync === true) {
+      syncStateByFolder = new Map(folders.map((f) => [f.toUpperCase(), 0]))
+    }
     const backendResult = await syncMailboxViaImap({
       mailbox,
       folders,

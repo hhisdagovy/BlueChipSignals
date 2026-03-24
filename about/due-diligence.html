@@ -1,0 +1,761 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Blue Chip Signals | Due Diligence</title>
+<meta name="description" content="Blue Chip Signals is a premium algorithmic options alert service. Review our due diligence, service overview, and risk disclosures.">
+<meta property="og:title" content="Blue Chip Signals | Due Diligence">
+<meta property="og:description" content="Premium algorithmic options alerts on SPY, TSLA, META, NVDA, AAPL, AMZN. Structured entries, defined risk, Telegram delivery.">
+<meta property="og:type" content="website">
+<link rel="icon" type="image/png" href="../assets/images/Crest logo.png">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<link rel="stylesheet" href="../assets/css/signal-style.css">
+<style>
+:root {
+  --primary-gold: #b3a17d;
+  --secondary-gold: #E2CFB5;
+  --dark-bg: #080B0F;
+  --darker-bg: #050810;
+  --light-text: #FFFFFF;
+  --gray-text: #A0A0A0;
+  --field-bg: rgba(26, 31, 46, 0.7);
+  --card-glass: linear-gradient(150deg, rgba(201,176,55,0.1) 0%, rgba(10,14,22,0.85) 55%);
+  --card-border: rgba(201, 176, 55, 0.28);
+  --card-hover: rgba(201, 176, 55, 0.55);
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+/* clip (not hidden): overflow-x:hidden on html/body breaks position:sticky site-wide */
+html { overflow-x: clip; scroll-behavior: smooth; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background-color: var(--darker-bg); color: var(--light-text);
+  line-height: 1.6; overflow-x: clip; -webkit-font-smoothing: antialiased;
+}
+
+/* ═══ ANIMATIONS ═══ */
+@keyframes shimmer { 0% { background-position: -200% center; } 100% { background-position: 200% center; } }
+@keyframes fadeUp { from { opacity:0; transform:translateY(24px); } to { opacity:1; transform:translateY(0); } }
+@keyframes gridDrift { from { background-position:0 0; } to { background-position:32px 32px; } }
+@keyframes pulse { 0%,100% { transform:scale(1); opacity:0.7; } 50% { transform:scale(1.08); opacity:1; } }
+
+.reveal { opacity:0; transform:translateY(20px); transition: opacity 0.55s cubic-bezier(0.22,1,0.36,1), transform 0.55s cubic-bezier(0.22,1,0.36,1); }
+.reveal.visible { opacity:1; transform:translateY(0); }
+.reveal-delay-1 { transition-delay: 0.08s; }
+.reveal-delay-2 { transition-delay: 0.16s; }
+.reveal-delay-3 { transition-delay: 0.24s; }
+.reveal-delay-4 { transition-delay: 0.32s; }
+.reveal-delay-5 { transition-delay: 0.4s; }
+
+/* ═══ UTILITY ═══ */
+.container { max-width: 1100px; margin: 0 auto; padding: 0 2rem; }
+.section { padding: 5rem 0; position: relative; z-index: 1; }
+.gold-rule { width: 48px; height: 2px; background: var(--primary-gold); margin: 1rem 0 1.4rem; }
+h1,h2,h3,h4 { font-weight: 700; line-height: 1.15; color: var(--light-text); }
+h1 { font-size: clamp(2.4rem, 5.5vw, 4rem); font-weight: 900; letter-spacing: -0.025em; }
+h2 { font-size: clamp(1.5rem, 3.5vw, 2rem); margin-bottom: 0.4rem; }
+h3 { font-size: 1.1rem; margin-bottom: 0.4rem; }
+p { margin-bottom: 0.9rem; color: var(--gray-text); line-height: 1.75; }
+a { color: var(--primary-gold); text-decoration: none; transition: color 0.25s; }
+a:hover { color: var(--secondary-gold); }
+
+.section-label {
+  display: inline-flex; align-items: center; gap: 0.5rem;
+  background: rgba(201,176,55,0.07); border: 1px solid rgba(201,176,55,0.38);
+  color: var(--primary-gold); padding: 0.38rem 1.1rem; border-radius: 50px;
+  font-weight: 700; font-size: 0.72rem; letter-spacing: 0.08em; text-transform: uppercase;
+  margin-bottom: 1.2rem;
+}
+h1 em {
+  font-style: italic; font-weight: 400;
+  background: linear-gradient(135deg, var(--primary-gold), var(--secondary-gold));
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+}
+
+/* ═══ BUTTONS ═══ */
+.btn {
+  display: inline-block; padding: 0.78rem 2.1rem; font-family: inherit; font-size: 0.9rem;
+  font-weight: 600; border-radius: 50px; cursor: pointer; transition: all 0.3s;
+  text-decoration: none; border: none; letter-spacing: 0.04em;
+}
+.btn-primary { background: linear-gradient(135deg, var(--primary-gold), var(--secondary-gold)); color: var(--darker-bg); }
+.btn-primary:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(179,161,125,0.4); color: var(--darker-bg); }
+.btn-outline { background: transparent; color: var(--primary-gold); border: 1.5px solid rgba(201,176,55,0.5); }
+.btn-outline:hover { background: rgba(201,176,55,0.08); border-color: var(--primary-gold); transform: translateY(-2px); }
+
+/* ═══ PAGE BACKGROUND ═══ */
+.page-wrap { position: relative; min-height: 100vh; }
+.page-wrap::before {
+  content: ''; position: absolute; inset: 0;
+  background-image: radial-gradient(circle, rgba(201,176,55,0.09) 1px, transparent 1px);
+  background-size: 32px 32px; animation: gridDrift 22s linear infinite;
+  pointer-events: none; z-index: 0; opacity: 0.35;
+}
+.page-wrap::after {
+  content: ''; position: absolute; top: -100px; left: -15%; right: -15%; bottom: -80px;
+  background: radial-gradient(circle at 35% 55%, rgba(201,176,55,0.10), transparent 50%),
+    radial-gradient(circle at 72% 30%, rgba(201,176,55,0.05), transparent 45%);
+  pointer-events: none; z-index: 0;
+}
+
+/* ═══ HERO (centered logo, large) ═══ */
+.hero { padding: 1.5rem 2rem 5rem; text-align: center; position: relative; max-width: 1100px; margin: 0 auto; }
+.hero::before {
+  content: ''; position: absolute; top: 0; left: 50%; transform: translateX(-50%);
+  width: 700px; height: 500px;
+  background: radial-gradient(ellipse at center, rgba(201,176,55,0.08), transparent 70%);
+  pointer-events: none; z-index: 0;
+}
+.hero-inner { position: relative; z-index: 1; animation: fadeUp 0.65s cubic-bezier(0.22,1,0.36,1) 0.05s both; }
+.hero-logo {
+  max-width: min(380px, 88vw); width: auto; height: auto; object-fit: contain;
+  margin: 0 auto 1.8rem;
+  filter: drop-shadow(0 6px 18px rgba(201,176,55,0.28)); display: block;
+}
+.hero h1 { margin-bottom: 1rem; }
+.hero p { font-size: 1.1rem; max-width: 620px; margin: 0 auto 1.8rem; line-height: 1.75; }
+.hero-ctas { display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; }
+.hero-badges { display: flex; gap: 1.5rem; justify-content: center; flex-wrap: wrap; margin-top: 2.2rem; }
+.hero-badge {
+  display: inline-flex; align-items: center; gap: 0.4rem; font-size: 0.8rem;
+  font-weight: 500; color: rgba(255,255,255,0.5); letter-spacing: 0.02em;
+}
+
+/* ═══ STICKY SIDEBAR NAV ═══ */
+/* Matches fixed pill nav (~12px top + ~74px height) + breathing room */
+:root {
+  --dd-nav-offset: 104px;
+  --dd-scroll-margin: 112px;
+}
+.dd-layout { display: grid; grid-template-columns: 200px 1fr; gap: 3rem; max-width: 1100px; margin: 0 auto; padding: 0 2rem; align-items: start; }
+.dd-sidebar {
+  position: -webkit-sticky;
+  position: sticky;
+  top: var(--dd-nav-offset);
+  z-index: 50;
+  align-self: start;
+  max-height: calc(100vh - var(--dd-nav-offset) - 24px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding-right: 0.25rem;
+}
+.dd-sidebar-label { font-size: 0.7rem; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--gray-text); margin-bottom: 0.75rem; }
+.dd-nav { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 0.2rem; }
+.dd-nav li { margin: 0; }
+.dd-nav a {
+  display: block; padding: 0.5rem 0.75rem 0.5rem 0.65rem; border-radius: 8px; color: var(--gray-text);
+  font-size: 0.85rem; font-weight: 500; text-decoration: none;
+  border-left: 3px solid transparent;
+  transition: background 0.2s, color 0.2s, border-color 0.2s, box-shadow 0.2s;
+}
+.dd-nav a:hover {
+  background: rgba(201,176,55,0.08);
+  color: var(--secondary-gold);
+}
+.dd-nav a.active {
+  background: rgba(201,176,55,0.14);
+  color: var(--primary-gold);
+  font-weight: 700;
+  border-left-color: var(--primary-gold);
+  box-shadow: inset 0 0 0 1px rgba(201,176,55,0.2);
+}
+/* In-view sections: anchor jumps clear the fixed nav */
+.dd-section { scroll-margin-top: var(--dd-scroll-margin); }
+.dd-content { min-width: 0; }
+@media (max-width: 900px) {
+  :root { --dd-scroll-margin: 100px; }
+  .dd-layout { grid-template-columns: 1fr; gap: 1rem; }
+  .dd-sidebar {
+    position: -webkit-sticky;
+    position: sticky;
+    top: var(--dd-nav-offset);
+    z-index: 50;
+    display: flex;
+    flex-wrap: nowrap;
+    gap: 0.5rem;
+    align-items: center;
+    padding: 0.65rem 0;
+    margin: 0 -0.5rem 0.5rem;
+    padding-left: 0.5rem;
+    padding-right: 0.5rem;
+    border-bottom: 1px solid rgba(201,176,55,0.12);
+    background: linear-gradient(180deg, rgba(5,8,16,0.97) 0%, rgba(5,8,16,0.88) 85%, transparent 100%);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    overflow-x: auto;
+    overflow-y: hidden;
+    -webkit-overflow-scrolling: touch;
+    max-height: none;
+  }
+  .dd-sidebar-label { flex-shrink: 0; margin-bottom: 0; margin-right: 0.25rem; }
+  .dd-nav { flex-direction: row; flex-wrap: nowrap; gap: 0.35rem; }
+  .dd-nav a {
+    white-space: nowrap;
+    font-size: 0.76rem;
+    padding: 0.45rem 0.65rem;
+    border-left: none;
+    border-bottom: 2px solid transparent;
+  }
+  .dd-nav a.active {
+    border-bottom-color: var(--primary-gold);
+    box-shadow: none;
+  }
+}
+@media (max-width: 768px) {
+  .dd-breadcrumb { padding: 6.25rem 1.25rem 0.25rem; }
+  .hero { padding: 1rem 1.25rem 3.5rem; }
+}
+
+/* ═══ SECTION DIVIDER ═══ */
+.section-divider { border: none; border-top: 1px solid rgba(201,176,55,0.1); margin: 0; position: relative; z-index: 1; }
+
+/* ═══ CARDS ═══ */
+.card {
+  background: var(--card-glass); border: 1px solid var(--card-border); border-top: 3px solid var(--primary-gold);
+  border-radius: 18px; padding: 1.75rem 1.5rem; position: relative; overflow: hidden;
+  backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+  box-shadow: 0 10px 28px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.03);
+  transition: border-color 0.3s, transform 0.3s, box-shadow 0.3s;
+}
+.card::after {
+  content: ''; position: absolute; inset: 0; border-radius: inherit;
+  background: linear-gradient(105deg, transparent 30%, rgba(255,255,255,0.07) 50%, transparent 70%);
+  background-size: 200% 100%; opacity: 0; transition: opacity 0.35s; pointer-events: none; z-index: 0;
+}
+.card:hover { border-color: var(--card-hover); transform: translateY(-4px); box-shadow: 0 10px 32px rgba(0,0,0,0.35), 0 0 28px rgba(201,176,55,0.18); }
+.card:hover::after { opacity: 1; animation: shimmer 0.65s ease forwards; }
+.card > * { position: relative; z-index: 1; }
+.card h3 { color: var(--primary-gold); margin-bottom: 0.5rem; font-size: 1rem; font-weight: 700; }
+.card p { margin-bottom: 0; font-size: 0.9rem; }
+
+/* ═══ GRIDS ═══ */
+.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; align-items: start; }
+.grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.25rem; }
+@media (max-width: 768px) { .grid-2, .grid-3 { grid-template-columns: 1fr; } }
+
+/* ═══ STEPS ═══ */
+.step { display: flex; gap: 1.5rem; margin-bottom: 2rem; }
+.step-num {
+  flex-shrink: 0; width: 40px; height: 40px; border-radius: 12px;
+  background: linear-gradient(135deg, rgba(201,176,55,0.18), rgba(201,176,55,0.06));
+  border: 1px solid rgba(201,176,55,0.2); color: var(--primary-gold);
+  font-weight: 700; font-size: 0.9rem; display: flex; align-items: center; justify-content: center;
+}
+.step h3 { color: var(--light-text); }
+
+/* ═══ PHONE MOCKUP (from signal pages) ═══ */
+.alert-showcase { display: flex; align-items: center; gap: 3.5rem; margin-top: 2rem; }
+.phone-wrap { position: relative; display: flex; justify-content: center; align-items: center; flex-shrink: 0; }
+.phone-glow {
+  position: absolute; width: 300px; height: 300px; border-radius: 50%;
+  background: radial-gradient(circle, rgba(201,176,55,0.15), transparent 70%);
+  animation: pulse 3s ease-in-out infinite; pointer-events: none;
+}
+.phone {
+  position: relative; width: 270px; background: linear-gradient(145deg, #1a1f2e, #0a0e1a);
+  border-radius: 32px; padding: 14px;
+  box-shadow: 0 24px 60px rgba(0,0,0,0.6), 0 0 0 8px #0a0e1a, 0 0 0 10px rgba(201,176,55,0.25);
+  z-index: 1;
+}
+.phone-screen { background: #0f1419; border-radius: 22px; overflow: hidden; }
+.phone-screen img { width: 100%; height: auto; display: block; }
+.alert-showcase-text { flex: 1; }
+@media (max-width: 768px) {
+  .alert-showcase { flex-direction: column; }
+  .phone { width: min(260px, calc(100vw - 4rem)); }
+  .phone-glow { width: min(280px, calc(100vw - 3rem)); height: min(280px, calc(100vw - 3rem)); }
+}
+
+/* ═══ FOUNDER (split card from about.html) ═══ */
+.founder-split {
+  display: grid; grid-template-columns: 300px 1fr; border-radius: 24px; overflow: hidden;
+  border: 1px solid var(--card-border); border-top: 3px solid var(--primary-gold);
+  box-shadow: 0 24px 64px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.03);
+  transition: border-color 0.3s, box-shadow 0.3s; position: relative;
+}
+.founder-split::after {
+  content: ''; position: absolute; inset: 0; border-radius: inherit;
+  background: linear-gradient(105deg, transparent 30%, rgba(255,255,255,0.07) 50%, transparent 70%);
+  background-size: 200% 100%; opacity: 0; transition: opacity 0.35s; pointer-events: none; z-index: 0;
+}
+.founder-split:hover { border-color: var(--card-hover); box-shadow: 0 10px 32px rgba(0,0,0,0.35), 0 0 28px rgba(201,176,55,0.18); }
+.founder-split:hover::after { opacity: 1; animation: shimmer 0.65s ease forwards; }
+.founder-photo {
+  position: relative; overflow: hidden;
+  background: radial-gradient(ellipse at 60% 40%, rgba(201,176,55,0.08), #050810 70%);
+}
+.founder-photo img {
+  width: 100%; height: 100%; object-fit: cover; object-position: center 10%;
+  display: block; transition: transform 6s ease;
+}
+.founder-split:hover .founder-photo img { transform: scale(1.03); }
+.founder-photo::after {
+  content: ''; position: absolute; inset: 0;
+  background: linear-gradient(to bottom, rgba(255,255,255,0.03) 0%, transparent 30%),
+    linear-gradient(to right, transparent 60%, rgba(26,31,46,0.55) 100%),
+    linear-gradient(to top, rgba(201,176,55,0.12) 0%, transparent 45%);
+  pointer-events: none;
+}
+.founder-info {
+  background: var(--card-glass); border-left: 3px solid var(--primary-gold);
+  padding: 2.5rem; display: flex; flex-direction: column; justify-content: flex-start;
+  position: relative; z-index: 1;
+  backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+  max-height: 700px; overflow-y: auto;
+  scrollbar-width: thin; scrollbar-color: rgba(179,161,125,0.3) transparent;
+}
+.founder-info > * { position: relative; z-index: 1; }
+.founder-name { font-size: 1.9rem; font-weight: 800; margin-bottom: 0.3rem; }
+.founder-role { font-size: 0.75rem; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--primary-gold); margin-bottom: 1.2rem; }
+.founder-bio { font-size: 0.92rem; color: var(--gray-text); line-height: 1.75; max-width: 480px; margin-bottom: 0.6rem; }
+.founder-social { display: flex; gap: 0.75rem; flex-wrap: wrap; }
+.founder-social a { display: inline-flex; align-items: center; gap: 0.5rem; font-size: 0.85rem; font-weight: 600; border-radius: 50px; padding: 0.45rem 1.1rem; color: var(--primary-gold); border: 1px solid rgba(201,176,55,0.35); transition: all 0.2s; }
+.founder-social a:hover { background: rgba(201,176,55,0.1); border-color: var(--primary-gold); transform: translateY(-2px); }
+@media (max-width: 768px) {
+  .founder-split { grid-template-columns: 1fr; }
+  .founder-photo { width: 100%; height: 320px; }
+  .founder-photo img { object-position: center 20%; }
+  .founder-info { padding: 2rem 1.5rem; }
+}
+
+/* ═══ FAQ (from faq.html) ═══ */
+.faq-item {
+  background: var(--card-glass); border: 1px solid var(--card-border); border-top: 3px solid var(--primary-gold);
+  border-radius: 14px; margin-bottom: 0.75rem; overflow: hidden;
+  backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+  box-shadow: 0 10px 28px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.03);
+  transition: border-color 0.3s, box-shadow 0.3s; position: relative;
+}
+.faq-item::after {
+  content: ''; position: absolute; inset: 0; border-radius: inherit;
+  background: linear-gradient(105deg, transparent 30%, rgba(255,255,255,0.07) 50%, transparent 70%);
+  background-size: 200% 100%; opacity: 0; transition: opacity 0.35s; pointer-events: none; z-index: 0;
+}
+.faq-item:hover { border-color: var(--card-hover); box-shadow: 0 10px 32px rgba(0,0,0,0.35), 0 0 28px rgba(201,176,55,0.18); }
+.faq-item:hover::after { opacity: 1; animation: shimmer 0.65s ease forwards; }
+.faq-item.active { border-color: var(--card-hover); }
+.faq-question, .faq-answer { position: relative; z-index: 1; }
+.faq-question {
+  padding: 1.1rem 1.4rem; cursor: pointer; display: flex; justify-content: space-between; align-items: center;
+  font-size: 0.98rem; font-weight: 600; color: var(--light-text); user-select: none; gap: 1rem;
+}
+.faq-chevron {
+  width: 22px; height: 22px; border-radius: 50%; border: 1px solid rgba(201,176,55,0.3);
+  display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+  color: var(--primary-gold); font-size: 0.7rem; transition: transform 0.3s, background 0.25s;
+}
+.faq-item.active .faq-chevron { transform: rotate(180deg); background: rgba(201,176,55,0.12); }
+.faq-answer { max-height: 0; overflow: hidden; transition: max-height 0.45s ease-out, padding 0.35s ease-out; padding: 0 1.4rem; }
+.faq-answer p { color: var(--gray-text); font-size: 0.92rem; line-height: 1.75; padding-bottom: 1.2rem; }
+.faq-item.active .faq-answer { max-height: 500px; padding-top: 0.2rem; }
+
+/* ═══ RISK BOX ═══ */
+.risk-box {
+  background: var(--card-glass); border: 1px solid var(--card-border); border-left: 3px solid var(--primary-gold);
+  border-radius: 0 18px 18px 0; padding: 2rem; backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+}
+.risk-box p { color: var(--gray-text); font-size: 0.9rem; }
+.risk-box strong { color: var(--light-text); }
+
+/* ═══ CTA CARD ═══ */
+.cta-card {
+  background: var(--card-glass); border: 1px solid var(--card-border); border-top: 3px solid var(--primary-gold);
+  border-radius: 24px; padding: 4rem 3rem; text-align: center; position: relative; overflow: hidden;
+  backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+  box-shadow: 0 10px 28px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.03);
+  transition: border-color 0.3s, box-shadow 0.3s;
+}
+.cta-card::before { content: ''; position: absolute; top: -60px; left: 50%; transform: translateX(-50%); width: 400px; height: 300px; background: radial-gradient(ellipse, rgba(201,176,55,0.07), transparent 70%); pointer-events: none; z-index: 0; }
+.cta-card::after { content: ''; position: absolute; inset: 0; border-radius: inherit; background: linear-gradient(105deg, transparent 30%, rgba(255,255,255,0.07) 50%, transparent 70%); background-size: 200% 100%; opacity: 0; transition: opacity 0.35s; pointer-events: none; z-index: 0; }
+.cta-card:hover { border-color: var(--card-hover); box-shadow: 0 10px 32px rgba(0,0,0,0.35), 0 0 28px rgba(201,176,55,0.18); }
+.cta-card:hover::after { opacity: 1; animation: shimmer 0.65s ease forwards; }
+.cta-card > * { position: relative; z-index: 1; }
+.cta-card p { max-width: 560px; margin: 0 auto 2rem; }
+
+/* ═══ FLOATING CTA ═══ */
+.floating-cta {
+  position: fixed; bottom: 1.5rem; right: 1.5rem; z-index: 100;
+  opacity: 0; transform: translateY(20px); transition: opacity 0.4s, transform 0.4s;
+  pointer-events: none;
+}
+.floating-cta.visible { opacity: 1; transform: translateY(0); pointer-events: all; }
+.floating-cta a {
+  display: flex; align-items: center; gap: 0.5rem;
+  background: linear-gradient(135deg, var(--primary-gold), var(--secondary-gold));
+  color: var(--darker-bg); padding: 0.85rem 1.8rem; border-radius: 50px;
+  font-weight: 700; font-size: 0.9rem; text-decoration: none;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.4); transition: transform 0.3s, box-shadow 0.3s;
+}
+.floating-cta a:hover { transform: translateY(-3px); box-shadow: 0 8px 24px rgba(201,176,55,0.35); color: var(--darker-bg); }
+
+/* ═══ DD SECTION WRAPPER ═══ */
+.dd-section { padding: 3.5rem 0; }
+.dd-section + .dd-section { border-top: 1px solid rgba(201,176,55,0.06); }
+
+/*
+ * Breadcrumb: use a DIV, not <nav> — global.css applies the main pill bar to ALL nav {}
+ */
+.dd-breadcrumb {
+  width: 100%;
+  max-width: min(1060px, calc(100% - 2rem));
+  margin: 0 auto;
+  padding: 6.75rem 1.5rem 0.35rem;
+  box-sizing: border-box;
+  text-align: left;
+  font-size: 0.78rem;
+  color: var(--gray-text);
+  position: relative;
+  z-index: 2;
+  line-height: 1.4;
+}
+.dd-breadcrumb a { color: var(--primary-gold); font-weight: 600; text-decoration: none; }
+.dd-breadcrumb a:hover { color: var(--secondary-gold); text-decoration: underline; }
+.dd-breadcrumb-sep { margin: 0 0.45rem; opacity: 0.45; user-select: none; }
+.dd-breadcrumb-current { color: rgba(255,255,255,0.55); font-weight: 500; }
+</style>
+</head>
+<body>
+
+<div id="nav-placeholder" data-nav-type="public" data-base="../"></div>
+<script src="../assets/js/nav-component.js"></script>
+
+<div class="page-wrap">
+
+<div class="dd-breadcrumb" role="navigation" aria-label="Breadcrumb">
+  <a href="../about">About</a><span class="dd-breadcrumb-sep" aria-hidden="true">/</span><span class="dd-breadcrumb-current">Due Diligence</span>
+</div>
+
+<!-- ═══ HERO ═══ -->
+<section class="hero">
+  <div class="hero-inner">
+    <img src="../assets/images/logo.png" alt="Blue Chip Signals" class="hero-logo">
+    <span class="section-label">Due Diligence</span>
+    <h1>Algorithmic Options Alerts,<br><em>built for clarity.</em></h1>
+    <p>Structured trade alerts on the most liquid large-cap names, delivered to Telegram with defined entries, defined risk, and zero ambiguity.</p>
+    <div class="hero-ctas">
+      <a href="https://calendly.com/bluechipsignals/30min" class="btn btn-primary">Book a Demo</a>
+      <a href="#dd-overview" class="btn btn-outline">Review Due Diligence</a>
+    </div>
+    <div class="hero-badges">
+      <span class="hero-badge"><i class="fas fa-shield-alt" style="font-size:0.7rem"></i> Large-Cap Focus</span>
+      <span class="hero-badge"><i class="fas fa-check-circle" style="font-size:0.7rem"></i> Defined Risk Structure</span>
+      <span class="hero-badge"><i class="fab fa-telegram-plane" style="font-size:0.7rem"></i> Telegram Delivery</span>
+      <span class="hero-badge"><i class="fas fa-chart-line" style="font-size:0.7rem"></i> 6 Core Tickers</span>
+    </div>
+  </div>
+</section>
+
+<hr class="section-divider">
+
+<!-- ═══ MAIN LAYOUT WITH SIDEBAR ═══ -->
+<div class="dd-layout" style="padding-top: 3rem; padding-bottom: 5rem;">
+
+  <!-- Sticky sidebar -->
+  <aside class="dd-sidebar">
+    <div class="dd-sidebar-label">Sections</div>
+    <ul class="dd-nav">
+      <li><a href="#dd-overview" class="dd-link active" data-section="dd-overview">Overview</a></li>
+      <li><a href="#dd-process" class="dd-link" data-section="dd-process">Process</a></li>
+      <li><a href="#dd-alerts" class="dd-link" data-section="dd-alerts">Alerts</a></li>
+      <li><a href="#dd-founder" class="dd-link" data-section="dd-founder">Founder</a></li>
+      <li><a href="#dd-methodology" class="dd-link" data-section="dd-methodology">Methodology</a></li>
+      <li><a href="#dd-trust" class="dd-link" data-section="dd-trust">Trust</a></li>
+      <li><a href="#dd-faq" class="dd-link" data-section="dd-faq">FAQ</a></li>
+      <li><a href="#dd-refund" class="dd-link" data-section="dd-refund">Refund Policy</a></li>
+      <li><a href="#dd-risk" class="dd-link" data-section="dd-risk">Risk</a></li>
+    </ul>
+  </aside>
+
+  <!-- Main content -->
+  <div class="dd-content">
+
+    <!-- OVERVIEW -->
+    <div class="dd-section" id="dd-overview">
+      <div class="reveal dd-overview-label-row">
+        <span class="section-label">Service Overview</span>
+      </div>
+      <div class="grid-2 dd-overview-split" style="margin-top: 1rem;">
+        <div class="reveal">
+          <h2>What Blue Chip Signals Is</h2>
+          <div class="gold-rule"></div>
+          <p style="color: var(--light-text); font-size: 1.02rem; line-height: 1.8;">Blue Chip Signals is a premium algorithmic alert service that identifies options setups on highly liquid large-cap tickers (SPY, TSLA, META, NVDA, AAPL, and AMZN) and delivers them to Telegram with clearly defined entries, contract details, and risk parameters.</p>
+          <p>Each alert is generated by a rules-based strategy developed and maintained by a single founder. This is a decision-support tool for self-directed traders who want more structure and less noise. It is not financial advice, not a managed account, and not a guarantee of returns.</p>
+        </div>
+        <div class="dd-overview-cards">
+          <div class="card reveal" style="margin-bottom: 1.25rem;"><h3>Built For</h3><p>Self-directed options traders who want defined entries, structured risk, and real-time delivery on names with deep liquidity, without ambiguity or guesswork.</p></div>
+          <div class="card reveal"><h3>Not Built For</h3><p>Anyone seeking guaranteed profits, a shortcut around personal research, or a service that replaces independent judgment. If you are not comfortable with the inherent risks of options trading, this service is not appropriate.</p></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PROCESS -->
+    <div class="dd-section" id="dd-process">
+      <div class="reveal"><span class="section-label">Process</span><h2>How It Works</h2><div class="gold-rule"></div></div>
+      <div style="max-width: 640px; margin-top: 1.2rem;">
+        <div class="step reveal"><div class="step-num">1</div><div><h3>Subscribe and Connect</h3><p>After onboarding, you receive access to the private Blue Chip Signals Telegram channel. All alerts are delivered here in real time.</p></div></div>
+        <div class="step reveal"><div class="step-num">2</div><div><h3>Receive Structured Alerts</h3><p>Each alert includes the ticker, direction, contract details (strike, expiration, premium), entry context, and a supporting chart. The format is consistent and designed for immediate readability.</p></div></div>
+        <div class="step reveal"><div class="step-num">3</div><div><h3>Execute at Your Discretion</h3><p>You evaluate each alert independently, manage your own position sizing, and execute through your own brokerage. You are in full control at all times.</p></div></div>
+      </div>
+    </div>
+
+    <!-- ALERTS -->
+    <div class="dd-section" id="dd-alerts">
+      <div class="reveal"><span class="section-label">Membership</span><h2>What Members Receive</h2><div class="gold-rule"></div></div>
+      <div class="alert-showcase reveal">
+        <div class="phone-wrap">
+          <div class="phone-glow"></div>
+          <div class="phone"><div class="phone-screen"><img src="../assets/images/AMZN_ALERT.png" alt="AMZN Call Reversal Bounce Signal delivered via Telegram"></div></div>
+        </div>
+        <div class="alert-showcase-text">
+          <h3 style="color: var(--primary-gold); font-size: 1.1rem; margin-bottom: 0.7rem;">Anatomy of a Live Alert</h3>
+          <p style="color: var(--light-text);">Every alert follows a standardized format: ticker identification, current price relative to VWAP, momentum indicators, and a suggested contract with strike, premium, volume, and expiration, accompanied by a branded chart for visual context.</p>
+          <p>There are no vague calls to action. No ambiguous commentary. Each alert is structured so you can evaluate the setup and make a decision in seconds.</p>
+        </div>
+      </div>
+      <div class="grid-3" style="margin-top: 2rem;">
+        <div class="card reveal reveal-delay-1"><h3>Large-Cap Liquidity</h3><p>Coverage restricted to SPY, TSLA, META, NVDA, AAPL, and AMZN. Deep options chains, tighter spreads, more efficient execution.</p></div>
+        <div class="card reveal reveal-delay-2"><h3>Defined Entry and Risk</h3><p>Every alert specifies entry context, strike, premium, and expiration. Risk framing is built into the format, not treated as an afterthought.</p></div>
+        <div class="card reveal reveal-delay-3"><h3>Telegram Delivery</h3><p>Push notifications the moment an alert fires. No dashboards to check, no emails to wait for. Mobile-first, immediate delivery.</p></div>
+        <div class="card reveal reveal-delay-1"><h3>Chart Context</h3><p>Each alert includes a branded 10-minute chart with VWAP bands and MFI readings, providing technical context alongside the trade idea.</p></div>
+        <div class="card reveal reveal-delay-2"><h3>Consistent Format</h3><p>Alerts follow a uniform structure across every ticker. You develop pattern recognition, not confusion.</p></div>
+        <div class="card reveal reveal-delay-3"><h3>One Source, No Noise</h3><p>A single, focused signal channel. No chatroom debates, no conflicting opinions, no entertainment disguised as analysis.</p></div>
+      </div>
+    </div>
+
+    <!-- FOUNDER -->
+    <div class="dd-section" id="dd-founder">
+      <div class="reveal"><span class="section-label">Leadership</span><h2>One Person. One Vision.</h2><div class="gold-rule"></div><p style="max-width: 560px;">Blue Chip Signals was built entirely by one person, from strategy development to platform engineering. No committee, no fluff, just a trader who built exactly what he wished existed.</p></div>
+      <div class="founder-split reveal" style="margin-top: 1.5rem;">
+        <div class="founder-photo"><img src="../assets/images/Founder HeadShot.png" alt="Hamza Hanifi"></div>
+        <div class="founder-info">
+          <div class="founder-name">Hamza Hanifi</div>
+          <div class="founder-role">Founder &amp; Architect</div>
+          <p class="founder-bio">An athlete at heart with a will to win, Hamza was first introduced to investing at 17 when his high school history teacher ran a paper trading competition. He placed 6th. That didn't sit well with him. What started as a competitive itch became a 10+ year journey into the underlying mechanics of the market.</p>
+          <p class="founder-bio">A year after that first introduction, he discovered options trading. After losing over $20,000 and watching his long-term portfolio underperform, he realized the problem wasn't the market. It was time, leverage, and the absence of a system. Between work and college, he couldn't sit and watch charts all day. So he dropped out and taught himself to code.</p>
+          <p class="founder-bio">It took two years to build the first version of what would become Blue Chip Signals. After showing it to friends and family, they pushed him to turn it into a product. That was never the plan, but life has a way of handing you lemonade when you're holding strawberries. He spent the next several years refining the signal logic with real traders in mind, not just himself, and that is when the real Blue Chip Signals was born.</p>
+          <p class="founder-bio">Every signal, every feature, and every line of code traces back to one person with a clear vision: the student athlete turned self-taught coder and trader.</p>
+          <div class="founder-social">
+            <a href="https://www.linkedin.com/in/hhisdagovy/" target="_blank"><i class="fab fa-linkedin"></i> LinkedIn</a>
+            <a href="https://t.me/hhisdagovy" target="_blank"><i class="fab fa-telegram-plane"></i> Telegram</a>
+            <a href="mailto:hamza@bluechipsignals.online"><i class="fas fa-envelope"></i> Email</a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TRUST -->
+    <!-- METHODOLOGY -->
+    <div class="dd-section" id="dd-methodology">
+      <div class="reveal"><span class="section-label">How We Track Outcomes</span><h2>Alert Methodology Framework</h2><div class="gold-rule"></div></div>
+      <div class="grid-2" style="margin-top: 1rem;">
+        <div class="reveal">
+          <p style="color: var(--light-text);">Transparency about how we evaluate our own alerts is just as important as the alerts themselves. This section explains the framework we use to track outcomes, so you know what we measure and what we do not claim.</p>
+          <p>Every alert is logged at the time of publication with a timestamp, entry price, and contract details. We track whether the suggested contract reached a predefined profit target or hit a loss threshold within the relevant timeframe.</p>
+          <p>We do not retroactively edit alerts or selectively report winners. The log is cumulative. We track all published alerts, not a curated subset.</p>
+        </div>
+        <div>
+          <div class="card reveal" style="margin-bottom: 1.25rem;"><h3>What We Track</h3><p>Entry time, alert price, contract details, whether the position reached its target or stop level, and the timeframe in which the outcome occurred. All data is based on the published alert, not on hypothetical optimizations.</p></div>
+          <div class="card reveal" style="margin-bottom: 1.25rem;"><h3>What We Do Not Claim</h3><p>We do not guarantee that members executed at the published price. Slippage, timing, and individual execution vary. Our tracking reflects the alert as published, not any individual member's results.</p></div>
+          <div class="card reveal"><h3>Why This Matters</h3><p>A methodology framework holds us accountable to a consistent standard. If we share performance context in the future, this is the basis on which it will be measured. No cherry-picking, no hindsight adjustments.</p></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TRUST -->
+    <div class="dd-section" id="dd-trust">
+      <div class="reveal"><span class="section-label">Trust and Transparency</span><h2>An Honest Assessment of Where We Stand</h2><div class="gold-rule"></div></div>
+      <div class="grid-2" style="margin-top: 1rem;">
+        <div class="reveal">
+          <p style="color: var(--light-text);">If you are evaluating Blue Chip Signals for the first time, you may not find a long trail of third-party reviews, press coverage, or years of documented history. We prefer to address this directly rather than obscure it.</p>
+          <p>Blue Chip Signals is a developing brand built by a sole founder. Our public footprint is growing intentionally. We prioritize service quality over marketing volume.</p>
+          <p>In the interim, we earn trust through the quality of our alerts, the consistency of our process, our willingness to take a demo call and answer questions directly, and our refusal to fabricate social proof.</p>
+          <p style="color: var(--primary-gold); font-weight: 500;">We would rather have zero reviews than fake ones.</p>
+        </div>
+        <div>
+          <div class="card reveal" style="margin-bottom: 1.25rem;"><h3>What We Can Show You</h3><p>A live demo of the alert format, the strategy framework, the Telegram channel structure, and direct conversation with the founder.</p></div>
+          <div class="card reveal" style="margin-bottom: 1.25rem;"><h3>What Is In Development</h3><p>Third-party review platform profiles, member testimonials with proper attribution, and performance methodology documentation.</p></div>
+          <div class="card reveal"><h3>What We Will Not Do</h3><p>Fabricate testimonials, purchase reviews, inflate credentials, or make performance claims we cannot support with transparent methodology.</p></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- FAQ -->
+    <div class="dd-section" id="dd-faq">
+      <div class="reveal"><span class="section-label">Questions</span><h2>Due Diligence FAQ</h2><div class="gold-rule"></div></div>
+      <div class="faq-item reveal"><div class="faq-question">How does Blue Chip Signals justify its price point?<span class="faq-chevron"><i class="fas fa-chevron-down"></i></span></div><div class="faq-answer"><p>The subscription reflects the cost of proprietary algorithmic infrastructure, exclusive focus on large-cap liquidity, structured alert formatting, and a premium service experience. We recommend a demo call where you can see the alert format, ask questions, and decide whether the service aligns with your trading approach before committing.</p></div></div>
+      <div class="faq-item reveal"><div class="faq-question">Where can I find independent due diligence on this service?<span class="faq-chevron"><i class="fas fa-chevron-down"></i></span></div><div class="faq-answer"><p>This page is our primary due diligence resource. We also invite every prospective member to book a demo call where you can speak directly with the founder, see the alert format in detail, and ask anything not addressed here.</p></div></div>
+      <div class="faq-item reveal"><div class="faq-question">Why is there limited public information about Blue Chip Signals?<span class="faq-chevron"><i class="fas fa-chevron-down"></i></span></div><div class="faq-answer"><p>We are a focused, founder-led service that has prioritized building a quality product over building a media presence. We address the resulting trust gap by making the founder directly accessible via demo call and by being straightforward about where we are in our growth.</p></div></div>
+      <div class="faq-item reveal"><div class="faq-question">Are there verified member reviews available?<span class="faq-chevron"><i class="fas fa-chevron-down"></i></span></div><div class="faq-answer"><p>Review infrastructure is being established. We are building social proof authentically rather than purchasing or fabricating it. As member feedback becomes available with proper attribution, it will be published through appropriate channels.</p></div></div>
+      <div class="faq-item reveal"><div class="faq-question">Is this level of investment appropriate for an algorithmic alert service?<span class="faq-chevron"><i class="fas fa-chevron-down"></i></span></div><div class="faq-answer"><p>That depends entirely on your trading volume, your approach, and your expectations. A premium subscription should feel justified by the value it provides, not by pressure. We do not use urgency tactics, artificial scarcity, or countdown timers.</p></div></div>
+      <div class="faq-item reveal"><div class="faq-question">What happens if I experience losses trading on these alerts?<span class="faq-chevron"><i class="fas fa-chevron-down"></i></span></div><div class="faq-answer"><p>Options trading involves real financial risk, including the possibility of total loss on any individual position. Blue Chip Signals does not guarantee profitability. Every trade you place is your own decision, executed with your own capital. No signal service can eliminate the risk of loss. Please review the Risk Disclosure section and only trade with capital you are prepared to lose.</p></div></div>
+      <div class="faq-item reveal"><div class="faq-question">Which tickers does the service cover?<span class="faq-chevron"><i class="fas fa-chevron-down"></i></span></div><div class="faq-answer"><p>Core coverage includes SPY, TSLA, META, NVDA, AAPL, and AMZN. Additional tickers may be included selectively when they meet our liquidity and volume thresholds. We do not cover penny stocks, micro-caps, or thinly traded options.</p></div></div>
+      <div class="faq-item reveal"><div class="faq-question">How are alerts generated and delivered?<span class="faq-chevron"><i class="fas fa-chevron-down"></i></span></div><div class="faq-answer"><p>Alerts are generated by a rules-based algorithmic strategy developed by the founder. When a qualifying setup is identified, an alert is published to the private Telegram channel in real time with standardized formatting: ticker, price/VWAP context, momentum data, suggested contract, and a supporting chart.</p></div></div>
+      <div class="faq-item reveal"><div class="faq-question">Does this service constitute financial advice?<span class="faq-chevron"><i class="fas fa-chevron-down"></i></span></div><div class="faq-answer"><p>No. Blue Chip Signals provides algorithmic trade alert ideas for informational purposes. It is not financial advice, investment advice, or a recommendation to buy or sell any security. All trading decisions are yours.</p></div></div>
+      <div class="faq-item reveal"><div class="faq-question">Can I evaluate the service before subscribing?<span class="faq-chevron"><i class="fas fa-chevron-down"></i></span></div><div class="faq-answer"><p>Yes. We offer a demo call where the founder walks you through the platform, the alert format, and the strategy framework. This allows you to evaluate the service firsthand before making a financial commitment.</p></div></div>
+      <div class="faq-item reveal"><div class="faq-question">Does Blue Chip Signals manage funds or execute trades?<span class="faq-chevron"><i class="fas fa-chevron-down"></i></span></div><div class="faq-answer"><p>No. This is strictly an alert service. We do not manage capital, access your brokerage account, or place trades on your behalf. You maintain full control of your execution and risk management at all times.</p></div></div>
+    </div>
+
+    <!-- REFUND POLICY -->
+    <div class="dd-section" id="dd-refund">
+      <div class="reveal"><span class="section-label">Refund Policy</span><h2>What Qualifies and What Does Not</h2><div class="gold-rule"></div></div>
+      <div class="grid-2" style="margin-top: 1rem;">
+        <div class="reveal">
+          <p style="color: var(--light-text);">Blue Chip Signals evaluates refund requests on a case-by-case basis. We want every member to feel confident in their subscription, and we handle disputes fairly and transparently.</p>
+          <p>If you experience a verifiable service disruption (for example, you do not receive any alerts during your first week due to a backend or delivery issue on our end), that may constitute a justifiable reason for a refund. We take delivery reliability seriously, and technical failures that prevent you from receiving the product you paid for are treated accordingly.</p>
+          <p>However, dissatisfaction with the content, frequency, or outcome of alerts does not constitute grounds for a refund. Trading results vary, and the service delivers information, not guaranteed outcomes. A signal you disagree with or a trade that does not go your way is not a service failure.</p>
+        </div>
+        <div>
+          <div class="card reveal" style="margin-bottom: 1.25rem;"><h3>May Qualify</h3><p>Backend delivery failures, extended service outages, inability to access the Telegram channel due to a technical issue on our end, or billing errors. Each situation is reviewed individually.</p></div>
+          <div class="card reveal" style="margin-bottom: 1.25rem;"><h3>Does Not Qualify</h3><p>Dissatisfaction with alert frequency, disagreement with trade direction, losses on positions you chose to enter, or a change of mind about the subscription after receiving access.</p></div>
+          <div class="card reveal"><h3>Full Policy</h3><p>For the complete refund and cancellation policy, including dispute procedures and applicable timeframes, please visit our <a href="https://bluechipsignals.online/legal" style="color: var(--primary-gold);">Legal Hub</a>.</p></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- RISK -->
+    <div class="dd-section" id="dd-risk">
+      <div class="reveal"><span class="section-label">Risk Disclosure</span><h2>Important Information</h2><div class="gold-rule"></div></div>
+      <div class="risk-box reveal">
+        <p><strong>Options trading involves substantial risk and is not appropriate for all investors.</strong> You can lose some or all of your invested capital on any individual trade. Past performance of any alert, whether shared or implied, is not an indicator or guarantee of future results.</p>
+        <p>Blue Chip Signals provides algorithmic trade alert ideas for informational and educational purposes only. Alerts are not personalized investment advice and should not be treated as instructions to trade. Every alert represents a trade idea, not a directive.</p>
+        <p>You are solely responsible for evaluating each alert, determining its suitability for your financial situation and risk tolerance, and managing your own positions. Blue Chip Signals has no knowledge of your financial circumstances, objectives, or risk capacity.</p>
+        <p>Do not trade with capital you cannot afford to lose. Do not treat any signal service, including this one, as a substitute for independent due diligence and professional financial guidance.</p>
+        <p>By subscribing, you acknowledge that you understand the risks inherent in options trading and accept full responsibility for your own trading decisions and outcomes.</p>
+        <p style="margin-top: 1rem; font-style: italic; font-size: 0.82rem; color: rgba(179,161,125,0.7);">This risk disclosure is a working draft. It has not been reviewed by legal counsel. Blue Chip Signals intends to have this language reviewed by a qualified professional.</p>
+        <p style="font-size: 0.82rem; color: rgba(179,161,125,0.5);">Blue Chip Signals operates from the United States. This service is not intended for residents of jurisdictions where options trading or the provision of trade alert services is restricted or prohibited. Users are responsible for ensuring compliance with applicable local laws and regulations. Nothing on this page constitutes an offer or solicitation in any jurisdiction where such offer or solicitation would be unlawful.</p>
+      </div>
+    </div>
+
+  </div><!-- end dd-content -->
+</div><!-- end dd-layout -->
+
+<!-- CTA -->
+<div style="padding: 0 2rem 5rem; position: relative; z-index: 1;">
+  <div class="cta-card reveal" style="max-width: 1100px; margin: 0 auto;">
+    <span class="section-label">Next Step</span>
+    <h2>Evaluate the Service Directly</h2>
+    <div class="gold-rule" style="margin: 0.8rem auto 1rem;"></div>
+    <p>Book a demo with the founder. No sales pressure, no urgency tactics. A direct conversation about the service, the methodology, and whether Blue Chip Signals is the right fit for your trading.</p>
+    <div style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;">
+      <a href="https://calendly.com/bluechipsignals/30min" class="btn btn-primary">Book a Demo</a>
+      <a href="../assets/download/BCS_Due_Diligence.pdf" class="btn btn-outline" download="BCS_Due_Diligence.pdf">Request PDF</a>
+    </div>
+  </div>
+</div>
+
+<!-- Floating CTA -->
+<div class="floating-cta" id="floatingCta">
+  <a href="https://calendly.com/bluechipsignals/30min"><i class="fas fa-calendar-check"></i> Book a Demo</a>
+</div>
+
+</div><!-- end page-wrap -->
+
+<div id="footer-placeholder" data-footer-type="back-to-home" data-base="../"></div>
+<script src="../assets/js/footer-component.js"></script>
+
+<script>
+/* Scroll reveal */
+var revealObs = new IntersectionObserver(function(entries) {
+  entries.forEach(function(entry) {
+    if (entry.isIntersecting) { entry.target.classList.add('visible'); revealObs.unobserve(entry.target); }
+  });
+}, { threshold: 0.06 });
+document.querySelectorAll('.reveal').forEach(function(el) { revealObs.observe(el); });
+
+/* FAQ accordion */
+document.querySelectorAll('.faq-question').forEach(function(q) {
+  q.addEventListener('click', function() {
+    var item = this.closest('.faq-item');
+    var isActive = item.classList.contains('active');
+    document.querySelectorAll('.faq-item').forEach(function(i) { i.classList.remove('active'); });
+    if (!isActive) item.classList.add('active');
+  });
+});
+
+/* Sidebar: scroll-spy + smooth jump (syncs highlight with scroll position) */
+var ddLinks = document.querySelectorAll('.dd-link');
+var ddSections = document.querySelectorAll('.dd-section');
+
+function getScrollPad() {
+  var raw = getComputedStyle(document.documentElement).getPropertyValue('--dd-scroll-margin').trim();
+  var n = parseFloat(raw);
+  return isNaN(n) ? 112 : n;
+}
+
+function getDocumentY(el) {
+  var r = el.getBoundingClientRect();
+  return r.top + window.scrollY;
+}
+
+var ddScrollTick = false;
+function updateActiveLink() {
+  if (!ddSections.length) return;
+  var pad = getScrollPad();
+  var y = window.scrollY;
+  var docEl = document.documentElement;
+  var nearBottom = y + window.innerHeight >= docEl.scrollHeight - 4;
+  var currentId;
+  if (nearBottom) {
+    currentId = ddSections[ddSections.length - 1].id;
+  } else {
+    var probe = y + pad;
+    currentId = ddSections[0].id;
+    for (var i = 0; i < ddSections.length; i++) {
+      var sec = ddSections[i];
+      var top = getDocumentY(sec);
+      if (top <= probe + 2) {
+        currentId = sec.id;
+      }
+    }
+  }
+  ddLinks.forEach(function(a) {
+    var on = a.dataset.section === currentId;
+    a.classList.toggle('active', on);
+    if (on) { a.setAttribute('aria-current', 'true'); }
+    else { a.removeAttribute('aria-current'); }
+  });
+}
+
+function onDdScroll() {
+  if (ddScrollTick) return;
+  ddScrollTick = true;
+  window.requestAnimationFrame(function() {
+    ddScrollTick = false;
+    updateActiveLink();
+  });
+}
+
+window.addEventListener('scroll', onDdScroll, { passive: true });
+window.addEventListener('resize', updateActiveLink);
+window.addEventListener('load', updateActiveLink);
+if (document.readyState === 'complete') {
+  updateActiveLink();
+} else {
+  document.addEventListener('DOMContentLoaded', updateActiveLink);
+}
+
+/* Smooth scroll from sidebar; highlight updates via scroll event */
+ddLinks.forEach(function(link) {
+  link.addEventListener('click', function(e) {
+    e.preventDefault();
+    var sectionId = this.dataset.section;
+    var target = document.getElementById(sectionId);
+    if (!target) return;
+    ddLinks.forEach(function(a) { a.classList.remove('active'); });
+    this.classList.add('active');
+    var targetTop = getDocumentY(target) - getScrollPad();
+    window.scrollTo({ top: Math.max(0, targetTop), behavior: 'smooth' });
+    /* Re-sync after smooth scroll ends (browsers vary) */
+    setTimeout(updateActiveLink, 400);
+    setTimeout(updateActiveLink, 900);
+  });
+});
+
+/* Floating CTA visibility */
+var floatCta = document.getElementById('floatingCta');
+window.addEventListener('scroll', function() {
+  if (window.scrollY > 600) { floatCta.classList.add('visible'); } else { floatCta.classList.remove('visible'); }
+});
+</script>
+</body>
+</html>

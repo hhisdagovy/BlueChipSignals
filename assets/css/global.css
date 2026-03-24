@@ -11,15 +11,16 @@
 }
 
 /* ---------- Base Body ---------- */
+/* clip avoids horizontal bleed; hidden breaks position:sticky in descendants */
 html {
-    overflow-x: hidden;
+    overflow-x: clip;
 }
 body {
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     background-color: var(--dark-bg);
     color: var(--light-text);
     line-height: 1.6;
-    overflow-x: hidden;
+    overflow-x: clip;
 }
 
 /* ---------- CSS Variables ---------- */
@@ -289,6 +290,10 @@ nav {
     .nav-links.active > li:nth-child(6) { opacity: 1; transform: none; transition-delay: 0.29s; }
     .nav-links.active > li:nth-child(7) { opacity: 1; transform: none; transition-delay: 0.34s; }
     .nav-links.active > li:nth-child(8) { opacity: 1; transform: none; transition-delay: 0.39s; }
+    .nav-links.active > li:nth-child(9) { opacity: 1; transform: none; transition-delay: 0.44s; }
+    .nav-links.active > li:nth-child(10) { opacity: 1; transform: none; transition-delay: 0.49s; }
+    .nav-links.active > li:nth-child(11) { opacity: 1; transform: none; transition-delay: 0.54s; }
+    .nav-links.active > li:nth-child(12) { opacity: 1; transform: none; transition-delay: 0.59s; }
 
     /* ---- Large uppercase link typography ---- */
     .nav-links > li > a {
@@ -561,7 +566,8 @@ footer {
    ============================================================ */
 
 /* Base-level hides -  apply at all viewport widths */
-.nav-stocks-dropdown {
+.nav-stocks-dropdown,
+.nav-about-dropdown {
     display: none;
 }
 
@@ -571,7 +577,8 @@ footer {
 
 /* --- Desktop dropdown (≥769px) --- */
 @media screen and (min-width: 769px) {
-    .nav-stocks-item {
+    .nav-stocks-item,
+    .nav-about-item {
         position: relative;
     }
 
@@ -580,11 +587,17 @@ footer {
         display: none;
     }
 
+    .nav-about-mobile-story,
+    .nav-about-mobile-dd {
+        display: none;
+    }
+
     .nav-stocks-mobile-btn {
         display: none;
     }
 
-    .nav-stocks-trigger {
+    .nav-stocks-trigger,
+    .nav-about-trigger {
         display: flex;
         align-items: center;
         gap: 0.3rem;
@@ -597,7 +610,8 @@ footer {
         transition: transform 0.25s ease;
     }
 
-    .nav-stocks-item:hover .stocks-caret {
+    .nav-stocks-item:hover .stocks-caret,
+    .nav-about-item:hover .stocks-caret {
         transform: rotate(180deg);
     }
 
@@ -616,8 +630,24 @@ footer {
         z-index: 2000;
     }
 
-    .nav-stocks-item:hover .nav-stocks-dropdown {
+    .nav-stocks-item:hover .nav-stocks-dropdown,
+    .nav-about-item:hover .nav-about-dropdown {
         display: block;
+    }
+
+    .nav-about-dropdown {
+        position: absolute;
+        top: 100%;
+        left: 50%;
+        transform: translateX(-50%);
+        min-width: 230px;
+        background: rgba(5, 8, 16, 0.98);
+        border: 1px solid rgba(201, 176, 55, 0.25);
+        border-radius: 12px;
+        padding: 10px 0 0.5rem;
+        box-shadow: 0 12px 32px rgba(0, 0, 0, 0.55);
+        list-style: none;
+        z-index: 2000;
     }
 
     .nav-stocks-dropdown li a {
@@ -639,13 +669,38 @@ footer {
         background: rgba(201, 176, 55, 0.08);
     }
 
+    .nav-about-dropdown li a {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 0.6rem 1.2rem;
+        color: var(--light-text);
+        text-transform: none;
+        font-size: 0.9rem;
+        transition: background 0.2s;
+    }
+
+    .nav-about-dropdown li a::after {
+        display: none;
+    }
+
+    .nav-about-dropdown li a:hover {
+        background: rgba(201, 176, 55, 0.08);
+    }
+
 }
 
 /* --- Mobile sub-panel (≤768px) --- */
 @media screen and (max-width: 768px) {
     /* Hide the desktop dropdown li entirely on mobile */
-    .nav-stocks-item {
+    .nav-stocks-item,
+    .nav-about-item {
         display: none;
+    }
+
+    .nav-about-mobile-story,
+    .nav-about-mobile-dd {
+        display: list-item;
     }
 
     .nav-stocks-mobile-btn {

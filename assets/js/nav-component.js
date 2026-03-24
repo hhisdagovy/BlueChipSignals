@@ -165,7 +165,15 @@
                 '<li><a href="' + base + 'roadmap">ROADMAP</a></li>' +
                 '<li><a href="' + base + 'contact">CONTACT</a></li>' +
                 '<li><a href="' + base + 'faq">FAQ</a></li>' +
-                '<li><a href="' + base + 'about">ABOUT US</a></li>' +
+                '<li class="nav-about-item">' +
+                    '<a href="#" class="nav-about-trigger">ABOUT <span class="stocks-caret">&#9660;</span></a>' +
+                    '<ul class="nav-about-dropdown">' +
+                        '<li><a href="' + base + 'about">Our Story</a></li>' +
+                        '<li><a href="' + base + 'about/due-diligence">Due Diligence</a></li>' +
+                    '</ul>' +
+                '</li>' +
+                '<li class="nav-about-mobile-story"><a href="' + base + 'about">OUR STORY</a></li>' +
+                '<li class="nav-about-mobile-dd"><a href="' + base + 'about/due-diligence">DUE DILIGENCE</a></li>' +
                 '<li><a href="' + base + 'login" class="login-btn" id="authButton">' +
                     '<i class="fas fa-sign-in-alt"></i> Login' +
                 '</a></li>' +
@@ -218,6 +226,15 @@
                 '<li><a href="' + base + 'roadmap">ROADMAP</a></li>' +
                 '<li><a href="' + base + 'contact">CONTACT</a></li>' +
                 '<li><a href="' + base + 'faq">FAQ</a></li>' +
+                '<li class="nav-about-item">' +
+                    '<a href="#" class="nav-about-trigger">ABOUT <span class="stocks-caret">&#9660;</span></a>' +
+                    '<ul class="nav-about-dropdown">' +
+                        '<li><a href="' + base + 'about">Our Story</a></li>' +
+                        '<li><a href="' + base + 'about/due-diligence">Due Diligence</a></li>' +
+                    '</ul>' +
+                '</li>' +
+                '<li class="nav-about-mobile-story"><a href="' + base + 'about">OUR STORY</a></li>' +
+                '<li class="nav-about-mobile-dd"><a href="' + base + 'about/due-diligence">DUE DILIGENCE</a></li>' +
                 adminLink +
                 '<li>' +
                     '<button class="logout-btn" onclick="logout()">' +

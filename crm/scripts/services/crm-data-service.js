@@ -187,6 +187,18 @@ export class CrmDataService {
     async saveCallPreference() {
         throw new Error('Call preference saving is not available for this CRM data service.');
     }
+
+    async listEmailTemplates() {
+        return [];
+    }
+
+    async saveEmailTemplate(payload = {}) {
+        throw new Error('Saving email templates is not available for this CRM data service.');
+    }
+
+    async deleteEmailTemplate() {
+        throw new Error('Deleting email templates is not available for this CRM data service.');
+    }
 }
 
 export function getImportFieldDefinitions() {

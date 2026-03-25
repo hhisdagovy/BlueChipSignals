@@ -489,6 +489,7 @@ export async function verifyMailboxConnection(mailbox: MailboxSenderWithSecret) 
 export function buildEmailHtml({
   senderName,
   bodyText,
+  htmlBodyInner = '',
   signatureMode = 'plain_text',
   signatureTemplate = {},
   signatureHtmlOverride = '',
@@ -496,12 +497,17 @@ export function buildEmailHtml({
 }: {
   senderName: string
   bodyText: string
+  htmlBodyInner?: string
   signatureMode?: 'plain_text' | 'template' | 'html_override'
   signatureTemplate?: unknown
   signatureHtmlOverride?: string
   signatureText?: string
 }) {
+  const trimmedHtml = String(htmlBodyInner ?? '').trim()
   const escapedBody = escapeHtml(bodyText).replace(/\n/g, '<br>')
+  const bodyMarkup = trimmedHtml
+    ? `<div class="bcs-email-html-body" style="white-space: normal;">${trimmedHtml}</div>`
+    : `<div style="white-space: normal;">${escapedBody}</div>`
   const signatureMarkup = resolveSignatureHtml({
     senderName,
     signatureMode,
@@ -524,7 +530,7 @@ export function buildEmailHtml({
       <body style="margin: 0; padding: 0;">
         <div class="body bcs-email-body" style="margin: 0; padding: 0;">
           <div style="font-family: Arial, sans-serif; color: #111827; line-height: 1.65;">
-            <div style="white-space: normal;">${escapedBody}</div>
+            ${bodyMarkup}
             <div style="margin-top: 24px;">
               <div style="white-space: normal;">${signatureMarkup}</div>
             </div>
@@ -1112,14 +1118,56 @@ export function sanitizeSignatureHtml(value: unknown) {
       return `</${tagName}>`
     }
 
-    const sanitizedAttributes = sanitizeAllowedHtmlAttributes(tagName, String(rawAttributes || ''))
+    const sanitizedAttributes = sanitizeAllowedHtmlAttributes(tagName, String(rawAttributes || ''), 'signature')
     const selfClosing = /\/\s*>$/.test(match) || tagName === 'br' || tagName === 'img'
 
     return `<${tagName}${sanitizedAttributes}${selfClosing ? ' />' : '>'}`
   })
 }
 
-function sanitizeAllowedHtmlAttributes(tagName: string, rawAttributes: string) {
+export function sanitizeCrmEmailHtmlBody(value: unknown) {
+  let html = String(value ?? '').trim()
+
+  if (!html) {
+    return ''
+  }
+
+  html = html
+    .replace(/<!--[\s\S]*?-->/g, '')
+    .replace(/<\s*(script|style|iframe|object|embed|form|input|button|textarea|select|video|audio|svg|math|meta|link|base)[^>]*>[\s\S]*?<\s*\/\s*\1\s*>/gi, '')
+    .replace(/<\s*(script|style|iframe|object|embed|form|input|button|textarea|select|video|audio|svg|math|meta|link|base)\b[^>]*\/?>/gi, '')
+
+  const allowedTags = new Set([
+    'table', 'tbody', 'thead', 'tfoot', 'tr', 'td', 'th', 'caption', 'colgroup', 'col',
+    'p', 'div', 'span', 'a', 'img', 'strong', 'b', 'em', 'i', 'u', 's', 'strike', 'br',
+    'ul', 'ol', 'li', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'hr', 'blockquote', 'pre', 'code',
+    'sup', 'sub', 'center', 'small'
+  ])
+
+  return html.replace(/<\/?([a-z0-9:-]+)([^>]*)>/gi, (match, rawTagName, rawAttributes) => {
+    const tagName = String(rawTagName || '').toLowerCase()
+    const isClosing = /^<\//.test(match)
+
+    if (!allowedTags.has(tagName)) {
+      return ''
+    }
+
+    if (isClosing) {
+      return `</${tagName}>`
+    }
+
+    const sanitizedAttributes = sanitizeAllowedHtmlAttributes(tagName, String(rawAttributes || ''), 'email_body')
+    const selfClosing = /\/\s*>$/.test(match) || tagName === 'br' || tagName === 'img' || tagName === 'hr'
+
+    return `<${tagName}${sanitizedAttributes}${selfClosing ? ' />' : '>'}`
+  })
+}
+
+function sanitizeAllowedHtmlAttributes(
+  tagName: string,
+  rawAttributes: string,
+  mode: 'signature' | 'email_body' = 'signature'
+) {
   const attributes: string[] = []
   const attributePattern = /([a-z0-9:-]+)\s*=\s*("([^"]*)"|'([^']*)'|([^\s>]+))/gi
   const allowedByTag = new Set(['style'])
@@ -1138,7 +1186,7 @@ function sanitizeAllowedHtmlAttributes(tagName: string, rawAttributes: string) {
     allowedByTag.add('height')
   }
 
-  if (tagName === 'td' || tagName === 'table') {
+  if (tagName === 'td' || tagName === 'th' || tagName === 'table' || tagName === 'tr' || tagName === 'colgroup' || tagName === 'col') {
     allowedByTag.add('width')
     allowedByTag.add('height')
     allowedByTag.add('align')
@@ -1147,6 +1195,18 @@ function sanitizeAllowedHtmlAttributes(tagName: string, rawAttributes: string) {
     allowedByTag.add('cellspacing')
     allowedByTag.add('border')
     allowedByTag.add('role')
+  }
+
+  if (mode === 'email_body') {
+    if (tagName === 'td' || tagName === 'th') {
+      allowedByTag.add('colspan')
+      allowedByTag.add('rowspan')
+      allowedByTag.add('bgcolor')
+    }
+
+    if (tagName === 'table' || tagName === 'tr') {
+      allowedByTag.add('bgcolor')
+    }
   }
 
   let match: RegExpExecArray | null = null
@@ -1252,7 +1312,7 @@ function sanitizeSignatureImageSource(value: string) {
   return normalizeHttpUrl(value)
 }
 
-function stripHtmlToText(value: string) {
+export function stripHtmlToText(value: string) {
   return normalizeSignatureText(
     String(value ?? '')
       .replace(/<\s*br\s*\/?>/gi, '\n')

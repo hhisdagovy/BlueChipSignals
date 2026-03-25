@@ -215,7 +215,9 @@ function createDefaultEmailComposerState() {
         recipientName: '',
         senderMode: 'personal',
         subject: '',
-        bodyText: ''
+        bodyText: '',
+        bodyHtml: '',
+        emailFormat: 'plain'
     };
 }
 
@@ -315,6 +317,7 @@ const state = {
     drawerEventId: null,
     drawerDate: '',
     emailComposer: createDefaultEmailComposerState(),
+    emailTemplates: [],
     emailWorkspace: createDefaultEmailWorkspaceState(),
     detailClientId: null,
     leadEmailHistoryCursor: { clientId: '', index: 0 },
@@ -347,6 +350,7 @@ let calendarClientSuggestionsTimer = null;
 let calendarClientSuggestionsRequestId = 0;
 let calendarClientFocusRestorePending = false;
 let emailWorkspaceAutoRefreshTimer = null;
+let emailComposePreviewTimer = null;
 let emailVisibilitySyncTimer = null;
 
 bootstrap();
@@ -957,6 +961,7 @@ function render() {
     renderPanels();
     renderDrawer();
     renderModal();
+    requestAnimationFrame(() => queueEmailComposePreviewUpdate());
 }
 
 function renderAuthGate() {
@@ -2329,6 +2334,8 @@ function renderPanels() {
             }
         });
     }
+
+    requestAnimationFrame(() => queueEmailComposePreviewUpdate());
 }
 
 function renderOverviewPanel() {
@@ -4976,8 +4983,147 @@ function syncEmailComposerDraft(form) {
         recipientEmail: String(formData.get('recipientEmail') ?? ''),
         senderMode: resolveEmailComposerSenderMode(formData.get('senderMode'), senderOptions),
         subject: String(formData.get('subject') ?? ''),
-        bodyText: String(formData.get('bodyText') ?? '')
+        bodyText: String(formData.get('bodyText') ?? ''),
+        bodyHtml: String(formData.get('bodyHtml') ?? ''),
+        emailFormat: normalizeWhitespace(formData.get('emailFormat')) === 'html' ? 'html' : 'plain'
     };
+}
+
+async function refreshEmailTemplates() {
+    if (!hasPermission(state.session, PERMISSIONS.SEND_EMAIL)) {
+        state.emailTemplates = [];
+        return;
+    }
+
+    try {
+        state.emailTemplates = await dataService.listEmailTemplates();
+    } catch (_error) {
+        state.emailTemplates = [];
+    }
+}
+
+function rerenderEmailComposeUi() {
+    if (state.drawerMode === 'email-compose') {
+        render();
+    } else {
+        renderPanels();
+    }
+}
+
+function buildEmailTemplateControlsHtml(templates = []) {
+    const options = [
+        '<option value="">Apply a template…</option>',
+        ...templates.map((row) => `<option value="${escapeHtml(row.id)}">${escapeHtml(row.name)}</option>`)
+    ].join('');
+
+    return `
+        <div class="crm-email-template-toolbar form-field-full">
+            <div class="crm-email-template-row">
+                <label class="form-field crm-email-template-apply">
+                    <span class="form-label">Templates</span>
+                    <select class="crm-select" id="email-template-select" title="Fill subject and message from a saved template">
+                        ${options}
+                    </select>
+                </label>
+                <button type="button" class="crm-button-secondary crm-email-template-delete" data-action="delete-email-template" title="Delete the template selected above" ${templates.length ? '' : 'disabled'}>
+                    <i class="fa-solid fa-trash"></i>
+                </button>
+            </div>
+            <div class="crm-email-template-save-row">
+                <input type="text" class="crm-input" id="email-template-save-name" placeholder="Template name" maxlength="120" autocomplete="off" aria-label="New template name">
+                <button type="button" class="crm-button-secondary" data-action="save-email-template">
+                    <i class="fa-solid fa-bookmark"></i> Save template
+                </button>
+            </div>
+            <span class="panel-subtitle">Saving stores the current subject and message (plain and HTML). Use the same name again to overwrite.</span>
+        </div>
+    `;
+}
+
+function sanitizeEmailPreviewHtml(html) {
+    let s = String(html ?? '');
+    s = s.replace(/<!--[\s\S]*?-->/g, '');
+    s = s.replace(/<\s*(script|style|iframe|object|embed|form|meta|link|base)\b[^>]*>[\s\S]*?<\s*\/\s*\1\s*>/gi, '');
+    s = s.replace(/<\s*(script|style|iframe|object|embed|form|meta|link|base)\b[^>]*\/?>/gi, '');
+    s = s.replace(/\s(on\w+|javascript:)\s*=\s*("[^"]*"|'[^']*'|[^\s>]+)/gi, '');
+    return s;
+}
+
+function buildEmailComposePreviewSrcdoc({ format = 'plain', bodyText = '', bodyHtml = '' } = {}) {
+    const baseStyle = 'body{margin:0;padding:14px 16px;font-family:Arial,Helvetica,sans-serif;font-size:15px;line-height:1.55;color:#111827;background:#f8fafc;} .bcs-preview-note{margin-top:14px;padding-top:12px;border-top:1px solid #e5e7eb;font-size:12px;color:#64748b;}';
+    const note = '<div class="bcs-preview-note">Signature from Settings is added below when the message is sent.</div>';
+
+    if (format === 'html' && String(bodyHtml).trim()) {
+        const safe = sanitizeEmailPreviewHtml(bodyHtml);
+        return `<!DOCTYPE html><html><head><meta charset="utf-8"><style>${baseStyle}</style></head><body>${safe}${note}</body></html>`;
+    }
+
+    const escaped = escapeHtml(String(bodyText ?? '')).replace(/\n/g, '<br>');
+    return `<!DOCTYPE html><html><head><meta charset="utf-8"><style>${baseStyle}</style></head><body><div>${escaped}</div>${note}</body></html>`;
+}
+
+function queueEmailComposePreviewUpdate() {
+    window.clearTimeout(emailComposePreviewTimer);
+    emailComposePreviewTimer = window.setTimeout(() => {
+        const iframe = document.getElementById('crm-email-compose-preview');
+        const form = document.getElementById('email-compose-form');
+
+        if (!iframe || !form) {
+            return;
+        }
+
+        const fd = new FormData(form);
+        const format = normalizeWhitespace(fd.get('emailFormat')) === 'html' ? 'html' : 'plain';
+        iframe.srcdoc = buildEmailComposePreviewSrcdoc({
+            format,
+            bodyText: String(fd.get('bodyText') ?? ''),
+            bodyHtml: String(fd.get('bodyHtml') ?? '')
+        });
+    }, 60);
+}
+
+function buildEmailComposeBodySection(draft) {
+    const fmt = draft.emailFormat === 'html' ? 'html' : 'plain';
+
+    return `
+        <input type="hidden" name="emailFormat" value="${fmt}">
+        <div class="crm-email-format-toggle form-field-full">
+            <span class="form-label">Message format</span>
+            <div class="crm-email-format-buttons">
+                <button type="button" class="crm-button-secondary ${fmt === 'plain' ? 'is-active' : ''}" data-action="set-email-format" data-format="plain">Plain text</button>
+                <button type="button" class="crm-button-secondary ${fmt === 'html' ? 'is-active' : ''}" data-action="set-email-format" data-format="html">HTML</button>
+            </div>
+        </div>
+        <label class="form-field form-field-full" data-email-plain-wrap ${fmt === 'html' ? 'hidden' : ''}>
+            <span class="form-label">Message</span>
+            <textarea
+                class="crm-textarea"
+                name="bodyText"
+                placeholder="Write your email here..."
+                maxlength="10000"
+                ${fmt === 'plain' ? 'required' : ''}
+            >${escapeHtml(draft.bodyText || '')}</textarea>
+        </label>
+        <label class="form-field form-field-full" data-email-html-wrap ${fmt === 'plain' ? 'hidden' : ''}>
+            <span class="form-label">HTML body</span>
+            <textarea
+                class="crm-textarea crm-textarea-mono"
+                name="bodyHtml"
+                placeholder="<p>Hello...</p>"
+                maxlength="200000"
+                ${fmt === 'html' ? 'required' : ''}
+            >${escapeHtml(draft.bodyHtml || '')}</textarea>
+            <span class="panel-subtitle">Allowed tags match CRM send (tables, links, basic formatting). Content is sanitized on send.</span>
+        </label>
+        <div class="crm-email-preview-panel form-field-full">
+            <span class="form-label">Preview</span>
+            <div class="crm-email-preview-shell">
+                <iframe class="crm-email-preview-iframe" id="crm-email-compose-preview" title="Email preview" sandbox="" srcdoc=""></iframe>
+            </div>
+        </div>
+        <span class="panel-subtitle">Your saved signature is added automatically when the email sends.</span>
+        <span class="panel-subtitle">Delivery is handled by your mail provider after it accepts the message—recipients should check spam or Promotions if they do not see it.</span>
+    `;
 }
 
 function getEmailWorkspaceMailboxes() {
@@ -5244,6 +5390,7 @@ async function syncActiveEmailMailbox({ silent = false, forceFullResync = false 
 }
 
 async function openEmailComposerDrawer(options = {}) {
+    await refreshEmailTemplates();
     const lead = getAccessibleClientById(options.clientId);
     const senderOptions = getEmailSenderOptions();
     const requestedSenderMode = resolveEmailComposerSenderMode(options.senderMode, senderOptions);
@@ -6380,10 +6527,12 @@ function buildReplyRecipientList(thread, { includeAll = false } = {}) {
     ].filter(Boolean)).join(', ');
 }
 
-function openReplyComposer(thread, { includeAll = false } = {}) {
+async function openReplyComposer(thread, { includeAll = false } = {}) {
     if (!thread) {
         return;
     }
+
+    await refreshEmailTemplates();
 
     const latestMessage = Array.isArray(thread.messages) && thread.messages.length
         ? thread.messages[thread.messages.length - 1]
@@ -6401,7 +6550,9 @@ function openReplyComposer(thread, { includeAll = false } = {}) {
         recipientName: '',
         senderMode: selectedMailbox?.kind === 'support' ? 'support' : getDefaultEmailSenderMode(),
         subject: buildReplySubject(thread.subject),
-        bodyText: ''
+        bodyText: '',
+        bodyHtml: '',
+        emailFormat: 'plain'
     };
     state.emailWorkspace.previewMode = 'compose';
     renderPanels();
@@ -6666,7 +6817,9 @@ function renderEmailWorkspaceComposer() {
     const senderOptions = getEmailSenderOptions();
     const draft = {
         ...createDefaultEmailComposerState(),
-        ...state.emailComposer
+        ...state.emailComposer,
+        emailFormat: state.emailComposer.emailFormat === 'html' ? 'html' : 'plain',
+        bodyHtml: String(state.emailComposer.bodyHtml ?? '')
     };
     const defaultSenderMode = resolveEmailComposerSenderMode(draft.senderMode, senderOptions);
     const leadEmail = normalizeEmailAddress(lead?.email);
@@ -6732,6 +6885,7 @@ function renderEmailWorkspaceComposer() {
                                 <input class="crm-input" value="${escapeHtml(senderOptions[0]?.label || 'Personal mailbox')}" readonly>
                             `}
                         </label>
+                        ${buildEmailTemplateControlsHtml(state.emailTemplates)}
                         <label class="form-field form-field-full">
                             <span class="form-label">Subject</span>
                             <input
@@ -6743,18 +6897,7 @@ function renderEmailWorkspaceComposer() {
                                 required
                             >
                         </label>
-                        <label class="form-field form-field-full">
-                            <span class="form-label">Message</span>
-                            <textarea
-                                class="crm-textarea"
-                                name="bodyText"
-                                placeholder="Write your email here..."
-                                maxlength="10000"
-                                required
-                            >${escapeHtml(draft.bodyText || '')}</textarea>
-                            <span class="panel-subtitle">Your saved signature is added automatically when the email sends.</span>
-                            <span class="panel-subtitle">Delivery is handled by your mail provider after it accepts the message—recipients should check spam or Promotions if they do not see it.</span>
-                        </label>
+                        ${buildEmailComposeBodySection(draft)}
                     </div>
                     <div class="drawer-actions">
                         <button class="crm-button" type="submit"><i class="fa-solid fa-paper-plane"></i> Send Email</button>
@@ -7251,7 +7394,9 @@ function renderEmailComposeDrawer() {
     const draft = {
         ...createDefaultEmailComposerState(),
         ...state.emailComposer,
-        leadId: lead?.id || normalizeWhitespace(state.emailComposer.leadId)
+        leadId: lead?.id || normalizeWhitespace(state.emailComposer.leadId),
+        emailFormat: state.emailComposer.emailFormat === 'html' ? 'html' : 'plain',
+        bodyHtml: String(state.emailComposer.bodyHtml ?? '')
     };
     const defaultSenderMode = resolveEmailComposerSenderMode(draft.senderMode, senderOptions);
     const normalizedRecipientEmail = normalizeEmailAddress(draft.recipientEmail);
@@ -7317,6 +7462,7 @@ function renderEmailComposeDrawer() {
                                 <input class="crm-input" value="${escapeHtml(senderOptions[0]?.label || 'Personal mailbox')}" readonly>
                             `}
                         </label>
+                        ${buildEmailTemplateControlsHtml(state.emailTemplates)}
                         <label class="form-field form-field-full">
                             <span class="form-label">Subject</span>
                             <input
@@ -7328,18 +7474,7 @@ function renderEmailComposeDrawer() {
                                 required
                             >
                         </label>
-                        <label class="form-field form-field-full">
-                            <span class="form-label">Message</span>
-                            <textarea
-                                class="crm-textarea"
-                                name="bodyText"
-                                placeholder="Write your email here..."
-                                maxlength="10000"
-                                required
-                            >${escapeHtml(draft.bodyText || '')}</textarea>
-                            <span class="panel-subtitle">Your saved signature is added automatically when the email sends.</span>
-                            <span class="panel-subtitle">Delivery is handled by your mail provider after it accepts the message—recipients should check spam or Promotions if they do not see it.</span>
-                        </label>
+                        ${buildEmailComposeBodySection(draft)}
                     </div>
                     <div class="drawer-actions">
                         <button class="crm-button" type="submit"><i class="fa-solid fa-paper-plane"></i> Send Email</button>
@@ -10477,6 +10612,106 @@ document.addEventListener('click', async (event) => {
         return;
     }
 
+    if (action === 'set-email-format') {
+        const form = actionEl.closest('#email-compose-form');
+
+        if (form) {
+            syncEmailComposerDraft(form);
+        }
+
+        state.emailComposer.emailFormat = normalizeWhitespace(actionEl.dataset.format) === 'html' ? 'html' : 'plain';
+        rerenderEmailComposeUi();
+        return;
+    }
+
+    if (action === 'save-email-template') {
+        if (!hasPermission(state.session, PERMISSIONS.SEND_EMAIL)) {
+            flashNotice('This session cannot send CRM email.', 'error');
+            return;
+        }
+
+        const form = actionEl.closest('#email-compose-form');
+
+        if (form) {
+            syncEmailComposerDraft(form);
+        }
+
+        const nameInput = document.getElementById('email-template-save-name');
+        const name = nameInput?.value?.trim() || '';
+
+        if (!name) {
+            flashNotice('Enter a name for this template.', 'error');
+            return;
+        }
+
+        const syncSubject = state.emailComposer.subject;
+        const syncBody = state.emailComposer.bodyText;
+        const syncHtml = state.emailComposer.bodyHtml;
+
+        if (!syncSubject && !syncBody && !String(syncHtml || '').trim()) {
+            flashNotice('Add a subject or message before saving a template.', 'error');
+            return;
+        }
+
+        try {
+            const result = await dataService.saveEmailTemplate({
+                name,
+                subject: syncSubject,
+                bodyText: syncBody,
+                bodyHtml: syncHtml
+            });
+            await refreshEmailTemplates();
+
+            if (nameInput) {
+                nameInput.value = '';
+            }
+
+            flashNotice(result?.updated ? 'Template updated.' : 'Template saved.', 'success');
+            rerenderEmailComposeUi();
+        } catch (error) {
+            flashNotice(error.message || 'Unable to save template.', 'error');
+        }
+
+        return;
+    }
+
+    if (action === 'delete-email-template') {
+        if (!hasPermission(state.session, PERMISSIONS.SEND_EMAIL)) {
+            flashNotice('This session cannot send CRM email.', 'error');
+            return;
+        }
+
+        const select = document.getElementById('email-template-select');
+        const id = normalizeWhitespace(select?.value);
+
+        if (!id) {
+            flashNotice('Select a template to delete.', 'error');
+            return;
+        }
+
+        const template = state.emailTemplates.find((row) => row.id === id);
+
+        if (!confirm(`Delete template "${template?.name || 'this template'}"?`)) {
+            return;
+        }
+
+        try {
+            await dataService.deleteEmailTemplate(id);
+            await refreshEmailTemplates();
+
+            if (select) {
+                select.selectedIndex = 0;
+            }
+
+            flashNotice('Template deleted.', 'success');
+            rerenderEmailComposeUi();
+        } catch (error) {
+            flashNotice(error.message || 'Unable to delete template.', 'error');
+        }
+
+        return;
+    }
+
     if (action === 'copy-phone-number') {
         try {
             const phoneValue = normalizeWhitespace(actionEl.dataset.phone);
@@ -10584,12 +10819,12 @@ document.addEventListener('click', async (event) => {
     }
 
     if (action === 'reply-email-thread') {
-        openReplyComposer(state.emailWorkspace.selectedThread, { includeAll: false });
+        await openReplyComposer(state.emailWorkspace.selectedThread, { includeAll: false });
         return;
     }
 
     if (action === 'reply-all-email-thread') {
-        openReplyComposer(state.emailWorkspace.selectedThread, { includeAll: true });
+        await openReplyComposer(state.emailWorkspace.selectedThread, { includeAll: true });
         return;
     }
 
@@ -11183,7 +11418,8 @@ document.addEventListener('submit', async (event) => {
                 references: formData.get('references'),
                 senderMode: formData.get('senderMode'),
                 subject: formData.get('subject'),
-                bodyText: formData.get('bodyText')
+                bodyText: formData.get('bodyText'),
+                bodyHtml: formData.get('bodyHtml')
             });
 
             if (sentFromLeadDrawer) {
@@ -11524,6 +11760,11 @@ document.addEventListener('input', (event) => {
 
     if (event.target.closest?.('#email-compose-form')) {
         syncEmailComposerDraft(event.target.closest('form'));
+
+        if (event.target.name === 'bodyText' || event.target.name === 'bodyHtml') {
+            queueEmailComposePreviewUpdate();
+        }
+
         return;
     }
 
@@ -11731,6 +11972,28 @@ document.addEventListener('paste', (event) => {
 });
 
 document.addEventListener('change', async (event) => {
+    if (event.target.id === 'email-template-select') {
+        const id = normalizeWhitespace(event.target.value);
+
+        if (!id) {
+            return;
+        }
+
+        const template = state.emailTemplates.find((row) => row.id === id);
+
+        if (!template) {
+            return;
+        }
+
+        state.emailComposer.subject = template.subject;
+        state.emailComposer.bodyText = template.bodyText;
+        state.emailComposer.bodyHtml = template.bodyHtml || '';
+        state.emailComposer.emailFormat = String(template.bodyHtml || '').trim() ? 'html' : 'plain';
+        event.target.selectedIndex = 0;
+        rerenderEmailComposeUi();
+        return;
+    }
+
     if (event.target.matches('[data-signature-upload]')) {
         try {
             await handleSignatureAssetUpload(event.target);

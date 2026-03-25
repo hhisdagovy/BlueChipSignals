@@ -7389,6 +7389,92 @@ button {
     justify-content: center;
 }
 
+.crm-email-template-toolbar {
+    display: grid;
+    gap: 0.55rem;
+    padding: 0.65rem 0.75rem;
+    border-radius: 10px;
+    border: 1px solid rgba(201, 176, 55, 0.14);
+    background: rgba(0, 0, 0, 0.2);
+}
+
+.crm-email-template-toolbar .panel-subtitle {
+    margin: 0;
+}
+
+.crm-email-template-row {
+    display: flex;
+    align-items: flex-end;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+.crm-email-template-apply {
+    flex: 1;
+    min-width: 0;
+}
+
+.crm-email-template-delete {
+    flex-shrink: 0;
+    margin-bottom: 0.1rem;
+}
+
+.crm-email-template-save-row {
+    display: flex;
+    align-items: stretch;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+.crm-email-template-save-row .crm-input {
+    flex: 1;
+    min-width: 140px;
+}
+
+.crm-hidden {
+    display: none !important;
+}
+
+.crm-email-format-toggle .crm-email-format-buttons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.45rem;
+}
+
+.crm-email-format-buttons .crm-button-secondary.is-active {
+    border-color: rgba(201, 176, 55, 0.55);
+    background: rgba(201, 176, 55, 0.12);
+    color: var(--primary-gold);
+}
+
+.crm-textarea-mono {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', monospace;
+    font-size: 0.82rem;
+    line-height: 1.45;
+    min-height: 180px;
+}
+
+.crm-email-preview-panel {
+    margin-top: 0.25rem;
+}
+
+.crm-email-preview-shell {
+    border: 1px solid rgba(201, 176, 55, 0.2);
+    border-radius: 10px;
+    overflow: hidden;
+    background: #fff;
+    min-height: 200px;
+}
+
+.crm-email-preview-iframe {
+    width: 100%;
+    min-height: 220px;
+    height: 280px;
+    border: 0;
+    display: block;
+    background: #fff;
+}
+
 .crm-email-folder-list {
     display: grid;
     gap: 0.35rem;

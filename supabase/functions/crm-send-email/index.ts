@@ -16,7 +16,9 @@ import {
   normalizeEmailAddress,
   normalizeWhitespace,
   parseRecipientEmails,
-  requireAuthenticatedProfile
+  requireAuthenticatedProfile,
+  sanitizeCrmEmailHtmlBody,
+  stripHtmlToText
 } from '../_shared/crm-email.ts'
 
 type SupabaseAdminClient = ReturnType<typeof getSupabaseAdminClient>
@@ -38,6 +40,8 @@ Deno.serve(async (request) => {
     const senderMode = assertSenderModeAccess(profile, payload.senderMode)
     const subject = normalizeWhitespace(payload.subject)
     const bodyText = String(payload.bodyText ?? '').trim()
+    const rawBodyHtml = String(payload.bodyHtml ?? '').trim()
+    const sanitizedBodyHtml = rawBodyHtml ? sanitizeCrmEmailHtmlBody(rawBodyHtml) : ''
     const explicitRecipientEmails = parseRecipientEmails(payload.recipientEmails)
     const requestedRecipientEmail = normalizeEmailAddress(payload.recipientEmail)
     const normalizedLeadId = normalizeWhitespace(payload.leadId)
@@ -49,7 +53,7 @@ Deno.serve(async (request) => {
       throw new Error('Enter an email subject before sending.')
     }
 
-    if (!bodyText) {
+    if (!bodyText && !sanitizedBodyHtml) {
       throw new Error('Enter an email message before sending.')
     }
 
@@ -60,6 +64,12 @@ Deno.serve(async (request) => {
     if (bodyText.length > 10000) {
       throw new Error('Keep the email message under 10,000 characters.')
     }
+
+    if (sanitizedBodyHtml.length > 200000) {
+      throw new Error('HTML message is too large.')
+    }
+
+    const resolvedPlainBody = bodyText || stripHtmlToText(sanitizedBodyHtml)
 
     const lead = normalizedLeadId
       ? await fetchLeadForAccess(supabase, normalizedLeadId)
@@ -86,12 +96,13 @@ Deno.serve(async (request) => {
     const sentAt = new Date().toISOString()
     const deliveredBodyText = buildEmailText({
       senderName: sender.senderName,
-      bodyText,
+      bodyText: resolvedPlainBody,
       signatureText: sender.signatureText
     })
-    const bodyHtml = buildEmailHtml({
+    const finalEmailHtml = buildEmailHtml({
       senderName: sender.senderName,
-      bodyText,
+      bodyText: resolvedPlainBody,
+      htmlBodyInner: sanitizedBodyHtml,
       signatureMode: sender.signatureMode,
       signatureTemplate: sender.signatureTemplate,
       signatureHtmlOverride: sender.signatureHtmlOverride,
@@ -136,7 +147,7 @@ Deno.serve(async (request) => {
         to: recipientEmails.join(', '),
         subject,
         text: deliveredBodyText,
-        html: bodyHtml,
+        html: finalEmailHtml,
         replyTo: sender.senderEmail,
         ...(inReplyTo ? { inReplyTo } : {}),
         ...(referencesHeader ? { references: referencesHeader } : {})
@@ -144,12 +155,28 @@ Deno.serve(async (request) => {
 
       providerMessageId = normalizeWhitespace(result?.messageId)
 
-      const rejectedList = Array.isArray((result as { rejected?: unknown })?.rejected)
-        ? ((result as { rejected: string[] }).rejected).map((addr) => normalizeWhitespace(addr)).filter(Boolean)
+      const smtpInfo = result as {
+        rejected?: string[]
+        accepted?: string[]
+        response?: string
+      }
+
+      const rejectedList = Array.isArray(smtpInfo.rejected)
+        ? smtpInfo.rejected.map((addr) => normalizeWhitespace(addr)).filter(Boolean)
         : []
+
+      if (typeof smtpInfo.response === 'string' && smtpInfo.response.trim()) {
+        console.info('[crm-send-email] SMTP response:', smtpInfo.response.trim().slice(0, 500))
+      }
 
       if (rejectedList.length) {
         transportErrorMessage = `Mail server rejected ${rejectedList.length === 1 ? 'this address' : 'these addresses'}: ${rejectedList.join(', ')}.`
+      } else if (
+        Array.isArray(smtpInfo.accepted)
+        && smtpInfo.accepted.length === 0
+        && recipientEmails.length > 0
+      ) {
+        transportErrorMessage = 'The mail server did not accept any recipient addresses. Check SMTP settings and that the From address matches your provider (e.g. verified Send mail as for Gmail).'
       }
     } catch (sendError) {
       transportErrorMessage = String(sendError instanceof Error ? sendError.message : sendError || 'Unable to send the email.')
@@ -164,7 +191,7 @@ Deno.serve(async (request) => {
       mailboxSenderId: sender.id,
       leadId: loggedToLead && lead ? lead.id : '',
       subject,
-      snippet: buildEmailSnippet(bodyText),
+      snippet: buildEmailSnippet(resolvedPlainBody),
       participants: buildEmailParticipants({
         fromEmail: sender.senderEmail,
         fromName: sender.senderName,
@@ -186,8 +213,8 @@ Deno.serve(async (request) => {
       fromName: sender.senderName,
       toEmails: recipientEmails,
       subject,
-      bodyText,
-      bodyHtml,
+      bodyText: resolvedPlainBody,
+      bodyHtml: finalEmailHtml,
       provider: 'smtp',
       providerMessageId: providerMessageId || `smtp:${crypto.randomUUID()}`,
       status: transportErrorMessage ? 'failed' : 'sent',
@@ -200,7 +227,7 @@ Deno.serve(async (request) => {
       messageIdHeader: providerMessageId,
       inReplyTo,
       referencesHeader,
-      snippet: buildEmailSnippet(bodyText),
+      snippet: buildEmailSnippet(resolvedPlainBody),
       participants: buildEmailParticipants({
         fromEmail: sender.senderEmail,
         fromName: sender.senderName,
@@ -212,10 +239,18 @@ Deno.serve(async (request) => {
 
     let warning = ''
 
+    if (
+      !transportErrorMessage
+      && normalizeWhitespace(sender.smtpUsername).toLowerCase() !== sender.senderEmail.toLowerCase()
+    ) {
+      warning = 'SMTP login differs from the From address. Many providers require a verified alias (e.g. Gmail Send mail as) or aligned SPF/DKIM, or mail may never reach the recipient.'
+    }
+
     try {
       await refreshEmailThreadSummary(supabase, threadId)
     } catch (summaryError) {
-      warning = String(summaryError instanceof Error ? summaryError.message : summaryError || 'Email conversation summary could not be refreshed.')
+      const summaryPart = String(summaryError instanceof Error ? summaryError.message : summaryError || 'Email conversation summary could not be refreshed.')
+      warning = warning ? `${warning} ${summaryPart}` : summaryPart
     }
 
     if (!transportErrorMessage && loggedToLead && lead) {

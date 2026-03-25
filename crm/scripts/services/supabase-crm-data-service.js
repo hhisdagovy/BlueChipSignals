@@ -1246,6 +1246,126 @@ export class SupabaseCrmDataService extends CrmDataService {
     }
   }
 
+  async listEmailTemplates() {
+    const supabase = await getSupabase()
+    const { data, error } = await supabase
+      .from('crm_email_templates')
+      .select('id, name, subject, body_text, body_html, updated_at')
+      .order('updated_at', { ascending: false })
+
+    if (error) {
+      throw new Error(error.message || 'Unable to load email templates.')
+    }
+
+    return (data || []).map(mapEmailTemplateRow)
+  }
+
+  async saveEmailTemplate({ name, subject = '', bodyText = '', bodyHtml = '' } = {}) {
+    const supabase = await getSupabase()
+    const { data: { user } } = await supabase.auth.getUser()
+
+    if (!user?.id) {
+      throw new Error('Sign in to save templates.')
+    }
+
+    const trimmedName = String(name ?? '').trim()
+
+    if (!trimmedName) {
+      throw new Error('Enter a template name.')
+    }
+
+    const subjectValue = String(subject ?? '')
+    const bodyValue = String(bodyText ?? '')
+    const bodyHtmlValue = String(bodyHtml ?? '')
+
+    if (subjectValue.length > 160) {
+      throw new Error('Subject must be 160 characters or fewer (same as sent email).')
+    }
+
+    if (bodyValue.length > 20000) {
+      throw new Error('Message is too long for a template.')
+    }
+
+    if (bodyHtmlValue.length > 20000) {
+      throw new Error('HTML message is too long for a template.')
+    }
+
+    const { data: existingRows, error: listError } = await supabase
+      .from('crm_email_templates')
+      .select('id, name')
+      .eq('user_id', user.id)
+
+    if (listError) {
+      throw new Error(listError.message || 'Unable to save the template.')
+    }
+
+    const lower = trimmedName.toLowerCase()
+    const match = (existingRows || []).find((row) => String(row.name || '').trim().toLowerCase() === lower)
+
+    if (match?.id) {
+      const { error: updateError } = await supabase
+        .from('crm_email_templates')
+        .update({
+          subject: subjectValue,
+          body_text: bodyValue,
+          body_html: bodyHtmlValue
+        })
+        .eq('id', match.id)
+        .eq('user_id', user.id)
+
+      if (updateError) {
+        throw new Error(updateError.message || 'Unable to update the template.')
+      }
+
+      return { id: match.id, updated: true }
+    }
+
+    const { data: inserted, error: insertError } = await supabase
+      .from('crm_email_templates')
+      .insert({
+        user_id: user.id,
+        name: trimmedName,
+        subject: subjectValue,
+        body_text: bodyValue,
+        body_html: bodyHtmlValue
+      })
+      .select('id')
+      .maybeSingle()
+
+    if (insertError) {
+      throw new Error(insertError.message || 'Unable to save the template.')
+    }
+
+    return { id: inserted?.id, updated: false }
+  }
+
+  async deleteEmailTemplate(templateId = '') {
+    const supabase = await getSupabase()
+    const { data: { user } } = await supabase.auth.getUser()
+
+    if (!user?.id) {
+      throw new Error('Sign in to manage templates.')
+    }
+
+    const id = normalizeWhitespace(templateId)
+
+    if (!id) {
+      throw new Error('Choose a template to delete.')
+    }
+
+    const { error } = await supabase
+      .from('crm_email_templates')
+      .delete()
+      .eq('id', id)
+      .eq('user_id', user.id)
+
+    if (error) {
+      throw new Error(error.message || 'Unable to delete the template.')
+    }
+
+    return { ok: true }
+  }
+
   async sendEmail({
     leadId,
     recipientEmail = '',
@@ -1255,7 +1375,8 @@ export class SupabaseCrmDataService extends CrmDataService {
     inReplyTo = '',
     references = '',
     subject = '',
-    bodyText = ''
+    bodyText = '',
+    bodyHtml = ''
   } = {}) {
     const normalizedRecipientEmails = dedupeStrings(
       Array.isArray(recipientEmails)
@@ -1275,7 +1396,8 @@ export class SupabaseCrmDataService extends CrmDataService {
       inReplyTo: normalizeWhitespace(inReplyTo),
       references: normalizeWhitespace(references),
       subject: normalizeWhitespace(subject),
-      bodyText: String(bodyText ?? '')
+      bodyText: String(bodyText ?? ''),
+      bodyHtml: String(bodyHtml ?? '')
     })
 
     if (error) {
@@ -3054,6 +3176,17 @@ function mapMailboxSyncStateRow(row) {
     syncStatus: normalizeWhitespace(row.sync_status ?? row.syncStatus) || 'idle',
     syncedMessageCount: Math.max(0, Number(row.synced_message_count ?? row.syncedMessageCount) || 0),
     createdAt: row.created_at ?? row.createdAt ?? '',
+    updatedAt: row.updated_at ?? row.updatedAt ?? ''
+  }
+}
+
+function mapEmailTemplateRow(row) {
+  return {
+    id: normalizeWhitespace(row.id),
+    name: String(row.name ?? ''),
+    subject: String(row.subject ?? ''),
+    bodyText: String(row.body_text ?? row.bodyText ?? ''),
+    bodyHtml: String(row.body_html ?? row.bodyHtml ?? ''),
     updatedAt: row.updated_at ?? row.updatedAt ?? ''
   }
 }

@@ -503,6 +503,17 @@
             color: var(--gray-text);
         }
 
+        .trade-datetimes {
+            display: flex;
+            flex-direction: column;
+            gap: 0.15rem;
+        }
+
+        .trade-date-closed {
+            font-size: 0.7rem;
+            color: rgba(160, 160, 160, 0.9);
+        }
+
         .trade-badge {
             display: inline-flex;
             align-items: center;
@@ -1025,8 +1036,13 @@
                         </select>
                     </div>
                     <div class="form-group">
-                        <label for="tradeDate">Date &amp; Time</label>
+                        <label for="tradeDate">Open (entry) time</label>
                         <input type="datetime-local" id="tradeDate" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="closedDate">Closed (exit) time</label>
+                        <input type="datetime-local" id="closedDate" aria-describedby="closedDateHint">
+                        <small id="closedDateHint" style="display:block;margin-top:0.35rem;font-size:0.72rem;color:var(--gray-text);">Optional. When you close the trade, record when you exited.</small>
                     </div>
                     <div class="form-group">
                         <label for="ticker">Ticker</label>
@@ -1144,11 +1160,37 @@
         let charts = {};
         let currentUserId = null;
 
+        function formatTradeDateTime(iso) {
+            if (!iso) return '—';
+            try {
+                const d = new Date(iso);
+                if (isNaN(d.getTime())) return '—';
+                return d.toLocaleString('en-US', {
+                    month: 'short',
+                    day: 'numeric',
+                    year: 'numeric',
+                    hour: 'numeric',
+                    minute: '2-digit'
+                });
+            } catch (_) {
+                return '—';
+            }
+        }
+
+        /** For charts: prefer exit time when set so P&L aligns with when the trade closed. */
+        function effectiveChartDate(trade) {
+            if (trade.status === 'Closed' && trade.exitPrice && trade.closedDate) {
+                return trade.closedDate;
+            }
+            return trade.date;
+        }
+
         // Initialize
         document.addEventListener('DOMContentLoaded', function() {
             const now = new Date();
             now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
             document.getElementById('tradeDate').value = now.toISOString().slice(0, 16);
+            document.getElementById('closedDate').value = '';
             renderTradesList();
             updateStats();
             renderCharts();
@@ -1256,16 +1298,20 @@
                 ? (optType === 'Call' ? 'Long' : optType === 'Put' ? 'Short' : '')
                 : document.getElementById('direction').value;
 
+            const statusVal = document.getElementById('status').value;
+            const closedRaw = document.getElementById('closedDate').value;
+
             const trade = {
                 id: editingTradeId || Date.now().toString(),
                 tradeType: tradeType,
                 date: document.getElementById('tradeDate').value,
+                closedDate: statusVal === 'Closed' && closedRaw ? closedRaw : null,
                 ticker: document.getElementById('ticker').value.trim().toUpperCase(),
                 direction: direction,
                 strategy: document.getElementById('strategy').value,
                 entryPrice: parseFloat(document.getElementById('entryPrice').value),
                 exitPrice: document.getElementById('exitPrice').value ? parseFloat(document.getElementById('exitPrice').value) : null,
-                status: document.getElementById('status').value,
+                status: statusVal,
                 entryReason: document.getElementById('entryReason').value,
                 exitReason: document.getElementById('exitReason').value,
                 notes: document.getElementById('notes').value
@@ -1375,6 +1421,7 @@
             const now = new Date();
             now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
             document.getElementById('tradeDate').value = now.toISOString().slice(0, 16);
+            document.getElementById('closedDate').value = '';
             document.getElementById('tradeType').value = 'Stock';
             toggleTradeTypeFields();
             editingTradeId = null;
@@ -1390,6 +1437,7 @@
             document.getElementById('tradeType').value = trade.tradeType || 'Stock';
             toggleTradeTypeFields();
             document.getElementById('tradeDate').value = trade.date;
+            document.getElementById('closedDate').value = trade.closedDate || '';
             document.getElementById('ticker').value = trade.ticker || '';
             // Only set direction for stock trades; options derive it from optionType
             if ((trade.tradeType || 'Stock') === 'Stock') {
@@ -1481,7 +1529,7 @@
                 const isOption = trade.tradeType === 'Option';
                 const pnlSign = trade.pnl > 0 ? '+' : '';
                 const pnlClass = trade.pnl > 0 ? 'positive' : trade.pnl < 0 ? 'negative' : 'neutral';
-                const dateStr = new Date(trade.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+                const openTimeStr = formatTradeDateTime(trade.date);
                 const details = isOption
                     ? `${trade.optionType || ''} $${trade.strikePrice || ''} | ${trade.contracts || ''}C`
                     : `${trade.shares || ''} shares`;
@@ -1497,7 +1545,10 @@
                         <div class="trade-ticker-icon ${colorClass}">${trade.ticker}</div>
                         <div class="trade-info">
                             <div class="trade-ticker-name">${trade.ticker}</div>
-                            <div class="trade-date">${dateStr}</div>
+                            <div class="trade-datetimes">
+                                <div class="trade-date">Open: ${openTimeStr}</div>
+                                ${trade.status === 'Closed' ? `<div class="trade-date trade-date-closed">Closed: ${formatTradeDateTime(trade.closedDate)}</div>` : ''}
+                            </div>
                         </div>
                         <span class="trade-badge ${trade.direction.toLowerCase()}">${trade.direction}</span>
                         <span class="trade-badge ${isOption ? 'option' : 'stock'}">${trade.tradeType || 'Stock'}</span>
@@ -1509,6 +1560,14 @@
                     </div>
                     <div class="trade-row-detail">
                         <div class="trade-detail-grid">
+                            <div>
+                                <div class="trade-detail-label">Open time</div>
+                                <div class="trade-detail-value">${openTimeStr}</div>
+                            </div>
+                            <div>
+                                <div class="trade-detail-label">Closed time</div>
+                                <div class="trade-detail-value">${trade.status === 'Closed' ? formatTradeDateTime(trade.closedDate) : '—'}</div>
+                            </div>
                             <div>
                                 <div class="trade-detail-label">Entry</div>
                                 <div class="trade-detail-value">${entryLabel}</div>
@@ -1621,7 +1680,7 @@
             if (charts.equityCurve) charts.equityCurve.destroy();
 
             const closedTrades = trades.filter(t => t.status === 'Closed' && t.exitPrice)
-                .sort((a, b) => new Date(a.date) - new Date(b.date));
+                .sort((a, b) => new Date(effectiveChartDate(a)) - new Date(effectiveChartDate(b)));
 
             if (closedTrades.length === 0) {
                 ctx.style.display = 'none';
@@ -1635,7 +1694,7 @@
             let cumulative = 0;
             const data = closedTrades.map(trade => {
                 cumulative += trade.pnl;
-                return { x: new Date(trade.date), y: cumulative };
+                return { x: new Date(effectiveChartDate(trade)), y: cumulative };
             });
 
             charts.equityCurve = new Chart(ctx, {
@@ -1780,7 +1839,7 @@
 
             const monthlyData = {};
             closedTrades.forEach(trade => {
-                const month = new Date(trade.date).toLocaleDateString('en-US', { year: 'numeric', month: 'short' });
+                const month = new Date(effectiveChartDate(trade)).toLocaleDateString('en-US', { year: 'numeric', month: 'short' });
                 if (!monthlyData[month]) monthlyData[month] = 0;
                 monthlyData[month] += trade.pnl;
             });
@@ -1954,7 +2013,18 @@
                 } catch (_) {}
 
                 if (user.user_metadata?.is_demo === true) {
-                    trades = window.BCS_DEMO.TRADES.slice();
+                    trades = window.BCS_DEMO.TRADES.slice().map((t) => {
+                        if (t.status === 'Closed' && t.exitPrice && !t.closedDate && t.date) {
+                            const d = new Date(t.date);
+                            if (!isNaN(d.getTime())) {
+                                d.setHours(d.getHours() + 2);
+                                const pad = (n) => String(n).padStart(2, '0');
+                                const closedDate = `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+                                return { ...t, closedDate };
+                            }
+                        }
+                        return t;
+                    });
                     renderTradesList();
                     updateStats();
                     renderCharts();
